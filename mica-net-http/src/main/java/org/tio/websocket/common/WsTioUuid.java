@@ -203,10 +203,10 @@ import java.util.concurrent.ThreadLocalRandom;
  * 2017年6月5日 上午10:44:26
  */
 public class WsTioUuid implements TioUuid {
-	private Snowflake snowflake;
+	private final Snowflake snowflake;
 
 	public WsTioUuid() {
-		snowflake = new Snowflake(ThreadLocalRandom.current().nextInt(1, 30), ThreadLocalRandom.current().nextInt(1, 30));
+		this(ThreadLocalRandom.current().nextInt(1, 30), ThreadLocalRandom.current().nextInt(1, 30));
 	}
 
 	public WsTioUuid(long workerId, long datacenterId) {
