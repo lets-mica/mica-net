@@ -191,29 +191,39 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.websocket.common;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
+ * 2017年7月30日 上午10:09:46
  */
-public class ResourceUtilTest {
+public class WsRequest extends WsPacket {
+	private static final Logger log = LoggerFactory.getLogger(WsRequest.class);
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
+	private static final long serialVersionUID = -3361865570708714596L;
+
+	public static WsRequest fromText(String text, String charset) {
+		WsRequest wsRequest = new WsRequest();
 		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
+			wsRequest.setBody(text.getBytes(charset));
+		} catch (UnsupportedEncodingException e) {
+			log.error(e.toString(), e);
 		}
+		wsRequest.setWsEof(true);
+		wsRequest.setWsOpcode(Opcode.TEXT);
+		return wsRequest;
+	}
+
+	public static WsRequest fromBytes(byte[] bytes) {
+		WsRequest wsRequest = new WsRequest();
+		wsRequest.setBody(bytes);
+		wsRequest.setWsEof(true);
+		wsRequest.setWsOpcode(Opcode.BINARY);
+		return wsRequest;
 	}
 }

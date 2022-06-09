@@ -191,29 +191,114 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.websocket.common;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.tio.http.common.HttpRequest;
+import org.tio.http.common.HttpResponse;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.List;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
  */
-public class ResourceUtilTest {
+public class WsSessionContext {
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
-		}
+	/**
+	 * 是否已经握过手
+	 */
+	private boolean isHandshaked = false;
+
+	/**
+	 * websocket 握手请求包
+	 */
+	private HttpRequest handshakeRequest = null;
+
+	/**
+	 * websocket 握手响应包
+	 */
+	private HttpResponse handshakeResponse = null;
+
+	private String token = null;
+
+	//websocket 协议用到的，有时候数据包是分几个到的，注意那个fin字段，本im暂时不支持
+	private List<byte[]> lastParts = null;
+
+	/**
+	 * @author tanyaowu
+	 * 2017年2月21日 上午10:27:54
+	 */
+	public WsSessionContext() {
+
 	}
+
+	/**
+	 * @return the handshakeRequest
+	 */
+	public HttpRequest getHandshakeRequest() {
+		return handshakeRequest;
+	}
+
+	/**
+	 * @param handshakeRequest the handshakeRequest to set
+	 */
+	public void setHandshakeRequest(HttpRequest handshakeRequest) {
+		this.handshakeRequest = handshakeRequest;
+	}
+
+	/**
+	 * @return the handshakeResponse
+	 */
+	public HttpResponse getHandshakeResponse() {
+		return handshakeResponse;
+	}
+
+	/**
+	 * @param handshakeResponse the handshakeResponse to set
+	 */
+	public void setHandshakeResponse(HttpResponse handshakeResponse) {
+		this.handshakeResponse = handshakeResponse;
+	}
+
+	/**
+	 * @return the lastPart
+	 */
+	public List<byte[]> getLastParts() {
+		return lastParts;
+	}
+
+	/**
+	 * @param lastParts the lastPart to set
+	 */
+	public void setLastParts(List<byte[]> lastParts) {
+		this.lastParts = lastParts;
+	}
+
+	/**
+	 * @return the token
+	 */
+	public String getToken() {
+		return token;
+	}
+
+	/**
+	 * @param token the token to set
+	 */
+	public void setToken(String token) {
+		this.token = token;
+	}
+
+	/**
+	 * @return the isHandshaked
+	 */
+	public boolean isHandshaked() {
+		return isHandshaked;
+	}
+
+	/**
+	 * @param isHandshaked the isHandshaked to set
+	 */
+	public void setHandshaked(boolean isHandshaked) {
+		this.isHandshaked = isHandshaked;
+	}
+
 }

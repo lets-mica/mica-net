@@ -191,29 +191,39 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.websocket.common;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
+ * 2017年6月30日 下午5:06:09
  */
-public class ResourceUtilTest {
+public enum Opcode {
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
+	NOT_FIN((byte) 0), TEXT((byte) 1), BINARY((byte) 2), CLOSE((byte) 8), PING((byte) 9), PONG((byte) 10);
+
+	private static final Map<Byte, Opcode> map = new HashMap<>();
+
+	static {
+		for (Opcode command : values()) {
+			map.put(command.getCode(), command);
 		}
 	}
+
+	private final byte code;
+
+	private Opcode(byte code) {
+		this.code = code;
+	}
+
+	public static Opcode valueOf(byte code) {
+		return map.get(code);
+	}
+
+	public byte getCode() {
+		return code;
+	}
+
 }

@@ -191,29 +191,65 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.http.common.handler;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.tio.http.common.HttpConfig;
+import org.tio.http.common.HttpRequest;
+import org.tio.http.common.HttpResponse;
+import org.tio.http.common.RequestLine;
 
 /**
- * {@link ResourceUtil} 单元测试
+ * http请求处理者
  *
- * @author looly
+ * @author tanyaowu
+ * 2017年8月30日 上午9:22:50
  */
-public class ResourceUtilTest {
+public interface HttpRequestHandler {
+	/**
+	 * 处理请求
+	 *
+	 * @param packet
+	 * @return 可以为null
+	 * @throws Exception
+	 * @author tanyaowu
+	 */
+	public HttpResponse handler(HttpRequest packet) throws Exception;
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
-		}
-	}
+	/**
+	 * 响应404
+	 *
+	 * @param request
+	 * @param requestLine
+	 * @param channelContext
+	 * @return
+	 * @throws Exception
+	 * @author tanyaowu
+	 */
+	public HttpResponse resp404(HttpRequest request, RequestLine requestLine) throws Exception;
+
+	/**
+	 * 响应500
+	 *
+	 * @param request
+	 * @param requestLine
+	 * @param throwable
+	 * @return
+	 * @throws Exception
+	 * @author tanyaowu
+	 */
+	public HttpResponse resp500(HttpRequest request, RequestLine requestLine, Throwable throwable) throws Exception;
+
+	/**
+	 * @return
+	 * @author tanyaowu
+	 */
+	public HttpConfig getHttpConfig(HttpRequest request);
+
+	/**
+	 * 清空静态资源缓存，如果没有缓存，可以不处理
+	 *
+	 * @param request
+	 * @author: tanyaowu
+	 */
+	public void clearStaticResCache();
 }

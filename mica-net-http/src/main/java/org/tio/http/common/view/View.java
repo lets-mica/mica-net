@@ -191,29 +191,24 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+/**
+ *
+ */
+package org.tio.http.common.view;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.tio.http.common.HttpRequest;
+import org.tio.http.common.HttpResponse;
 
 /**
- * {@link ResourceUtil} 单元测试
+ * @author tanyaowu
  *
- * @author looly
  */
-public class ResourceUtilTest {
-
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
-		}
-	}
+public interface View {
+	/**
+	 *
+	 * @param path 请求的路径
+	 * @param request
+	 * @return
+	 */
+	public HttpResponse render(String path, HttpRequest request);
 }

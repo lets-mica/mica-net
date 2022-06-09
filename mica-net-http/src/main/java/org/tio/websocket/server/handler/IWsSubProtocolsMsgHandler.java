@@ -191,29 +191,41 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+package org.tio.websocket.server.handler;
 
-import java.io.IOException;
-import java.io.InputStream;
+import org.tio.core.ChannelContext;
+import org.tio.core.TioConfig;
+import org.tio.core.intf.Packet;
+import org.tio.websocket.common.WsResponse;
 
 /**
- * {@link ResourceUtil} 单元测试
+ * websocket 子协议处理器
  *
- * @author looly
+ * @author L.cm
+ * 2021年7月31日 上午10:34:59
  */
-public class ResourceUtilTest {
+public interface IWsSubProtocolsMsgHandler {
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
-		}
+	/**
+	 * 获取支持的子协议
+	 *
+	 * @return 子协议数组
+	 */
+	default String[] getSupportedSubProtocols() {
+		return null;
 	}
+
+	/**
+	 * 解析子编码
+	 *
+	 * @param packet         Packet
+	 * @param tioConfig      TioConfig
+	 * @param channelContext ChannelContext
+	 * @return Packet
+	 */
+	default WsResponse encodeSubProtocol(Packet packet, TioConfig tioConfig, ChannelContext channelContext) {
+		return null;
+	}
+
 }

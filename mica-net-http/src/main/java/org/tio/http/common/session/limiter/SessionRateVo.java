@@ -191,29 +191,84 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.http.common.session.limiter;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
+ * 2018年12月5日 下午10:36:28
  */
-public class ResourceUtilTest {
+public class SessionRateVo implements Serializable {
+	private static final long serialVersionUID = 5585145117550534333L;
+	@SuppressWarnings("unused")
+	private static Logger log = LoggerFactory.getLogger(SessionRateVo.class);
+	private String path = null;
+	/**
+	 * 上一次访问时间
+	 */
+	private long lastAccessTime = 0;
+	/**
+	 * 已经访问了多少次（一分钟）
+	 */
+	private AtomicInteger accessCount = new AtomicInteger();
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
-		}
+	/**
+	 * @author tanyaowu
+	 */
+	public SessionRateVo(String path) {
+		this.path = path;
+	}
+
+	public static SessionRateVo create(String path) {
+		return new SessionRateVo(path);
+	}
+
+	/**
+	 * @param args
+	 * @author tanyaowu
+	 */
+	public static void main(String[] args) {
+
+	}
+
+	/**
+	 * @return the lastAccessTime
+	 */
+	public long getLastAccessTime() {
+		return lastAccessTime;
+	}
+
+	/**
+	 * @param lastAccessTime the lastAccessTime to set
+	 */
+	public void setLastAccessTime(long lastAccessTime) {
+		this.lastAccessTime = lastAccessTime;
+	}
+
+	/**
+	 * @return the accessCount
+	 */
+	public AtomicInteger getAccessCount() {
+		return accessCount;
+	}
+
+	/**
+	 * @param accessCount the accessCount to set
+	 */
+	public void setAccessCount(AtomicInteger accessCount) {
+		this.accessCount = accessCount;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
 	}
 }

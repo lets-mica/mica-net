@@ -191,29 +191,40 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
+/**
+ *
+ */
+package org.tio.http.common;
 
 /**
- * {@link ResourceUtil} 单元测试
+ * @author tanyaowu
  *
- * @author looly
  */
-public class ResourceUtilTest {
+public class ResponseLine {
+	public String protocol;
+	public String version;
+	public Integer status;
+	public String desc;
+	//	public byte[] bytes;
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
-		}
+	//	public static ResponseLine
+
+	public ResponseLine(String protocol, String version, Integer status, String desc) {
+		super();
+		this.protocol = protocol;
+		this.version = version;
+		this.status = status;
+		this.desc = desc;
+
+		//		StringBuilder sb = new StringBuilder(32);
+		//		sb.append(protocol);
+		//		sb.append("/");
+		//		sb.append(version);
+		//		sb.append(SysConst.SPACE);
+		//		sb.append(status);
+		//		sb.append(SysConst.SPACE);
+		//		sb.append(desc);
+		//		this.bytes = sb.toString().getBytes();
 	}
+
 }

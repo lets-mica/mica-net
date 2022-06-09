@@ -191,29 +191,46 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.http.common.session.id.impl;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.tio.http.common.HttpConfig;
+import org.tio.http.common.HttpRequest;
+import org.tio.http.common.session.id.ISessionIdGenerator;
+import org.tio.utils.hutool.Snowflake;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
+ * 2017年8月15日 上午10:58:22
  */
-public class ResourceUtilTest {
+public class SnowflakeSessionIdGenerator implements ISessionIdGenerator {
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
-		}
+	private Snowflake snowflake;
+
+	//	/**
+	//	 *
+	//	 * @author tanyaowu
+	//	 */
+	//	public SnowflakeSessionIdGenerator() {
+	//		snowflake = new Snowflake(RandomUtil.randomInt(0, 31), RandomUtil.randomInt(0, 31));
+	//	}
+
+	/**
+	 * @author tanyaowu
+	 */
+	public SnowflakeSessionIdGenerator(int workerId, int datacenterId) {
+		snowflake = new Snowflake(workerId, datacenterId);
+	}
+
+	/**
+	 * @return
+	 * @author tanyaowu
+	 */
+	@Override
+	public String sessionId(HttpConfig httpConfig, HttpRequest request) {
+		return String.valueOf(snowflake.nextId());
+	}
+
+	public long nextId() {
+		return snowflake.nextId();
 	}
 }

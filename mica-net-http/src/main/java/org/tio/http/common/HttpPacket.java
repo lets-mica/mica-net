@@ -191,29 +191,88 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.http.common;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.tio.core.intf.Packet;
+import org.tio.utils.SysConst;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
  */
-public class ResourceUtilTest {
+public class HttpPacket extends Packet {
+	private static final long serialVersionUID = 3903186670675671956L;
+	protected byte[] body;
+	private Map<String, Serializable> props = new HashMap<>();
+	private String headerString = SysConst.BLANK;
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
+	public HttpPacket() {
+
+	}
+
+	/**
+	 * 获取属性
+	 *
+	 * @param key
+	 * @return
+	 * @author tanyaowu
+	 */
+	public Object getAttribute(String key) {
+		return props.get(key);
+	}
+
+	/**
+	 * @param key
+	 * @param defaultValue
+	 * @return
+	 * @author tanyaowu
+	 */
+	public Object getAttribute(String key, Serializable defaultValue) {
+		Serializable ret = props.get(key);
+		if (ret == null) {
+			return defaultValue;
 		}
+		return ret;
+	}
+
+	/**
+	 * @param key
+	 * @author tanyaowu
+	 */
+	public void removeAttribute(String key) {
+		props.remove(key);
+	}
+
+	/**
+	 * 设置属性
+	 *
+	 * @param key
+	 * @param value
+	 * @author tanyaowu
+	 */
+	public void setAttribute(String key, Serializable value) {
+		props.put(key, value);
+	}
+
+	/**
+	 * @return the body
+	 */
+	public byte[] getBody() {
+		return body;
+	}
+
+	public void setBody(byte[] body) {
+		this.body = body;
+	}
+
+	public String getHeaderString() {
+		return headerString;
+	}
+
+	public void setHeaderString(String headerString) {
+		this.headerString = headerString;
 	}
 }

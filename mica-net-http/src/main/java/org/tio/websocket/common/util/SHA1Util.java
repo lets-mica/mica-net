@@ -191,29 +191,32 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.websocket.common.util;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
-import java.io.IOException;
-import java.io.InputStream;
+public class SHA1Util {
 
-/**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
- */
-public class ResourceUtilTest {
+	private final static String ALGORITHM = "SHA-1";
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
+	public static byte[] SHA1(byte[] decript) {
 		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
+			MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
+			digest.update(decript);
+			return digest.digest();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
 		}
+	}
+
+	public static byte[] SHA1(String decript) {
+		return SHA1(decript.getBytes());
+	}
+
+	public static String SHA1(String decript, Charset encoding) {
+		byte[] array = SHA1(decript);
+		return new String(array, encoding);
 	}
 }

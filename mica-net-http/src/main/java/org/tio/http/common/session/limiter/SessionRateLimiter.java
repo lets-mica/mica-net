@@ -191,29 +191,37 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.http.common.session.limiter;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.tio.http.common.HttpRequest;
+import org.tio.http.common.HttpResponse;
 
 /**
- * {@link ResourceUtil} 单元测试
+ * session限流接口
  *
- * @author looly
+ * @author tanyaowu
  */
-public class ResourceUtilTest {
+public interface SessionRateLimiter {
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
-		}
-	}
+	/**
+	 * 是否允许访问，true：允许访问，false：不允许访问
+	 *
+	 * @param request
+	 * @param sessionRateVo
+	 * @return
+	 * @author tanyaowu
+	 */
+	public boolean allow(HttpRequest request, SessionRateVo sessionRateVo);
+
+	/**
+	 * 当被限流后，返回给用户的HttpResponse
+	 * 如果返回null，则会断开连接
+	 *
+	 * @param request
+	 * @param sessionRateVo
+	 * @return
+	 * @author tanyaowu
+	 */
+	public HttpResponse response(HttpRequest request, SessionRateVo sessionRateVo);
+
 }

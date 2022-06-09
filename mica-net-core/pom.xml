@@ -1,32 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<artifactId>mica-net-core</artifactId>
-	<name>${project.artifactId}</name>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>mica-net-core</artifactId>
+    <name>${project.artifactId}</name>
 
-	<parent>
+    <parent>
         <groupId>net.dreamlu</groupId>
         <artifactId>mica-net</artifactId>
-		<version>3.8.1.v20220401-RELEASE</version>
-	</parent>
+        <version>3.8.1.v20220401-RELEASE</version>
+    </parent>
 
-	<dependencies>
-		<dependency>
-			<groupId>net.dreamlu</groupId>
-			<artifactId>mica-net-utils</artifactId>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>net.dreamlu</groupId>
+            <artifactId>mica-net-utils</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.cache2k</groupId>
             <artifactId>cache2k-core</artifactId>
         </dependency>
-		<!-- slf4j-logback绑定 -->
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<scope>provided</scope>
-		</dependency>
-	</dependencies>
+    </dependencies>
 
 </project>

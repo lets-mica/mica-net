@@ -191,29 +191,36 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.websocket.common;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
+ * 2017年7月30日 上午10:09:59
  */
-public class ResourceUtilTest {
+public class WsResponse extends WsPacket {
+	private static final long serialVersionUID = 963847148301021559L;
+	private static Logger log = LoggerFactory.getLogger(WsResponse.class);
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
+	public static WsResponse fromText(String text, String charset) {
+		WsResponse wsResponse = new WsResponse();
 		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
+			wsResponse.setBody(text.getBytes(charset));
+		} catch (UnsupportedEncodingException e) {
+			log.error(e.toString(), e);
 		}
+		wsResponse.setWsOpcode(Opcode.TEXT);
+		return wsResponse;
+	}
+
+	public static WsResponse fromBytes(byte[] bytes) {
+		WsResponse wsResponse = new WsResponse();
+		wsResponse.setBody(bytes);
+		wsResponse.setWsOpcode(Opcode.BINARY);
+		return wsResponse;
 	}
 }

@@ -191,29 +191,203 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.http.common.view.freemarker;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import freemarker.template.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.tio.http.common.HttpConfig;
+import org.tio.http.common.HttpRequest;
+import org.tio.http.common.view.ModelGenerator;
+import org.tio.utils.freemarker.ShortMessageTemplateExceptionHandler;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
+ * 2017年11月15日 下午1:11:55
  */
-public class ResourceUtilTest {
+public class FreemarkerConfig {
+	@SuppressWarnings("unused")
+	private static Logger log = LoggerFactory.getLogger(FreemarkerConfig.class);
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
+	private Configuration configuration;
+
+	private HttpConfig httpConfig;
+
+	/**
+	 * key: 请求过来的domain，形如：www.t-io.org
+	 * value: Configuration对象
+	 */
+	private volatile Map<String, Configuration> domainConfMap = null;
+
+	private ModelGenerator modelGenerator;
+
+	private String[] suffixes = null;
+
+	private ConfigurationCreater configurationCreater;
+
+	public FreemarkerConfig(HttpConfig httpConfig, ModelGenerator modelGenerator, String[] suffixes, ConfigurationCreater configurationCreater) throws IOException {
+		super();
+		this.configurationCreater = configurationCreater;
+
+		String pageRoot = httpConfig.getPageRoot();
+		if (pageRoot == null) {
+			throw new IOException("没有配置pageRoot");
 		}
+
+		httpConfig.setFreemarkerConfig(this);
+
+		this.httpConfig = httpConfig;
+		this.modelGenerator = modelGenerator;
+		this.setSuffixes(suffixes);
+
+		this.configuration = createConfiguration(httpConfig, pageRoot);
+
+		Map<String, String> domainPageMap = httpConfig.getDomainPageMap();
+		if (domainPageMap != null && domainPageMap.size() > 0) {
+			Set<Entry<String, String>> set = domainPageMap.entrySet();
+			for (Entry<String, String> entry : set) {
+				String domain = entry.getKey();
+				String file = entry.getValue();
+				//				Configuration cfg = createConfiguration(httpConfig, file);
+				addDomainConfiguration(domain, file);
+			}
+		}
+	}
+
+	/**
+	 * @author tanyaowu
+	 */
+	@SuppressWarnings("unused")
+	private FreemarkerConfig() {
+	}
+
+	/**
+	 * @param httpConfig
+	 * @param root
+	 * @return
+	 * @throws IOException
+	 */
+	private Configuration createConfiguration(HttpConfig httpConfig, String root) throws IOException {
+		if (httpConfig.getPageRoot() == null) {
+			return null;
+		}
+
+		if (configurationCreater != null) {
+			return configurationCreater.createConfiguration(httpConfig, root);
+		}
+
+		Configuration cfg = new Configuration(Configuration.getVersion());
+
+		if (httpConfig.isPageInClasspath()) {
+			cfg.setClassForTemplateLoading(this.getClass(), "/" + root/**.substring("classpath:".length())*/
+			);
+			//cfg.setClassForTemplateLoading(FreemarkerUtil.class, "/template");
+		} else {
+			cfg.setDirectoryForTemplateLoading(new File(root));
+		}
+		cfg.setDefaultEncoding(httpConfig.getCharset());
+		//		cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+		cfg.setLogTemplateExceptions(false);
+		cfg.setWrapUncheckedExceptions(true);
+		cfg.setTemplateExceptionHandler(ShortMessageTemplateExceptionHandler.me);
+		cfg.setLocale(Locale.SIMPLIFIED_CHINESE);
+		cfg.setNumberFormat("#");
+//		cfg.setClassicCompatible(true);
+		return cfg;
+	}
+
+	//	/**
+	//	 *
+	//	 * @param domain 形如www.t-io.org的域名，也可以是形如.t-io.org这样的通配域名
+	//	 * @param pageRoot 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
+	//	 * @throws IOException
+	//	 */
+	//	public void addDomainConfiguration(String domain, String pageRoot) throws IOException {
+	//		addDomainConfiguration(domain, HttpConfig.fromPath(pageRoot));
+	//	}
+
+	/**
+	 * @param request
+	 * @return
+	 */
+	public Configuration getConfiguration(HttpRequest request) {
+		if (this.domainConfMap == null || domainConfMap.size() == 0) {
+			return configuration;
+		}
+
+		String domain = request.getDomain();
+		Configuration root = domainConfMap.get(domain);
+		if (root != null) {
+			return root;
+		}
+
+		Set<Entry<String, Configuration>> set = domainConfMap.entrySet();
+		for (Entry<String, Configuration> entry : set) {
+			String d = entry.getKey();
+			if (d.startsWith(".") && domain.endsWith(d)) {
+				Configuration cfg = entry.getValue();
+				domainConfMap.put(domain, cfg);
+				return cfg;
+			}
+		}
+
+		domainConfMap.put(domain, configuration);
+		return configuration;
+	}
+
+	//	public Configuration getConfiguration() {
+	//		return configuration;
+	//	}
+
+	/**
+	 * @param domain
+	 * @param pageRoot
+	 * @throws IOException
+	 */
+	public void addDomainConfiguration(String domain, String pageRoot) throws IOException {
+		if (domainConfMap == null) {
+			synchronized (this) {
+				if (domainConfMap == null) {
+					domainConfMap = new HashMap<>();
+				}
+			}
+		}
+
+		Configuration configuration = createConfiguration(httpConfig, pageRoot);
+		domainConfMap.put(domain, configuration);
+	}
+
+	public void setConfiguration(Configuration configuration) {
+		this.configuration = configuration;
+	}
+
+	public ModelGenerator getModelGenerator() {
+		return modelGenerator;
+	}
+
+	public void setModelGenerator(ModelGenerator modelGenerator) {
+		this.modelGenerator = modelGenerator;
+	}
+
+	/**
+	 * @return the suffixes
+	 */
+	public String[] getSuffixes() {
+		return suffixes;
+	}
+
+	/**
+	 * @param suffixes the suffixes to set
+	 */
+	public void setSuffixes(String[] suffixes) {
+		this.suffixes = suffixes;
 	}
 }

@@ -191,29 +191,31 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.http.common.session.id.impl;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.tio.http.common.HttpConfig;
+import org.tio.http.common.HttpRequest;
+import org.tio.http.common.session.id.ISessionIdGenerator;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.UUID;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
+ * 2017年8月15日 上午10:53:39
  */
-public class ResourceUtilTest {
+public enum UUIDSessionIdGenerator implements ISessionIdGenerator {
+	/**
+	 * 单利
+	 */
+	instance;
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
-		}
+	/**
+	 * @return
+	 * @author tanyaowu
+	 */
+	@Override
+	public String sessionId(HttpConfig httpConfig, HttpRequest request) {
+		return UUID.randomUUID().toString().replace("-", "");
 	}
+
 }

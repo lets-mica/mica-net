@@ -191,29 +191,44 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
+package org.tio.http.common;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
+ * 2017年6月28日 下午2:23:16
  */
-public class ResourceUtilTest {
+public enum Method {
+	GET("GET"), POST("POST"), HEAD("HEAD"), PUT("PUT"), TRACE("TRACE"), OPTIONS("OPTIONS"), PATCH("PATCH"), DELETE("DELETE");
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
+	String value;
+
+	private Method(String value) {
+		this.value = value;
+	}
+
+	public static Method from(String method) {
+		if (method == null) {
+			return null;
+		}
+		switch (method) {
+			case "GET":
+				return GET;
+			case "POST":
+				return POST;
+			case "HEAD":
+				return HEAD;
+			case "PUT":
+				return PUT;
+			case "TRACE":
+				return TRACE;
+			case "OPTIONS":
+				return OPTIONS;
+			case "PATCH":
+				return PATCH;
+			case "DELETE":
+				return DELETE;
+			default:
+				return null;
 		}
 	}
 }

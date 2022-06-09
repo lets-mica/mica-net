@@ -191,29 +191,33 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
+package org.tio.http.common;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.tio.core.intf.TioUuid;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
+ * 2017年6月5日 上午10:44:26
  */
-public class ResourceUtilTest {
+public class HttpUuid implements TioUuid {
+	//	private static Logger log = LoggerFactory.getLogger(HttpUuid.class);
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
-		}
+	private static AtomicLong seq = new AtomicLong();
+
+	/**
+	 * @author tanyaowu
+	 */
+	public HttpUuid() {
+	}
+
+	/**
+	 * @return
+	 * @author tanyaowu
+	 */
+	@Override
+	public String uuid() {
+		return seq.incrementAndGet() + "";
 	}
 }

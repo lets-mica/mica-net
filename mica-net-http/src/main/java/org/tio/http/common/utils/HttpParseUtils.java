@@ -191,29 +191,53 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.utils.hutool;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
+package org.tio.http.common.utils;
 
 /**
- * {@link ResourceUtil} 单元测试
- *
- * @author looly
+ * @author tanyaowu
+ * 2017年7月27日 上午10:09:19
  */
-public class ResourceUtilTest {
+public class HttpParseUtils {
 
-	@Test
-	public void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
-		} catch (IOException e) {
-			//ignore
+	/**
+	 * @author tanyaowu
+	 */
+	private HttpParseUtils() {
+	}
+
+	/**
+	 * obtain sub attribute
+	 *
+	 * @param str   形如:"multipart/form-data; boundary=ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm", "application/x-www-form-urlencoded; charset=UTF-8", "form-data; value="before""
+	 * @param value 形如："boundary", "charset", "value"
+	 * @return 形如："ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm", "UTF-8", "before"
+	 * @author tanyaowu
+	 */
+	public static String getSubAttribute(String str, String name) {
+		int indexOfName = str.indexOf(name + "=");
+		if (indexOfName == -1) {
+			return null;
+		}
+
+		int valueStartIndex = indexOfName + 1 + name.length();
+		char[] cs = new char[str.length() - valueStartIndex];
+		int i = 0;
+		for (; i < cs.length; i++) {
+			char c = str.charAt(i + valueStartIndex);
+			if (c == ';') {
+				break;
+			}
+			cs[i] = c;
+		}
+
+		if (cs.length > 1 && (cs[0] == '"' && cs[i - 1] == '"')) {
+			return String.copyValueOf(cs, 1, i - 2);
+		} else {
+			if (i == cs.length) {
+				return new String(cs);
+			} else {
+				return String.copyValueOf(cs, 0, i);
+			}
 		}
 	}
 }
