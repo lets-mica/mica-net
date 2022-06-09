@@ -250,10 +250,11 @@ public class IpStats {
 		}
 	}
 
-	private static Cache<String, IpStat> register(String cacheName, Long timeToLiveSeconds, CacheEntryOperationListener<String, IpStat> listener) {
+	private static Cache<String, IpStat> register(String cacheName, long timeToLiveSeconds, CacheEntryOperationListener<String, IpStat> listener) {
 		Cache<String, IpStat> cache = CacheManager.getInstance().getCache(cacheName);
 		if (cache == null) {
 			return Cache2kBuilder.of(String.class, IpStat.class)
+				.name(cacheName)
 				.expireAfterWrite(timeToLiveSeconds, TimeUnit.SECONDS)
 				.entryCapacity(5000000)
 				.addListener(listener)

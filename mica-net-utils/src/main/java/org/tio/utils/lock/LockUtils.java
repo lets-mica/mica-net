@@ -193,9 +193,10 @@
 */
 package org.tio.utils.lock;
 
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.utils.cache.cache2k.CaffeineCache;
 
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
@@ -207,13 +208,21 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
  * 锁对象工具类
  */
 public class LockUtils {
-	private static Logger				log						= LoggerFactory.getLogger(LockUtils.class);
+	private static final Logger				log						= LoggerFactory.getLogger(LockUtils.class);
 	private static final String			LOCK_TYPE_OBJ			= "OBJ";
 	private static final String			LOCK_TYPE_RW			= "RW";
 	private static final Object			defaultLockObjForObj	= new Object();
 	private static final Object			defaultLockObjForRw		= new Object();
-	private static final Cache	LOCAL_LOCKS				= CaffeineCache.register(LockUtils.class.getName() + LOCK_TYPE_OBJ, null, 3600L);
-	private static final CaffeineCache	LOCAL_READWRITE_LOCKS	= CaffeineCache.register(LockUtils.class.getName() + LOCK_TYPE_RW, null, 3600L);
+	private static final Cache<String, Serializable> LOCAL_LOCKS = getCache(LockUtils.class.getName() + LOCK_TYPE_OBJ);
+	private static final Cache<String, Serializable> LOCAL_READWRITE_LOCKS	= getCache(LockUtils.class.getName() + LOCK_TYPE_RW);
+
+	private static Cache<String, Serializable> getCache(String cacheName) {
+		return Cache2kBuilder.of(String.class, Serializable.class)
+			.name(cacheName)
+			.entryCapacity(5000000)
+			.expireAfterWrite(3600, TimeUnit.SECONDS)
+			.build();
+	}
 
 	/**
 	 * 获取锁对象，用于synchronized(lockObj)
