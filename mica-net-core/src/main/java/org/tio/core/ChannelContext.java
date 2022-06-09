@@ -2,46 +2,46 @@
 	Apache License
 	Version 2.0, January 2004
 	http://www.apache.org/licenses/
-	
+
 	TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-	
+
 	1. Definitions.
-	
+
 	"License" shall mean the terms and conditions for use, reproduction, and
 	distribution as defined by Sections 1 through 9 of this document.
-	
+
 	"Licensor" shall mean the copyright owner or entity authorized by the copyright
 	owner that is granting the License.
-	
+
 	"Legal Entity" shall mean the union of the acting entity and all other entities
 	that control, are controlled by, or are under common control with that entity.
 	For the purposes of this definition, "control" means (i) the power, direct or
 	indirect, to cause the direction or management of such entity, whether by
 	contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the
 	outstanding shares, or (iii) beneficial ownership of such entity.
-	
+
 	"You" (or "Your") shall mean an individual or Legal Entity exercising
 	permissions granted by this License.
-	
+
 	"Source" form shall mean the preferred form for making modifications, including
 	but not limited to software source code, documentation source, and configuration
 	files.
-	
+
 	"Object" form shall mean any form resulting from mechanical transformation or
 	translation of a Source form, including but not limited to compiled object code,
 	generated documentation, and conversions to other media types.
-	
+
 	"Work" shall mean the work of authorship, whether in Source or Object form, made
 	available under the License, as indicated by a copyright notice that is included
 	in or attached to the work (an example is provided in the Appendix below).
-	
+
 	"Derivative Works" shall mean any work, whether in Source or Object form, that
 	is based on (or derived from) the Work and for which the editorial revisions,
 	annotations, elaborations, or other modifications represent, as a whole, an
 	original work of authorship. For the purposes of this License, Derivative Works
 	shall not include works that remain separable from, or merely link (or bind by
 	name) to the interfaces of, the Work and Derivative Works thereof.
-	
+
 	"Contribution" shall mean any work of authorship, including the original version
 	of the Work and any modifications or additions to that Work or Derivative Works
 	thereof, that is intentionally submitted to Licensor for inclusion in the Work
@@ -54,21 +54,21 @@
 	the purpose of discussing and improving the Work, but excluding communication
 	that is conspicuously marked or otherwise designated in writing by the copyright
 	owner as "Not a Contribution."
-	
+
 	"Contributor" shall mean Licensor and any individual or Legal Entity on behalf
 	of whom a Contribution has been received by Licensor and subsequently
 	incorporated within the Work.
-	
+
 	2. Grant of Copyright License.
-	
+
 	Subject to the terms and conditions of this License, each Contributor hereby
 	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
 	irrevocable copyright license to reproduce, prepare Derivative Works of,
 	publicly display, publicly perform, sublicense, and distribute the Work and such
 	Derivative Works in Source or Object form.
-	
+
 	3. Grant of Patent License.
-	
+
 	Subject to the terms and conditions of this License, each Contributor hereby
 	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
 	irrevocable (except as stated in this section) patent license to make, have
@@ -81,13 +81,13 @@
 	Contribution incorporated within the Work constitutes direct or contributory
 	patent infringement, then any patent licenses granted to You under this License
 	for that Work shall terminate as of the date such litigation is filed.
-	
+
 	4. Redistribution.
-	
+
 	You may reproduce and distribute copies of the Work or Derivative Works thereof
 	in any medium, with or without modifications, and in Source or Object form,
 	provided that You meet the following conditions:
-	
+
 	You must give any other recipients of the Work or Derivative Works a copy of
 	this License; and
 	You must cause any modified files to carry prominent notices stating that You
@@ -114,25 +114,25 @@
 	distribution of Your modifications, or for any such Derivative Works as a whole,
 	provided Your use, reproduction, and distribution of the Work otherwise complies
 	with the conditions stated in this License.
-	
+
 	5. Submission of Contributions.
-	
+
 	Unless You explicitly state otherwise, any Contribution intentionally submitted
 	for inclusion in the Work by You to the Licensor shall be under the terms and
 	conditions of this License, without any additional terms or conditions.
 	Notwithstanding the above, nothing herein shall supersede or modify the terms of
 	any separate license agreement you may have executed with Licensor regarding
 	such Contributions.
-	
+
 	6. Trademarks.
-	
+
 	This License does not grant permission to use the trade names, trademarks,
 	service marks, or product names of the Licensor, except as required for
 	reasonable and customary use in describing the origin of the Work and
 	reproducing the content of the NOTICE file.
-	
+
 	7. Disclaimer of Warranty.
-	
+
 	Unless required by applicable law or agreed to in writing, Licensor provides the
 	Work (and each Contributor provides its Contributions) on an "AS IS" BASIS,
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
@@ -141,9 +141,9 @@
 	solely responsible for determining the appropriateness of using or
 	redistributing the Work and assume any risks associated with Your exercise of
 	permissions under this License.
-	
+
 	8. Limitation of Liability.
-	
+
 	In no event and under no legal theory, whether in tort (including negligence),
 	contract, or otherwise, unless required by applicable law (such as deliberate
 	and grossly negligent acts) or agreed to in writing, shall any Contributor be
@@ -153,9 +153,9 @@
 	damages for loss of goodwill, work stoppage, computer failure or malfunction, or
 	any and all other commercial damages or losses), even if such Contributor has
 	been advised of the possibility of such damages.
-	
+
 	9. Accepting Warranty or Additional Liability.
-	
+
 	While redistributing the Work or Derivative Works thereof, You may choose to
 	offer, and charge a fee for, acceptance of support, warranty, indemnity, or
 	other liability obligations and/or rights consistent with this License. However,
@@ -164,11 +164,11 @@
 	agree to indemnify, defend, and hold each Contributor harmless for any liability
 	incurred by, or claims asserted against, such Contributor by reason of your
 	accepting any such warranty or additional liability.
-	
+
 	END OF TERMS AND CONDITIONS
-	
+
 	APPENDIX: How to apply the Apache License to your work
-	
+
 	To apply the Apache License to your work, attach the following boilerplate
 	notice, with the fields enclosed by brackets "{}" replaced with your own
 	identifying information. (Don't include the brackets!) The text should be
@@ -176,15 +176,15 @@
 	recommend that a file or class name and description of purpose be included on
 	the same "printed page" as the copyright notice for easier identification within
 	third-party archives.
-	
+
 	   Copyright 2020 t-io
-	
+
 	   Licensed under the Apache License, Version 2.0 (the "License");
 	   you may not use this file except in compliance with the License.
 	   You may obtain a copy of the License at
-	
+
 	     http://www.apache.org/licenses/LICENSE-2.0
-	
+
 	   Unless required by applicable law or agreed to in writing, software
 	   distributed under the License is distributed on an "AS IS" BASIS,
 	   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -222,7 +222,7 @@ import org.tio.utils.prop.MapWithLockPropSupport;
  * 2017年10月19日 上午9:39:46
  */
 public abstract class ChannelContext extends MapWithLockPropSupport {
-	private static Logger				log							= LoggerFactory.getLogger(ChannelContext.class);
+	private static final Logger				log							= LoggerFactory.getLogger(ChannelContext.class);
 	private static final String			DEFAULT_ATTUBITE_KEY		= "t-io-d-a-k";
 	public static final String			UNKNOWN_ADDRESS_IP			= "$UNKNOWN";
 	public static final AtomicInteger	UNKNOWN_ADDRESS_PORT_SEQ	= new AtomicInteger();
@@ -270,7 +270,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	private SetWithLock<String>			groups						= null;
 	private Integer						readBufferSize				= null;											//个性化readBufferSize
 	public CloseMeta					closeMeta					= new CloseMeta();
-	private CloseCode					closeCode					= CloseCode.INIT_STATUS;						//连接关闭的原因码               
+	private CloseCode					closeCode					= CloseCode.INIT_STATUS;						//连接关闭的原因码
 
 	/**
 	 *
@@ -281,7 +281,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	public ChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
 		super();
 		init(tioConfig, asynchronousSocketChannel);
-
 		if (tioConfig.sslConfig != null) {
 			try {
 				SslFacadeContext sslFacadeContext = new SslFacadeContext(this);
@@ -291,7 +290,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 			} catch (Exception e) {
 				log.error("在开始SSL握手时发生了异常", e);
 				Tio.close(this, "在开始SSL握手时发生了异常" + e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
-				return;
 			}
 		}
 	}
@@ -313,13 +311,11 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	public ChannelContext(TioConfig tioConfig, String id) {
 		isVirtual = true;
 		this.tioConfig = tioConfig;
-		Node clientNode = new Node("127.0.0.1", 26254);
-		this.clientNode = clientNode;
-		this.id = id;//tioConfig.getTioUuid().uuid();
+		this.clientNode = new Node("127.0.0.1", 26254);
+		this.id = id;
 		if (StrUtil.isBlank(id)) {
 			this.id = tioConfig.getTioUuid().uuid();
 		}
-
 		initOther();
 	}
 
@@ -454,22 +450,21 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	void initOther() {
 		if (!tioConfig.isShortConnection) {
 			//在长连接中，绑定群组几乎是必须要干的事，所以直接在初始化时给它赋值，省得在后面做同步处理
-			groups = new SetWithLock<String>(new HashSet<>());
+			groups = new SetWithLock<>(new HashSet<>());
 		}
 	}
 
 	/**
-	 * 
+	 *
 	 * @param packet
 	 * @param isSentSuccess
 	 * @author tanyaowu
 	 */
 	public void processAfterSent(Packet packet, Boolean isSentSuccess) {
-		isSentSuccess = isSentSuccess == null ? false : isSentSuccess;
+		isSentSuccess = isSentSuccess != null && isSentSuccess;
 		Meta meta = packet.getMeta();
 		if (meta != null) {
 			CountDownLatch countDownLatch = meta.getCountDownLatch();
-			//			traceBlockPacket(SynPacketAction.BEFORE_DOWN, packet, countDownLatch, null);
 			countDownLatch.countDown();
 		}
 
@@ -560,7 +555,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	}
 
 	/**
-	 * @param remoteNode the remoteNode to set
+	 * @param clientNode the clientNode to set
 	 */
 	public void setClientNode(Node clientNode) {
 		if (!this.tioConfig.isShortConnection) {
@@ -576,7 +571,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
 		if (this.clientNode != null && !Objects.equals(UNKNOWN_ADDRESS_IP, this.clientNode.getIp())) {
 			tioConfig.clientNodes.put(this);
-			//			clientNodeTraceFilename = StrUtil.replaceAll(clientNode.toString(), ":", "_");
 		}
 	}
 
@@ -599,7 +593,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	 */
 	public void setTioConfig(TioConfig tioConfig) {
 		this.tioConfig = tioConfig;
-
 		if (tioConfig != null) {
 			decodeRunnable = new DecodeRunnable(this, tioConfig.tioExecutor);
 			handlerRunnable = new HandlerRunnable(this, tioConfig.tioExecutor);
@@ -638,20 +631,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		this.token = token;
 	}
 
-	//	/**
-	//	 * @param isTraceClient the isTraceClient to set
-	//	 */
-	//	public void setTraceClient(boolean isTraceClient) {
-	//		this.isTraceClient = isTraceClient;
-	//	}
-
-	//	/**
-	//	 * @param isTraceSynPacket the isTraceSynPacket to set
-	//	 */
-	//	public void setTraceSynPacket(boolean isTraceSynPacket) {
-	//		this.isTraceSynPacket = isTraceSynPacket;
-	//	}
-
 	/**
 	 * @param userid the userid to set
 	 * 给框架内部用的，用户请勿调用此方法
@@ -664,12 +643,12 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	public String toString() {
 		StringBuilder sb = new StringBuilder(64);
 		if (serverNode != null) {
-			sb.append("server:").append(serverNode.toString());
+			sb.append("server:").append(serverNode);
 		} else {
 			sb.append("server:").append("NULL");
 		}
 		if (clientNode != null) {
-			sb.append(", client:").append(clientNode.toString());
+			sb.append(", client:").append(clientNode);
 		} else {
 			sb.append(", client:").append("NULL");
 		}
@@ -680,57 +659,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
 		return sb.toString();
 	}
-
-	//	/**
-	//	 * 跟踪同步消息，主要是跟踪锁的情况，用于问题排查。
-	//	 * @param synPacketAction
-	//	 * @param packet
-	//	 * @param extmsg
-	//	 * @author tanyaowu
-	//	 */
-	//	public void traceBlockPacket(SynPacketAction synPacketAction, Packet packet, CountDownLatch countDownLatch, Map<String, Object> extmsg) {
-	//		if (isTraceSynPacket) {
-	//			ChannelContext channelContext = this;
-	//			Map<String, Object> map = new HashMap<>(10);
-	//			map.put("currTime", DateTime.now().toString(DatePattern.NORM_DATETIME_MS_FORMAT));
-	//			map.put("c_id", channelContext.getId());
-	//			map.put("c", channelContext.toString());
-	//			map.put("action", synPacketAction);
-	//
-	//			MDC.put("tio_client_syn", channelContext.getClientNodeTraceFilename());
-	//
-	//			if (packet != null) {
-	//				map.put("p_id", channelContext.getClientNode().getPort() + "_" + packet.getId()); //packet id
-	//				map.put("p_respId", packet.getRespId());
-	//				map.put("packet", packet.logstr());
-	//			}
-	//
-	//			if (countDownLatch != null) {
-	//				map.put("countDownLatch", countDownLatch.hashCode() + " " + countDownLatch.getCount());
-	//			}
-	//
-	//			if (extmsg != null) {
-	//				map.putAll(extmsg);
-	//			}
-	//			String logstr = Json.toJson(map);
-	//			traceSynPacketLog.info(logstr);
-	//			log.error(logstr);
-	//
-	//		}
-	//	}
-
-	//	/**
-	//	 * 跟踪消息
-	//	 * @param channelAction
-	//	 * @param packet
-	//	 * @param extmsg
-	//	 * @author tanyaowu
-	//	 */
-	//	public void traceClient(ChannelAction channelAction, Packet packet, Map<String, Object> extmsg) {
-	//		if (isTraceClient) {
-	//			this.tioConfig.clientTraceHandler.traceChannel(this, channelAction, packet, extmsg);
-	//		}
-	//	}
 
 	/**
 	 * @return the bsId
@@ -825,10 +753,9 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 				if (tioConfig.isIpStatEnable()) {
 					try {
 						for (Long v : tioConfig.ipStats.durationList) {
-							IpStat oldIpStat = (IpStat) tioConfig.ipStats._get(v, this, true, false);
-							IpStat newIpStat = (IpStat) tioConfig.ipStats.get(v, this);
-							ChannelStat myStat = this.stat;
-							swithIpStat(oldIpStat, newIpStat, myStat);
+							IpStat oldIpStat = tioConfig.ipStats._get(v, this, true, false);
+							IpStat newIpStat = tioConfig.ipStats.get(v, this);
+							swithIpStat(oldIpStat, newIpStat, this.stat);
 						}
 					} catch (Exception e) {
 						log.error(e.toString(), e);
@@ -883,7 +810,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	 * 连接关闭码
 	 * @author tanyaowu
 	 */
-	public static enum CloseCode {
+	public enum CloseCode {
 		/**
 		 * 没有提供原因码
 		 */
@@ -999,28 +926,24 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		 */
 		OTHER_ERROR((byte) 200),;
 
-		public static CloseCode from(Byte value) {
+		public static CloseCode from(byte value) {
 			CloseCode[] values = CloseCode.values();
 			for (CloseCode v : values) {
-				if (Objects.equals(v.value, value)) {
+				if (v.value == value) {
 					return v;
 				}
 			}
 			return null;
 		}
 
-		Byte value;
+		final byte value;
 
-		private CloseCode(Byte value) {
+		CloseCode(Byte value) {
 			this.value = value;
 		}
 
-		public Byte getValue() {
+		public byte getValue() {
 			return value;
-		}
-
-		public void setValue(Byte value) {
-			this.value = value;
 		}
 	}
 }
