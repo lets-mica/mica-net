@@ -3,47 +3,40 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>tio-http-server</artifactId>
+	<artifactId>mica-net-http</artifactId>
 	<name>${project.artifactId}</name>
 
 	<parent>
-		<groupId>net.dreamlu</groupId>
-		<artifactId>tio-http-parent</artifactId>
+        <groupId>net.dreamlu</groupId>
+        <artifactId>mica-net</artifactId>
 		<version>3.8.1.v20220401-RELEASE</version>
-		<relativePath>../parent/pom.xml</relativePath>
 	</parent>
 
 	<dependencies>
 		<dependency>
 			<groupId>net.dreamlu</groupId>
-			<artifactId>tio-http-common</artifactId>
+			<artifactId>mica-mqtt-core</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>com.thoughtworks.paranamer</groupId>
 			<artifactId>paranamer</artifactId>
 		</dependency>
-
-
 		<!-- 如果用到freemarker，需要自己引入 -->
 		<dependency>
 			<groupId>org.freemarker</groupId>
 			<artifactId>freemarker</artifactId>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.redisson</groupId>
 			<artifactId>redisson</artifactId>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -54,19 +47,14 @@
 			<artifactId>testng</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-
 		<dependency>
 			<groupId>com.esotericsoftware</groupId>
 			<artifactId>reflectasm</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>
 	</dependencies>
-
-	
 
 </project>
