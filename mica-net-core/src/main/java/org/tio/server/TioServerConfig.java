@@ -279,7 +279,7 @@ public class TioServerConfig extends TioConfig {
 		super(tioExecutor, groupExecutor);
 		this.ipStats = new IpStats(this, null);
 		this.ipBlacklist = new IpBlacklist(id, this);
-		init(name, tioServerHandler, tioServerListener, tioExecutor, groupExecutor);
+		init(name, tioServerHandler, tioServerListener);
 	}
 
 	/**
@@ -287,11 +287,9 @@ public class TioServerConfig extends TioConfig {
 	 * @param name
 	 * @param tioServerHandler
 	 * @param tioServerListener
-	 * @param tioExecutor
-	 * @param groupExecutor
 	 * @author tanyaowu
 	 */
-	private void init(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+	private void init(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener) {
 		this.name = name;
 		this.groupStat = new ServerGroupStat();
 		this.acceptCompletionHandler = new AcceptCompletionHandler();
@@ -348,7 +346,7 @@ public class TioServerConfig extends TioConfig {
 							}
 						}
 					} catch (Throwable e) {
-						log.error("", e);
+						log.error(e.getMessage(), e);
 					} finally {
 						readLock.unlock();
 						try {
@@ -359,52 +357,43 @@ public class TioServerConfig extends TioConfig {
 								builder.append("\r\n ├ 连接统计");
 								builder.append("\r\n │ \t ├ 共接受过连接数  :").append(((ServerGroupStat) groupStat).accepted.get());
 								builder.append("\r\n │ \t ├ 当前连接数            :").append(set.size());
-								//								builder.append("\r\n │ \t ├ 当前群组数            :").append(groups);
 								builder.append("\r\n │ \t ├ 异IP连接数           :").append(TioServerConfig.this.ips.getIpmap().getObj().size());
 								builder.append("\r\n │ \t └ 关闭过的连接数  :").append(groupStat.closed.get());
-
 								builder.append("\r\n ├ 消息统计");
 								builder.append("\r\n │ \t ├ 已处理消息  :").append(groupStat.handledPackets.get());
-								builder.append("\r\n │ \t ├ 已接收消息(packet/byte):").append(groupStat.receivedPackets.get()).append("/").append(groupStat.receivedBytes.get());
-								builder.append("\r\n │ \t ├ 已发送消息(packet/byte):").append(groupStat.sentPackets.get()).append("/").append(groupStat.sentBytes.get()).append("b");
+								builder.append("\r\n │ \t ├ 已接收消息(packet/byte):").append(groupStat.receivedPackets.get()).append('/').append(groupStat.receivedBytes.get());
+								builder.append("\r\n │ \t ├ 已发送消息(packet/byte):").append(groupStat.sentPackets.get()).append('/').append(groupStat.sentBytes.get()).append('b');
 								builder.append("\r\n │ \t ├ 平均每次TCP包接收的字节数  :").append(groupStat.getBytesPerTcpReceive());
 								builder.append("\r\n │ \t └ 平均每次TCP包接收的业务包  :").append(groupStat.getPacketsPerTcpReceive());
 								builder.append("\r\n └ IP统计时段 ");
-
 								if (TioServerConfig.this.isIpStatEnable()) {
 									builder.append("\r\n   \t └ ").append(StrUtil.join(TioServerConfig.this.ipStats.durationList));
 								} else {
 									builder.append("\r\n   \t └ ").append("没有设置ip统计时间");
 								}
-
 								builder.append("\r\n ├ 节点统计");
 								builder.append("\r\n │ \t ├ clientNodes :").append(TioServerConfig.this.clientNodes.getObjWithLock().getObj().size());
 								builder.append("\r\n │ \t ├ 所有连接               :").append(TioServerConfig.this.connections.getObj().size());
 								builder.append("\r\n │ \t ├ 绑定user数         :").append(TioServerConfig.this.users.getMap().getObj().size());
 								builder.append("\r\n │ \t ├ 绑定token数       :").append(TioServerConfig.this.tokens.getMap().getObj().size());
 								builder.append("\r\n │ \t └ 等待同步消息响应 :").append(TioServerConfig.this.waitingResps.getObj().size());
-
 								builder.append("\r\n ├ 群组");
 								builder.append("\r\n │ \t └ groupmap:").append(TioServerConfig.this.groups.getGroupmap().getObj().size());
 								builder.append("\r\n └ 拉黑IP ");
 								builder.append("\r\n   \t └ ").append(StrUtil.join(TioServerConfig.this.ipBlacklist.getAll()));
-
 								log.warn(builder.toString());
-
 								long end = SystemTimer.currTime;
 								long iv1 = start1 - start;
 								long iv = end - start1;
 								log.warn("{}, 检查心跳, 共{}个连接, 取锁耗时{}ms, 循环耗时{}ms, 心跳超时时间:{}ms", TioServerConfig.this.name, count, iv1, iv, heartbeatTimeout);
 							}
 						} catch (Throwable e) {
-							log.error("", e);
+							log.error(e.getMessage(), e);
 						}
 					}
 				}
-
-				//log.error(name + "--" + needCheckHeartbeat + "-" + isStopped() + "--执行完成了---------------------------------------------------------------------------------------------------执行完成了");
 			}
-		}, "tio-timer-checkheartbeat-" + id + "-" + name);
+		}, "tio-timer-checkheartbeat-" + id + '-' + name);
 		checkHeartbeatThread.setDaemon(true);
 		checkHeartbeatThread.setPriority(Thread.MIN_PRIORITY);
 		checkHeartbeatThread.start();
@@ -517,7 +506,6 @@ public class TioServerConfig extends TioConfig {
 			this.bsIds = tioConfig.bsIds;
 			this.ipBlacklist = tioConfig.ipBlacklist;
 			this.ips = tioConfig.ips;
-
 			if (!tioConfig.isShared && !this.isShared) {
 				this.needCheckHeartbeat = false;
 			}
@@ -527,29 +515,9 @@ public class TioServerConfig extends TioConfig {
 			if (!tioConfig.isShared && this.isShared) {
 				tioConfig.needCheckHeartbeat = false;
 			}
-
-			//下面这两行代码要放到前面if的后面
+			// 下面这两行代码要放到前面if的后面
 			tioConfig.isShared = true;
 			this.isShared = true;
-
-			//			if (SHARED_SET == null) {
-			//				SHARED_SET = new HashSet<>();
-			//			}
-			//
-			//			SHARED_SET.add(this);
-			//			SHARED_SET.add(tioConfig);
-			//
-			//			boolean need = true;
-			//			for (TioServerConfig gc : SHARED_SET) {
-			//				if (!need) {
-			//					gc.needCheckHeartbeat = false;
-			//					continue;
-			//				}
-			//
-			//				if (gc.needCheckHeartbeat) {
-			//					need = false;
-			//				}
-			//			}
 		}
 	}
 

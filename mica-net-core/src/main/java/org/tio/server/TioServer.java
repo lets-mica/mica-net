@@ -277,8 +277,7 @@ public class TioServer {
 		serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
 		serverSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
 
-		InetSocketAddress listenAddress = null;
-
+		InetSocketAddress listenAddress;
 		if (StrUtil.isBlank(serverIp)) {
 			listenAddress = new InetSocketAddress(serverPort);
 		} else {
@@ -321,7 +320,7 @@ public class TioServer {
 			infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
 			infoList.add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
 			infoList.add(StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + pid);
-		} catch (Exception e) {
+		} catch (Exception ignore) {
 
 		}
 		// 100

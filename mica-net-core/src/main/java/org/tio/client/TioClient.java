@@ -430,16 +430,15 @@ public class TioClient {
 					readLock.lock();
 					try {
 						Set<ChannelContext> set = setWithLock.getObj();
-						long currtime = SystemTimer.currTime;
+						long currTime = SystemTimer.currTime;
 						for (ChannelContext entry : set) {
 							ClientChannelContext channelContext = (ClientChannelContext) entry;
 							if (channelContext.isClosed || channelContext.isRemoved) {
 								continue;
 							}
-
 							ChannelStat stat = channelContext.stat;
 							long compareTime = Math.max(stat.latestTimeOfReceivedByte, stat.latestTimeOfSentPacket);
-							long interval = currtime - compareTime;
+							long interval = currTime - compareTime;
 							if (interval >= tioClientConfig.heartbeatTimeout / 2) {
 								Packet packet = tioHandler.heartbeatPacket(channelContext);
 								if (packet != null) {
@@ -455,7 +454,6 @@ public class TioClient {
 								clientGroupStat.receivedPackets.get(), clientGroupStat.receivedBytes.get(), clientGroupStat.handledPackets.get(),
 								clientGroupStat.sentPackets.get(), clientGroupStat.sentBytes.get());
 						}
-
 					} catch (Throwable e) {
 						log.error("", e);
 					} finally {
@@ -488,7 +486,6 @@ public class TioClient {
 			public void run() {
 				while (!tioClientConfig.isStopped()) {
 					log.error("closeds:{}, connections:{}", tioClientConfig.closeds.size(), tioClientConfig.connections.size());
-					//log.info("准备重连");
 					LinkedBlockingQueue<ChannelContext> queue = reconnConf.getQueue();
 					ClientChannelContext channelContext = null;
 					try {
@@ -496,32 +493,24 @@ public class TioClient {
 					} catch (InterruptedException e1) {
 						log.error(e1.toString(), e1);
 					}
-					if (channelContext == null) {
-						continue;
-						//						return;
-					}
-
-					if (channelContext.isRemoved) //已经删除的，不需要重新再连
-					{
+					// 未连接的和已经删除的，不需要重新再连
+					if (channelContext == null || channelContext.isRemoved) {
 						continue;
 					}
-
 					SslFacadeContext sslFacadeContext = channelContext.sslFacadeContext;
 					if (sslFacadeContext != null) {
 						sslFacadeContext.setHandshakeCompleted(false);
 					}
-
-					long sleeptime = reconnConf.getInterval() - (SystemTimer.currTime - channelContext.stat.timeInReconnQueue);
-					if (sleeptime > 0) {
+					long sleepTime = reconnConf.getInterval() - (SystemTimer.currTime - channelContext.stat.timeInReconnQueue);
+					if (sleepTime > 0) {
 						try {
-							Thread.sleep(sleeptime);
+							Thread.sleep(sleepTime);
 						} catch (InterruptedException e) {
 							log.error(e.toString(), e);
 						}
 					}
-
-					if (channelContext.isRemoved || !channelContext.isClosed) //已经删除的和已经连上的，不需要重新再连
-					{
+					// 已经删除的和已经连上的，不需要重新再连
+					if (channelContext.isRemoved || !channelContext.isClosed) {
 						continue;
 					} else {
 						ReconnRunnable runnable = channelContext.getReconnRunnable();
