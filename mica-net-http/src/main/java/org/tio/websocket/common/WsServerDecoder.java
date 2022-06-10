@@ -206,7 +206,7 @@ import java.nio.ByteBuffer;
  * 2017年7月30日 上午10:10:50
  */
 public class WsServerDecoder {
-	private static Logger log = LoggerFactory.getLogger(WsServerDecoder.class);
+	private static final Logger log = LoggerFactory.getLogger(WsServerDecoder.class);
 
 	/**
 	 * @author tanyaowu 2017年2月22日 下午4:06:42
@@ -215,9 +215,6 @@ public class WsServerDecoder {
 	}
 
 	public static WsRequest decode(ByteBuffer buf, ChannelContext channelContext) throws TioDecodeException {
-		//		WsSessionContext imSessionContext = (WsSessionContext) channelContext.get();
-		//		List<byte[]> lastParts = imSessionContext.getLastParts();
-
 		// 第一阶段解析
 		int initPosition = buf.position();
 		int readableLength = buf.limit() - initPosition;
@@ -239,19 +236,6 @@ public class WsServerDecoder {
 			//			Tio.remove(channelContext, "收到opcode:" + opcode);
 			//			return null;
 		}
-		//		if (!fin) {
-		//			log.error("{} 暂时不支持fin为false的请求", channelContext);
-		//			Tio.remove(channelContext, "暂时不支持fin为false的请求");
-		//			return null;
-		//			//下面这段代码不要删除，以后若支持fin，则需要的
-		//			//			if (lastParts == null) {
-		//			//				lastParts = new ArrayList<>();
-		//			//				imSessionContext.setLastParts(lastParts);
-		//			//			}
-		//		} else {
-		//			imSessionContext.setLastParts(null);
-		//		}
-
 		byte second = buf.get(); // 向后读取一个字节
 		boolean hasMask = (second & 0xFF) >> 7 == 1; // 用于标识PayloadData是否经过掩码处理。如果是1，Masking-key域的数据即是掩码密钥，用于解码PayloadData。客户端发出的数据帧需要进行掩码处理，所以此位是1。
 
@@ -312,62 +296,8 @@ public class WsServerDecoder {
 				array[i] = (byte) (array[i] ^ mask[i % 4]);
 			}
 		}
-
 		websocketPacket.setBody(array);
-
-		//		if (!fin) {
-		//			//lastParts.add(array);
-		//			log.error("payloadLength {}, lastParts size {}, array length {}", payloadLength,
-		// lastParts.size(), array.length);
-		//			return websocketPacket;
-		//		} else {
-		//			int allLength = array.length;
-		//			if (lastParts != null) {
-		//				for (byte[] part : lastParts) {
-		//					allLength += part.length;
-		//				}
-		//				byte[] allByte = new byte[allLength];
-		//
-		//				int offset = 0;
-		//				for (byte[] part : lastParts) {
-		//					System.arraycopy(part, 0, allByte, offset, part.length);
-		//					offset += part.length;
-		//				}
-		//				System.arraycopy(array, 0, allByte, offset, array.length);
-		//				array = allByte;
-		//			}
-		//
-		//			websocketPacket.setBody(array);
-		//
-		//			if (opcode == Opcode.BINARY) {
-		//
-		//			} else {
-		//				try {
-		//					String text = null;
-		//					text = new String(array, WsPacket.CHARSET_NAME);
-		//					websocketPacket.setWsBodyText(text);
-		//				} catch (UnsupportedEncodingException e) {
-		//					log.error(e.toString(), e);
-		//				}
-		//			}
-		//		}
-
-//		if (fin && opcode != null) {
-//			if (opcode == Opcode.BINARY) {
-//
-//			} else {
-//				try {
-//					String text = new String(array, WsPacket.CHARSET_NAME);
-//					websocketPacket.setWsBodyText(text);
-//				} catch (UnsupportedEncodingException e) {
-//					log.error(e.toString(), e);
-//				}
-//			}
-//		}
 		return websocketPacket;
 	}
 
-	public static enum Step {
-		header, remain_header, data,
-	}
 }

@@ -204,7 +204,7 @@ import java.io.UnsupportedEncodingException;
  */
 public class WsResponse extends WsPacket {
 	private static final long serialVersionUID = 963847148301021559L;
-	private static Logger log = LoggerFactory.getLogger(WsResponse.class);
+	private static final Logger log = LoggerFactory.getLogger(WsResponse.class);
 
 	public static WsResponse fromText(String text, String charset) {
 		WsResponse wsResponse = new WsResponse();

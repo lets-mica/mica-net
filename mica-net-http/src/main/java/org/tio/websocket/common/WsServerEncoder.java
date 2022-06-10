@@ -193,8 +193,6 @@
 */
 package org.tio.websocket.common;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
 import org.tio.core.utils.ByteBufferUtils;
@@ -209,8 +207,6 @@ import java.nio.ByteBuffer;
  */
 public class WsServerEncoder {
 	public static final int MAX_HEADER_LENGTH = 20480;
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(WsServerEncoder.class);
 
 	/**
 	 * @author tanyaowu
@@ -224,11 +220,9 @@ public class WsServerEncoder {
 		if (bytes == null) {
 			throw new IllegalArgumentException("null");
 		}
-
 		if (offset < 0) {
 			throw new IllegalArgumentException("invalidate offset " + offset);
 		}
-
 		if (bytes.length - offset < length) {
 			throw new IllegalArgumentException("invalidate length " + bytes.length);
 		}
@@ -283,7 +277,6 @@ public class WsServerEncoder {
 
 	public static void int2Byte(byte[] bytes, int value, int offset) {
 		checkLength(bytes, 4, offset);
-
 		bytes[offset + 3] = (byte) (value & 0xff);
 		bytes[offset + 2] = (byte) (value >> 8 * 1 & 0xff);
 		bytes[offset + 1] = (byte) (value >> 8 * 2 & 0xff);

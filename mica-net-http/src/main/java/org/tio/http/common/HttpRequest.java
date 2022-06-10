@@ -199,7 +199,6 @@ import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.Tio;
 import org.tio.http.common.HttpConst.RequestBodyFormat;
-import org.tio.http.common.session.HttpSession;
 import org.tio.utils.SysConst;
 import org.tio.utils.SystemTimer;
 import org.tio.utils.hutool.StrUtil;
@@ -233,7 +232,6 @@ public class HttpRequest extends HttpPacket {
 	private Boolean isAjax = null;
 	@SuppressWarnings("unused")
 	private Boolean isSupportGzip = null;
-	private HttpSession httpSession;
 	private Node remote = null;
 	private String domain = null;
 	private String host = null;
@@ -507,20 +505,6 @@ public class HttpRequest extends HttpPacket {
 	 */
 	public void setHttpConfig(HttpConfig httpConfig) {
 		this.httpConfig = httpConfig;
-	}
-
-	/**
-	 * @return the httpSession
-	 */
-	public HttpSession getHttpSession() {
-		return httpSession;
-	}
-
-	/**
-	 * @param httpSession the httpSession to set
-	 */
-	public void setHttpSession(HttpSession httpSession) {
-		this.httpSession = httpSession;
 	}
 
 	public String getHeader(String key) {

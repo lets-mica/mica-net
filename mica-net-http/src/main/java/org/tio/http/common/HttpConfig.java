@@ -193,23 +193,9 @@
 */
 package org.tio.http.common;
 
-import org.cache2k.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.http.common.handler.HttpRequestHandler;
-import org.tio.http.common.session.HttpSession;
-import org.tio.http.common.session.id.ISessionIdGenerator;
-import org.tio.http.common.session.limiter.SessionRateLimiter;
-import org.tio.utils.hutool.FileUtil;
-import org.tio.utils.hutool.StrUtil;
-
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * @author tanyaowu
@@ -266,7 +252,6 @@ public class HttpConfig {
 	 * 默认兼容
 	 */
 	public boolean compatible1_0 = true;
-	public SessionRateLimiter sessionRateLimiter;
 	public boolean checkHost = true;
 	/**
 	 * 是否监控文件变化
@@ -281,53 +266,23 @@ public class HttpConfig {
 	 */
 	private int maxLengthOfPostBody = MAX_LENGTH_OF_POST_BODY;
 	/**
-	 * 是否使用session
-	 */
-	private boolean useSession = true;
-	/**
 	 * 是否拼接http request header value
 	 */
 	private boolean appendRequestHeaderString = false;
-	private String bindIp = null;                                        //"127.0.0.1";
+	/**
+	 * 127.0.0.1
+	 */
+	private String bindIp = null;
 	/**
 	 * 监听端口
 	 */
 	private Integer bindPort = 80;
 	private String serverInfo = HttpConst.SERVER_INFO;
 	private String charset = HttpConst.CHARSET_NAME;
-	private Cache<String, HttpSession> sessionStore = null;
 	/**
 	 * 访问路径前缀，譬如"/api"
 	 */
 	private String contextPath = "";
-	/**
-	 * 加后缀，譬如".php"
-	 */
-	private String suffix = "";
-	/**
-	 * 如果访问路径是以"/"结束，则实际访问路径会自动加上welcomeFile，从而变成形如"/index.html"的路径
-	 */
-	private String welcomeFile = null;                                        //"index.html";
-	/**
-	 * 允许访问的域名，如果不限制，则为null
-	 */
-	private String[] allowDomains = null;
-	/**
-	 * 存放HttpSession对象的cacheName
-	 */
-	private String sessionCacheName = SESSION_CACHE_NAME;
-	/**
-	 * session超时时间，单位：秒
-	 */
-	private long sessionTimeout = DEFAULT_SESSION_TIMEOUT;
-	private String sessionCookieName = SESSION_COOKIE_NAME;
-	/**
-	 * 静态资源缓存时间，如果小于等于0则不缓存，单位：秒
-	 */
-	private int maxLiveTimeOfStaticRes = MAX_LIVETIME_OF_STATICRES;
-	private String page404 = "/404.html";
-	private String page500 = "/500.html";
-	private ISessionIdGenerator sessionIdGenerator;
 	private HttpRequestHandler httpRequestHandler;
 	/**
 	 * ip被拉黑时，服务器给的响应，如果是null，服务器会直接断开连接
@@ -337,65 +292,27 @@ public class HttpConfig {
 	 * 是否被代理
 	 */
 	private boolean isProxied = false;
-	/**
-	 * 示例：
-	 * 1、classpath中：classpath:page
-	 * 2、绝对路径：/page
-	 */
-	private String pageRoot = null;                                        //FileUtil.getAbsolutePath("page");//"/page";
 	private boolean pageInClasspath = false;
-	/**
-	 * 域名和页面根目录映射。当客户端通过不同域名访问时，其页面根目录是不一样的<br>
-	 * key: www.t-io.org<br>
-	 * value: 域名对应的页面根目录<br>
-	 */
-	private volatile Map<String, String> domainPageMap = null;                                        //new HashMap<>();
 	private String name = null;
 	/**
 	 * jsonp时，回调参数名
 	 */
 	private String jsonpParamName = JSONP_PARAM_NAME;
-	/**
-	 * 静态文件路径，必须先设置好pageRoot后再用
-	 * key:  文件名后缀
-	 * path: 访问路径  如 /user/set.html
-	 */
-	private Map<String, Set<String>> staticPathsMap = null;
-	/**
-	 * path: 访问路径  如 /user/set.html
-	 */
-	private Set<String> staticPaths = null;
 
-	public HttpConfig(Integer bindPort, boolean useSession) {
+	public HttpConfig(Integer bindPort) {
 		this.bindPort = bindPort;
-		this.useSession = useSession;
 	}
 
 	/**
 	 * @param bindPort
-	 * @param sessionTimeout session超时时间，单位：秒
 	 * @param contextPath
-	 * @param suffix
 	 */
-	public HttpConfig(Integer bindPort, Long sessionTimeout, String contextPath, String suffix) {
+	public HttpConfig(Integer bindPort, String contextPath) {
 		this.bindPort = bindPort;
-		if (sessionTimeout != null) {
-			this.sessionTimeout = sessionTimeout;
-		}
-
 		if (contextPath == null) {
 			contextPath = "";
 		}
 		this.contextPath = contextPath;
-
-		if (suffix == null) {
-			suffix = "";
-		}
-		this.suffix = suffix;
-	}
-
-	public Map<String, String> getDomainPageMap() {
-		return domainPageMap;
 	}
 
 	/**
@@ -434,132 +351,6 @@ public class HttpConfig {
 	}
 
 	/**
-	 * @return the maxLiveTimeOfStaticRes
-	 */
-	public int getMaxLiveTimeOfStaticRes() {
-		return maxLiveTimeOfStaticRes;
-	}
-
-	/**
-	 * @param maxLiveTimeOfStaticRes the maxLiveTimeOfStaticRes to set
-	 */
-	public void setMaxLiveTimeOfStaticRes(int maxLiveTimeOfStaticRes) {
-		this.maxLiveTimeOfStaticRes = maxLiveTimeOfStaticRes;
-	}
-
-	public String getPage404() {
-		return page404;
-	}
-
-	public void setPage404(String page404) {
-		this.page404 = page404;
-	}
-
-	public String getPage500() {
-		return page500;
-	}
-
-	//	public void setSessionTimeout(long sessionTimeout) {
-	//		this.sessionTimeout = sessionTimeout;
-	//	}
-
-	public void setPage500(String page500) {
-		this.page500 = page500;
-	}
-
-	/**
-	 * @return the pageRoot
-	 */
-	public String getPageRoot() {
-		return pageRoot;
-	}
-
-	/**
-	 * @param pageRoot 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
-	 * @throws IOException
-	 * @author tanyaowu
-	 */
-	public void setPageRoot(String pageRoot) throws IOException {
-		staticPathsMap = null;
-		if (StrUtil.startWith(pageRoot, "classpath:")) {
-			this.pageRoot = pageRoot.substring("classpath:".length());//.replaceFirst("classpath:", "classpath:/");
-			if (this.pageRoot.startsWith("/")) {
-				this.pageRoot = this.pageRoot.substring(1);
-			}
-			this.pageInClasspath = true;
-		} else {
-			this.pageRoot = pageRoot;//fromPath(pageRoot);
-		}
-	}
-
-	public String getPageRoot(HttpRequest request) {
-		if (domainPageMap == null || domainPageMap.isEmpty()) {
-			return pageRoot;
-		}
-
-		String domain = request.getDomain();
-		String root = domainPageMap.get(domain);
-		if (root != null) {
-			return root;
-		}
-
-		Set<Entry<String, String>> set = domainPageMap.entrySet();
-
-		for (Entry<String, String> entry : set) {
-			String d = entry.getKey();
-			if (d.startsWith(".") && domain.endsWith(d)) {
-				String file = entry.getValue();
-				domainPageMap.put(domain, file);
-				return file;
-			}
-		}
-		domainPageMap.put(domain, pageRoot);
-		return pageRoot;
-	}
-
-	/**
-	 * @param request
-	 * @param path    形如 /xx/aa.html
-	 * @return
-	 * @throws Exception
-	 * @author tanyaowu
-	 */
-	public HttpResource getResource(HttpRequest request, String path) throws Exception {
-		String pageRoot = getPageRoot(request);
-		HttpResource httpResource = null;
-		//		File file = null;
-		if (pageRoot != null) {
-			if (StrUtil.endWith(path, "/")) {
-				path = path + "index.html";
-			}
-
-			String complatePath = pageRoot + path;
-			if (pageInClasspath) {
-				URL url = this.getClass().getClassLoader().getResource(complatePath);
-				if (url != null) {
-					String protocol = url.getProtocol();
-					if (Objects.equals(protocol, "jar")) {
-						InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(complatePath);
-						httpResource = new HttpResource(path, inputStream, null);
-					} else {
-						File file = new File(url.toURI());
-						if (file.exists()) {
-							httpResource = new HttpResource(path, null, file);
-						}
-					}
-				}
-			} else {
-				File file = new File(complatePath);
-				if (file.exists()) {
-					httpResource = new HttpResource(path, null, file);
-				}
-			}
-		}
-
-		return httpResource;
-	}
-
-	/**
 	 * @return the serverInfo
 	 */
 	public String getServerInfo() {
@@ -571,181 +362,6 @@ public class HttpConfig {
 	 */
 	public void setServerInfo(String serverInfo) {
 		this.serverInfo = serverInfo;
-	}
-
-	/**
-	 * @return the sessionCacheName
-	 */
-	public String getSessionCacheName() {
-		return sessionCacheName;
-	}
-
-	/**
-	 * @param sessionCacheName the sessionCacheName to set
-	 */
-	public void setSessionCacheName(String sessionCacheName) {
-		this.sessionCacheName = sessionCacheName;
-	}
-
-	public String getSessionCookieName() {
-		return sessionCookieName;
-	}
-
-	public void setSessionCookieName(String sessionCookieName) {
-		this.sessionCookieName = sessionCookieName;
-	}
-
-	public ISessionIdGenerator getSessionIdGenerator() {
-		return sessionIdGenerator;
-	}
-
-	public void setSessionIdGenerator(ISessionIdGenerator sessionIdGenerator) {
-		this.sessionIdGenerator = sessionIdGenerator;
-	}
-
-	public Cache<String, HttpSession> getSessionStore() {
-		return sessionStore;
-	}
-
-	public void setSessionStore(Cache<String, HttpSession> sessionStore) {
-		this.sessionStore = sessionStore;
-	}
-
-	public long getSessionTimeout() {
-		return sessionTimeout;
-	}
-
-	public Map<String, Set<String>> getStaticPathsMap() {
-		initStaticPaths();
-		return staticPathsMap;
-	}
-
-	public Set<String> getStaticPaths() {
-		initStaticPaths();
-		return staticPaths;
-	}
-
-	private Map<String, Set<String>> initStaticPaths() {
-		if (staticPathsMap != null) {
-			return staticPathsMap;
-		}
-
-		if (pageInClasspath) {
-			throw new RuntimeException("classpath的pageRoot是");
-		}
-
-		staticPathsMap = new TreeMap<>();
-		staticPaths = new TreeSet<>();
-
-		List<File> files = FileUtil.loopFiles(pageRoot, new FileFilter() {
-			@Override
-			public boolean accept(File file) {
-				String filename = file.getName();
-				String ext = FileUtil.extName(filename);//.getExtension(filename);
-				if (file.isDirectory()) {
-					if ("svn-base".equalsIgnoreCase(ext)) {
-						return false;
-					}
-					return true;
-				}
-				//				String ext = FileUtil.extName(file);
-				return true;
-			}
-		});
-
-		if (files == null) {
-			return staticPathsMap;
-		}
-
-		if (log.isInfoEnabled()) {
-			log.info("一共{}个文件", files.size());
-		}
-
-		File pageRootFile = new File(pageRoot);
-		String pageRootAbs;
-		try {
-			pageRootAbs = pageRootFile.getCanonicalPath();
-		} catch (IOException e1) {
-			log.error(e1.toString(), e1);
-			return null;
-		}
-		for (File file : files) {
-			try {
-				if (file.isDirectory()) {
-
-				} else {
-					String absPath = file.getCanonicalPath();
-					//					long start = System.currentTimeMillis();
-					String path = absPath.substring(pageRootAbs.length());
-
-					path = path.replaceAll("\\\\", "/");
-
-					if (!(path.startsWith("/"))) {
-						path = "/" + path;
-					}
-					log.info("访问路径:{}", path);
-					String ext = FileUtil.extName(path);
-					Set<String> set = staticPathsMap.get(ext);
-					if (set == null) {
-						set = new TreeSet<>();
-						staticPathsMap.put(ext, set);
-					}
-					set.add(path);
-					staticPaths.add(path);
-
-				}
-			} catch (Exception e) {
-				log.error(e.toString());
-			}
-		}
-		return staticPathsMap;
-	}
-
-	/**
-	 * 获取文件的URL访问路径
-	 *
-	 * @param file
-	 * @return
-	 * @throws IOException
-	 */
-	public String getPath(File file) throws IOException {
-		String absPath = file.getCanonicalPath();
-		File pageRootFile = new File(pageRoot);
-		String pageRootAbs = pageRootFile.getCanonicalPath();
-
-		String path = absPath.substring(pageRootAbs.length());
-
-		path = path.replaceAll("\\\\", "/");
-		if (!(path.startsWith("/"))) {
-			path = "/" + path;
-		}
-		return path;
-	}
-
-	/**
-	 * @param domain   形如www.t-io.org的域名，也可以是形如.t-io.org这样的通配域名
-	 * @param pageRoot 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
-	 * @throws IOException
-	 */
-	public void addDomainPage(String domain, String pageRoot) throws IOException {
-		//		File pageRootFile = fromPath(pageRoot);
-		//		if (!pageRootFile.exists()) {
-		//			throw new IOException("文件【" + pageRoot + "】不存在");
-		//		}
-		//
-		//		if (!pageRootFile.isDirectory()) {
-		//			throw new IOException("文件【" + pageRoot + "】不是目录");
-		//		}
-
-		if (domainPageMap == null) {
-			synchronized (this) {
-				if (domainPageMap == null) {
-					domainPageMap = new HashMap<>();
-				}
-			}
-		}
-
-		domainPageMap.put(domain, pageRoot);
 	}
 
 	/**
@@ -766,18 +382,6 @@ public class HttpConfig {
 		return contextPath;
 	}
 
-	public String getSuffix() {
-		return suffix;
-	}
-
-	public String[] getAllowDomains() {
-		return allowDomains;
-	}
-
-	public void setAllowDomains(String[] allowDomains) {
-		this.allowDomains = allowDomains;
-	}
-
 	/**
 	 * @return the isProxied
 	 */
@@ -790,36 +394,6 @@ public class HttpConfig {
 	 */
 	public void setProxied(boolean isProxied) {
 		this.isProxied = isProxied;
-	}
-
-	public boolean isUseSession() {
-		return useSession;
-	}
-
-	public void setUseSession(boolean useSession) {
-		this.useSession = useSession;
-	}
-
-	/**
-	 * 根据sessionId获取HttpSession对象
-	 *
-	 * @param sessionId
-	 * @return
-	 */
-	public HttpSession getHttpSession(String sessionId) {
-		if (StrUtil.isBlank(sessionId)) {
-			return null;
-		}
-		HttpSession httpSession = (HttpSession) getSessionStore().get(sessionId);
-		return httpSession;
-	}
-
-	public String getWelcomeFile() {
-		return welcomeFile;
-	}
-
-	public void setWelcomeFile(String welcomeFile) {
-		this.welcomeFile = welcomeFile;
 	}
 
 	/**
@@ -876,14 +450,6 @@ public class HttpConfig {
 
 	public void setPageInClasspath(boolean pageInClasspath) {
 		this.pageInClasspath = pageInClasspath;
-	}
-
-	public SessionRateLimiter getSessionRateLimiter() {
-		return sessionRateLimiter;
-	}
-
-	public void setSessionRateLimiter(SessionRateLimiter sessionRateLimiter) {
-		this.sessionRateLimiter = sessionRateLimiter;
 	}
 
 	public int getMaxForwardCount() {

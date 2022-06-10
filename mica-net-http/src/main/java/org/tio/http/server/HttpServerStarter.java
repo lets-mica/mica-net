@@ -193,17 +193,11 @@
 */
 package org.tio.http.server;
 
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.core.TcpConst;
 import org.tio.http.common.HttpConfig;
 import org.tio.http.common.HttpUuid;
 import org.tio.http.common.TioConfigKey;
 import org.tio.http.common.handler.HttpRequestHandler;
-import org.tio.http.common.session.HttpSession;
-import org.tio.http.common.session.id.impl.UUIDSessionIdGenerator;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.Threads;
@@ -211,30 +205,20 @@ import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
- *
  * @author tanyaowu
  */
 public class HttpServerStarter {
-	private static Logger			log						= LoggerFactory.getLogger(HttpServerStarter.class);
-	private HttpConfig				httpConfig				= null;
-	private HttpTioServerHandler	httpTioServerHandler	= null;
-	private HttpTioServerListener	httpTioServerListener	= null;
-	private TioServerConfig		tioServerConfig		= null;
-	private TioServer				tioServer				= null;
-	private HttpRequestHandler		httpRequestHandler		= null;
-	/**
-	 * 预访问路径的后缀
-	 */
-	private List<String>			preAccessFileType		= new ArrayList<>();
+	private HttpConfig httpConfig = null;
+	private HttpTioServerHandler httpTioServerHandler = null;
+	private HttpTioServerListener httpTioServerListener = null;
+	private TioServerConfig tioServerConfig = null;
+	private TioServer tioServer = null;
+	private HttpRequestHandler httpRequestHandler = null;
 
 	/**
-	 *
 	 * @param httpConfig
 	 * @param requestHandler
 	 * @author tanyaowu
@@ -244,7 +228,6 @@ public class HttpServerStarter {
 	}
 
 	/**
-	 *
 	 * @param httpConfig
 	 * @param requestHandler
 	 * @param tioExecutor
@@ -252,22 +235,12 @@ public class HttpServerStarter {
 	 * @author tanyaowu
 	 */
 	public HttpServerStarter(HttpConfig httpConfig, HttpRequestHandler requestHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
-		//		preAccessFileType.add("css");
-		//		preAccessFileType.add("js");
-		//		preAccessFileType.add("jsp");
-		preAccessFileType.add("html");
-		preAccessFileType.add("ftl");
-		//		preAccessFileType.add("xml");
-		//		preAccessFileType.add("htm");
-
 		if (tioExecutor == null) {
 			tioExecutor = Threads.getTioExecutor();
 		}
-
 		if (groupExecutor == null) {
 			groupExecutor = Threads.getGroupExecutor();
 		}
-
 		init(httpConfig, requestHandler, tioExecutor, groupExecutor);
 	}
 
@@ -338,26 +311,10 @@ public class HttpServerStarter {
 	 * @author tanyaowu
 	 */
 	public void start() throws IOException {
-		if (httpConfig.isUseSession()) {
-			if (httpConfig.getSessionStore() == null) {
-				httpConfig.setSessionStore(getCache(httpConfig.getSessionCacheName(), httpConfig.getSessionTimeout()));
-			}
-			if (httpConfig.getSessionIdGenerator() == null) {
-				httpConfig.setSessionIdGenerator(UUIDSessionIdGenerator.instance);
-			}
-		}
 		tioServer.start(this.httpConfig.getBindIp(), this.httpConfig.getBindPort());
 	}
 
-	private static Cache<String, HttpSession> getCache(String cacheName, long timeToLiveSeconds) {
-		return Cache2kBuilder.of(String.class, HttpSession.class)
-			.name(cacheName)
-			.expireAfterWrite(timeToLiveSeconds, TimeUnit.SECONDS)
-			.entryCapacity(5000000)
-			.build();
-	}
-
-	public void stop() throws IOException {
+	public void stop() {
 		tioServer.stop();
 	}
 
