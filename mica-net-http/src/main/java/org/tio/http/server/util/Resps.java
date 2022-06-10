@@ -193,6 +193,15 @@
 */
 package org.tio.http.server.util;
 
+import com.alibaba.fastjson2.JSON;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.tio.http.common.*;
+import org.tio.utils.IoUtils;
+import org.tio.utils.hutool.ClassUtil;
+import org.tio.utils.hutool.FileUtil;
+import org.tio.utils.hutool.StrUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -201,24 +210,6 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.util.Date;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.tio.http.common.HeaderName;
-import org.tio.http.common.HeaderValue;
-import org.tio.http.common.HttpConfig;
-import org.tio.http.common.HttpConst;
-import org.tio.http.common.HttpRequest;
-import org.tio.http.common.HttpResource;
-import org.tio.http.common.HttpResponse;
-import org.tio.http.common.HttpResponseStatus;
-import org.tio.http.common.MimeType;
-import org.tio.http.common.RequestLine;
-import org.tio.utils.IoUtils;
-import org.tio.utils.hutool.ClassUtil;
-import org.tio.utils.hutool.FileUtil;
-import org.tio.utils.hutool.StrUtil;
-import org.tio.utils.json.Json;
 
 /**
  * @author tanyaowu
@@ -296,7 +287,6 @@ public class Resps {
 		String filename = fileOnServer.getName();
 		String extension = FileUtil.extName(filename);
 		ret = bytes(request, bodyBytes, extension);
-		//		ret.addHeader(HeaderName.Content_Disposition, HeaderValue.from("attachment;filename=" + fileOnServer.getName()));
 		ret.setLastModified(HeaderValue.from(lastModified.getTime() + ""));
 		return ret;
 	}
@@ -507,7 +497,7 @@ public class Resps {
 			if (body.getClass() == String.class || ClassUtil.isBasicType(body.getClass())) {
 				ret = string(request, body + "", charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
 			} else {
-				ret = string(request, Json.toJson(body), charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
+				ret = string(request, JSON.toJSONString(body), charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
 			}
 		}
 		return ret;
@@ -618,7 +608,7 @@ public class Resps {
 	public static HttpResponse try304(HttpRequest request, long lastModifiedOnServer) {
 		String ifModifiedSince = request.getHeader(HttpConst.RequestHeaderKey.If_Modified_Since);//If-Modified-Since
 		if (StrUtil.isNotBlank(ifModifiedSince)) {
-			Long ifModifiedSinceDate;
+			long ifModifiedSinceDate;
 			try {
 				ifModifiedSinceDate = Long.parseLong(ifModifiedSince);
 				if (lastModifiedOnServer <= ifModifiedSinceDate) {

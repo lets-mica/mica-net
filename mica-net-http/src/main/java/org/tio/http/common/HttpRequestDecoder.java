@@ -556,7 +556,6 @@ public class HttpRequestDecoder {
 		if (contentType != null) {
 			Content_Type = contentType.toLowerCase();
 		}
-
 		if (Content_Type.startsWith(HttpConst.RequestHeaderValue.Content_Type.text_plain)) {
 			httpRequest.setBodyFormat(RequestBodyFormat.TEXT);
 		} else if (Content_Type.startsWith(HttpConst.RequestHeaderValue.Content_Type.multipart_form_data)) {
@@ -564,9 +563,8 @@ public class HttpRequestDecoder {
 		} else {
 			httpRequest.setBodyFormat(RequestBodyFormat.URLENCODED);
 		}
-
 		if (StrUtil.isNotBlank(Content_Type)) {
-			String charset = HttpParseUtils.getSubAttribute(Content_Type, "charset");//.getPerprotyEqualValue(headers, HttpConst.RequestHeaderKey.Content_Type, "charset");
+			String charset = HttpParseUtils.getSubAttribute(Content_Type, "charset");
 			if (StrUtil.isNotBlank(charset)) {
 				httpRequest.setCharset(charset);
 			} else {
@@ -587,10 +585,6 @@ public class HttpRequestDecoder {
 	 * @author tanyaowu
 	 */
 	public static boolean parseHeaderLine(ByteBuffer buffer, Map<String, String> headers, int hasReceivedHeaderLength, HttpConfig httpConfig) throws TioDecodeException {
-		//		if (!buffer.hasArray()) {
-		//			return parseHeaderLine2(buffer, headers, hasReceivedHeaderLength, httpConfig);
-		//		}
-
 		byte[] allbs = buffer.array();
 		int initPosition = buffer.position();
 		int lastPosition = initPosition;
@@ -671,9 +665,7 @@ public class HttpRequestDecoder {
 
 		if (needIteration) {
 			int headerLength = lineLength + hasReceivedHeaderLength; //header占用的字节数
-			//			log.error("allHeaderLength:{}", allHeaderLength);
 			if (headerLength > MAX_LENGTH_OF_HEADER) {
-				//				log.error("header is too long, max length of header is " + MAX_LENGTH_OF_HEADER);
 				throw new TioDecodeException("header is too long, max length of header is " + MAX_LENGTH_OF_HEADER);
 			}
 			return parseHeaderLine(buffer, headers, headerLength, httpConfig);
@@ -747,7 +739,6 @@ public class HttpRequestDecoder {
 					headers.put(name.toLowerCase(), null);
 					needIteration = true;
 					break;
-					//					return true;
 				}
 				continue;
 			} else if (value == null) {

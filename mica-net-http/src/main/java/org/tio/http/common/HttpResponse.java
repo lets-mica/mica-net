@@ -193,8 +193,6 @@
 */
 package org.tio.http.common;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.http.common.utils.HttpGzipUtils;
 import org.tio.utils.SysConst;
 import org.tio.utils.hutool.StrUtil;
@@ -208,8 +206,6 @@ import java.util.Map.Entry;
 public class HttpResponse extends HttpPacket {
 	public static final HttpResponse NULL_RESPONSE = new HttpResponse();
 	private static final long serialVersionUID = -3512681144230291786L;
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(HttpResponse.class);
 	/**
 	 * 服务器端用（因为服务器端可以直接枚举）
 	 */
@@ -322,45 +318,6 @@ public class HttpResponse extends HttpPacket {
 		return headers;
 	}
 
-	//	private String lastModified = null;//HttpConst.ResponseHeaderKey.Last_Modified
-
-	//	/**
-	//	 *
-	//	 * @param request
-	//	 * @param httpConfig 可以为null
-	//	 * @author tanyaowu
-	//	 */
-	//	public HttpResponse(HttpRequest request, HttpConfig httpConfig) {
-	//		this.request = request;
-	//
-	//		String Connection = StrUtil.lowerCase(request.getHeader(HttpConst.RequestHeaderKey.Connection));
-	//		RequestLine requestLine = request.getRequestLine();
-	//		String version = requestLine.getVersion();
-	//		if ("1.0".equals(version)) {
-	//			if (StrUtil.equals(Connection, HttpConst.RequestHeaderValue.Connection.keep_alive)) {
-	//				addHeader(HttpConst.ResponseHeaderKey.Connection, HttpConst.ResponseHeaderValue.Connection.keep_alive);
-	//				addHeader(HttpConst.ResponseHeaderKey.Keep_Alive, "timeout=10, max=20");
-	//			} else {
-	//				addHeader(HttpConst.ResponseHeaderKey.Connection, HttpConst.ResponseHeaderValue.Connection.close);
-	//			}
-	//		} else {
-	//			if (StrUtil.equals(Connection, HttpConst.RequestHeaderValue.Connection.close)) {
-	//				addHeader(HttpConst.ResponseHeaderKey.Connection, HttpConst.ResponseHeaderValue.Connection.close);
-	//			} else {
-	//				addHeader(HttpConst.ResponseHeaderKey.Connection, HttpConst.ResponseHeaderValue.Connection.keep_alive);
-	//				addHeader(HttpConst.ResponseHeaderKey.Keep_Alive, "timeout=10, max=20");
-	//			}
-	//		}
-	//
-	//
-	//		if (httpConfig != null) {
-	//			addHeader(HttpConst.ResponseHeaderKey.Server, httpConfig.getServerInfo());
-	//		}
-	//		//		String xx = DatePattern.HTTP_DATETIME_FORMAT.format(SystemTimer.currTime);
-	//		//		addHeader(HttpConst.ResponseHeaderKey.Date, DatePattern.HTTP_DATETIME_FORMAT.format(SystemTimer.currTime));
-	//		//		addHeader(HttpConst.ResponseHeaderKey.Date, new Date().toGMTString());
-	//	}
-
 	public void addHeader(HeaderName key, HeaderValue value) {
 		headers.put(key, value);
 		headerByteCount += (key.bytes.length + value.bytes.length + 3); //冒号和\r\n
@@ -406,13 +363,6 @@ public class HttpResponse extends HttpPacket {
 		this.charset = charset;
 	}
 
-	//	/**
-	//	 * @return the encodedBytes
-	//	 */
-	//	public byte[] getEncodedBytes() {
-	//		return encodedBytes;
-	//	}
-
 	/**
 	 * @return the cookies
 	 */
@@ -455,13 +405,6 @@ public class HttpResponse extends HttpPacket {
 		return isStaticRes;
 	}
 
-	//	/**
-	//	 * @param encodedBytes the encodedBytes to set
-	//	 */
-	//	public void setEncodedBytes(byte[] encodedBytes) {
-	//		this.encodedBytes = encodedBytes;
-	//	}
-
 	/**
 	 * @param isStaticRes the isStaticRes to set
 	 */
@@ -471,7 +414,7 @@ public class HttpResponse extends HttpPacket {
 
 	@Override
 	public String logstr() {
-		String str = null;
+		String str;
 		if (request != null) {
 			str = "\r\n响应: 请求ID_" + request.getId() + "  " + request.getRequestLine().getPathAndQuery();
 			str += SysConst.CRLF + this.getHeaderString();
@@ -513,15 +456,11 @@ public class HttpResponse extends HttpPacket {
 	}
 
 	public HeaderValue getLastModified() {
-		//		if (lastModified != null) {
-		//			return lastModified;
-		//		}
 		return this.getHeader(HeaderName.Last_Modified);
 	}
 
 	public void setLastModified(HeaderValue lastModified) {
 		if (lastModified != null) {
-			//			this.lastModified = lastModified;
 			this.addHeader(HeaderName.Last_Modified, lastModified);
 		}
 	}
@@ -537,14 +476,6 @@ public class HttpResponse extends HttpPacket {
 
 	@Override
 	public String toString() {
-		//		String ret = this.getHeaderString();
-		//		if (this.getBody() != null) {
-		//			try {
-		//				ret += new String(this.getBody(), this.request.getCharset());
-		//			} catch (UnsupportedEncodingException e) {
-		//				log.error(e.toString(), e);
-		//			}
-		//		}
 		return this.status.toString();
 	}
 
@@ -555,10 +486,4 @@ public class HttpResponse extends HttpPacket {
 		return headerByteCount;
 	}
 
-	//	/**
-	//	 * @return the cookieByteCount
-	//	 */
-	//	public int getCookieByteCount() {
-	//		return cookieByteCount;
-	//	}
 }

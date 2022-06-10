@@ -206,7 +206,7 @@ import java.util.Map;
 public class HttpPacket extends Packet {
 	private static final long serialVersionUID = 3903186670675671956L;
 	protected byte[] body;
-	private Map<String, Serializable> props = new HashMap<>();
+	private final Map<String, Serializable> props = new HashMap<>();
 	private String headerString = SysConst.BLANK;
 
 	public HttpPacket() {

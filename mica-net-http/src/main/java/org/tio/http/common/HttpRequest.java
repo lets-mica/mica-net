@@ -212,7 +212,7 @@ import java.util.Map.Entry;
  */
 public class HttpRequest extends HttpPacket {
 	private static final long serialVersionUID = -3849253977016967211L;
-	private static Logger log = LoggerFactory.getLogger(HttpRequest.class);
+	private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
 	public RequestLine requestLine = null;
 	public ChannelContext channelContext;
 	public HttpConfig httpConfig;
@@ -236,7 +236,6 @@ public class HttpRequest extends HttpPacket {
 	private HttpSession httpSession;
 	private Node remote = null;
 	private String domain = null;
-//	private String					clientIp			= null;
 	private String host = null;
 	/**
 	 * 该HttpRequest对象的创建时间
@@ -289,7 +288,7 @@ public class HttpRequest extends HttpPacket {
 			newExistValue[newExistValue.length - 1] = value;
 			params.put(key, newExistValue);
 		} else {
-			Object[] newExistValue = null;//new Object[] { value };
+			Object[] newExistValue = null;
 			if (value instanceof String) {
 				newExistValue = new String[]{(String) value};
 			} else if (value instanceof UploadFile) {
@@ -323,11 +322,8 @@ public class HttpRequest extends HttpPacket {
 			this.close();
 			return null;
 		}
-
 		this.needForward = true;
-
 		return HttpResponse.NULL_RESPONSE;
-
 	}
 
 	/**
@@ -364,7 +360,6 @@ public class HttpRequest extends HttpPacket {
 		if (host != null) {
 			return host;
 		}
-
 		host = this.headers.get(HttpConst.RequestHeaderKey.Host);
 		return host;
 	}
@@ -377,10 +372,6 @@ public class HttpRequest extends HttpPacket {
 	 */
 	public String getClientIp() {
 		return remote.getIp();
-//		if (clientIp == null) {
-//			clientIp = IpUtils.getRealIp(this);
-//		}
-//		return clientIp;
 	}
 
 	public void addHeader(String key, String value) {
@@ -448,34 +439,6 @@ public class HttpRequest extends HttpPacket {
 		return charset;
 	}
 
-	//	/**
-	//	 * @return the bodyBytes
-	//	 */
-	//	public byte[] getBodyBytes() {
-	//		return bodyBytes;
-	//	}
-	//
-	//	/**
-	//	 * @param bodyBytes the bodyBytes to set
-	//	 */
-	//	public void setBodyBytes(byte[] bodyBytes) {
-	//		this.bodyBytes = bodyBytes;
-	//	}
-
-	//	/**
-	//	 * @return the userAgent
-	//	 */
-	//	public UserAgent getUserAgent() {
-	//		return userAgent;
-	//	}
-	//
-	//	/**
-	//	 * @param userAgent the userAgent to set
-	//	 */
-	//	public void setUserAgent(UserAgent userAgent) {
-	//		this.userAgent = userAgent;
-	//	}
-
 	/**
 	 * @param charset the charset to set
 	 */
@@ -491,17 +454,17 @@ public class HttpRequest extends HttpPacket {
 	}
 
 	/**
-	 * @param bodyLength the bodyLength to set
+	 * @param contentLength the bodyLength to set
 	 */
 	public void setContentLength(int contentLength) {
 		this.contentLength = contentLength;
 	}
 
-	public Cookie getCookie(String cooiename) {
+	public Cookie getCookie(String name) {
 		if (cookieMap == null) {
 			return null;
 		}
-		return cookieMap.get(cooiename);
+		return cookieMap.get(name);
 	}
 
 	/**
@@ -575,19 +538,12 @@ public class HttpRequest extends HttpPacket {
 	 * 设置好header后，会把cookie等头部信息也设置好
 	 *
 	 * @param headers        the headers to set
-	 * @param channelContext
 	 */
 	public void setHeaders(Map<String, String> headers) {
 		this.headers = headers;
 		if (headers != null) {
 			parseCookie(httpConfig);
 		}
-
-		//		String Sec_WebSocket_Key = headers.get(HttpConst.RequestHeaderKey.Sec_WebSocket_Key);
-		//		if (StrUtil.isNotBlank(Sec_WebSocket_Key)) {
-		//			ImSessionContext httpSession = channelContext.get();
-		//			httpSession.setWebsocket(true);
-		//		}
 	}
 
 	public void removeHeader(String key, String value) {
@@ -606,7 +562,6 @@ public class HttpRequest extends HttpPacket {
 				isAjax = false;
 			}
 		}
-
 		return isAjax;
 	}
 
@@ -667,9 +622,10 @@ public class HttpRequest extends HttpPacket {
 	public Map<String, Object> getParam() {
 		Map<String, Object> params = new HashMap<>();
 		if (getParams() != null) {
-			for (String key : this.params.keySet()) {
-				Object[] param = this.params.get(key);
+			for (Entry<String, Object[]> entry : this.params.entrySet()) {
+				Object[] param = entry.getValue();
 				if (param != null && param.length >= 1) {
+					String key = entry.getKey();
 					params.put(key, param[0]);
 				}
 			}
@@ -684,14 +640,13 @@ public class HttpRequest extends HttpPacket {
 
 		Object[] values = params.get(name);
 		if (values != null && values.length > 0) {
-			Object obj = values[0];
-			return obj;
+			return values[0];
 		}
 		return null;
 	}
 
 	/**
-	 * @param value
+	 * @param name
 	 * @return
 	 * @author: tanyaowu
 	 */
@@ -789,8 +744,7 @@ public class HttpRequest extends HttpPacket {
 	 * @author tanyaowu
 	 */
 	public Object[] getParamArray(String name) {
-		Object[] values = params.get(name);
-		return values;
+		return params.get(name);
 	}
 
 	public Node getRemote() {
@@ -840,11 +794,9 @@ public class HttpRequest extends HttpPacket {
 				HashMap<String, String> cookieOneMap = new HashMap<>();
 				cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
 				cookieListMap.add(cookieOneMap);
-
 				Cookie cookie = Cookie.buildCookie(cookieOneMap, httpConfig);
 				cookies.add(cookie);
 				cookieMap.put(cookie.getName(), cookie);
-				//				log.error("{}, 收到cookie:{}", channelContext, cookie.toString());
 			}
 		}
 	}
@@ -886,20 +838,6 @@ public class HttpRequest extends HttpPacket {
 	 */
 	public String getConnection() {
 		return connection;
-
-		//		if (httpConfig.compatible1_0 || connection != null) {
-		//			return connection;
-		//		} else {
-		//			String connection = headers.get(HttpConst.RequestHeaderKey.Connection);
-		//			if (connection != null) {
-		//				connection = connection.toLowerCase();
-		//				setConnection(connection);
-		//				return connection;
-		//			} else {
-		//				return null;
-		//			}
-		//		}
-
 	}
 
 	/**
@@ -928,19 +866,5 @@ public class HttpRequest extends HttpPacket {
 	public void setForward(boolean isForward) {
 		this.isForward = isForward;
 	}
-
-	//	/**
-	//	 * @return the httpSession
-	//	 */
-	//	public HttpSession getHttpSession() {
-	//		return httpSession;
-	//	}
-	//
-	//	/**
-	//	 * @param httpSession the httpSession to set
-	//	 */
-	//	public void setHttpSession(HttpSession httpSession) {
-	//		this.httpSession = httpSession;
-	//	}
 
 }
