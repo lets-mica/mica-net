@@ -201,9 +201,7 @@ public class UploadFile {
 
 	private String name = null;
 	private int size = -1;
-
 	private byte[] data = null;
-	//    private File file = null;
 
 	/**
 	 *
@@ -227,16 +225,6 @@ public class UploadFile {
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	//    public File getFile()
-	//    {
-	//        return file;
-	//    }
-	//
-	//    public void setFile(File file)
-	//    {
-	//        this.file = file;
-	//    }
 
 	public int getSize() {
 		return size;

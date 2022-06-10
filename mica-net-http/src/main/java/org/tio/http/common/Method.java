@@ -200,9 +200,9 @@ package org.tio.http.common;
 public enum Method {
 	GET("GET"), POST("POST"), HEAD("HEAD"), PUT("PUT"), TRACE("TRACE"), OPTIONS("OPTIONS"), PATCH("PATCH"), DELETE("DELETE");
 
-	String value;
+	final String value;
 
-	private Method(String value) {
+	Method(String value) {
 		this.value = value;
 	}
 

@@ -219,7 +219,7 @@ public class StrCache {
 	 * value: 小写后的字符串
 	 */
 	private static final Map<Integer, String> INIT_LOWERCASE_MAP = new HashMap<>(100);
-	private static Logger log = LoggerFactory.getLogger(StrCache.class);
+	private static final Logger log = LoggerFactory.getLogger(StrCache.class);
 
 	/**
 	 *
@@ -227,13 +227,6 @@ public class StrCache {
 	public StrCache() {
 
 	}
-
-	//	public static String get(byte[] allbs, int start, int len) {
-	//		byte[] bs = new byte[len];
-	//		System.arraycopy(allbs, start, bs, 0, len);
-	//
-	//		return get(bs);
-	//	}
 
 	/**
 	 * @param allbs
@@ -260,7 +253,6 @@ public class StrCache {
 			} catch (Exception e) {
 				log.error(e.toString(), e);
 			}
-
 			str = BYTES_STRING_MAP.get(hashcode);
 		}
 		return str;
@@ -280,7 +272,6 @@ public class StrCache {
 			if (INIT_LOWERCASE_MAP.size() > MAX_SIZE) {
 				return initStr.toLowerCase();
 			}
-
 			try {
 				LockUtils.runWriteOrWaitRead("StrCache:getLowercase" + hashcode, INIT_LOWERCASE_MAP, () -> {
 					String str2 = INIT_LOWERCASE_MAP.get(hashcode);
@@ -292,11 +283,9 @@ public class StrCache {
 			} catch (Exception e) {
 				log.error(e.toString(), e);
 			}
-
 			str = INIT_LOWERCASE_MAP.get(hashcode);
 		}
 		return str;
-
 	}
 
 }
