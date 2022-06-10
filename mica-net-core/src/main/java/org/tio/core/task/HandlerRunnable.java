@@ -222,10 +222,9 @@ import org.tio.utils.thread.pool.AbstractQueueRunnable;
 public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	private static final Logger log = LoggerFactory.getLogger(HandlerRunnable.class);
 
-	private ChannelContext	channelContext	= null;
-	private TioConfig		tioConfig		= null;
-
-	private AtomicLong synFailCount = new AtomicLong();
+	private final ChannelContext	channelContext;
+	private final TioConfig		tioConfig;
+	private final AtomicLong synFailCount = new AtomicLong();
 
 	public HandlerRunnable(ChannelContext channelContext, Executor executor) {
 		super(executor);
@@ -277,7 +276,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 			if (tioConfig.isIpStatEnable()) {
 				try {
 					for (Long v : tioConfig.ipStats.durationList) {
-						IpStat ipStat = (IpStat) tioConfig.ipStats.get(v, channelContext);
+						IpStat ipStat = tioConfig.ipStats.get(v, channelContext);
 						ipStat.getHandledPackets().incrementAndGet();
 						ipStat.getHandledBytes().addAndGet(packet.getByteCount());
 						ipStat.getHandledPacketCosts().addAndGet(iv);
@@ -308,7 +307,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	 */
 	@Override
 	public void runTask() {
-		Packet packet = null;
+		Packet packet;
 		while ((packet = msgQueue.poll()) != null) {
 			handler(packet);
 		}
