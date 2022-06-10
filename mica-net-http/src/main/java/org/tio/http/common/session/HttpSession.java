@@ -208,7 +208,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class HttpSession implements Serializable {
 	private static final long serialVersionUID = 6077020620501316538L;
-	private static Logger log = LoggerFactory.getLogger(HttpSession.class);
+	private static final Logger log = LoggerFactory.getLogger(HttpSession.class);
 	private Map<String, Serializable> data = new ConcurrentHashMap<>();
 
 	private String id = null;
@@ -276,10 +276,6 @@ public class HttpSession implements Serializable {
 		return t;
 	}
 
-	//	public Map<String, Serializable> getData() {
-	//		return data;
-	//	}
-
 	public String getId() {
 		return id;
 	}
@@ -310,10 +306,6 @@ public class HttpSession implements Serializable {
 		data.put(key, value);
 		update(httpConfig);
 	}
-
-	//	public void setData(Map<String, Serializable> data) {
-	//		this.data = data;
-	//	}
 
 	public void update(HttpConfig httpConfig) {
 		httpConfig.getSessionStore().put(id, this);

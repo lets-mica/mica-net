@@ -193,6 +193,7 @@
 */
 package org.tio.http.common;
 
+import org.cache2k.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.http.common.handler.HttpRequestHandler;
@@ -200,7 +201,6 @@ import org.tio.http.common.session.HttpSession;
 import org.tio.http.common.session.id.ISessionIdGenerator;
 import org.tio.http.common.session.limiter.SessionRateLimiter;
 import org.tio.http.common.view.freemarker.FreemarkerConfig;
-import org.tio.utils.cache.ICache;
 import org.tio.utils.hutool.FileUtil;
 import org.tio.utils.hutool.StrUtil;
 
@@ -296,7 +296,7 @@ public class HttpConfig {
 	private Integer bindPort = 80;
 	private String serverInfo = HttpConst.SERVER_INFO;
 	private String charset = HttpConst.CHARSET_NAME;
-	private ICache sessionStore = null;
+	private Cache<String, HttpSession> sessionStore = null;
 	/**
 	 * 访问路径前缀，譬如"/api"
 	 */
@@ -609,13 +609,12 @@ public class HttpConfig {
 		this.sessionIdGenerator = sessionIdGenerator;
 	}
 
-	public ICache getSessionStore() {
+	public Cache<String, HttpSession> getSessionStore() {
 		return sessionStore;
 	}
 
-	public void setSessionStore(ICache sessionStore) {
+	public void setSessionStore(Cache<String, HttpSession> sessionStore) {
 		this.sessionStore = sessionStore;
-		//		this.httpSessionManager = HttpSessionManager.getInstance(sessionStore);
 	}
 
 	public long getSessionTimeout() {

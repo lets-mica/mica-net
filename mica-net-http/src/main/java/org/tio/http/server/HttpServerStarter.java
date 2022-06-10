@@ -193,6 +193,8 @@
 */
 package org.tio.http.server;
 
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.TcpConst;
@@ -200,11 +202,11 @@ import org.tio.http.common.HttpConfig;
 import org.tio.http.common.HttpUuid;
 import org.tio.http.common.TioConfigKey;
 import org.tio.http.common.handler.HttpRequestHandler;
+import org.tio.http.common.session.HttpSession;
 import org.tio.http.common.session.id.impl.UUIDSessionIdGenerator;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.Threads;
-import org.tio.utils.cache.cache2k.CaffeineCache;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
@@ -212,6 +214,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -337,14 +340,21 @@ public class HttpServerStarter {
 	public void start() throws IOException {
 		if (httpConfig.isUseSession()) {
 			if (httpConfig.getSessionStore() == null) {
-				CaffeineCache caffeineCache = CaffeineCache.register(httpConfig.getSessionCacheName(), null, httpConfig.getSessionTimeout());
-				httpConfig.setSessionStore(caffeineCache);
+				httpConfig.setSessionStore(getCache(httpConfig.getSessionCacheName(), httpConfig.getSessionTimeout()));
 			}
 			if (httpConfig.getSessionIdGenerator() == null) {
 				httpConfig.setSessionIdGenerator(UUIDSessionIdGenerator.instance);
 			}
 		}
 		tioServer.start(this.httpConfig.getBindIp(), this.httpConfig.getBindPort());
+	}
+
+	private static Cache<String, HttpSession> getCache(String cacheName, long timeToLiveSeconds) {
+		return Cache2kBuilder.of(String.class, HttpSession.class)
+			.name(cacheName)
+			.expireAfterWrite(timeToLiveSeconds, TimeUnit.SECONDS)
+			.entryCapacity(5000000)
+			.build();
 	}
 
 	public void stop() throws IOException {
