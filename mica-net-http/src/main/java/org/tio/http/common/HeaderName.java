@@ -201,6 +201,7 @@ import java.util.Map;
  * 2018年7月1日 上午9:51:04
  */
 public class HeaderName {
+	private static final Map<String, HeaderName> map = new HashMap<>();
 	public static final HeaderName SET_COOKIE = new HeaderName(HttpConst.ResponseHeaderKey.Set_Cookie);
 	public static final HeaderName CONTENT_TYPE = new HeaderName(HttpConst.ResponseHeaderKey.Content_Type);
 	public static final HeaderName CACHE_CONTROL = new HeaderName(HttpConst.ResponseHeaderKey.Cache_Control);
@@ -212,10 +213,6 @@ public class HeaderName {
 	public static final HeaderName Access_Control_Allow_Headers = new HeaderName(HttpConst.ResponseHeaderKey.Access_Control_Allow_Headers);
 	public static final HeaderName Access_Control_Allow_Methods = new HeaderName(HttpConst.ResponseHeaderKey.Access_Control_Allow_Methods);
 	public static final HeaderName Access_Control_Max_Age = new HeaderName(HttpConst.ResponseHeaderKey.Access_Control_Max_Age);
-	//	httpResponse.addHeader("Access-Control-Allow-Origin", "*");
-	//    httpResponse.addHeader("Access-Control-Allow-Methods", "*");Access_Control_Allow_Headers
-	//    httpResponse.addHeader("Access-Control-Allow-Headers", "Content-Type");
-	//    httpResponse.addHeader("Access-Control-Max-Age", "1800");
 	public static final HeaderName Content_Disposition = new HeaderName(HttpConst.ResponseHeaderKey.Content_Disposition);
 	public static final HeaderName Content_Encoding = new HeaderName(HttpConst.ResponseHeaderKey.Content_Encoding);
 	public static final HeaderName Date = new HeaderName(HttpConst.ResponseHeaderKey.Date);
@@ -231,7 +228,6 @@ public class HeaderName {
 	public static final HeaderName tio_from_cache = new HeaderName(HttpConst.ResponseHeaderKey.tio_from_cache);
 	public static final HeaderName tio_webpack_used_cache = new HeaderName(HttpConst.ResponseHeaderKey.tio_webpack_used_cache);
 	public static final HeaderName Access_Control_Allow_Credentials = new HeaderName(HttpConst.ResponseHeaderKey.Access_Control_Allow_Credentials);
-	private static final Map<String, HeaderName> map = new HashMap<>();
 	public static final HeaderName Sec_Websocket_Protocol = HeaderName.from(HttpConst.RequestHeaderKey.Sec_Websocket_Protocol);
 
 	public final String name;
