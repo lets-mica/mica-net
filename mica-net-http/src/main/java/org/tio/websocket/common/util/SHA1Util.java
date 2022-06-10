@@ -198,8 +198,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class SHA1Util {
-
-	private final static String ALGORITHM = "SHA-1";
+	private static final String ALGORITHM = "SHA-1";
 
 	public static byte[] SHA1(byte[] decript) {
 		try {

@@ -207,11 +207,6 @@ public class WsTioServerListener implements TioServerListener {
 	public WsTioServerListener() {
 	}
 
-	//	@Override
-	//	public void onAfterClose(ChannelContext channelContext, Throwable throwable, String remark, boolean isRemove) {
-	//	}
-
-	@SuppressWarnings("deprecation")
 	@Override
 	public void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) throws Exception {
 		WsSessionContext wsSessionContext = new WsSessionContext();
