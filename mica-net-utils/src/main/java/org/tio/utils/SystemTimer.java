@@ -217,7 +217,7 @@ public class SystemTimer {
 		}
 	}
 
-	private static volatile List<TimerListener> list = null;//new ArrayList<>();
+	private static volatile List<TimerListener> list = null;
 
 	public static void addTimerListener(TimerListener timerListener) {
 		if (list == null) {
