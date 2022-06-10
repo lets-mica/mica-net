@@ -2,46 +2,46 @@
 	Apache License
 	Version 2.0, January 2004
 	http://www.apache.org/licenses/
-	
+
 	TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-	
+
 	1. Definitions.
-	
+
 	"License" shall mean the terms and conditions for use, reproduction, and
 	distribution as defined by Sections 1 through 9 of this document.
-	
+
 	"Licensor" shall mean the copyright owner or entity authorized by the copyright
 	owner that is granting the License.
-	
+
 	"Legal Entity" shall mean the union of the acting entity and all other entities
 	that control, are controlled by, or are under common control with that entity.
 	For the purposes of this definition, "control" means (i) the power, direct or
 	indirect, to cause the direction or management of such entity, whether by
 	contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the
 	outstanding shares, or (iii) beneficial ownership of such entity.
-	
+
 	"You" (or "Your") shall mean an individual or Legal Entity exercising
 	permissions granted by this License.
-	
+
 	"Source" form shall mean the preferred form for making modifications, including
 	but not limited to software source code, documentation source, and configuration
 	files.
-	
+
 	"Object" form shall mean any form resulting from mechanical transformation or
 	translation of a Source form, including but not limited to compiled object code,
 	generated documentation, and conversions to other media types.
-	
+
 	"Work" shall mean the work of authorship, whether in Source or Object form, made
 	available under the License, as indicated by a copyright notice that is included
 	in or attached to the work (an example is provided in the Appendix below).
-	
+
 	"Derivative Works" shall mean any work, whether in Source or Object form, that
 	is based on (or derived from) the Work and for which the editorial revisions,
 	annotations, elaborations, or other modifications represent, as a whole, an
 	original work of authorship. For the purposes of this License, Derivative Works
 	shall not include works that remain separable from, or merely link (or bind by
 	name) to the interfaces of, the Work and Derivative Works thereof.
-	
+
 	"Contribution" shall mean any work of authorship, including the original version
 	of the Work and any modifications or additions to that Work or Derivative Works
 	thereof, that is intentionally submitted to Licensor for inclusion in the Work
@@ -54,21 +54,21 @@
 	the purpose of discussing and improving the Work, but excluding communication
 	that is conspicuously marked or otherwise designated in writing by the copyright
 	owner as "Not a Contribution."
-	
+
 	"Contributor" shall mean Licensor and any individual or Legal Entity on behalf
 	of whom a Contribution has been received by Licensor and subsequently
 	incorporated within the Work.
-	
+
 	2. Grant of Copyright License.
-	
+
 	Subject to the terms and conditions of this License, each Contributor hereby
 	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
 	irrevocable copyright license to reproduce, prepare Derivative Works of,
 	publicly display, publicly perform, sublicense, and distribute the Work and such
 	Derivative Works in Source or Object form.
-	
+
 	3. Grant of Patent License.
-	
+
 	Subject to the terms and conditions of this License, each Contributor hereby
 	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
 	irrevocable (except as stated in this section) patent license to make, have
@@ -81,13 +81,13 @@
 	Contribution incorporated within the Work constitutes direct or contributory
 	patent infringement, then any patent licenses granted to You under this License
 	for that Work shall terminate as of the date such litigation is filed.
-	
+
 	4. Redistribution.
-	
+
 	You may reproduce and distribute copies of the Work or Derivative Works thereof
 	in any medium, with or without modifications, and in Source or Object form,
 	provided that You meet the following conditions:
-	
+
 	You must give any other recipients of the Work or Derivative Works a copy of
 	this License; and
 	You must cause any modified files to carry prominent notices stating that You
@@ -114,25 +114,25 @@
 	distribution of Your modifications, or for any such Derivative Works as a whole,
 	provided Your use, reproduction, and distribution of the Work otherwise complies
 	with the conditions stated in this License.
-	
+
 	5. Submission of Contributions.
-	
+
 	Unless You explicitly state otherwise, any Contribution intentionally submitted
 	for inclusion in the Work by You to the Licensor shall be under the terms and
 	conditions of this License, without any additional terms or conditions.
 	Notwithstanding the above, nothing herein shall supersede or modify the terms of
 	any separate license agreement you may have executed with Licensor regarding
 	such Contributions.
-	
+
 	6. Trademarks.
-	
+
 	This License does not grant permission to use the trade names, trademarks,
 	service marks, or product names of the Licensor, except as required for
 	reasonable and customary use in describing the origin of the Work and
 	reproducing the content of the NOTICE file.
-	
+
 	7. Disclaimer of Warranty.
-	
+
 	Unless required by applicable law or agreed to in writing, Licensor provides the
 	Work (and each Contributor provides its Contributions) on an "AS IS" BASIS,
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
@@ -141,9 +141,9 @@
 	solely responsible for determining the appropriateness of using or
 	redistributing the Work and assume any risks associated with Your exercise of
 	permissions under this License.
-	
+
 	8. Limitation of Liability.
-	
+
 	In no event and under no legal theory, whether in tort (including negligence),
 	contract, or otherwise, unless required by applicable law (such as deliberate
 	and grossly negligent acts) or agreed to in writing, shall any Contributor be
@@ -153,9 +153,9 @@
 	damages for loss of goodwill, work stoppage, computer failure or malfunction, or
 	any and all other commercial damages or losses), even if such Contributor has
 	been advised of the possibility of such damages.
-	
+
 	9. Accepting Warranty or Additional Liability.
-	
+
 	While redistributing the Work or Derivative Works thereof, You may choose to
 	offer, and charge a fee for, acceptance of support, warranty, indemnity, or
 	other liability obligations and/or rights consistent with this License. However,
@@ -164,11 +164,11 @@
 	agree to indemnify, defend, and hold each Contributor harmless for any liability
 	incurred by, or claims asserted against, such Contributor by reason of your
 	accepting any such warranty or additional liability.
-	
+
 	END OF TERMS AND CONDITIONS
-	
+
 	APPENDIX: How to apply the Apache License to your work
-	
+
 	To apply the Apache License to your work, attach the following boilerplate
 	notice, with the fields enclosed by brackets "{}" replaced with your own
 	identifying information. (Don't include the brackets!) The text should be
@@ -176,15 +176,15 @@
 	recommend that a file or class name and description of purpose be included on
 	the same "printed page" as the copyright notice for easier identification within
 	third-party archives.
-	
+
 	   Copyright 2020 t-io
-	
+
 	   Licensed under the Apache License, Version 2.0 (the "License");
 	   you may not use this file except in compliance with the License.
 	   You may obtain a copy of the License at
-	
+
 	     http://www.apache.org/licenses/LICENSE-2.0
-	
+
 	   Unless required by applicable law or agreed to in writing, software
 	   distributed under the License is distributed on an "AS IS" BASIS,
 	   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -232,7 +232,7 @@ public class StrUtil {
 
 	/**
 	 * 去除字符串两边空白符，传入null也返回null
-	 * 
+	 *
 	 * @param value 值
 	 * @return 去除空白符的值
 	 */
@@ -244,7 +244,7 @@ public class StrUtil {
 	 * 字符串是否为空，空的定义如下:<br>
 	 * 1、为null <br>
 	 * 2、为""<br>
-	 * 
+	 *
 	 * @param str 被检测的字符串
 	 * @return 是否为空
 	 */
@@ -257,12 +257,12 @@ public class StrUtil {
 	 * 1、不为null <br>
 	 * 2、不为不可见字符（如空格）<br>
 	 * 3、不为""<br>
-	 * 
+	 *
 	 * @param str 被检测的字符串
 	 * @return 是否为非空
 	 */
 	public static boolean isNotBlank(CharSequence str) {
-		return false == isBlank(str);
+		return !isBlank(str);
 	}
 
 	/**
@@ -270,7 +270,7 @@ public class StrUtil {
 	 * 1、为null <br>
 	 * 2、为不可见字符（如空格）<br>
 	 * 3、""<br>
-	 * 
+	 *
 	 * @param str 被检测的字符串
 	 * @return 是否为空
 	 */
@@ -283,7 +283,7 @@ public class StrUtil {
 
 		for (int i = 0; i < length; i++) {
 			// 只要有一个非空字符即为非空字符串
-			if (false == isBlankChar(str.charAt(i))) {
+			if (!isBlankChar(str.charAt(i))) {
 				return false;
 			}
 		}
@@ -293,7 +293,7 @@ public class StrUtil {
 
 	/**
 	 * 数组或集合转String
-	 * 
+	 *
 	 * @param obj 集合或数组对象
 	 * @return 数组字符串，与集合转字符串格式相同
 	 */
@@ -333,7 +333,7 @@ public class StrUtil {
 
 	/**
 	 * 是否以指定字符串开头，忽略大小写
-	 * 
+	 *
 	 * @param str 被监测字符串
 	 * @param prefix 开头字符串
 	 * @return 是否以指定字符串开头
@@ -345,7 +345,7 @@ public class StrUtil {
 	/**
 	 * 是否以指定字符串开头<br>
 	 * 如果给定的字符串和开头字符串都为null则返回true，否则任意一个值为null返回false
-	 * 
+	 *
 	 * @param str 被监测字符串
 	 * @param prefix 开头字符串
 	 * @param isIgnoreCase 是否忽略大小写
@@ -353,12 +353,8 @@ public class StrUtil {
 	 */
 	public static boolean startWith(CharSequence str, CharSequence prefix, boolean isIgnoreCase) {
 		if (null == str || null == prefix) {
-			if (null == str && null == prefix) {
-				return true;
-			}
-			return false;
+			return null == str && null == prefix;
 		}
-
 		if (isIgnoreCase) {
 			return str.toString().toLowerCase().startsWith(prefix.toString().toLowerCase());
 		} else {
@@ -368,7 +364,7 @@ public class StrUtil {
 
 	/**
 	 * 比较两个字符串（大小写敏感）。
-	 * 
+	 *
 	 * <pre>
 	 * equals(null, null)   = true
 	 * equals(null, &quot;abc&quot;)  = false
@@ -376,10 +372,10 @@ public class StrUtil {
 	 * equals(&quot;abc&quot;, &quot;abc&quot;) = true
 	 * equals(&quot;abc&quot;, &quot;ABC&quot;) = false
 	 * </pre>
-	 * 
+	 *
 	 * @param str1 要比较的字符串1
 	 * @param str2 要比较的字符串2
-	 * 
+	 *
 	 * @return 如果两个字符串相同，或者都是<code>null</code>，则返回<code>true</code>
 	 */
 	public static boolean equals(CharSequence str1, CharSequence str2) {
@@ -388,7 +384,7 @@ public class StrUtil {
 
 	/**
 	 * 比较两个字符串（大小写不敏感）。
-	 * 
+	 *
 	 * <pre>
 	 * equalsIgnoreCase(null, null)   = true
 	 * equalsIgnoreCase(null, &quot;abc&quot;)  = false
@@ -396,10 +392,10 @@ public class StrUtil {
 	 * equalsIgnoreCase(&quot;abc&quot;, &quot;abc&quot;) = true
 	 * equalsIgnoreCase(&quot;abc&quot;, &quot;ABC&quot;) = true
 	 * </pre>
-	 * 
+	 *
 	 * @param str1 要比较的字符串1
 	 * @param str2 要比较的字符串2
-	 * 
+	 *
 	 * @return 如果两个字符串相同，或者都是<code>null</code>，则返回<code>true</code>
 	 */
 	public static boolean equalsIgnoreCase(CharSequence str1, CharSequence str2) {
@@ -408,7 +404,7 @@ public class StrUtil {
 
 	/**
 	 * 比较两个字符串是否相等。
-	 * 
+	 *
 	 * @param str1 要比较的字符串1
 	 * @param str2 要比较的字符串2
 	 * @param ignoreCase 是否忽略大小写
@@ -435,7 +431,7 @@ public class StrUtil {
 	/**
 	 * 将已有字符串填充为规定长度，如果已有字符串超过这个长度则返回这个字符串<br>
 	 * 字符填充于字符串后
-	 * 
+	 *
 	 * @param str 被填充的字符串
 	 * @param filledChar 填充的字符
 	 * @param len 填充长度
@@ -448,7 +444,7 @@ public class StrUtil {
 
 	/**
 	 * 将已有字符串填充为规定长度，如果已有字符串超过这个长度则返回这个字符串
-	 * 
+	 *
 	 * @param str 被填充的字符串
 	 * @param filledChar 填充的字符
 	 * @param len 填充长度
@@ -468,7 +464,7 @@ public class StrUtil {
 
 	/**
 	 * 重复某个字符
-	 * 
+	 *
 	 * @param c 被重复的字符
 	 * @param count 重复的数目，如果小于等于0则返回""
 	 * @return 重复字符字符串
@@ -487,10 +483,10 @@ public class StrUtil {
 
 	/**
 	 * 除去字符串头部的空白，如果字符串是<code>null</code>，则返回<code>null</code>。
-	 * 
+	 *
 	 * <p>
 	 * 注意，和<code>String.trim</code>不同，此方法使用<code>CharUtil.isBlankChar</code> 来判定空白， 因而可以除去英文字符集之外的其它空白，如中文空格。
-	 * 
+	 *
 	 * <pre>
 	 * trimStart(null)         = null
 	 * trimStart(&quot;&quot;)           = &quot;&quot;
@@ -499,9 +495,9 @@ public class StrUtil {
 	 * trimStart(&quot;abc  &quot;)      = &quot;abc  &quot;
 	 * trimStart(&quot; abc &quot;)      = &quot;abc &quot;
 	 * </pre>
-	 * 
+	 *
 	 * @param str 要处理的字符串
-	 * 
+	 *
 	 * @return 除去空白的字符串，如果原字串为<code>null</code>或结果字符串为<code>""</code>，则返回 <code>null</code>
 	 */
 	public static String trimStart(CharSequence str) {
@@ -510,10 +506,10 @@ public class StrUtil {
 
 	/**
 	 * 除去字符串尾部的空白，如果字符串是<code>null</code>，则返回<code>null</code>。
-	 * 
+	 *
 	 * <p>
 	 * 注意，和<code>String.trim</code>不同，此方法使用<code>CharUtil.isBlankChar</code> 来判定空白， 因而可以除去英文字符集之外的其它空白，如中文空格。
-	 * 
+	 *
 	 * <pre>
 	 * trimEnd(null)       = null
 	 * trimEnd(&quot;&quot;)         = &quot;&quot;
@@ -522,9 +518,9 @@ public class StrUtil {
 	 * trimEnd(&quot;abc  &quot;)    = &quot;abc&quot;
 	 * trimEnd(&quot; abc &quot;)    = &quot; abc&quot;
 	 * </pre>
-	 * 
+	 *
 	 * @param str 要处理的字符串
-	 * 
+	 *
 	 * @return 除去空白的字符串，如果原字串为<code>null</code>或结果字符串为<code>""</code>，则返回 <code>null</code>
 	 */
 	public static String trimEnd(CharSequence str) {
@@ -533,10 +529,10 @@ public class StrUtil {
 
 	/**
 	 * 除去字符串头尾部的空白符，如果字符串是<code>null</code>，依然返回<code>null</code>。
-	 * 
+	 *
 	 * @param str 要处理的字符串
 	 * @param mode <code>-1</code>表示trimStart，<code>0</code>表示trim全部， <code>1</code>表示trimEnd
-	 * 
+	 *
 	 * @return 除去指定字符后的的字符串，如果原字串为<code>null</code>，则返回<code>null</code>
 	 */
 	private static String trim(CharSequence str, int mode) {
@@ -571,13 +567,12 @@ public class StrUtil {
 
 	/**
 	 * 对象是否为数组对象
-	 * 
+	 *
 	 * @param obj 对象
 	 * @return 是否为数组对象，如果为{@code null} 返回false
 	 */
 	private static boolean isArray(Object obj) {
 		if (null == obj) {
-			// throw new NullPointerException("Object check for isArray is null");
 			return false;
 		}
 		return obj.getClass().isArray();
@@ -586,7 +581,7 @@ public class StrUtil {
 	/**
 	 * 是否空白符<br>
 	 * 空白符包括空格、制表符、全角空格和不间断空格<br>
-	 * 
+	 *
 	 * @see Character#isWhitespace(int)
 	 * @see Character#isSpaceChar(int)
 	 * @param c 字符
@@ -599,7 +594,7 @@ public class StrUtil {
 
 	/**
 	 * 指定范围内查找指定字符
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param searchChar 被查找的字符
 	 * @return 位置
@@ -610,7 +605,7 @@ public class StrUtil {
 
 	/**
 	 * 指定范围内查找指定字符
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param searchChar 被查找的字符
 	 * @param start 起始位置，如果小于0，从0开始查找
@@ -626,7 +621,7 @@ public class StrUtil {
 
 	/**
 	 * 指定范围内查找指定字符
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param searchChar 被查找的字符
 	 * @param start 起始位置，如果小于0，从0开始查找
@@ -651,7 +646,7 @@ public class StrUtil {
 
 	/**
 	 * 指定范围内查找字符串，忽略大小写<br>
-	 * 
+	 *
 	 * <pre>
 	 * StrUtil.indexOfIgnoreCase(null, *, *)          = -1
 	 * StrUtil.indexOfIgnoreCase(*, null, *)          = -1
@@ -665,7 +660,7 @@ public class StrUtil {
 	 * StrUtil.indexOfIgnoreCase("aabaabaa", "", 2)   = 2
 	 * StrUtil.indexOfIgnoreCase("abc", "", 9)        = -1
 	 * </pre>
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param searchStr 需要查找位置的字符串
 	 * @return 位置
@@ -677,7 +672,7 @@ public class StrUtil {
 
 	/**
 	 * 指定范围内查找字符串
-	 * 
+	 *
 	 * <pre>
 	 * StrUtil.indexOfIgnoreCase(null, *, *)          = -1
 	 * StrUtil.indexOfIgnoreCase(*, null, *)          = -1
@@ -691,7 +686,7 @@ public class StrUtil {
 	 * StrUtil.indexOfIgnoreCase("aabaabaa", "", 2)   = 2
 	 * StrUtil.indexOfIgnoreCase("abc", "", 9)        = -1
 	 * </pre>
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param searchStr 需要查找位置的字符串
 	 * @param fromIndex 起始位置
@@ -704,7 +699,7 @@ public class StrUtil {
 
 	/**
 	 * 指定范围内反向查找字符串
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param searchStr 需要查找位置的字符串
 	 * @param fromIndex 起始位置
@@ -728,7 +723,7 @@ public class StrUtil {
 			return fromIndex;
 		}
 
-		if (false == ignoreCase) {
+		if (!ignoreCase) {
 			// 不忽略大小写调用JDK方法
 			return str.toString().indexOf(searchStr.toString(), fromIndex);
 		}
@@ -743,7 +738,7 @@ public class StrUtil {
 
 	/**
 	 * 指定范围内查找字符串，忽略大小写<br>
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param searchStr 需要查找位置的字符串
 	 * @return 位置
@@ -755,7 +750,7 @@ public class StrUtil {
 
 	/**
 	 * 指定范围内查找字符串，忽略大小写<br>
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param searchStr 需要查找位置的字符串
 	 * @param fromIndex 起始位置，从后往前计数
@@ -768,7 +763,7 @@ public class StrUtil {
 
 	/**
 	 * 指定范围内查找字符串<br>
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param searchStr 需要查找位置的字符串
 	 * @param fromIndex 起始位置，从后往前计数
@@ -789,7 +784,7 @@ public class StrUtil {
 			return fromIndex;
 		}
 
-		if (false == ignoreCase) {
+		if (!ignoreCase) {
 			// 不忽略大小写调用JDK方法
 			return str.toString().lastIndexOf(searchStr.toString(), fromIndex);
 		}
@@ -805,7 +800,7 @@ public class StrUtil {
 	/**
 	 * 截取两个字符串的不同部分（长度一致），判断截取的子串是否相同<br>
 	 * 任意一个字符串为null返回false
-	 * 
+	 *
 	 * @param str1 第一个字符串
 	 * @param start1 第一个字符串开始的位置
 	 * @param str2 第二个字符串
@@ -825,7 +820,7 @@ public class StrUtil {
 
 	/**
 	 * 字符串是否以给定字符开始
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param c 字符
 	 * @return 是否开始
@@ -836,7 +831,7 @@ public class StrUtil {
 
 	/**
 	 * 是否以指定字符串开头
-	 * 
+	 *
 	 * @param str 被监测字符串
 	 * @param prefix 开头字符串
 	 * @return 是否以指定字符串开头
@@ -847,7 +842,7 @@ public class StrUtil {
 
 	/**
 	 * 字符串是否以给定字符结尾
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param c 字符
 	 * @return 是否结尾
@@ -859,7 +854,7 @@ public class StrUtil {
 	/**
 	 * 是否以指定字符串结尾<br>
 	 * 如果给定的字符串和开头字符串都为null则返回true，否则任意一个值为null返回false
-	 * 
+	 *
 	 * @param str 被监测字符串
 	 * @param suffix 结尾字符串
 	 * @param isIgnoreCase 是否忽略大小写
@@ -867,12 +862,8 @@ public class StrUtil {
 	 */
 	public static boolean endWith(CharSequence str, CharSequence suffix, boolean isIgnoreCase) {
 		if (null == str || null == suffix) {
-			if (null == str && null == suffix) {
-				return true;
-			}
-			return false;
+			return null == str && null == suffix;
 		}
-
 		if (isIgnoreCase) {
 			return str.toString().toLowerCase().endsWith(suffix.toString().toLowerCase());
 		} else {
@@ -882,7 +873,7 @@ public class StrUtil {
 
 	/**
 	 * 是否以指定字符串结尾
-	 * 
+	 *
 	 * @param str 被监测字符串
 	 * @param suffix 结尾字符串
 	 * @return 是否以指定字符串结尾
@@ -893,7 +884,7 @@ public class StrUtil {
 
 	/**
 	 * 是否以指定字符串结尾，忽略大小写
-	 * 
+	 *
 	 * @param str 被监测字符串
 	 * @param suffix 结尾字符串
 	 * @return 是否以指定字符串结尾
@@ -904,7 +895,7 @@ public class StrUtil {
 
 	/**
 	 * 指定字符是否在字符串中出现过
-	 * 
+	 *
 	 * @param str 字符串
 	 * @param searchChar 被查找的字符
 	 * @return 是否包含
@@ -916,7 +907,7 @@ public class StrUtil {
 
 	/**
 	 * 是否包含特定字符，忽略大小写，如果给定两个参数都为<code>null</code>，返回true
-	 * 
+	 *
 	 * @param str 被检测字符串
 	 * @param testStr 被测试是否包含的字符串
 	 * @return 是否包含
@@ -939,14 +930,13 @@ public class StrUtil {
 		if (str == null) {
 			return null;
 		}
-
 		return str.split(separator);
 	}
 
 	/**
 	 * 将对象转为字符串<br>
 	 * 1、Byte数组和ByteBuffer会被转换为对应字符串的数组 2、对象数组会调用Arrays.toString方法
-	 * 
+	 *
 	 * @param obj 对象
 	 * @return 字符串
 	 */
@@ -957,7 +947,7 @@ public class StrUtil {
 	/**
 	 * 将对象转为字符串<br>
 	 * 1、Byte数组和ByteBuffer会被转换为对应字符串的数组 2、对象数组会调用Arrays.toString方法
-	 * 
+	 *
 	 * @param obj 对象
 	 * @param charsetName 字符集
 	 * @return 字符串
@@ -969,7 +959,7 @@ public class StrUtil {
 	/**
 	 * 将对象转为字符串<br>
 	 * 1、Byte数组和ByteBuffer会被转换为对应字符串的数组 2、对象数组会调用Arrays.toString方法
-	 * 
+	 *
 	 * @param obj 对象
 	 * @param charset 字符集
 	 * @return 字符串
@@ -978,25 +968,23 @@ public class StrUtil {
 		if (null == obj) {
 			return null;
 		}
-
 		if (obj instanceof String) {
 			return (String) obj;
 		} else if (obj instanceof byte[]) {
-			return str((byte[]) obj, charset);
+			return str(obj, charset);
 		} else if (obj instanceof Byte[]) {
-			return str((Byte[]) obj, charset);
+			return str(obj, charset);
 		} else if (obj instanceof ByteBuffer) {
-			return str((ByteBuffer) obj, charset);
+			return str(obj, charset);
 		} else if (ArrayUtil.isArray(obj)) {
 			return ArrayUtil.toString(obj);
 		}
-
 		return obj.toString();
 	}
 
 	/**
 	 * {@link CharSequence} 转为字符串，null安全
-	 * 
+	 *
 	 * @param cs {@link CharSequence}
 	 * @return 字符串
 	 */
@@ -1012,7 +1000,7 @@ public class StrUtil {
 	 * 如果经过修正的index中from大于to，则互换from和to example: <br>
 	 * abcdefgh 2 3 =》 c <br>
 	 * abcdefgh 2 -3 =》 cde <br>
-	 * 
+	 *
 	 * @param str String
 	 * @param fromIndex 开始的index（包括）
 	 * @param toIndex 结束的index（不包括）
@@ -1069,7 +1057,7 @@ public class StrUtil {
 			return str(str);
 		}
 
-		byte b[];
+		byte[] b;
 		int counterOfDoubleByte = 0;
 		b = str.toString().getBytes(Charset.forName("GBK"));
 		if (b.length <= len) {
@@ -1089,14 +1077,13 @@ public class StrUtil {
 
 	/**
 	 * 限制字符串长度，如果超过指定长度，截取指定长度并在末尾加"..."
-	 * 
+	 *
 	 * @param string 字符串
 	 * @param length 最大长度
 	 * @return 切割后的剩余的前半部分字符串+"..."
 	 * @since 4.0.10
 	 */
 	public static String maxLength(CharSequence string, int length) {
-
 		if (null == string) {
 			return null;
 		}
@@ -1108,7 +1095,7 @@ public class StrUtil {
 
 	/**
 	 * 切割指定位置之前部分的字符串
-	 * 
+	 *
 	 * @param string 字符串
 	 * @param toIndex 切割到的位置（不包括）
 	 * @return 切割后的剩余的前半部分字符串
@@ -1119,7 +1106,7 @@ public class StrUtil {
 
 	/**
 	 * 切割指定位置之后部分的字符串
-	 * 
+	 *
 	 * @param string 字符串
 	 * @param fromIndex 切割开始的位置（包括）
 	 * @return 切割后后剩余的后半部分字符串
@@ -1133,7 +1120,7 @@ public class StrUtil {
 
 	/**
 	 * 切割指定长度的后部分的字符串
-	 * 
+	 *
 	 * <pre>
 	 * StrUtil.subSufByLength("abcde", 3)      =    "cde"
 	 * StrUtil.subSufByLength("abcde", 0)      =    ""
@@ -1143,7 +1130,7 @@ public class StrUtil {
 	 * StrUtil.subSufByLength("abcde", 10)     =    "abcde"
 	 * StrUtil.subSufByLength(null, 3)               =    null
 	 * </pre>
-	 * 
+	 *
 	 * @param string 字符串
 	 * @param length 切割长度
 	 * @return 切割后后剩余的后半部分字符串
@@ -1162,7 +1149,7 @@ public class StrUtil {
 	/**
 	 * 截取字符串,从指定位置开始,截取指定长度的字符串<br>
 	 * author weibaohui
-	 * 
+	 *
 	 * @param input 原始字符串
 	 * @param fromIndex 开始的index,包括
 	 * @param length 要截取的长度
@@ -1176,9 +1163,9 @@ public class StrUtil {
 	 * 截取分隔字符串之前的字符串，不包括分隔字符串<br>
 	 * 如果给定的字符串为空串（null或""）或者分隔字符串为null，返回原字符串<br>
 	 * 如果分隔字符串为空串""，则返回空串，如果分隔字符串未找到，返回原字符串
-	 * 
+	 *
 	 * 栗子：
-	 * 
+	 *
 	 * <pre>
 	 * StrUtil.subBefore(null, *)      = null
 	 * StrUtil.subBefore("", *)        = ""
@@ -1189,7 +1176,7 @@ public class StrUtil {
 	 * StrUtil.subBefore("abc", "")    = ""
 	 * StrUtil.subBefore("abc", null)  = "abc"
 	 * </pre>
-	 * 
+	 *
 	 * @param string 被查找的字符串
 	 * @param separator 分隔字符串（不包括）
 	 * @param isLastSeparator 是否查找最后一个分隔字符串（多次出现分隔字符串时选取最后一个），true为选取最后一个
@@ -1219,7 +1206,7 @@ public class StrUtil {
 	 * 如果分隔字符串为空串（null或""），则返回空串，如果分隔字符串未找到，返回空串
 	 *
 	 * 栗子：
-	 * 
+	 *
 	 * <pre>
 	 * StrUtil.subAfter(null, *)      = null
 	 * StrUtil.subAfter("", *)        = ""
@@ -1255,9 +1242,9 @@ public class StrUtil {
 
 	/**
 	 * 截取指定字符串中间部分，不包括标识字符串<br>
-	 * 
+	 *
 	 * 栗子：
-	 * 
+	 *
 	 * <pre>
 	 * StrUtil.subBetween("wx[b]yz", "[", "]") = "b"
 	 * StrUtil.subBetween(null, *, *)          = null
@@ -1270,7 +1257,7 @@ public class StrUtil {
 	 * StrUtil.subBetween("yabcz", "y", "z")   = "abc"
 	 * StrUtil.subBetween("yabczyabcz", "y", "z")   = "abc"
 	 * </pre>
-	 * 
+	 *
 	 * @param str 被切割的字符串
 	 * @param before 截取开始的字符串标识
 	 * @param after 截取到的字符串标识
@@ -1298,9 +1285,9 @@ public class StrUtil {
 
 	/**
 	 * 截取指定字符串中间部分，不包括标识字符串<br>
-	 * 
+	 *
 	 * 栗子：
-	 * 
+	 *
 	 * <pre>
 	 * StrUtil.subBetween(null, *)            = null
 	 * StrUtil.subBetween("", "")             = ""
@@ -1309,7 +1296,7 @@ public class StrUtil {
 	 * StrUtil.subBetween("tagabctag", "")    = ""
 	 * StrUtil.subBetween("tagabctag", "tag") = "abc"
 	 * </pre>
-	 * 
+	 *
 	 * @param str 被切割的字符串
 	 * @param beforeAndAfter 截取开始和结束的字符串标识
 	 * @return 截取后的字符串
@@ -1320,7 +1307,7 @@ public class StrUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param type
 	 * @param value
 	 * @return
@@ -1348,7 +1335,7 @@ public class StrUtil {
 			} else if (type == Double.class || type == double.class) {
 				return Double.parseDouble(value);
 			} else if (type == Character.class || type == char.class) {
-				return Character.valueOf(value.charAt(0));
+				return value.charAt(0);
 			} else if (type == Boolean.class || type == boolean.class) {
 				return "1".equalsIgnoreCase(value) || "true".equalsIgnoreCase(value) || "yes".equalsIgnoreCase(value);
 			} else if (type == BigDecimal.class) {
@@ -1372,20 +1359,19 @@ public class StrUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param type
 	 * @param values
 	 * @return 返回的也是一个数组
 	 * @throws Exception
 	 * @author tanyaowu
 	 */
-	//	@SuppressWarnings("unchecked")
 	public static Object convert(Class<?> type, String[] values) throws Exception {
 		if (values == null) {
 			return null;
 		}
 
-		Class<?> componentType = null;
+		Class<?> componentType;
 		if (type.isArray()) {
 			componentType = type.getComponentType();
 		} else {
@@ -1470,7 +1456,7 @@ public class StrUtil {
 						ret[i] = 0;
 						continue;
 					}
-					ret[i] = Character.valueOf(values[i].charAt(0));
+					ret[i] = values[i].charAt(0);
 				}
 				return ret;
 			}
@@ -1486,7 +1472,7 @@ public class StrUtil {
 
 	/**
 	 * 查找指定字符串是否包含指定字符串列表中的任意一个字符串
-	 * 
+	 *
 	 * @param str 指定字符串
 	 * @param testStrs 需要检查的字符串数组
 	 * @return 是否包含任意一个字符串
@@ -1498,7 +1484,7 @@ public class StrUtil {
 
 	/**
 	 * 查找指定字符串是否包含指定字符串列表中的任意一个字符串，如果包含返回找到的第一个字符串
-	 * 
+	 *
 	 * @param str 指定字符串
 	 * @param testStrs 需要检查的字符串数组
 	 * @return 被包含的第一个字符串
@@ -1519,7 +1505,7 @@ public class StrUtil {
 	/**
 	 * 大写首字母<br>
 	 * 例如：str = name, return Name
-	 * 
+	 *
 	 * @param str 字符串
 	 * @return 字符串
 	 */
@@ -1539,7 +1525,7 @@ public class StrUtil {
 	/**
 	 * 小写首字母<br>
 	 * 例如：str = Name, return name
-	 * 
+	 *
 	 * @param str 字符串
 	 * @return 字符串
 	 */

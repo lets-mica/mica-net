@@ -2,46 +2,46 @@
 	Apache License
 	Version 2.0, January 2004
 	http://www.apache.org/licenses/
-	
+
 	TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-	
+
 	1. Definitions.
-	
+
 	"License" shall mean the terms and conditions for use, reproduction, and
 	distribution as defined by Sections 1 through 9 of this document.
-	
+
 	"Licensor" shall mean the copyright owner or entity authorized by the copyright
 	owner that is granting the License.
-	
+
 	"Legal Entity" shall mean the union of the acting entity and all other entities
 	that control, are controlled by, or are under common control with that entity.
 	For the purposes of this definition, "control" means (i) the power, direct or
 	indirect, to cause the direction or management of such entity, whether by
 	contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the
 	outstanding shares, or (iii) beneficial ownership of such entity.
-	
+
 	"You" (or "Your") shall mean an individual or Legal Entity exercising
 	permissions granted by this License.
-	
+
 	"Source" form shall mean the preferred form for making modifications, including
 	but not limited to software source code, documentation source, and configuration
 	files.
-	
+
 	"Object" form shall mean any form resulting from mechanical transformation or
 	translation of a Source form, including but not limited to compiled object code,
 	generated documentation, and conversions to other media types.
-	
+
 	"Work" shall mean the work of authorship, whether in Source or Object form, made
 	available under the License, as indicated by a copyright notice that is included
 	in or attached to the work (an example is provided in the Appendix below).
-	
+
 	"Derivative Works" shall mean any work, whether in Source or Object form, that
 	is based on (or derived from) the Work and for which the editorial revisions,
 	annotations, elaborations, or other modifications represent, as a whole, an
 	original work of authorship. For the purposes of this License, Derivative Works
 	shall not include works that remain separable from, or merely link (or bind by
 	name) to the interfaces of, the Work and Derivative Works thereof.
-	
+
 	"Contribution" shall mean any work of authorship, including the original version
 	of the Work and any modifications or additions to that Work or Derivative Works
 	thereof, that is intentionally submitted to Licensor for inclusion in the Work
@@ -54,21 +54,21 @@
 	the purpose of discussing and improving the Work, but excluding communication
 	that is conspicuously marked or otherwise designated in writing by the copyright
 	owner as "Not a Contribution."
-	
+
 	"Contributor" shall mean Licensor and any individual or Legal Entity on behalf
 	of whom a Contribution has been received by Licensor and subsequently
 	incorporated within the Work.
-	
+
 	2. Grant of Copyright License.
-	
+
 	Subject to the terms and conditions of this License, each Contributor hereby
 	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
 	irrevocable copyright license to reproduce, prepare Derivative Works of,
 	publicly display, publicly perform, sublicense, and distribute the Work and such
 	Derivative Works in Source or Object form.
-	
+
 	3. Grant of Patent License.
-	
+
 	Subject to the terms and conditions of this License, each Contributor hereby
 	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
 	irrevocable (except as stated in this section) patent license to make, have
@@ -81,13 +81,13 @@
 	Contribution incorporated within the Work constitutes direct or contributory
 	patent infringement, then any patent licenses granted to You under this License
 	for that Work shall terminate as of the date such litigation is filed.
-	
+
 	4. Redistribution.
-	
+
 	You may reproduce and distribute copies of the Work or Derivative Works thereof
 	in any medium, with or without modifications, and in Source or Object form,
 	provided that You meet the following conditions:
-	
+
 	You must give any other recipients of the Work or Derivative Works a copy of
 	this License; and
 	You must cause any modified files to carry prominent notices stating that You
@@ -114,25 +114,25 @@
 	distribution of Your modifications, or for any such Derivative Works as a whole,
 	provided Your use, reproduction, and distribution of the Work otherwise complies
 	with the conditions stated in this License.
-	
+
 	5. Submission of Contributions.
-	
+
 	Unless You explicitly state otherwise, any Contribution intentionally submitted
 	for inclusion in the Work by You to the Licensor shall be under the terms and
 	conditions of this License, without any additional terms or conditions.
 	Notwithstanding the above, nothing herein shall supersede or modify the terms of
 	any separate license agreement you may have executed with Licensor regarding
 	such Contributions.
-	
+
 	6. Trademarks.
-	
+
 	This License does not grant permission to use the trade names, trademarks,
 	service marks, or product names of the Licensor, except as required for
 	reasonable and customary use in describing the origin of the Work and
 	reproducing the content of the NOTICE file.
-	
+
 	7. Disclaimer of Warranty.
-	
+
 	Unless required by applicable law or agreed to in writing, Licensor provides the
 	Work (and each Contributor provides its Contributions) on an "AS IS" BASIS,
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
@@ -141,9 +141,9 @@
 	solely responsible for determining the appropriateness of using or
 	redistributing the Work and assume any risks associated with Your exercise of
 	permissions under this License.
-	
+
 	8. Limitation of Liability.
-	
+
 	In no event and under no legal theory, whether in tort (including negligence),
 	contract, or otherwise, unless required by applicable law (such as deliberate
 	and grossly negligent acts) or agreed to in writing, shall any Contributor be
@@ -153,9 +153,9 @@
 	damages for loss of goodwill, work stoppage, computer failure or malfunction, or
 	any and all other commercial damages or losses), even if such Contributor has
 	been advised of the possibility of such damages.
-	
+
 	9. Accepting Warranty or Additional Liability.
-	
+
 	While redistributing the Work or Derivative Works thereof, You may choose to
 	offer, and charge a fee for, acceptance of support, warranty, indemnity, or
 	other liability obligations and/or rights consistent with this License. However,
@@ -164,11 +164,11 @@
 	agree to indemnify, defend, and hold each Contributor harmless for any liability
 	incurred by, or claims asserted against, such Contributor by reason of your
 	accepting any such warranty or additional liability.
-	
+
 	END OF TERMS AND CONDITIONS
-	
+
 	APPENDIX: How to apply the Apache License to your work
-	
+
 	To apply the Apache License to your work, attach the following boilerplate
 	notice, with the fields enclosed by brackets "{}" replaced with your own
 	identifying information. (Don't include the brackets!) The text should be
@@ -176,15 +176,15 @@
 	recommend that a file or class name and description of purpose be included on
 	the same "printed page" as the copyright notice for easier identification within
 	third-party archives.
-	
+
 	   Copyright 2020 t-io
-	
+
 	   Licensed under the Apache License, Version 2.0 (the "License");
 	   you may not use this file except in compliance with the License.
 	   You may obtain a copy of the License at
-	
+
 	     http://www.apache.org/licenses/LICENSE-2.0
-	
+
 	   Unless required by applicable law or agreed to in writing, software
 	   distributed under the License is distributed on an "AS IS" BASIS,
 	   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -202,21 +202,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author tanyaowu 
+ * @author tanyaowu
  * 2018年8月5日 下午8:34:06
  */
 public class ReUtil {
 
 	/** 正则表达式匹配中文汉字 */
-	public final static String	RE_CHINESE	= "[\u4E00-\u9FFF]";
+	public static final String	RE_CHINESE	= "[\u4E00-\u9FFF]";
 	/** 正则表达式匹配中文字符串 */
-	public final static String	RE_CHINESES	= RE_CHINESE + "+";
+	public static final String	RE_CHINESES	= RE_CHINESE + "+";
 
 	/** 正则中需要被转义的关键字 */
-	public final static Set<Character> RE_KEYS = new HashSet<>();
+	public static final Set<Character> RE_KEYS = new HashSet<>();
 	static {
 		RE_KEYS.add('$');
-
 		RE_KEYS.add('(');
 		RE_KEYS.add(')');
 		RE_KEYS.add('*');
@@ -234,7 +233,7 @@ public class ReUtil {
 
 	/**
 	 * 获得匹配的字符串，，获得正则中分组0的内容
-	 * 
+	 *
 	 * @param pattern 编译后的正则模式
 	 * @param content 被匹配的内容
 	 * @return 匹配后得到的字符串，未匹配返回null
@@ -246,7 +245,7 @@ public class ReUtil {
 
 	/**
 	 * 获得匹配的字符串，，获得正则中分组1的内容
-	 * 
+	 *
 	 * @param pattern 编译后的正则模式
 	 * @param content 被匹配的内容
 	 * @return 匹配后得到的字符串，未匹配返回null
@@ -258,7 +257,7 @@ public class ReUtil {
 
 	/**
 	 * 获得匹配的字符串
-	 * 
+	 *
 	 * @param pattern 编译后的正则模式
 	 * @param content 被匹配的内容
 	 * @param groupIndex 匹配正则的分组序号
@@ -278,7 +277,7 @@ public class ReUtil {
 
 	/**
 	 * 获得匹配的字符串匹配到的所有分组
-	 * 
+	 *
 	 * @param pattern 编译后的正则模式
 	 * @param content 被匹配的内容
 	 * @return 匹配后得到的字符串数组，按照分组顺序依次列出，未匹配到返回空列表，任何一个参数为null返回null
@@ -290,7 +289,7 @@ public class ReUtil {
 
 	/**
 	 * 获得匹配的字符串匹配到的所有分组
-	 * 
+	 *
 	 * @param pattern 编译后的正则模式
 	 * @param content 被匹配的内容
 	 * @param withGroup0 是否包括分组0，此分组表示全匹配的信息
@@ -316,7 +315,7 @@ public class ReUtil {
 
 	/**
 	 * 删除匹配的第一个内容
-	 * 
+	 *
 	 * @param pattern 正则
 	 * @param content 被匹配的内容
 	 * @return 删除后剩余的内容
@@ -331,7 +330,7 @@ public class ReUtil {
 
 	/**
 	 * 删除匹配的全部内容
-	 * 
+	 *
 	 * @param pattern 正则
 	 * @param content 被匹配的内容
 	 * @return 删除后剩余的内容
@@ -346,7 +345,7 @@ public class ReUtil {
 
 	/**
 	 * 取得内容中匹配的所有结果，获得匹配的所有结果中正则对应分组0的内容
-	 * 
+	 *
 	 * @param regex 正则
 	 * @param content 被查找的内容
 	 * @return 结果列表
@@ -358,7 +357,7 @@ public class ReUtil {
 
 	/**
 	 * 取得内容中匹配的所有结果，获得匹配的所有结果中正则对应分组1的内容
-	 * 
+	 *
 	 * @param regex 正则
 	 * @param content 被查找的内容
 	 * @return 结果列表
@@ -370,7 +369,7 @@ public class ReUtil {
 
 	/**
 	 * 取得内容中匹配的所有结果
-	 * 
+	 *
 	 * @param regex 正则
 	 * @param content 被查找的内容
 	 * @param group 正则的分组
@@ -383,7 +382,7 @@ public class ReUtil {
 
 	/**
 	 * 取得内容中匹配的所有结果
-	 * 
+	 *
 	 * @param <T> 集合类型
 	 * @param regex 正则
 	 * @param content 被查找的内容
@@ -402,7 +401,7 @@ public class ReUtil {
 
 	/**
 	 * 取得内容中匹配的所有结果，获得匹配的所有结果中正则对应分组0的内容
-	 * 
+	 *
 	 * @param pattern 编译后的正则模式
 	 * @param content 被查找的内容
 	 * @return 结果列表
@@ -414,7 +413,7 @@ public class ReUtil {
 
 	/**
 	 * 取得内容中匹配的所有结果，获得匹配的所有结果中正则对应分组1的内容
-	 * 
+	 *
 	 * @param pattern 编译后的正则模式
 	 * @param content 被查找的内容
 	 * @return 结果列表
@@ -426,7 +425,7 @@ public class ReUtil {
 
 	/**
 	 * 取得内容中匹配的所有结果
-	 * 
+	 *
 	 * @param pattern 编译后的正则模式
 	 * @param content 被查找的内容
 	 * @param group 正则的分组
@@ -439,7 +438,7 @@ public class ReUtil {
 
 	/**
 	 * 取得内容中匹配的所有结果
-	 * 
+	 *
 	 * @param <T> 集合类型
 	 * @param pattern 编译后的正则模式
 	 * @param content 被查找的内容
@@ -465,7 +464,7 @@ public class ReUtil {
 
 	/**
 	 * 计算指定字符串中，匹配pattern的个数
-	 * 
+	 *
 	 * @param pattern 编译后的正则模式
 	 * @param content 被查找的内容
 	 * @return 匹配个数
@@ -486,7 +485,7 @@ public class ReUtil {
 
 	/**
 	 * 指定内容中是否有表达式匹配的内容
-	 * 
+	 *
 	 * @param pattern 编译后的正则模式
 	 * @param content 被查找的内容
 	 * @return 指定内容中是否有表达式匹配的内容
@@ -501,7 +500,7 @@ public class ReUtil {
 
 	/**
 	 * 给定内容是否匹配正则
-	 * 
+	 *
 	 * @param regex 正则
 	 * @param content 内容
 	 * @return 正则为null或者""则不检查，返回true，内容为null返回false
@@ -516,15 +515,13 @@ public class ReUtil {
 			// 正则不存在则为全匹配
 			return true;
 		}
-
-		// Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
-		final Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);//;PatternPool.get(regex, Pattern.DOTALL);
+		final Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
 		return isMatch(pattern, content);
 	}
 
 	/**
 	 * 给定内容是否匹配正则
-	 * 
+	 *
 	 * @param pattern 模式
 	 * @param content 内容
 	 * @return 正则为null或者""则不检查，返回true，内容为null返回false
@@ -540,7 +537,7 @@ public class ReUtil {
 	/**
 	 * 正则替换指定值<br>
 	 * 通过正则查找到字符串，然后把匹配到的字符串加入到replacementTemplate中，$1表示分组1的字符串
-	 * 
+	 *
 	 * @param content 文本
 	 * @param regex 正则
 	 * @param replacementTemplate 替换的文本模板，可以使用$1类似的变量提取正则匹配出的内容
@@ -554,7 +551,7 @@ public class ReUtil {
 	/**
 	 * 正则替换指定值<br>
 	 * 通过正则查找到字符串，然后把匹配到的字符串加入到replacementTemplate中，$1表示分组1的字符串
-	 * 
+	 *
 	 * @param content 文本
 	 * @param pattern {@link Pattern}
 	 * @param replacementTemplate 替换的文本模板，可以使用$1类似的变量提取正则匹配出的内容
@@ -588,7 +585,7 @@ public class ReUtil {
 
 	/**
 	 * 转义字符，将正则的关键字转义
-	 * 
+	 *
 	 * @param c 字符
 	 * @return 转义后的文本
 	 */
@@ -603,7 +600,7 @@ public class ReUtil {
 
 	/**
 	 * 转义字符串，将正则的关键字转义
-	 * 
+	 *
 	 * @param content 文本
 	 * @return 转义后的文本
 	 */
@@ -611,7 +608,6 @@ public class ReUtil {
 		if (StrUtil.isBlank(content)) {
 			return content;
 		}
-
 		final StringBuilder builder = new StringBuilder();
 		int len = content.length();
 		char current;
