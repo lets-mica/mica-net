@@ -2,46 +2,46 @@
 	Apache License
 	Version 2.0, January 2004
 	http://www.apache.org/licenses/
-	
+
 	TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-	
+
 	1. Definitions.
-	
+
 	"License" shall mean the terms and conditions for use, reproduction, and
 	distribution as defined by Sections 1 through 9 of this document.
-	
+
 	"Licensor" shall mean the copyright owner or entity authorized by the copyright
 	owner that is granting the License.
-	
+
 	"Legal Entity" shall mean the union of the acting entity and all other entities
 	that control, are controlled by, or are under common control with that entity.
 	For the purposes of this definition, "control" means (i) the power, direct or
 	indirect, to cause the direction or management of such entity, whether by
 	contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the
 	outstanding shares, or (iii) beneficial ownership of such entity.
-	
+
 	"You" (or "Your") shall mean an individual or Legal Entity exercising
 	permissions granted by this License.
-	
+
 	"Source" form shall mean the preferred form for making modifications, including
 	but not limited to software source code, documentation source, and configuration
 	files.
-	
+
 	"Object" form shall mean any form resulting from mechanical transformation or
 	translation of a Source form, including but not limited to compiled object code,
 	generated documentation, and conversions to other media types.
-	
+
 	"Work" shall mean the work of authorship, whether in Source or Object form, made
 	available under the License, as indicated by a copyright notice that is included
 	in or attached to the work (an example is provided in the Appendix below).
-	
+
 	"Derivative Works" shall mean any work, whether in Source or Object form, that
 	is based on (or derived from) the Work and for which the editorial revisions,
 	annotations, elaborations, or other modifications represent, as a whole, an
 	original work of authorship. For the purposes of this License, Derivative Works
 	shall not include works that remain separable from, or merely link (or bind by
 	name) to the interfaces of, the Work and Derivative Works thereof.
-	
+
 	"Contribution" shall mean any work of authorship, including the original version
 	of the Work and any modifications or additions to that Work or Derivative Works
 	thereof, that is intentionally submitted to Licensor for inclusion in the Work
@@ -54,21 +54,21 @@
 	the purpose of discussing and improving the Work, but excluding communication
 	that is conspicuously marked or otherwise designated in writing by the copyright
 	owner as "Not a Contribution."
-	
+
 	"Contributor" shall mean Licensor and any individual or Legal Entity on behalf
 	of whom a Contribution has been received by Licensor and subsequently
 	incorporated within the Work.
-	
+
 	2. Grant of Copyright License.
-	
+
 	Subject to the terms and conditions of this License, each Contributor hereby
 	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
 	irrevocable copyright license to reproduce, prepare Derivative Works of,
 	publicly display, publicly perform, sublicense, and distribute the Work and such
 	Derivative Works in Source or Object form.
-	
+
 	3. Grant of Patent License.
-	
+
 	Subject to the terms and conditions of this License, each Contributor hereby
 	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
 	irrevocable (except as stated in this section) patent license to make, have
@@ -81,13 +81,13 @@
 	Contribution incorporated within the Work constitutes direct or contributory
 	patent infringement, then any patent licenses granted to You under this License
 	for that Work shall terminate as of the date such litigation is filed.
-	
+
 	4. Redistribution.
-	
+
 	You may reproduce and distribute copies of the Work or Derivative Works thereof
 	in any medium, with or without modifications, and in Source or Object form,
 	provided that You meet the following conditions:
-	
+
 	You must give any other recipients of the Work or Derivative Works a copy of
 	this License; and
 	You must cause any modified files to carry prominent notices stating that You
@@ -114,25 +114,25 @@
 	distribution of Your modifications, or for any such Derivative Works as a whole,
 	provided Your use, reproduction, and distribution of the Work otherwise complies
 	with the conditions stated in this License.
-	
+
 	5. Submission of Contributions.
-	
+
 	Unless You explicitly state otherwise, any Contribution intentionally submitted
 	for inclusion in the Work by You to the Licensor shall be under the terms and
 	conditions of this License, without any additional terms or conditions.
 	Notwithstanding the above, nothing herein shall supersede or modify the terms of
 	any separate license agreement you may have executed with Licensor regarding
 	such Contributions.
-	
+
 	6. Trademarks.
-	
+
 	This License does not grant permission to use the trade names, trademarks,
 	service marks, or product names of the Licensor, except as required for
 	reasonable and customary use in describing the origin of the Work and
 	reproducing the content of the NOTICE file.
-	
+
 	7. Disclaimer of Warranty.
-	
+
 	Unless required by applicable law or agreed to in writing, Licensor provides the
 	Work (and each Contributor provides its Contributions) on an "AS IS" BASIS,
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
@@ -141,9 +141,9 @@
 	solely responsible for determining the appropriateness of using or
 	redistributing the Work and assume any risks associated with Your exercise of
 	permissions under this License.
-	
+
 	8. Limitation of Liability.
-	
+
 	In no event and under no legal theory, whether in tort (including negligence),
 	contract, or otherwise, unless required by applicable law (such as deliberate
 	and grossly negligent acts) or agreed to in writing, shall any Contributor be
@@ -153,9 +153,9 @@
 	damages for loss of goodwill, work stoppage, computer failure or malfunction, or
 	any and all other commercial damages or losses), even if such Contributor has
 	been advised of the possibility of such damages.
-	
+
 	9. Accepting Warranty or Additional Liability.
-	
+
 	While redistributing the Work or Derivative Works thereof, You may choose to
 	offer, and charge a fee for, acceptance of support, warranty, indemnity, or
 	other liability obligations and/or rights consistent with this License. However,
@@ -164,11 +164,11 @@
 	agree to indemnify, defend, and hold each Contributor harmless for any liability
 	incurred by, or claims asserted against, such Contributor by reason of your
 	accepting any such warranty or additional liability.
-	
+
 	END OF TERMS AND CONDITIONS
-	
+
 	APPENDIX: How to apply the Apache License to your work
-	
+
 	To apply the Apache License to your work, attach the following boilerplate
 	notice, with the fields enclosed by brackets "{}" replaced with your own
 	identifying information. (Don't include the brackets!) The text should be
@@ -176,15 +176,15 @@
 	recommend that a file or class name and description of purpose be included on
 	the same "printed page" as the copyright notice for easier identification within
 	third-party archives.
-	
+
 	   Copyright 2020 t-io
-	
+
 	   Licensed under the Apache License, Version 2.0 (the "License");
 	   you may not use this file except in compliance with the License.
 	   You may obtain a copy of the License at
-	
+
 	     http://www.apache.org/licenses/LICENSE-2.0
-	
+
 	   Unless required by applicable law or agreed to in writing, software
 	   distributed under the License is distributed on an "AS IS" BASIS,
 	   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -204,13 +204,13 @@ import org.tio.core.exception.LengthOverflowException;
 import org.tio.utils.hutool.StrUtil;
 
 /**
- * 
- * @author tanyaowu 
+ *
+ * @author tanyaowu
  * 2017年10月19日 上午9:41:00
  */
 public class ByteBufferUtils {
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(ByteBufferUtils.class);
+	private static final Logger log = LoggerFactory.getLogger(ByteBufferUtils.class);
 
 	/**
 	 * 组合两个bytebuffer，把可读部分的组合成一个新的bytebuffer
@@ -232,7 +232,7 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param src
 	 * @param srcStartindex
 	 * @param dest
@@ -270,7 +270,7 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param src 本方法不会改变position等指针变量
 	 * @return
 	 * @author tanyaowu
@@ -282,7 +282,7 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param src
 	 * @param unitSize 每个单元的大小
 	 * @return 如果不需要拆分，则返回null
@@ -290,11 +290,8 @@ public class ByteBufferUtils {
 	public static ByteBuffer[] split(ByteBuffer src, int unitSize) {
 		int limit = src.limit();
 		if (unitSize >= limit) {
-			return null;//new ByteBuffer[] { src };
+			return null;
 		}
-
-		//		return null;
-
 		int size = (int) (Math.ceil((double) src.limit() / (double) unitSize));
 		ByteBuffer[] ret = new ByteBuffer[size];
 		int srcIndex = 0;
@@ -316,12 +313,8 @@ public class ByteBufferUtils {
 		return ret;
 	}
 
-	//	public static Packet[] split(Packet packet, int unitSize) {
-	//		
-	//	}
-
 	/**
-	 * 
+	 *
 	 * @param buffer
 	 * @return
 	 * @throws LengthOverflowException
@@ -332,7 +325,7 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param buffer
 	 * @param maxlength
 	 * @return
@@ -349,7 +342,7 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param buffer position会被移动
 	 * @param theChar 结束
 	 * @param maxlength
@@ -381,7 +374,7 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param buffer
 	 * @param length
 	 * @param charset
@@ -416,7 +409,6 @@ public class ByteBufferUtils {
 	 * @author: tanyaowu
 	 */
 	public static String readLine(ByteBuffer buffer, String charset, Integer maxlength) throws LengthOverflowException {
-		//		boolean canEnd = false;
 		int startPosition = buffer.position();
 		int endPosition = lineEnd(buffer, maxlength);
 		if (endPosition == -1) {
@@ -424,7 +416,6 @@ public class ByteBufferUtils {
 		}
 
 		int nowPosition = buffer.position();
-
 		if (endPosition > startPosition) {
 			byte[] bs = new byte[endPosition - startPosition];
 			buffer.position(startPosition);
@@ -444,7 +435,7 @@ public class ByteBufferUtils {
 		}
 		return null;
 	}
-	
+
 		public static String readString(ByteBuffer buffer, int length, Charset charset) {
 		byte[] bs = readBytes(buffer, length);
 		if (charset != null) {
@@ -454,7 +445,7 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param buffer
 	 * @param charset
 	 * @param endChar
@@ -464,7 +455,6 @@ public class ByteBufferUtils {
 	 * @author tanyaowu
 	 */
 	public static String readString(ByteBuffer buffer, String charset, char endChar, Integer maxlength) throws LengthOverflowException {
-		//		boolean canEnd = false;
 		int startPosition = buffer.position();
 		int endPosition = indexOf(buffer, endChar, maxlength);
 		if (endPosition == -1) {
@@ -496,7 +486,7 @@ public class ByteBufferUtils {
 	 * 获取utf-8字符串
 	 * @param bytes
 	 * @return
-	 * 
+	 *
 	 */
 	public static String getUtf8(byte[] bytes) {
 		return new String(bytes, StandardCharsets.UTF_8);
@@ -510,7 +500,7 @@ public class ByteBufferUtils {
 	public static byte read(ByteBuffer buffer) {
 		return buffer.get();
 	}
-	
+
 	/**
 	 * 读取short
 	 * @param buffer
@@ -519,18 +509,15 @@ public class ByteBufferUtils {
 	public static short readShort(ByteBuffer buffer) {
 		return buffer.getShort();
 	}
-	
+
 	public static int readUB1(ByteBuffer buffer) {
-		int ret = buffer.get() & 0xff;
-		return ret;
+		return buffer.get() & 0xff;
 	}
-	
+
 	public static int readUB1(DecodeByteBufferList buffer) {
 		return readUB1(buffer.checkGet(1));
-//		int ret = buffer.get() & 0xff;
-//		return ret;
 	}
-	
+
 
 	public static int readUB2(ByteBuffer buffer) {
 		int ret = buffer.get() & 0xff;

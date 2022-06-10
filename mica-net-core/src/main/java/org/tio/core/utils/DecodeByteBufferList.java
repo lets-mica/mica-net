@@ -10,13 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author talent.tan 
+ * @author talent.tan
  */
 public class DecodeByteBufferList {
-	private static Logger log = LoggerFactory.getLogger(DecodeByteBufferList.class);
-
-	private int					listCapacity	= 10;
-	private List<ByteBuffer>	list;
+	private final int					listCapacity;
+	private final List<ByteBuffer>	list;
 	private int					byteSize		= 0;
 	private int					listIndex		= 0;
 
@@ -62,28 +60,13 @@ public class DecodeByteBufferList {
 		}
 
 		byteSize += byteBuffer.remaining();
-		//		if (byteBuffer.position() != 0) { //用于解码的几乎100%相等
-		//			ByteBuffer copy = ByteBuffer.allocate(byteBuffer.remaining());
-		//			copy.put(byteBuffer);
-		//			copy.flip();
-		//			copy.mark();
-		//			list.add(copy);
-		//		} else {
 		list.add(byteBuffer);
-		//		}
-
-		//		if (curr == null) {
-		//			curr = byteBuffer;
-		//		}
-
-		log.warn(list + "\r\n" + byteSize);
 		return this;
 	}
 
 	public ByteBuffer checkGet(int len) {
 		check(len);
-		ByteBuffer curr = curr();
-		return curr;
+		return curr();
 	}
 
 	private void clearList() {
@@ -151,7 +134,7 @@ public class DecodeByteBufferList {
 
 	/**
 	 * 应用告之，已经解码异常
-	 * 
+	 *
 	 * @author talent.tan
 	 */
 	public void notifyError() {
@@ -160,7 +143,7 @@ public class DecodeByteBufferList {
 
 	/**
 	 * 应用告之，准备开始解码
-	 * 
+	 *
 	 * @author talent.tan
 	 */
 	public void notifyStart() {
@@ -173,36 +156,14 @@ public class DecodeByteBufferList {
 
 	public ByteBuffer toByteBuffer() {
 		ByteBuffer all = ByteBuffer.allocate(byteSize);
-		for (int i = 0; i < list.size(); i++) {
-			ByteBuffer byteBuffer = list.get(i);
-			if (byteBuffer == null) {
-				continue;
-			} else {
+		for (ByteBuffer byteBuffer : list) {
+			if (byteBuffer != null) {
 				byteBuffer.position(0);
 				all.put(byteBuffer);
 			}
 		}
 		all.position(0);
 		return all;
-	}
-
-	public static void main(String[] args) {
-		List<Integer> list = new ArrayList<>();
-		list.add(4);
-		list.add(55);
-		list.clear();
-		System.out.println(list.size());
-		list.add(666);
-		list.add(777);
-		list.add(888);
-		System.out.println(list.size());
-		System.out.println(list);
-		list.remove(0);
-		System.out.println(list.size());
-		list.remove(0);
-		System.out.println(list.size());
-		list.remove(0);
-		System.out.println(list.size());
 	}
 
 	public byte get() {

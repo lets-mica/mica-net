@@ -417,7 +417,7 @@ public class IpStat implements java.io.Serializable {
 	 */
 	public double getHandledCostsPerPacket() {
 		if (handledPackets.get() > 0) {
-			return handledPacketCosts.get() / handledPackets.get();
+			return (double) handledPacketCosts.get() / (double) handledPackets.get();
 		}
 		return 0;
 	}

@@ -277,7 +277,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 
 			if (!tioServer.isWaitingStop()) {
 				ReadCompletionHandler readCompletionHandler = channelContext.getReadCompletionHandler();
-				ByteBuffer readByteBuffer = readCompletionHandler.getReadByteBuffer();//ByteBuffer.allocateDirect(channelContext.tioConfig.getReadBufferSize());
+				ByteBuffer readByteBuffer = readCompletionHandler.getReadByteBuffer();
 				readByteBuffer.position(0);
 				readByteBuffer.limit(readByteBuffer.capacity());
 				asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);

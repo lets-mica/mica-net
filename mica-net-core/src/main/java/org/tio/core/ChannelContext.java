@@ -246,8 +246,8 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	public HandlerRunnable				handlerRunnable				= null;
 	public SendRunnable					sendRunnable				= null;
 	public final ReentrantReadWriteLock	closeLock					= new ReentrantReadWriteLock();
-	private ReadCompletionHandler		readCompletionHandler		= null;											//new ReadCompletionHandler(this);
-	public WriteCompletionHandler		writeCompletionHandler		= null;											//new WriteCompletionHandler(this);
+	private ReadCompletionHandler		readCompletionHandler		= null;
+	public WriteCompletionHandler		writeCompletionHandler		= null;
 	public SslFacadeContext				sslFacadeContext;
 	public String						userid;
 	private String						token;
@@ -365,6 +365,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	 * @deprecated 建议使用get()
 	 * @return
 	 */
+	@Deprecated
 	public Object getAttribute() {
 		return get();
 	}
@@ -540,6 +541,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	 * @param value
 	 * @author tanyaowu
 	 */
+	@Deprecated
 	public void setAttribute(Object value) {
 		set(value);
 	}
@@ -550,6 +552,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	 * @deprecated 不建议各位同学使用这个方法，建议使用set("name1", object1)
 	 * @param value
 	 */
+	@Deprecated
 	public void set(Object value) {
 		set(DEFAULT_ATTUBITE_KEY, value);
 	}
@@ -558,10 +561,8 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	 * @param clientNode the clientNode to set
 	 */
 	public void setClientNode(Node clientNode) {
-		if (!this.tioConfig.isShortConnection) {
-			if (this.clientNode != null) {
-				tioConfig.clientNodes.remove(this);
-			}
+		if (!this.tioConfig.isShortConnection && this.clientNode != null) {
+			tioConfig.clientNodes.remove(this);
 		}
 
 		this.clientNode = clientNode;
@@ -749,7 +750,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		if (proxyClientNode != null) {
 			//将性能数据进行转移
 			if (!Objects.equals(proxyClientNode.getIp(), clientNode.getIp())) {
-
 				if (tioConfig.isIpStatEnable()) {
 					try {
 						for (Long v : tioConfig.ipStats.durationList) {

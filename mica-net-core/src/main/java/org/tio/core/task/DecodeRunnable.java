@@ -457,7 +457,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 			if (msgQueue == null) {
 				synchronized (this) {
 					if (msgQueue == null) {
-						msgQueue = new TioFullWaitQueue<ByteBuffer>(Integer.getInteger("tio.fullqueue.capacity", null), true);
+						msgQueue = new TioFullWaitQueue<>(Integer.getInteger("tio.fullqueue.capacity", null), true);
 					}
 				}
 			}
