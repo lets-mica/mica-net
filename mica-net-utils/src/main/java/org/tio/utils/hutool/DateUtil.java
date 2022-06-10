@@ -196,15 +196,20 @@
  */
 package org.tio.utils.hutool;
 
+import org.tio.utils.date.DateFmt;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Locale;
 
 /**
  * @author tanyaowu
- *
  */
 public class DateUtil {
 
@@ -229,7 +234,6 @@ public class DateUtil {
 		// 去掉两边空格并去掉中文日期中的“日”，以规范长度
 		dateStr = dateStr.trim().replace("日", "");
 		int length = dateStr.length();
-
 		if (Validator.isNumber(dateStr)) {
 			// 纯数字形式
 			if (length == DatePattern.PURE_DATETIME_PATTERN.length()) {
@@ -254,7 +258,6 @@ public class DateUtil {
 		} else if (length >= DatePattern.NORM_DATETIME_MS_PATTERN.length() - 2) {
 			return DatePattern.NORM_DATETIME_MS_PATTERN;
 		}
-
 		return null;
 	}
 
@@ -297,23 +300,22 @@ public class DateUtil {
 	 * @author tanyaowu
 	 */
 	public static String httpDate() {
-		return httpDate(new Date());
+		return httpDate(LocalDateTime.now());
 	}
 
 	/**
 	 * 把date生成符合http响应头中的Date格式的字符串
 	 *
-	 * @param date
+	 * @param temporal
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static String httpDate(Date date) {
-		SimpleDateFormat greenwichDate = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
-		return greenwichDate.format(date);
+	public static String httpDate(TemporalAccessor temporal) {
+		return DateFmt.of("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US).format(temporal);
 	}
 
 	public static String httpDate(long millis) {
-		return httpDate(new Date(millis));
+		return httpDate(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()));
 	}
 
 	/**
@@ -327,12 +329,12 @@ public class DateUtil {
 		if (null == date) {
 			return null;
 		}
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return format.format(date);
+		return DateFmt.yyyy_MM_dd_HHmmss.format(date.toInstant().atZone(ZoneId.systemDefault()));
 	}
 
 	/**
 	 * 两个日期相隔的天数
+	 *
 	 * @param date1
 	 * @param date2
 	 * @return
