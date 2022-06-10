@@ -42,7 +42,7 @@
         <logback.version>1.3.0-alpha12</logback.version>
         <slf4j.version>2.0.0-alpha6</slf4j.version>
         <junit.version>4.13.2</junit.version>
-        <fastjson.version>1.2.80</fastjson.version>
+        <fastjson2.version>2.0.6</fastjson2.version>
         <shardingsphere.version>3.1.0</shardingsphere.version>
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <log4j2.version>2.17.2</log4j2.version>
@@ -101,9 +101,9 @@
                 <version>${logback.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>${fastjson.version}</version>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson2.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>

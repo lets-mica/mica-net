@@ -22,11 +22,6 @@
             <artifactId>cache2k-core</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <!-- slf4j-logback绑定 -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
