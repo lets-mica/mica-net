@@ -200,7 +200,6 @@ import org.tio.http.common.handler.HttpRequestHandler;
 import org.tio.http.common.session.HttpSession;
 import org.tio.http.common.session.id.ISessionIdGenerator;
 import org.tio.http.common.session.limiter.SessionRateLimiter;
-import org.tio.http.common.view.freemarker.FreemarkerConfig;
 import org.tio.utils.hutool.FileUtil;
 import org.tio.utils.hutool.StrUtil;
 
@@ -345,11 +344,6 @@ public class HttpConfig {
 	 */
 	private String pageRoot = null;                                        //FileUtil.getAbsolutePath("page");//"/page";
 	private boolean pageInClasspath = false;
-	/**
-	 * 临时支持freemarker，主要用于开发环境中的前端开发，暂时不重点作为tio-http-server功能<br>
-	 * 请大家暂时不要使用该功能，因为api随时会变
-	 */
-	private FreemarkerConfig freemarkerConfig = null;
 	/**
 	 * 域名和页面根目录映射。当客户端通过不同域名访问时，其页面根目录是不一样的<br>
 	 * key: www.t-io.org<br>
@@ -752,10 +746,6 @@ public class HttpConfig {
 		}
 
 		domainPageMap.put(domain, pageRoot);
-
-		if (this.freemarkerConfig != null) {
-			freemarkerConfig.addDomainConfiguration(domain, pageRoot);
-		}
 	}
 
 	/**
@@ -830,14 +820,6 @@ public class HttpConfig {
 
 	public void setWelcomeFile(String welcomeFile) {
 		this.welcomeFile = welcomeFile;
-	}
-
-	public FreemarkerConfig getFreemarkerConfig() {
-		return freemarkerConfig;
-	}
-
-	public void setFreemarkerConfig(FreemarkerConfig freemarkerConfig) {
-		this.freemarkerConfig = freemarkerConfig;
 	}
 
 	/**

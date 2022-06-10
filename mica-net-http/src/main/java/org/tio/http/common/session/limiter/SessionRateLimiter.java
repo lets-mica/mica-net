@@ -211,7 +211,7 @@ public interface SessionRateLimiter {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public boolean allow(HttpRequest request, SessionRateVo sessionRateVo);
+	boolean allow(HttpRequest request, SessionRateVo sessionRateVo);
 
 	/**
 	 * 当被限流后，返回给用户的HttpResponse
@@ -222,6 +222,6 @@ public interface SessionRateLimiter {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public HttpResponse response(HttpRequest request, SessionRateVo sessionRateVo);
+	HttpResponse response(HttpRequest request, SessionRateVo sessionRateVo);
 
 }

@@ -203,7 +203,7 @@ import org.tio.utils.hutool.ZipUtil;
  * 2017年8月18日 下午5:47:00
  */
 public class HttpGzipUtils {
-	private static Logger log = LoggerFactory.getLogger(HttpGzipUtils.class);
+	private static final Logger log = LoggerFactory.getLogger(HttpGzipUtils.class);
 
 	/**
 	 * @author tanyaowu
@@ -220,13 +220,6 @@ public class HttpGzipUtils {
 		if (response == null) {
 			return;
 		}
-
-		//
-		//		// 已经gzip过了，就不必再压缩了
-		//		if (response.isHasGzipped()) {
-		//			return;
-		//		}
-
 		if (request != null && request.getIsSupportGzip()) {
 			gzip(response);
 		} else {
@@ -247,12 +240,10 @@ public class HttpGzipUtils {
 		if (response == null) {
 			return;
 		}
-
 		// 已经gzip过了，就不必再压缩了
 		if (response.isHasGzipped()) {
 			return;
 		}
-
 		byte[] bs = response.getBody();
 		if (bs != null && bs.length >= 300) {
 			byte[] bs2 = ZipUtil.gzip(bs);

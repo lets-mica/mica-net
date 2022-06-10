@@ -211,7 +211,7 @@ import java.util.regex.Pattern;
  * 2017年5月29日 上午7:45:58
  */
 public class Cookie {
-	private static Logger log = LoggerFactory.getLogger(Cookie.class);
+	private static final Logger log = LoggerFactory.getLogger(Cookie.class);
 	private String domain = null;
 	private String path = null;
 	private Long maxAge = null;
@@ -295,7 +295,7 @@ public class Cookie {
 			String[] equalStrings = new String[2];
 			int equalCharIndex = groupString.indexOf("=");
 			equalStrings[0] = groupString.substring(0, equalCharIndex);
-			equalStrings[1] = groupString.substring(equalCharIndex + 1, groupString.length());
+			equalStrings[1] = groupString.substring(equalCharIndex + 1);
 			if (equalStrings.length == 2) {
 				String key = equalStrings[0];
 				String value = equalStrings[1];

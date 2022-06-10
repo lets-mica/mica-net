@@ -213,13 +213,11 @@ public interface HttpConst {
 	 * @author tanyaowu
 	 * 2017年6月28日 上午10:03:12
 	 */
-	public enum RequestBodyFormat {
+	enum RequestBodyFormat {
 		URLENCODED, MULTIPART, TEXT
 	}
 
-	//	Content-Type: text/html;charset:utf-8;
-
-	public interface HttpVersion {
+	interface HttpVersion {
 		String V1_1 = "1.1";
 		String V1_0 = "1.0";
 	}
@@ -241,7 +239,7 @@ public interface HttpConst {
 	 * @author tanyaowu
 	 * 2017年5月27日 下午2:11:57
 	 */
-	public interface RequestHeaderKey {
+	interface RequestHeaderKey {
 		String Cookie = "cookie";                        //.toLowerCase();//Cookie: $Version=1; Skin=new;
 		String Origin = "origin";                        //.toLowerCase(); //http://127.0.0.1
 		String Sec_WebSocket_Key = "sec-websocket-key";            //.toLowerCase(); //2GFwqJ1Z37glm62YKKLUeA==
@@ -273,8 +271,8 @@ public interface HttpConst {
 	 * @author tanyaowu
 	 * 2017年6月27日 下午8:23:58
 	 */
-	public interface RequestHeaderValue {
-		public interface Connection {
+	interface RequestHeaderValue {
+		interface Connection {
 			String keep_alive = "keep-alive";    //.toLowerCase();
 			String Upgrade = "upgrade";    //.toLowerCase();
 			String close = "close";        //.toLowerCase();
@@ -297,7 +295,7 @@ public interface HttpConst {
 		}
 	}
 
-	public interface ResponseHeaderKey {
+	interface ResponseHeaderKey {
 		//Set-Cookie: UserID=JohnDoe; Max-Age=3600; Version=1
 		String Set_Cookie = "Set-Cookie".toLowerCase();                        //Set-Cookie: UserID=JohnDoe; Max-Age=3600; Version=1
 		String Content_Length = "Content-Length".toLowerCase();                    //65
@@ -386,14 +384,14 @@ public interface HttpConst {
 	 * @author tanyaowu
 	 * 2017年6月27日 下午8:24:02
 	 */
-	public interface ResponseHeaderValue {
-		public interface Connection {
+	interface ResponseHeaderValue {
+		interface Connection {
 			String keep_alive = "keep-alive";    //.toLowerCase();
 			String Upgrade = "Upgrade";    //.toLowerCase();
 			String close = "close";        //.toLowerCase();
 		}
 
-		public interface Upgrade {
+		interface Upgrade {
 			String WebSocket = "WebSocket";
 		}
 	}

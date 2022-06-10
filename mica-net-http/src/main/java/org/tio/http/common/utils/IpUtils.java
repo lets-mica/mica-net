@@ -216,8 +216,8 @@ public class IpUtils {
 	/**
 	 * 如果是被代理了，获取客户端ip时，依次从下面这些头部中获取
 	 */
-	private final static String[] HEADER_NAMES_FOR_REALIP = new String[]{"x-forwarded-for", "proxy-client-ip", "wl-proxy-client-ip", "x-real-ip"};
-	private static Logger log = LoggerFactory.getLogger(IpUtils.class);
+	private static final String[] HEADER_NAMES_FOR_REALIP = new String[]{"x-forwarded-for", "proxy-client-ip", "wl-proxy-client-ip", "x-real-ip"};
+	private static final Logger log = LoggerFactory.getLogger(IpUtils.class);
 
 	/**
 	 * 获取本机 ip
@@ -236,11 +236,11 @@ public class IpUtils {
 			Enumeration<InetAddress> address = ni.getInetAddresses();
 			while (address.hasMoreElements()) {
 				ip = address.nextElement();
-				if (!ip.isSiteLocalAddress() && !ip.isLoopbackAddress() && ip.getHostAddress().indexOf(":") == -1) {// 外网IP
+				if (!ip.isSiteLocalAddress() && !ip.isLoopbackAddress() && !ip.getHostAddress().contains(":")) {// 外网IP
 					netip = ip.getHostAddress();
 					finded = true;
 					break;
-				} else if (ip.isSiteLocalAddress() && !ip.isLoopbackAddress() && ip.getHostAddress().indexOf(":") == -1) {// 内网IP
+				} else if (ip.isSiteLocalAddress() && !ip.isLoopbackAddress() && !ip.getHostAddress().contains(":")) {// 内网IP
 					localip = ip.getHostAddress();
 				}
 			}
@@ -259,8 +259,6 @@ public class IpUtils {
 	 * @author tanyaowu
 	 */
 	public static String getRealIp(HttpRequest request) {
-//		return getRealIp(request.channelContext, request.httpConfig, request.getHeaders());
-
 		if (request.httpConfig == null) {
 			return request.getRemote().getIp();
 		}
@@ -271,17 +269,14 @@ public class IpUtils {
 			for (String name : HEADER_NAMES_FOR_REALIP) {
 				headerName = name;
 				ip = request.getHeader(headerName);
-
 				if (StrUtil.isNotBlank(ip) && !"unknown".equalsIgnoreCase(ip)) {
 					break;
 				}
 			}
-
 			if (StrUtil.isBlank(ip) || "unknown".equalsIgnoreCase(ip)) {
 				headerName = null;
 				ip = request.getRemote().getIp();
 			}
-
 			if (ip.contains(",")) {
 				log.error("ip[{}], header name:{}", ip, headerName);
 				ip = ip.split(",")[0].trim();
@@ -350,8 +345,7 @@ public class IpUtils {
 		String rexp = "([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}";
 		Pattern pat = Pattern.compile(rexp);
 		Matcher mat = pat.matcher(str);
-		boolean ipAddress = mat.find();
-		return ipAddress;
+		return mat.find();
 	}
 
 }

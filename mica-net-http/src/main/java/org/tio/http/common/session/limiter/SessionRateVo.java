@@ -193,9 +193,6 @@
 */
 package org.tio.http.common.session.limiter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -205,8 +202,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class SessionRateVo implements Serializable {
 	private static final long serialVersionUID = 5585145117550534333L;
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(SessionRateVo.class);
 	private String path = null;
 	/**
 	 * 上一次访问时间
@@ -226,14 +221,6 @@ public class SessionRateVo implements Serializable {
 
 	public static SessionRateVo create(String path) {
 		return new SessionRateVo(path);
-	}
-
-	/**
-	 * @param args
-	 * @author tanyaowu
-	 */
-	public static void main(String[] args) {
-
 	}
 
 	/**

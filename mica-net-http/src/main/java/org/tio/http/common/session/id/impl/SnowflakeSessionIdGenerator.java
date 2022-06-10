@@ -203,16 +203,7 @@ import org.tio.utils.hutool.Snowflake;
  * 2017年8月15日 上午10:58:22
  */
 public class SnowflakeSessionIdGenerator implements ISessionIdGenerator {
-
-	private Snowflake snowflake;
-
-	//	/**
-	//	 *
-	//	 * @author tanyaowu
-	//	 */
-	//	public SnowflakeSessionIdGenerator() {
-	//		snowflake = new Snowflake(RandomUtil.randomInt(0, 31), RandomUtil.randomInt(0, 31));
-	//	}
+	private final Snowflake snowflake;
 
 	/**
 	 * @author tanyaowu
@@ -233,4 +224,5 @@ public class SnowflakeSessionIdGenerator implements ISessionIdGenerator {
 	public long nextId() {
 		return snowflake.nextId();
 	}
+
 }

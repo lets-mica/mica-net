@@ -193,16 +193,6 @@
 */
 package org.tio.http.server.stat.token;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.core.TioConfig;
 import org.tio.http.server.intf.CurrUseridGetter;
 import org.tio.http.server.stat.DefaultStatPathFilter;
@@ -210,18 +200,17 @@ import org.tio.http.server.stat.StatPathFilter;
 import org.tio.utils.cache.cache2k.CaffeineCache;
 import org.tio.utils.hutool.StrUtil;
 
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.ConcurrentMap;
+
 /**
  *
  * @author tanyaowu
  * 2017年4月15日 下午12:13:19
  */
 public class TokenPathAccessStats {
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(TokenPathAccessStats.class);
-
-	private final static String CACHE_NAME = "TIO_TOKEN_ACCESSPATH";
-	//	private final static Long timeToLiveSeconds = null;
-	//	private final static Long timeToIdleSeconds = Time.DAY_1;
+	private static final String CACHE_NAME = "TIO_TOKEN_ACCESSPATH";
 
 	private TioConfig tioConfig;
 
@@ -383,7 +372,7 @@ public class TokenPathAccessStats {
 			synchronized (caffeineCache) {
 				tokenAccessStat = (TokenAccessStat) caffeineCache.get(token);
 				if (tokenAccessStat == null) {
-					tokenAccessStat = new TokenAccessStat(duration, token, ip, uid);//new MapWithLock<String, TokenPathAccessStat>(new HashMap<>());//new TokenPathAccessStat(duration, token, path);
+					tokenAccessStat = new TokenAccessStat(duration, token, ip, uid);
 					caffeineCache.put(token, tokenAccessStat);
 				}
 			}
@@ -466,9 +455,5 @@ public class TokenPathAccessStats {
 	public void setStatPathFilter(StatPathFilter statPathFilter) {
 		this.statPathFilter = statPathFilter;
 	}
-
-	//	public void setTokenGetter(TokenGetter tokenGetter) {
-	//		this.tokenGetter = tokenGetter;
-	//	}
 
 }

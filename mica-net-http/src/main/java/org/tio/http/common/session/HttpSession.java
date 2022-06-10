@@ -209,7 +209,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HttpSession implements Serializable {
 	private static final long serialVersionUID = 6077020620501316538L;
 	private static final Logger log = LoggerFactory.getLogger(HttpSession.class);
-	private Map<String, Serializable> data = new ConcurrentHashMap<>();
+	private final Map<String, Serializable> data = new ConcurrentHashMap<>();
 
 	private String id = null;
 

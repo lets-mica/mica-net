@@ -213,7 +213,7 @@ public interface HttpRequestHandler {
 	 * @throws Exception
 	 * @author tanyaowu
 	 */
-	public HttpResponse handler(HttpRequest packet) throws Exception;
+	HttpResponse handler(HttpRequest packet) throws Exception;
 
 	/**
 	 * 响应404
@@ -225,7 +225,7 @@ public interface HttpRequestHandler {
 	 * @throws Exception
 	 * @author tanyaowu
 	 */
-	public HttpResponse resp404(HttpRequest request, RequestLine requestLine) throws Exception;
+	HttpResponse resp404(HttpRequest request, RequestLine requestLine) throws Exception;
 
 	/**
 	 * 响应500
@@ -237,13 +237,13 @@ public interface HttpRequestHandler {
 	 * @throws Exception
 	 * @author tanyaowu
 	 */
-	public HttpResponse resp500(HttpRequest request, RequestLine requestLine, Throwable throwable) throws Exception;
+	HttpResponse resp500(HttpRequest request, RequestLine requestLine, Throwable throwable) throws Exception;
 
 	/**
 	 * @return
 	 * @author tanyaowu
 	 */
-	public HttpConfig getHttpConfig(HttpRequest request);
+	HttpConfig getHttpConfig(HttpRequest request);
 
 	/**
 	 * 清空静态资源缓存，如果没有缓存，可以不处理
@@ -251,5 +251,5 @@ public interface HttpRequestHandler {
 	 * @param request
 	 * @author: tanyaowu
 	 */
-	public void clearStaticResCache();
+	void clearStaticResCache();
 }
