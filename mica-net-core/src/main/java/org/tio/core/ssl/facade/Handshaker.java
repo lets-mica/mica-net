@@ -213,7 +213,7 @@ class Handshaker {
 	 these tasks in compliance with its own compute/IO strategies.
 	 */
 
-	private static final Logger log = LoggerFactory.getLogger(Handshaker.class);
+	private static Logger log = LoggerFactory.getLogger(Handshaker.class);
 
 	@SuppressWarnings("unused")
 	private final static String			TAG	= "Handshaker";
@@ -234,8 +234,8 @@ class Handshaker {
 		_client = client;
 	}
 
-	private void debug(final String msg, final Object... args) {
-		SSLLog.debug(channelContext, msg, args);
+	private void debug(final String msg, final String... args) {
+		SSLLog.debug(channelContext.toString(), msg, args);
 	}
 
 	void begin() throws SSLException {
@@ -248,7 +248,7 @@ class Handshaker {
 	}
 
 	void handleUnwrapResult(SSLEngineResult result) throws SSLException {
-		if (result.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.FINISHED)) {
+		if (result.getHandshakeStatus().equals(HandshakeStatus.FINISHED)) {
 			handshakeFinished(); //客户端会走到这一行
 		} else {
 			shakehands();
@@ -289,7 +289,7 @@ class Handshaker {
 			if (w_result.getStatus().equals(SSLEngineResult.Status.CLOSED) && null != _sessionClosedListener) {
 				_sessionClosedListener.onSessionClosed();
 			}
-			if (w_result.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.FINISHED)) {
+			if (w_result.getHandshakeStatus().equals(HandshakeStatus.FINISHED)) {
 				handshakeFinished();
 			} else {
 				shakehands();
@@ -299,7 +299,7 @@ class Handshaker {
 			if (_worker.pendingUnwrap()) {
 				SSLEngineResult u_result = _worker.unwrap(null);
 				debug("Unwrap result " + u_result);
-				if (u_result.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.FINISHED)) {
+				if (u_result.getHandshakeStatus().equals(HandshakeStatus.FINISHED)) {
 					handshakeFinished();
 				}
 				if (u_result.getStatus().equals(SSLEngineResult.Status.OK)) {
