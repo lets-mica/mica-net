@@ -193,8 +193,6 @@
 */
 package org.tio.http.common;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.http.common.handler.HttpRequestHandler;
 
 /**
@@ -202,7 +200,6 @@ import org.tio.http.common.handler.HttpRequestHandler;
  * 2017年8月15日 下午1:21:14
  */
 public class HttpConfig {
-	private static final Logger log = LoggerFactory.getLogger(HttpConfig.class);
 	/**
 	 * 文件上传时，boundary值的最大长度
 	 */
@@ -224,7 +221,6 @@ public class HttpConfig {
 	 */
 	public static final String JSONP_PARAM_NAME = "tio_http_jsonp";
 	public static final int MAX_FORWARD_COUNT = 10;
-
 	public int maxForwardCount = MAX_FORWARD_COUNT;
 	/**
 	 * 是否兼容1.0
@@ -234,10 +230,6 @@ public class HttpConfig {
 	 */
 	public boolean compatible1_0 = true;
 	public boolean checkHost = true;
-	/**
-	 * 是否监控文件变化
-	 */
-	public boolean monitorFileChange = false;
 	/**
 	 * 文件上传时，体的最大长度
 	 */
@@ -257,7 +249,7 @@ public class HttpConfig {
 	/**
 	 * 监听端口
 	 */
-	private Integer bindPort = 80;
+	private int bindPort;
 	private String serverInfo = HttpConst.SERVER_INFO;
 	private String charset = HttpConst.CHARSET_NAME;
 	/**
@@ -280,7 +272,7 @@ public class HttpConfig {
 	 */
 	private String jsonpParamName = JSONP_PARAM_NAME;
 
-	public HttpConfig(Integer bindPort) {
+	public HttpConfig(int bindPort) {
 		this.bindPort = bindPort;
 	}
 
@@ -288,7 +280,7 @@ public class HttpConfig {
 	 * @param bindPort
 	 * @param contextPath
 	 */
-	public HttpConfig(Integer bindPort, String contextPath) {
+	public HttpConfig(int bindPort, String contextPath) {
 		this.bindPort = bindPort;
 		if (contextPath == null) {
 			contextPath = "";
@@ -313,7 +305,7 @@ public class HttpConfig {
 	/**
 	 * @return the bindPort
 	 */
-	public Integer getBindPort() {
+	public int getBindPort() {
 		return bindPort;
 	}
 
@@ -471,11 +463,4 @@ public class HttpConfig {
 		this.jsonpParamName = jsonpParamName;
 	}
 
-	public boolean isMonitorFileChange() {
-		return monitorFileChange;
-	}
-
-	public void setMonitorFileChange(boolean monitorFileChange) {
-		this.monitorFileChange = monitorFileChange;
-	}
 }

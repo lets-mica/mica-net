@@ -203,8 +203,9 @@ import org.tio.core.intf.Packet;
 import org.tio.http.common.*;
 import org.tio.server.intf.TioServerHandler;
 import org.tio.utils.hutool.StrUtil;
+import org.tio.utils.mica.DigestUtils;
+import org.tio.utils.mica.ExceptionUtils;
 import org.tio.websocket.common.*;
-import org.tio.websocket.common.util.SHA1Util;
 import org.tio.websocket.server.handler.IWsMsgHandler;
 
 import java.io.UnsupportedEncodingException;
@@ -284,10 +285,7 @@ public class WsTioServerHandler implements TioServerHandler {
 			wsSessionContext.setHandshakeResponse(httpResponse);
 
 			WsRequest wsRequestPacket = new WsRequest();
-			//			wsRequestPacket.setHeaders(httpResponse.getHeaders());
-			//			wsRequestPacket.setBody(httpResponse.getBody());
 			wsRequestPacket.setHandShake(true);
-
 			return wsRequestPacket;
 		}
 
@@ -333,7 +331,7 @@ public class WsTioServerHandler implements TioServerHandler {
 							String text = new String(bodyBs, handshakeRequest.getCharset());
 							websocketPacket.setWsBodyText(text);
 						} catch (UnsupportedEncodingException e) {
-							log.error(e.toString(), e);
+							log.error(e.getMessage(), e);
 						}
 					}
 				}
@@ -494,15 +492,14 @@ public class WsTioServerHandler implements TioServerHandler {
 			try {
 				Sec_WebSocket_Key_Bytes = Sec_WebSocket_Key.getBytes(request.getCharset());
 			} catch (UnsupportedEncodingException e) {
-//				log.error(e.toString(), e);
-				throw new RuntimeException(e);
+				throw ExceptionUtils.unchecked(e);
 			}
 			byte[] allBs = new byte[Sec_WebSocket_Key_Bytes.length + SEC_WEBSOCKET_KEY_SUFFIX_BYTES.length];
 			System.arraycopy(Sec_WebSocket_Key_Bytes, 0, allBs, 0, Sec_WebSocket_Key_Bytes.length);
 			System.arraycopy(SEC_WEBSOCKET_KEY_SUFFIX_BYTES, 0, allBs, Sec_WebSocket_Key_Bytes.length, SEC_WEBSOCKET_KEY_SUFFIX_BYTES.length);
 
 //			String Sec_WebSocket_Key_Magic = Sec_WebSocket_Key + SEC_WEBSOCKET_KEY_SUFFIX_BYTES;
-			byte[] keyArray = SHA1Util.SHA1(allBs);
+			byte[] keyArray = DigestUtils.sha1(allBs);
 			String acceptKey = Base64.getEncoder().encodeToString(keyArray);
 			HttpResponse httpResponse = new HttpResponse(request);
 
