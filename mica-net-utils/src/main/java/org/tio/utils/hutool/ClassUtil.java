@@ -193,6 +193,9 @@
 */
 package org.tio.utils.hutool;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -202,16 +205,9 @@ import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author tanyaowu
@@ -419,7 +415,7 @@ public class ClassUtil {
 	 * @return 是否为非public
 	 */
 	public static boolean isNotPublic(Class<?> clazz) {
-		return false == isPublic(clazz);
+		return !isPublic(clazz);
 	}
 
 	/**
@@ -429,7 +425,7 @@ public class ClassUtil {
 	 * @return 是否为非public
 	 */
 	public static boolean isNotPublic(Method method) {
-		return false == isPublic(method);
+		return !isPublic(method);
 	}
 
 	/**
@@ -449,7 +445,7 @@ public class ClassUtil {
 	 * @return 方法
 	 */
 	public static Method setAccessible(Method method) {
-		if (null != method && false == method.isAccessible()) {
+		if (null != method && !method.isAccessible()) {
 			method.setAccessible(true);
 		}
 		return method;
@@ -482,13 +478,13 @@ public class ClassUtil {
 	 */
 	public static boolean isNormalClass(Class<?> clazz) {
 		return null != clazz //
-		        && false == clazz.isInterface() //
-		        && false == isAbstract(clazz) //
-		        && false == clazz.isEnum() //
-		        && false == clazz.isArray() //
-		        && false == clazz.isAnnotation() //
-		        && false == clazz.isSynthetic() //
-		        && false == clazz.isPrimitive();//
+		        && !clazz.isInterface() //
+		        && !isAbstract(clazz) //
+		        && !clazz.isEnum() //
+		        && !clazz.isArray() //
+		        && !clazz.isAnnotation() //
+		        && !clazz.isSynthetic() //
+		        && !clazz.isPrimitive();//
 	}
 
 	/**
@@ -498,7 +494,7 @@ public class ClassUtil {
 	 * @since 3.2.0
 	 */
 	public static boolean isEnum(Class<?> clazz) {
-		return null == clazz ? false : clazz.isEnum();
+		return null != clazz && clazz.isEnum();
 	}
 
 	/**
@@ -598,15 +594,13 @@ public class ClassUtil {
 
 		for (File f : dirfiles) {
 			if (f.isDirectory()) {
-				findClassesByFile(pkg + "." + f.getName(), pkgDir + "/" + f.getName(), classScanHandler);
+				findClassesByFile(pkg + '.' + f.getName(), pkgDir + '/' + f.getName(), classScanHandler);
 				continue;
 			}
-
 			// 获取类名，干掉 ".class" 后缀
 			String className = f.getName();
 			className = className.substring(0, className.length() - 6);
-
-			Class<?> clazz = loadClass(pkg + "." + className);
+			Class<?> clazz = loadClass(pkg + '.' + className);
 			if (clazz != null) {
 				if (classScanHandler != null) {
 					try {

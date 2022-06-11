@@ -205,12 +205,10 @@ import java.util.Date;
 import java.util.Iterator;
 
 public class StrUtil {
-
 	public static final int		INDEX_NOT_FOUND	= -1;
 	public static final String	EMPTY			= "";
-
-	private static int		cacheSize	= 2048;
-	private static String[]	caches		= new String[cacheSize];
+	private static final int		cacheSize	= 2048;
+	private static final String[]	caches		= new String[cacheSize];
 	static {
 		for (int i = 0; i < cacheSize; i++) {
 			caches[i] = String.valueOf(i);

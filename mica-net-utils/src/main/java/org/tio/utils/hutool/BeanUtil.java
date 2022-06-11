@@ -193,9 +193,6 @@
 */
 package org.tio.utils.hutool;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -208,8 +205,6 @@ import java.util.Map;
  * 2018年8月5日 下午8:46:56
  */
 public class BeanUtil {
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(BeanUtil.class);
 
 	/**
 	 * @author tanyaowu

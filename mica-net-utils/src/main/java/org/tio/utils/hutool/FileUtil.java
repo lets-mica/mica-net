@@ -237,7 +237,7 @@ public class FileUtil {
 		if (fileName == null) {
 			return null;
 		}
-		int index = fileName.lastIndexOf(".");
+		int index = fileName.lastIndexOf('.');
 		if (index == -1) {
 			return StrUtil.EMPTY;
 		} else {
@@ -287,7 +287,7 @@ public class FileUtil {
 	 *
 	 * @param directory 文件夹
 	 * @return 成功与否
-	 * @throws IORuntimeException IO异常
+	 * @throws Exception IO异常
 	 * @since 3.0.6
 	 */
 	public static boolean clean(File directory) throws Exception {
@@ -312,7 +312,7 @@ public class FileUtil {
 	 *
 	 * @param file 文件对象
 	 * @return 成功与否
-	 * @throws IORuntimeException IO异常
+	 * @throws Exception IO异常
 	 */
 	public static boolean del(File file) throws Exception {
 		if (file == null || !file.exists()) {
