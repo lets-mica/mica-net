@@ -204,7 +204,7 @@ import org.tio.core.ChannelContext;
 
 class Buffers {
 
-	private static Logger log = LoggerFactory.getLogger(Buffers.class);
+	private static final Logger log = LoggerFactory.getLogger(Buffers.class);
 
 	/*
 	 Buffers is a simple abstraction that encapsulates the 4 SSL

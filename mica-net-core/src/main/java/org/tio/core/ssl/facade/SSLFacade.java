@@ -324,13 +324,10 @@ public class SSLFacade implements ISSLFacade {
 
 	/* Privates */
 	private void attachCompletionListener() {
-		_handshaker.addCompletedListener(new IHandshakeCompletedListener() {
-			@Override
-			public void onComplete() {
-				if (_hcl != null) {
-					_hcl.onComplete();
-					_hcl = null;
-				}
+		_handshaker.addCompletedListener(() -> {
+			if (_hcl != null) {
+				_hcl.onComplete();
+				_hcl = null;
 			}
 		});
 	}
