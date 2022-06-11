@@ -193,14 +193,12 @@
 */
 package org.tio.core.ssl.facade;
 
-import java.nio.BufferOverflowException;
-import java.nio.ByteBuffer;
-
-import javax.net.ssl.SSLSession;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.core.ChannelContext;
+
+import javax.net.ssl.SSLSession;
+import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
 
 class Buffers {
 
@@ -237,63 +235,55 @@ class Buffers {
 	 maintainable to allow the host application to inject its own buffers.
 	 In short, leave these buffers alone!
 	 */
-	private ByteBuffer				_peerApp;
-	private ByteBuffer				_myApp;
-	private ByteBuffer				_peerNet;
-	private ByteBuffer				_myNet;
+	private ByteBuffer peerApp;
+	private ByteBuffer myApp;
+	private ByteBuffer peerNet;
+	private ByteBuffer myNet;
 	/**
 	 * 待解密的bytebuffer
 	 */
-	private final AppendableBuffer	waitUnwrapBuffer;
+	private final AppendableBuffer waitUnwrapBuffer;
 	/**
 	 *
 	 */
-	private final SSLSession		ssLSession;
+	private final SSLSession sslSession;
 
-	@SuppressWarnings("unused")
-	private ChannelContext channelContext;
-
-	public Buffers(SSLSession ssLSession, ChannelContext channelContext) {
-		this.channelContext = channelContext;
-		this.ssLSession = ssLSession;
+	public Buffers(SSLSession sslSession) {
+		this.sslSession = sslSession;
 		allocate();
 		waitUnwrapBuffer = new AppendableBuffer();
 	}
 
 	ByteBuffer get(BufferType t) {
-		ByteBuffer result = null;
 		switch (t) {
-		case IN_PLAIN:
-			result = _peerApp;
-			break;
-		case IN_CIPHER:
-			result = _peerNet;
-			break;
-		case OUT_PLAIN:
-			result = _myApp;
-			break;
-		case OUT_CIPHER:
-			result = _myNet;
-			break;
+			case IN_PLAIN:
+				return peerApp;
+			case IN_CIPHER:
+				return peerNet;
+			case OUT_PLAIN:
+				return myApp;
+			case OUT_CIPHER:
+				return myNet;
+			default:
+				return null;
 		}
-		return result;
 	}
 
 	void grow(BufferType t) {
 		/* Grows buffer to recommended SSL sizes */
 		switch (t) {
-		case IN_PLAIN:
-			assign(t, grow(t, ssLSession.getApplicationBufferSize()));
-			break;
-		case IN_CIPHER:
-			assign(t, grow(t, ssLSession.getPacketBufferSize()));
-			break;
-		case OUT_PLAIN:
-			//No known reason for this case to occur
-			break;
-		case OUT_CIPHER:
-			assign(t, grow(t, ssLSession.getPacketBufferSize()));
-			break;
+			case IN_PLAIN:
+				assign(t, grow(t, sslSession.getApplicationBufferSize()));
+				break;
+			case IN_CIPHER:
+				assign(t, grow(t, sslSession.getPacketBufferSize()));
+				break;
+			case OUT_PLAIN:
+				//No known reason for this case to occur
+				break;
+			case OUT_CIPHER:
+				assign(t, grow(t, sslSession.getPacketBufferSize()));
+				break;
 		}
 
 	}
@@ -301,11 +291,7 @@ class Buffers {
 	ByteBuffer grow(BufferType b, int recommendedBufferSize) {
 		ByteBuffer originalBuffer = get(b);
 		ByteBuffer newBuffer = ByteBuffer.allocate(recommendedBufferSize);
-		try {
-			BufferUtils.copy(originalBuffer, newBuffer);
-		} catch (BufferOverflowException e) {
-			throw e;
-		}
+		BufferUtils.copy(originalBuffer, newBuffer);
 		return newBuffer;
 	}
 
@@ -317,14 +303,13 @@ class Buffers {
 				newBuffer.put(data);
 				newBuffer.flip();
 			} catch (Exception e) {
-				log.error(e + ", data: " + data + ", BufferType.IN_CIPHER:" + get(BufferType.IN_CIPHER), e);
+				log.error(e.getMessage() + ", data: " + data + ", BufferType.IN_CIPHER:" + get(BufferType.IN_CIPHER), e);
 				throw new RuntimeException(e);
 			}
 		}
 	}
 
 	/**
-	 *
 	 * @param plainData 待加密的ByteBuffer
 	 */
 	void prepareForWrap(ByteBuffer plainData) {
@@ -364,12 +349,12 @@ class Buffers {
 
 	/* private */
 	private void allocate() {
-		int applicationBufferSize = ssLSession.getApplicationBufferSize();
-		int packetBufferSize = ssLSession.getPacketBufferSize();
-		_peerApp = ByteBuffer.allocate(applicationBufferSize);
-		_myApp = ByteBuffer.allocate(applicationBufferSize);
-		_peerNet = ByteBuffer.allocate(packetBufferSize);
-		_myNet = ByteBuffer.allocate(packetBufferSize);
+		int applicationBufferSize = sslSession.getApplicationBufferSize();
+		int packetBufferSize = sslSession.getPacketBufferSize();
+		peerApp = ByteBuffer.allocate(applicationBufferSize);
+		myApp = ByteBuffer.allocate(applicationBufferSize);
+		peerNet = ByteBuffer.allocate(packetBufferSize);
+		myNet = ByteBuffer.allocate(packetBufferSize);
 	}
 
 	private void clear(BufferType source, BufferType destination) {
@@ -379,30 +364,25 @@ class Buffers {
 
 	private void assign(BufferType t, ByteBuffer b) {
 		switch (t) {
-
-		case IN_PLAIN:
-			_peerApp = b;
-			break;
-		case IN_CIPHER:
-			_peerNet = b;
-			break;
-		case OUT_PLAIN:
-			_myApp = b;
-			break;
-		case OUT_CIPHER:
-			_myNet = b;
-			break;
+			case IN_PLAIN:
+				peerApp = b;
+				break;
+			case IN_CIPHER:
+				peerNet = b;
+				break;
+			case OUT_PLAIN:
+				myApp = b;
+				break;
+			case OUT_CIPHER:
+				myNet = b;
+				break;
 		}
 	}
 
 	private void resetSize(BufferType t, int size) {
 		ByteBuffer newBuffer = ByteBuffer.allocate(size);
-		try {
-			BufferUtils.copy(get(t), newBuffer);
-			assign(t, newBuffer);
-		} catch (BufferOverflowException e) {
-			throw e;
-		}
+		BufferUtils.copy(get(t), newBuffer);
+		assign(t, newBuffer);
 	}
 
 	private ByteBuffer growIfNecessary(BufferType t, int size) {
