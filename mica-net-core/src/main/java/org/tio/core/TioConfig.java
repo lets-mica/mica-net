@@ -289,9 +289,9 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	private int									readBufferSize				= READ_BUFFER_SIZE;
 	private GroupListener						groupListener				= null;
 	private TioUuid								tioUuid						= new DefaultTioUuid();
-	public SynThreadPoolExecutor				tioExecutor					= null;
+	public SynThreadPoolExecutor				tioExecutor;
 	public CloseRunnable						closeRunnable;
-	public ThreadPoolExecutor					groupExecutor				= null;
+	public ThreadPoolExecutor					groupExecutor;
 	public ClientNodes							clientNodes					= new ClientNodes();
 	public SetWithLock<ChannelContext>			connections					= new SetWithLock<>(new HashSet<>());
 	public Groups								groups						= new Groups();
@@ -303,9 +303,9 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	public IpStats								ipStats						= null;
 	protected String							id;
 	/**
-	 * 解码异常多少次就把ip拉黑
+	 * 解码异常多少次抛出异常
 	 */
-	protected int								maxDecodeErrorCountForIp	= 10;
+	public int									maxDecodeErrorCount			= 10;
 	protected String							name						= "未命名";
 	private IpStatListener						ipStatListener				= DefaultIpStatListener.me;
 	private boolean								isStopped					= false;
@@ -333,22 +333,18 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 		} else {
 			ALL_CLIENT_GROUPCONTEXTS.add((TioClientConfig) this);
 		}
-
 		if (ALL_GROUPCONTEXTS.size() > 20) {
 			log.warn("已经产生{}个TioConfig对象，t-io作者怀疑你在误用t-io", ALL_GROUPCONTEXTS.size());
 		}
-		this.id = ID_ATOMIC.incrementAndGet() + "";
-
+		this.id = Integer.toString(ID_ATOMIC.incrementAndGet());
 		this.tioExecutor = tioExecutor;
 		if (this.tioExecutor == null) {
 			this.tioExecutor = Threads.getTioExecutor();
 		}
-
 		this.groupExecutor = groupExecutor;
 		if (this.groupExecutor == null) {
 			this.groupExecutor = Threads.getGroupExecutor();
 		}
-
 		closeRunnable = new CloseRunnable(this.tioExecutor);
 	}
 
@@ -492,7 +488,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
 	public void setIpStatListener(IpStatListener ipStatListener) {
 		this.ipStatListener = ipStatListener;
-		//		this.ipStats.setIpStatListener(ipStatListener);
 	}
 
 	public GroupStat getGroupStat() {

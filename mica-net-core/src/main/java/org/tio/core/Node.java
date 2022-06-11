@@ -193,28 +193,22 @@
 */
 package org.tio.core;
 
-import java.util.Objects;
-
 import org.tio.utils.hutool.StrUtil;
 
+import java.util.Objects;
+
 /**
- *
  * @author tanyaowu
  * 2017年10月19日 上午9:40:07
  */
 public class Node implements Comparable<Node> {
-	private String	ip;
-	private int		port;
-	private Byte	ssl	= 1;
+	private final String ip;
+	private final int port;
+	private byte ssl = 1;
 
 	public Node(String ip, int port) {
-		super();
-		if (StrUtil.isBlank(ip)) {
-			ip = "0.0.0.0";
-		}
-
-		this.setIp(ip);
-		this.setPort(port);
+		this.ip = StrUtil.isBlank(ip) ? "0.0.0.0" : ip;
+		this.port = port;
 	}
 
 	@Override
@@ -229,15 +223,6 @@ public class Node implements Comparable<Node> {
 		}
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) {
-			return false;
-		}
-		Node other = (Node) obj;
-		return ip.equals(other.getIp()) && port == other.getPort();
-	}
-
 	public String getIp() {
 		return ip;
 	}
@@ -246,37 +231,43 @@ public class Node implements Comparable<Node> {
 		return port;
 	}
 
+	public String getPeerHost() {
+		return ip + ':' + port;
+	}
+
 	@Override
 	public int hashCode() {
-		return (ip + ":" + port).hashCode();
+		return getPeerHost().hashCode();
 	}
 
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Node node = (Node) o;
+		return port == node.port && Objects.equals(ip, node.ip);
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(ip).append(":").append(port);
-		return builder.toString();
+		return getPeerHost();
 	}
 
 	/**
 	 * @return the ssl
 	 */
-	public Byte getSsl() {
+	public byte getSsl() {
 		return ssl;
 	}
 
 	/**
 	 * @param ssl the ssl to set
 	 */
-	public void setSsl(Byte ssl) {
+	public void setSsl(byte ssl) {
 		this.ssl = ssl;
 	}
 

@@ -208,7 +208,7 @@ import org.tio.utils.lock.MapWithLock;
  * 2017年4月1日 上午9:35:20
  */
 public class ClientNodes {
-	private static Logger log = LoggerFactory.getLogger(ClientNodes.class);
+	private static final Logger log = LoggerFactory.getLogger(ClientNodes.class);
 
 	/**
 	 *
@@ -235,8 +235,10 @@ public class ClientNodes {
 		return ip + ':' + port;
 	}
 
-	/** remoteAndChannelContext key: "ip:port" value: ChannelContext. */
-	private MapWithLock<String, ChannelContext> mapWithLock = new MapWithLock<>();
+	/**
+	 * remoteAndChannelContext key: "ip:port" value: ChannelContext.
+	 */
+	private final MapWithLock<String, ChannelContext> mapWithLock = new MapWithLock<>();
 
 	/**
 	 *

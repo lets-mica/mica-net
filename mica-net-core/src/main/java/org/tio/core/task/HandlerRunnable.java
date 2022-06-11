@@ -196,9 +196,6 @@
  */
 package org.tio.core.task;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
@@ -207,11 +204,13 @@ import org.tio.core.TioConfig;
 import org.tio.core.intf.Packet;
 import org.tio.core.stat.IpStat;
 import org.tio.utils.SystemTimer;
-import org.tio.utils.hutool.CollUtil;
 import org.tio.utils.lock.MapWithLock;
 import org.tio.utils.queue.FullWaitQueue;
 import org.tio.utils.queue.TioFullWaitQueue;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
@@ -315,7 +314,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + ":" + channelContext.toString();
+		return this.getClass().getSimpleName() + ':' + channelContext.toString();
 	}
 
 	@Override
@@ -324,7 +323,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	}
 
 	/** The msg queue. */
-	private FullWaitQueue<Packet> msgQueue = null;
+	private volatile FullWaitQueue<Packet> msgQueue = null;
 
 	@Override
 	public FullWaitQueue<Packet> getMsgQueue() {

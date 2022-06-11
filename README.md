@@ -6,5 +6,6 @@
 ## 变更内容
 1. 使用 java8 作为最低编译版本。
 2. 去除了一些使用不到的模块和代码。
-3. 切换到 cache2k、不依赖 fastjson。
-4. 代码优化，更加符合规范。
+3. 添加 mica 中的 HexUtils、DigestUtils、ExceptionUtils。
+4. 切换到 cache2k、不依赖 fastjson。
+5. 代码优化，更加符合规范。

@@ -193,11 +193,6 @@
 */
 package org.tio.core.task;
 
-import java.nio.BufferUnderflowException;
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.concurrent.Executor;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
@@ -210,10 +205,13 @@ import org.tio.core.stat.ChannelStat;
 import org.tio.core.stat.IpStat;
 import org.tio.core.utils.ByteBufferUtils;
 import org.tio.utils.SystemTimer;
-import org.tio.utils.hutool.CollUtil;
 import org.tio.utils.queue.FullWaitQueue;
 import org.tio.utils.queue.TioFullWaitQueue;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
+
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.Executor;
 
 /**
  * 解码任务对象，一个连接对应一个本对象
@@ -222,36 +220,35 @@ import org.tio.utils.thread.pool.AbstractQueueRunnable;
  * 2012-08-09
  */
 public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
-	private static final Logger	log						= LoggerFactory.getLogger(DecodeRunnable.class);
-	private ChannelContext		channelContext			= null;
-	private TioConfig			tioConfig				= null;
+	private static final Logger log = LoggerFactory.getLogger(DecodeRunnable.class);
+	private final ChannelContext channelContext;
+	private final TioConfig tioConfig;
 	/**
 	 * 上一次解码剩下的数据
 	 */
-	private ByteBuffer			lastByteBuffer			= null;
+	private ByteBuffer lastByteBuffer = null;
 	/**
 	 * 新收到的数据
 	 */
-	private ByteBuffer			newReceivedByteBuffer	= null;
+	private ByteBuffer newReceivedByteBuffer = null;
 
 	/**
-	 *
 	 * @param packet
 	 * @param byteCount
 	 * @author tanyaowu
 	 */
 	public void handler(Packet packet, int byteCount) {
 		switch (tioConfig.packetHandlerMode) {
-		case SINGLE_THREAD:
-			channelContext.handlerRunnable.handler(packet);
-			break;
-		case QUEUE:
-			channelContext.handlerRunnable.addMsg(packet);
-			channelContext.handlerRunnable.execute();
-			break;
-		default:
-			channelContext.handlerRunnable.handler(packet);
-			break;
+			case SINGLE_THREAD:
+				channelContext.handlerRunnable.handler(packet);
+				break;
+			case QUEUE:
+				channelContext.handlerRunnable.addMsg(packet);
+				channelContext.handlerRunnable.execute();
+				break;
+			default:
+				channelContext.handlerRunnable.handler(packet);
+				break;
 		}
 	}
 
@@ -282,11 +279,9 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	}
 
 	/**
-	 * @see java.lang.Runnable#run()
-	 *
 	 * @author tanyaowu
 	 * 2017年3月21日 下午4:26:39
-	 *
+	 * @see java.lang.Runnable#run()
 	 */
 	public void decode() {
 		ByteBuffer byteBuffer = newReceivedByteBuffer;
@@ -295,7 +290,8 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 			lastByteBuffer = null;
 		}
 
-		label_2: while (true) {
+		label_2:
+		while (true) {
 			try {
 				int initPosition = byteBuffer.position();
 				int limit = byteBuffer.limit();
@@ -312,7 +308,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 					try {
 						packet = tioConfig.getTioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
 					} catch (BufferUnderflowException e) {
-						//log.error(e.toString(), e);
 						//数据不够读
 					}
 				}
@@ -339,8 +334,8 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 								log.info("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount, readableLength);
 							}
 						}
-						//检查慢包攻击
-						if (channelStat.decodeFailCount > 10) {
+						// 检查慢包攻击
+						if (channelStat.decodeFailCount > tioConfig.maxDecodeErrorCount) {
 							//							int capacity = lastByteBuffer.capacity();
 							int per = readableLength / channelStat.decodeFailCount;
 							if (per < Math.min(channelContext.getReadBufferSize() / 2, 256)) {
@@ -431,7 +426,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	}
 
 	/**
-	 *
 	 * @param newReceivedByteBuffer
 	 */
 	public void setNewReceivedByteBuffer(ByteBuffer newReceivedByteBuffer) {
@@ -448,7 +442,9 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 		return toString();
 	}
 
-	/** The msg queue. */
+	/**
+	 * The msg queue.
+	 */
 	private FullWaitQueue<ByteBuffer> msgQueue = null;
 
 	@Override

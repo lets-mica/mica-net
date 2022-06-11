@@ -213,14 +213,12 @@ import org.tio.utils.thread.pool.AbstractQueueRunnable;
  * 2017年10月19日 上午9:39:59
  */
 public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
-
-	private static Logger log = LoggerFactory.getLogger(CloseRunnable.class);
+	private static final Logger log = LoggerFactory.getLogger(CloseRunnable.class);
 
 	public CloseRunnable(Executor executor) {
 		super(executor);
 		getMsgQueue();
 	}
-	//	long count = 1;
 
 	@Override
 	public void runTask() {
@@ -282,14 +280,14 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 					} catch (Throwable e) {
 						log.error(e.toString(), e);
 					} finally {
-						if (!isNeedRemove && channelContext.isClosed && !channelContext.isServer()) //不删除且没有连接上，则加到重连队列中
-						{
+						// 不删除且没有连接上，则加到重连队列中
+						if (!isNeedRemove && channelContext.isClosed && !channelContext.isServer()) {
 							ClientChannelContext clientChannelContext = (ClientChannelContext) channelContext;
 							ReconnConf.put(clientChannelContext);
 						}
 					}
 				} catch (Throwable e) {
-					log.error(throwable.getMessage(), e);
+					log.error(throwable == null ? remark : throwable.getMessage(), e);
 				}
 			} finally {
 				channelContext.isWaitingClose = false;
