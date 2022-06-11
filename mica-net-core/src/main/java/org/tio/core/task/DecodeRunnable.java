@@ -335,7 +335,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 							}
 						}
 						// 检查慢包攻击
-						if (channelStat.decodeFailCount > tioConfig.maxDecodeErrorCount) {
+						if (channelStat.decodeFailCount > tioConfig.maxDecodeFailCount) {
 							//							int capacity = lastByteBuffer.capacity();
 							int per = readableLength / channelStat.decodeFailCount;
 							if (per < Math.min(channelContext.getReadBufferSize() / 2, 256)) {

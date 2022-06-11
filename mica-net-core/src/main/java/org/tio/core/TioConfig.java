@@ -303,9 +303,9 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	public IpStats								ipStats						= null;
 	protected String							id;
 	/**
-	 * 解码异常多少次抛出异常
+	 * 解码失败多少次抛出异常
 	 */
-	public int									maxDecodeErrorCount			= 10;
+	public int									maxDecodeFailCount			= 10;
 	protected String							name						= "未命名";
 	private IpStatListener						ipStatListener				= DefaultIpStatListener.me;
 	private boolean								isStopped					= false;
