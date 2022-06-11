@@ -219,6 +219,7 @@ public class WsTioUuid implements TioUuid {
 	 */
 	@Override
 	public String uuid() {
-		return snowflake.nextId() + "";
+		return Long.toString(snowflake.nextId());
 	}
+
 }
