@@ -198,7 +198,6 @@ package org.tio.http.common;
  * 2017年7月26日 下午3:12:56
  */
 public class UploadFile {
-
 	private String name = null;
 	private int size = -1;
 	private byte[] data = null;

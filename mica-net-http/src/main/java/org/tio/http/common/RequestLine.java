@@ -256,13 +256,6 @@ public class RequestLine {
 	}
 
 	/**
-	 * @param line the line to set
-	 */
-	//	public void setLine(String line) {
-	//		this.line = line;
-	//	}
-
-	/**
 	 * 譬如http://www.163.com/user/get?value=tan&id=789，那些此值就是name=tan&id=789
 	 *
 	 * @return the queryString
@@ -279,15 +272,6 @@ public class RequestLine {
 	public void setQueryString(String queryString) {
 		this.queryString = queryString;
 	}
-
-	//	/**
-	//	 * 形如：/user/get?value=999
-	//	 * @param pathAndQuery
-	//	 * @author tanyaowu
-	//	 */
-	//	public void setPathAndQuery(String pathAndQuery) {
-	//		this.pathAndQuery = pathAndQuery;
-	//	}
 
 	/**
 	 * @return the version
@@ -338,7 +322,6 @@ public class RequestLine {
 		}
 		sb.append(' ');
 		sb.append(protocol).append('/').append(version);
-
 		return sb.toString();
 	}
 
@@ -379,7 +362,6 @@ public class RequestLine {
 		}
 		sb.append(' ');
 		sb.append(protocol).append('/').append(version);
-
 		return sb.toString();
 	}
 

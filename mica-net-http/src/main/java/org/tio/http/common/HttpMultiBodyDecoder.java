@@ -215,7 +215,7 @@ import java.util.Map;
  * 2017年7月26日 下午2:20:43
  */
 public class HttpMultiBodyDecoder {
-	private static Logger log = LoggerFactory.getLogger(HttpMultiBodyDecoder.class);
+	private static final Logger log = LoggerFactory.getLogger(HttpMultiBodyDecoder.class);
 
 	/**
 	 *
@@ -247,21 +247,16 @@ public class HttpMultiBodyDecoder {
 
 		String boundary = "--" + initboundary;
 		String endBoundary = boundary + "--";
-
-		//        int boundaryLength = boundary.getBytes().length;
 		Step step = Step.BOUNDARY;
-		//        int bufferLength = buffer.capacity();
 		try {
 			label1:
 			while (true) {
 				if (step == Step.BOUNDARY) {
 					String line = ByteBufferUtils.readLine(buffer, request.getCharset(), HttpConfig.MAX_LENGTH_OF_BOUNDARY);
-					//                    int offset = HttpMultiBodyDecoder.processReadIndex(buffer);
 					if (boundary.equals(line)) {
 						step = Step.HEADER;
 					} else if (endBoundary.equals(line)) // 结束了
 					{
-						//                        int ss = buffer.readerIndex() + 2 - offset;
 						break;
 					} else {
 						throw new TioDecodeException("line need:" + boundary + ", but is: " + line + "");
@@ -333,10 +328,10 @@ public class HttpMultiBodyDecoder {
 				int endIndex = buffer.position() - line.getBytes().length - 2 - 2;
 				int length = endIndex - startIndex;
 				byte[] dst = new byte[length];
-
 				System.arraycopy(buffer.array(), startIndex, dst, 0, length);
 				String filename = header.getFilename();
-				if (filename != null)//该字段类型是file
+				// 该字段类型是file
+				if (filename != null)
 				{
 					if (StrUtil.isNotBlank(filename)) { //
 						UploadFile uploadFile = new UploadFile();
@@ -359,17 +354,6 @@ public class HttpMultiBodyDecoder {
 		throw new TioDecodeException("step is null");
 	}
 
-	//    public static int processReadIndex(ByteBuffer buffer)
-	//    {
-	//        int newReaderIndex = buffer.readerIndex();
-	//        if (newReaderIndex < buffer.capacity())
-	//        {
-	//            buffer.readerIndex(newReaderIndex + 1);
-	//            return 1;
-	//        }
-	//        return 0;
-	//    }
-
 	/**
 	 * 【
 	 * Content-Disposition: form-data; name="uploadFile"; filename=""
@@ -388,7 +372,6 @@ public class HttpMultiBodyDecoder {
 		if (lines == null || lines.size() == 0) {
 			throw new TioDecodeException("multipart_form_data 格式不对，没有头部信息");
 		}
-
 		try {
 			for (String line : lines) {
 				String[] keyvalue = line.split(":");
@@ -411,61 +394,9 @@ public class HttpMultiBodyDecoder {
 			log.error(channelContext.toString(), e);
 			throw new TioDecodeException(e.toString());
 		}
-
-		//		for (int i = 0; i < lines.size(); i++) {
-		//			String line = lines.get(i);
-		//			if (i == 0) {
-		//				String[] mapStrings = StrUtil.split(line, ";");
-		//				String s = mapStrings[0];//
-		//
-		//				String[] namekeyvalue = StrUtil.split(mapStrings[1], "=");
-		//				header.setName(namekeyvalue[1].substring(1, namekeyvalue[1].length() - 1));
-		//
-		//				if (mapStrings.length == 3) {
-		//					String[] finenamekeyvalue = StrUtil.split(mapStrings[2], "=");
-		//					String filename = finenamekeyvalue[1].substring(1, finenamekeyvalue[1].length() - 1);
-		//					header.setFilename(FilenameUtils.getName(filename));
-		//				}
-		//			} else if (i == 1) {
-		//				String[] map = StrUtil.split(line, ":");
-		//				String contentType = map[1].trim();//
-		//				header.setContentType(contentType);
-		//			}
-		//		}
 	}
 
-	/**
-	 * 返回值不包括最后的\r\n
-	 * @param buffer
-	 * @param charset
-	 * @return
-	 * @throws UnsupportedEncodingException
-	 */
-	//	public static String getLine(ByteBuffer buffer, String charset) throws UnsupportedEncodingException {
-	//		char lastByte = 0; // 上一个字节
-	//		int initPosition = buffer.position();
-	//
-	//		while (buffer.hasRemaining()) {
-	//			char b = (char) buffer.get();
-	//
-	//			if (b == '\n') {
-	//				if (lastByte == '\r') {
-	//					int startIndex = initPosition;
-	//					int endIndex = buffer.position() - 2;
-	//					int length = endIndex - startIndex;
-	//					byte[] dst = new byte[length];
-	//
-	//					System.arraycopy(buffer.array(), startIndex, dst, 0, length);
-	//					String line = new String(dst, charset);
-	//					return line;
-	//				}
-	//			}
-	//			lastByte = b;
-	//		}
-	//		return null;
-	//	}
-
-	public static enum Step {
+	public enum Step {
 		BOUNDARY, HEADER, BODY, END
 	}
 
@@ -482,7 +413,7 @@ public class HttpMultiBodyDecoder {
 	 * @author tanyaowu
 	 * 2017年7月27日 上午10:18:01
 	 */
-	public static interface MultiBodyHeaderKey {
+	public interface MultiBodyHeaderKey {
 		String Content_Disposition = "Content-Disposition".toLowerCase();
 		String Content_Type = "Content-Type".toLowerCase();
 	}

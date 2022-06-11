@@ -198,6 +198,9 @@ package org.tio.http.common;
  * 2017年6月28日 下午2:23:16
  */
 public enum Method {
+	/**
+	 * http method
+	 */
 	GET("GET"), POST("POST"), HEAD("HEAD"), PUT("PUT"), TRACE("TRACE"), OPTIONS("OPTIONS"), PATCH("PATCH"), DELETE("DELETE");
 
 	final String value;

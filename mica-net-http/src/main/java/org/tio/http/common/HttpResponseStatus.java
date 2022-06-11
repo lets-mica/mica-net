@@ -352,14 +352,14 @@ public enum HttpResponseStatus {
 	 */
 	C505(505, "HTTP Version Not Supported", "505 HTTP Version Not Supported");
 
-	public int status;
-	public String description;
-	public String headerText;
-	public byte[] headerBinary;
-	public String responseLine;
+	public final int status;
+	public final String description;
+	public final String headerText;
+	public final byte[] headerBinary;
+	public final String responseLine;
 	public byte[] responseLineBinary;
 
-	private HttpResponseStatus(int status, String description, String headerText) {
+	HttpResponseStatus(int status, String description, String headerText) {
 		this.status = status;
 		this.description = description;
 		this.headerText = headerText;

@@ -217,7 +217,7 @@ public class HttpResponse extends HttpPacket {
 	private boolean isStaticRes = false;
 	private HttpRequest request = null;
 	private List<Cookie> cookies = null;
-	private Map<HeaderName, HeaderValue> headers = new HashMap<>();
+	private final Map<HeaderName, HeaderValue> headers = new HashMap<>();
 	private int headerByteCount = 2;
 	/**
 	 * 是否已经被gzip压缩过了，防止重复压缩
@@ -247,7 +247,7 @@ public class HttpResponse extends HttpPacket {
 		}
 
 		if (request.httpConfig != null && request.httpConfig.compatible1_0) {
-			String connection = request.getConnection();//StrUtil.lowerCase(request.getHeader(HttpConst.RequestHeaderKey.Connection));
+			String connection = request.getConnection();
 			switch (request.requestLine.version) {
 				case HttpConst.HttpVersion.V1_0:
 					if (StrUtil.equals(connection, HttpConst.RequestHeaderValue.Connection.keep_alive)) {
@@ -257,7 +257,6 @@ public class HttpResponse extends HttpPacket {
 						//					addHeader(HeaderName.Connection, HeaderValue.Connection.close);
 					}
 					break;
-
 				default:
 					if (StrUtil.equals(connection, HttpConst.RequestHeaderValue.Connection.close)) {
 						//					addHeader(HeaderName.Connection, HeaderValue.Connection.close);

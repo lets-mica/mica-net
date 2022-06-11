@@ -204,7 +204,6 @@ import java.io.InputStream;
  *
  */
 public class HttpResource {
-
 	private String path = null;
 	private InputStream inputStream = null;
 	private File file = null;

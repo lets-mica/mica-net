@@ -202,14 +202,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * 2017年6月5日 上午10:44:26
  */
 public class HttpUuid implements TioUuid {
-	//	private static Logger log = LoggerFactory.getLogger(HttpUuid.class);
-
-	private static AtomicLong seq = new AtomicLong();
+	private final AtomicLong seq;
 
 	/**
 	 * @author tanyaowu
 	 */
 	public HttpUuid() {
+		this.seq = new AtomicLong();
 	}
 
 	/**
@@ -218,6 +217,7 @@ public class HttpUuid implements TioUuid {
 	 */
 	@Override
 	public String uuid() {
-		return seq.incrementAndGet() + "";
+		return Long.toString(seq.incrementAndGet());
 	}
+
 }

@@ -202,26 +202,7 @@ import org.tio.http.common.handler.HttpRequestHandler;
  * 2017年8月15日 下午1:21:14
  */
 public class HttpConfig {
-	/**
-	 * 用于覆盖session cookie的参数名，客户端可以用这个传递sessionid
-	 */
-	public static final String TIO_HTTP_SESSIONID = "tio_http_sessionid";
-	/**
-	 * 存放HttpSession对象的cacheName
-	 */
-	public static final String SESSION_CACHE_NAME = "tio-h-s";
-	/**
-	 * 存放sessionId的cookie value
-	 */
-	public static final String SESSION_COOKIE_NAME = "PHPSESSID";
-	/**
-	 * session默认的超时时间，单位：秒
-	 */
-	public static final long DEFAULT_SESSION_TIMEOUT = 30 * 60;
-	/**
-	 * 默认的静态资源缓存时间，单位：秒
-	 */
-	public static final int MAX_LIVETIME_OF_STATICRES = 60 * 10;
+	private static final Logger log = LoggerFactory.getLogger(HttpConfig.class);
 	/**
 	 * 文件上传时，boundary值的最大长度
 	 */
@@ -243,7 +224,7 @@ public class HttpConfig {
 	 */
 	public static final String JSONP_PARAM_NAME = "tio_http_jsonp";
 	public static final int MAX_FORWARD_COUNT = 10;
-	private static Logger log = LoggerFactory.getLogger(HttpConfig.class);
+
 	public int maxForwardCount = MAX_FORWARD_COUNT;
 	/**
 	 * 是否兼容1.0
