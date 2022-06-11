@@ -211,7 +211,6 @@ import org.tio.core.stat.IpStat;
 import org.tio.core.task.DecodeRunnable;
 import org.tio.core.task.HandlerRunnable;
 import org.tio.core.task.SendRunnable;
-import org.tio.utils.hutool.CollUtil;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.lock.SetWithLock;
 import org.tio.utils.prop.MapWithLockPropSupport;
@@ -497,19 +496,18 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 							tioConfig.getIpStatListener().onAfterSent(this, packet, isSentSuccess, ipStat);
 						}
 					} catch (Exception e) {
-						log.error(e.toString(), e);
+						log.error(e.getMessage(), e);
 					}
 				}
 			}
 		} catch (Throwable e) {
-			log.error(e.toString(), e);
+			log.error(e.getMessage(), e);
 		}
-
 		if (packet.getPacketListener() != null) {
 			try {
 				packet.getPacketListener().onAfterSent(this, packet, isSentSuccess);
 			} catch (Throwable e) {
-				log.error(e.toString(), e);
+				log.error(e.getMessage(), e);
 			}
 		}
 
@@ -718,7 +716,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		return proxyClientNode;
 	}
 
-	private void swithIpStat(IpStat oldIpStat, IpStat newIpStat, ChannelStat myStat) {
+	private static void switchIpStat(IpStat oldIpStat, IpStat newIpStat, ChannelStat myStat) {
 		oldIpStat.getHandledBytes().addAndGet(-myStat.getHandledBytes().get());
 		oldIpStat.getHandledPacketCosts().addAndGet(-myStat.getHandledPacketCosts().get());
 		oldIpStat.getHandledPackets().addAndGet(-myStat.getHandledPackets().get());
@@ -755,7 +753,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 						for (Long v : tioConfig.ipStats.durationList) {
 							IpStat oldIpStat = tioConfig.ipStats._get(v, this, true, false);
 							IpStat newIpStat = tioConfig.ipStats.get(v, this);
-							swithIpStat(oldIpStat, newIpStat, this.stat);
+							switchIpStat(oldIpStat, newIpStat, this.stat);
 						}
 					} catch (Exception e) {
 						log.error(e.toString(), e);
