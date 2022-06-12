@@ -213,7 +213,7 @@ class Handshaker {
 	 these tasks in compliance with its own compute/IO strategies.
 	 */
 
-	private static Logger log = LoggerFactory.getLogger(Handshaker.class);
+	private static final Logger log = LoggerFactory.getLogger(Handshaker.class);
 
 	@SuppressWarnings("unused")
 	private final static String			TAG	= "Handshaker";
@@ -232,10 +232,6 @@ class Handshaker {
 		_taskHandler = taskHandler;
 		_finished = false;
 		_client = client;
-	}
-
-	private void debug(final String msg, final String... args) {
-		SSLLog.debug(channelContext.toString(), msg, args);
 	}
 
 	void begin() throws SSLException {
@@ -298,7 +294,9 @@ class Handshaker {
 		case NEED_UNWRAP:
 			if (_worker.pendingUnwrap()) {
 				SSLEngineResult u_result = _worker.unwrap(null);
-				debug("Unwrap result " + u_result);
+				if (log.isDebugEnabled()) {
+					log.debug("Unwrap result " + u_result);
+				}
 				if (u_result.getHandshakeStatus().equals(HandshakeStatus.FINISHED)) {
 					handshakeFinished();
 				}
@@ -306,7 +304,9 @@ class Handshaker {
 					shakehands();
 				}
 			} else {
-				debug("No pending data to unwrap");
+				if (log.isDebugEnabled()) {
+					log.debug("No pending data to unwrap");
+				}
 			}
 			break;
 		}
