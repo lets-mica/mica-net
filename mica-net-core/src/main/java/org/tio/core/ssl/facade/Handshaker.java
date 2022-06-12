@@ -193,14 +193,14 @@
 */
 package org.tio.core.ssl.facade;
 
-import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLEngineResult.HandshakeStatus;
-import javax.net.ssl.SSLException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.ssl.SslVo;
+
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+import javax.net.ssl.SSLException;
 
 class Handshaker {
 	/*
@@ -216,15 +216,15 @@ class Handshaker {
 	private static final Logger log = LoggerFactory.getLogger(Handshaker.class);
 
 	@SuppressWarnings("unused")
-	private final static String			TAG	= "Handshaker";
-	private final ITaskHandler			_taskHandler;
-	private final Worker				_worker;
-	private boolean						_finished;
-	private IHandshakeCompletedListener	_hscl;
-	private ISessionClosedListener		_sessionClosedListener;
+	private final static String TAG = "Handshaker";
+	private final ITaskHandler _taskHandler;
+	private final Worker _worker;
+	private boolean _finished;
+	private IHandshakeCompletedListener _hscl;
+	private ISessionClosedListener _sessionClosedListener;
 	@SuppressWarnings("unused")
-	private boolean						_client;
-	private ChannelContext				channelContext;
+	private boolean _client;
+	private ChannelContext channelContext;
 
 	public Handshaker(boolean client, Worker worker, ITaskHandler taskHandler, ChannelContext channelContext) {
 		this.channelContext = channelContext;
@@ -264,51 +264,52 @@ class Handshaker {
 	}
 
 	/**
-	 *
 	 * @throws SSLException
 	 */
 	private void shakehands() throws SSLException {
 		HandshakeStatus handshakeStatus = _worker.getHandshakeStatus();
-		log.info("{}, handshakeStatus:{}", this.channelContext, handshakeStatus);
+		if (log.isDebugEnabled()) {
+			log.debug("{}, handshakeStatus:{}", this.channelContext, handshakeStatus);
+		}
 		switch (handshakeStatus) {
-		case NOT_HANDSHAKING:
-			/* Occurs after handshake is over 握手早就完成了 */
-			break;
-		case FINISHED: //握手刚刚完成
-			handshakeFinished();
-			break;
-		case NEED_TASK: //运行任务
-			_taskHandler.process(new Tasks(_worker, this));
-			break;
-		case NEED_WRAP: //加密
-			SSLEngineResult w_result = _worker.wrap(new SslVo(), null);
-			if (w_result.getStatus().equals(SSLEngineResult.Status.CLOSED) && null != _sessionClosedListener) {
-				_sessionClosedListener.onSessionClosed();
-			}
-			if (w_result.getHandshakeStatus().equals(HandshakeStatus.FINISHED)) {
+			case NOT_HANDSHAKING:
+				/* Occurs after handshake is over 握手早就完成了 */
+				break;
+			case FINISHED: //握手刚刚完成
 				handshakeFinished();
-			} else {
-				shakehands();
-			}
-			break;
-		case NEED_UNWRAP:
-			if (_worker.pendingUnwrap()) {
-				SSLEngineResult u_result = _worker.unwrap(null);
-				if (log.isDebugEnabled()) {
-					log.debug("Unwrap result " + u_result);
+				break;
+			case NEED_TASK: //运行任务
+				_taskHandler.process(new Tasks(_worker, this));
+				break;
+			case NEED_WRAP: //加密
+				SSLEngineResult w_result = _worker.wrap(new SslVo(), null);
+				if (w_result.getStatus().equals(SSLEngineResult.Status.CLOSED) && null != _sessionClosedListener) {
+					_sessionClosedListener.onSessionClosed();
 				}
-				if (u_result.getHandshakeStatus().equals(HandshakeStatus.FINISHED)) {
+				if (w_result.getHandshakeStatus().equals(HandshakeStatus.FINISHED)) {
 					handshakeFinished();
-				}
-				if (u_result.getStatus().equals(SSLEngineResult.Status.OK)) {
+				} else {
 					shakehands();
 				}
-			} else {
-				if (log.isDebugEnabled()) {
-					log.debug("No pending data to unwrap");
+				break;
+			case NEED_UNWRAP:
+				if (_worker.pendingUnwrap()) {
+					SSLEngineResult u_result = _worker.unwrap(null);
+					if (log.isDebugEnabled()) {
+						log.debug("Unwrap result " + u_result);
+					}
+					if (u_result.getHandshakeStatus().equals(HandshakeStatus.FINISHED)) {
+						handshakeFinished();
+					}
+					if (u_result.getStatus().equals(SSLEngineResult.Status.OK)) {
+						shakehands();
+					}
+				} else {
+					if (log.isDebugEnabled()) {
+						log.debug("No pending data to unwrap");
+					}
 				}
-			}
-			break;
+				break;
 		}
 	}
 
