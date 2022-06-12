@@ -193,7 +193,11 @@
 */
 package org.tio.utils.hutool;
 
+import org.tio.utils.mica.ExceptionUtils;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -202,25 +206,61 @@ import java.util.zip.GZIPOutputStream;
  * @author looly
  */
 public class ZipUtil {
+	public static final int BUFFER_SIZE = 4096;
 
 	/**
-	 * Gzip压缩处理
+	 * Gzip压缩
 	 *
-	 * @param val 被压缩的字节流
+	 * @param buffer 被压缩的字节流
 	 * @return 压缩后的字节流
 	 * @throws RuntimeException IO异常
 	 */
-	public static byte[] gzip(byte[] val) {
+	public static byte[] gzip(byte[] buffer) {
 		try (
-			FastByteArrayOutputStream bos = new FastByteArrayOutputStream(val.length);
+			FastByteArrayOutputStream bos = new FastByteArrayOutputStream(buffer.length);
 			GZIPOutputStream gos = new GZIPOutputStream(bos);
 		) {
-			gos.write(val, 0, val.length);
+			gos.write(buffer, 0, buffer.length);
 			gos.finish();
 			gos.flush();
 			return bos.toByteArray();
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw ExceptionUtils.unchecked(e);
+		}
+	}
+
+	/**
+	 * Gzip 解压
+	 *
+	 * @param buffer 被压缩的字节流
+	 * @return 压缩后的字节流
+	 * @throws RuntimeException IO异常
+	 */
+	public static byte[] unGzip(byte[] buffer) {
+		return unGzip(buffer, BUFFER_SIZE);
+	}
+
+	/**
+	 * Gzip 解压
+	 *
+	 * @param buffer         被压缩的字节流
+	 * @param readBufferSize 一次读取的字节大小
+	 * @return 压缩后的字节流
+	 * @throws RuntimeException IO异常
+	 */
+	public static byte[] unGzip(byte[] buffer, int readBufferSize) {
+		try (ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer);
+			 GZIPInputStream gzip = new GZIPInputStream(inputStream);
+			 FastByteArrayOutputStream outputStream = new FastByteArrayOutputStream()
+		) {
+			byte[] buf = new byte[readBufferSize];
+			int len;
+			while ((len = gzip.read(buf)) > 0) {
+				outputStream.write(buf, 0, len);
+			}
+			return outputStream.toByteArray();
+		} catch (IOException e) {
+			throw ExceptionUtils.unchecked(e);
 		}
 	}
 

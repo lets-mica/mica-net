@@ -332,7 +332,7 @@ public class LockUtils {
 			}
 		} else {
 			ReadLock readLock = rwLock.readLock();
-			boolean tryRead = false;
+			boolean tryRead;
 			try {
 				tryRead = readLock.tryLock(readWaitTimeInSecond, TimeUnit.SECONDS);
 				if (tryRead) {

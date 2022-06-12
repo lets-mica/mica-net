@@ -281,10 +281,9 @@ public class ReconnConf {
 	 */
 	public ReconnConf() {
 		LinkedBlockingQueue<Runnable> tioQueue = new LinkedBlockingQueue<>();
-		String tioThreadName = "tio-client-reconn";
-		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance(tioThreadName, Thread.MAX_PRIORITY);
+		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("tio-client-reconn", Thread.MAX_PRIORITY);
 		// 重连一般都是客户端重连，只用一个线程即可
-		threadPoolExecutor = new SynThreadPoolExecutor(1, 1, 60L, tioQueue, defaultThreadFactory, tioThreadName);
+		threadPoolExecutor = new SynThreadPoolExecutor(1, 1, 60L, tioQueue, defaultThreadFactory);
 	}
 
 	/**

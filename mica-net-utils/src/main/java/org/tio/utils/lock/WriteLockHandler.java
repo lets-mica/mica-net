@@ -195,13 +195,13 @@ package org.tio.utils.lock;
 
 /**
  * @author tanyaowu
- *
  */
 public interface WriteLockHandler<T> {
 
 	/**
+	 * handler
 	 *
-	 * @param t
+	 * @param t t
 	 */
 	void handler(T t);
 
