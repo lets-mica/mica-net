@@ -202,13 +202,16 @@ import java.util.Map;
  */
 public enum Opcode {
 
+	/**
+	 * Opcode
+	 */
 	NOT_FIN((byte) 0), TEXT((byte) 1), BINARY((byte) 2), CLOSE((byte) 8), PING((byte) 9), PONG((byte) 10);
 
-	private static final Map<Byte, Opcode> map = new HashMap<>();
+	private static final Map<Byte, Opcode> MAP = new HashMap<>();
 
 	static {
 		for (Opcode command : values()) {
-			map.put(command.getCode(), command);
+			MAP.put(command.getCode(), command);
 		}
 	}
 
@@ -219,7 +222,7 @@ public enum Opcode {
 	}
 
 	public static Opcode valueOf(byte code) {
-		return map.get(code);
+		return MAP.get(code);
 	}
 
 	public byte getCode() {

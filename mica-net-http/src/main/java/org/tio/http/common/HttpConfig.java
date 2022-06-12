@@ -246,16 +246,16 @@ public class HttpConfig {
 	 * 127.0.0.1
 	 */
 	private String bindIp = null;
-	/**
-	 * 监听端口
-	 */
-	private int bindPort;
 	private String serverInfo = HttpConst.SERVER_INFO;
 	private String charset = HttpConst.CHARSET_NAME;
 	/**
+	 * 监听端口
+	 */
+	private final int bindPort;
+	/**
 	 * 访问路径前缀，譬如"/api"
 	 */
-	private String contextPath = "";
+	private final String contextPath;
 	private HttpRequestHandler httpRequestHandler;
 	/**
 	 * ip被拉黑时，服务器给的响应，如果是null，服务器会直接断开连接
@@ -273,19 +273,18 @@ public class HttpConfig {
 	private String jsonpParamName = JSONP_PARAM_NAME;
 
 	public HttpConfig(int bindPort) {
-		this.bindPort = bindPort;
+		this(bindPort, null);
 	}
 
 	/**
-	 * @param bindPort
-	 * @param contextPath
+	 * HttpConfig
+	 *
+	 * @param bindPort    bindPort
+	 * @param contextPath contextPath
 	 */
 	public HttpConfig(int bindPort, String contextPath) {
 		this.bindPort = bindPort;
-		if (contextPath == null) {
-			contextPath = "";
-		}
-		this.contextPath = contextPath;
+		this.contextPath = contextPath == null ? "" : contextPath;
 	}
 
 	/**

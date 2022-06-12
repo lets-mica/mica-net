@@ -486,17 +486,17 @@ public class WsTioServerHandler implements TioServerHandler {
 	 */
 	public HttpResponse updateWebSocketProtocol(HttpRequest request) {
 		Map<String, String> headers = request.getHeaders();
-		String Sec_WebSocket_Key = headers.get(HttpConst.RequestHeaderKey.Sec_WebSocket_Key);
-		if (StrUtil.isNotBlank(Sec_WebSocket_Key)) {
-			byte[] Sec_WebSocket_Key_Bytes;
+		String secWebSocketKey = headers.get(HttpConst.RequestHeaderKey.Sec_WebSocket_Key);
+		if (StrUtil.isNotBlank(secWebSocketKey)) {
+			byte[] secWebSocketKeyBytes;
 			try {
-				Sec_WebSocket_Key_Bytes = Sec_WebSocket_Key.getBytes(request.getCharset());
+				secWebSocketKeyBytes = secWebSocketKey.getBytes(request.getCharset());
 			} catch (UnsupportedEncodingException e) {
 				throw ExceptionUtils.unchecked(e);
 			}
-			byte[] allBs = new byte[Sec_WebSocket_Key_Bytes.length + SEC_WEBSOCKET_KEY_SUFFIX_BYTES.length];
-			System.arraycopy(Sec_WebSocket_Key_Bytes, 0, allBs, 0, Sec_WebSocket_Key_Bytes.length);
-			System.arraycopy(SEC_WEBSOCKET_KEY_SUFFIX_BYTES, 0, allBs, Sec_WebSocket_Key_Bytes.length, SEC_WEBSOCKET_KEY_SUFFIX_BYTES.length);
+			byte[] allBs = new byte[secWebSocketKeyBytes.length + SEC_WEBSOCKET_KEY_SUFFIX_BYTES.length];
+			System.arraycopy(secWebSocketKeyBytes, 0, allBs, 0, secWebSocketKeyBytes.length);
+			System.arraycopy(SEC_WEBSOCKET_KEY_SUFFIX_BYTES, 0, allBs, secWebSocketKeyBytes.length, SEC_WEBSOCKET_KEY_SUFFIX_BYTES.length);
 
 //			String Sec_WebSocket_Key_Magic = Sec_WebSocket_Key + SEC_WEBSOCKET_KEY_SUFFIX_BYTES;
 			byte[] keyArray = DigestUtils.sha1(allBs);

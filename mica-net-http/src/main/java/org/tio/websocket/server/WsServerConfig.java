@@ -201,14 +201,10 @@ import org.tio.http.common.HttpConfig;
  */
 public class WsServerConfig extends HttpConfig {
 
-	public WsServerConfig(Integer bindPort, boolean useSession) {
-		super(bindPort);
-	}
-
 	/**
 	 * @author tanyaowu
 	 */
-	public WsServerConfig(Integer bindPort) {
+	public WsServerConfig(int bindPort) {
 		super(bindPort);
 	}
 

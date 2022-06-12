@@ -200,19 +200,11 @@ import org.tio.core.intf.Packet;
  * 2017年7月30日 上午10:09:51
  */
 public class WsPacket extends Packet {
-
-	//	private static Logger log = LoggerFactory.getLogger(WsPacket.class);
-	//
-	//	//不包含cookie的头部
-	//	protected Map<String, String> headers = null;
-
-	/**
-	 * 消息体最多为多少
-	 */
-	public static final int MAX_LENGTH_OF_BODY = (int) (1024 * 1024 * 2.1);    //只支持多少M数据
 	public static final int MINIMUM_HEADER_LENGTH = 2;
-	public static final int MAX_BODY_LENGTH = 1024 * 512;                    //最多接受的1024 * 512(半M)数据
-	public static final String CHARSET_NAME = "utf-8";
+	/**
+	 * 最多接受的1024 * 512(半M)数据
+	 */
+	public static final int MAX_BODY_LENGTH = 1024 * 512;
 	private static final long serialVersionUID = 4506947563506841436L;
 	/**
 	 * 是否是握手包
@@ -232,7 +224,10 @@ public class WsPacket extends Packet {
 	private boolean wsHasMask;
 	private long wsBodyLength;
 	private byte[] wsMask;
-	private String wsBodyText;                                                //当为文本时才有此字段
+	/**
+	 * 当为文本时才有此字段
+	 */
+	private String wsBodyText;
 
 	public WsPacket() {
 

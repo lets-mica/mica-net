@@ -193,8 +193,6 @@
 */
 package org.tio.websocket.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.core.intf.TioUuid;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
@@ -211,14 +209,12 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 2017年7月30日 上午9:45:54
  */
 public class WsServerStarter {
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(WsServerStarter.class);
-	private WsServerConfig wsServerConfig = null;
-	private IWsMsgHandler wsMsgHandler = null;
-	private WsTioServerHandler wsTioServerHandler = null;
-	private WsTioServerListener wsTioServerListener = null;
-	private TioServerConfig tioServerConfig = null;
-	private TioServer tioServer = null;
+	private final WsServerConfig wsServerConfig;
+	private final IWsMsgHandler wsMsgHandler;
+	private final WsTioServerHandler wsTioServerHandler;
+	private final WsTioServerListener wsTioServerListener;
+	private final TioServerConfig tioServerConfig;
+	private final TioServer tioServer;
 
 	public WsServerStarter(int port, IWsMsgHandler wsMsgHandler) throws IOException {
 		this(port, wsMsgHandler, null, null);
@@ -236,16 +232,13 @@ public class WsServerStarter {
 		this(wsServerConfig, wsMsgHandler, new WsTioUuid(), tioExecutor, groupExecutor);
 	}
 
-	public WsServerStarter(WsServerConfig wsServerConfig, IWsMsgHandler wsMsgHandler, TioUuid tioUuid, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor)
-		throws IOException {
+	public WsServerStarter(WsServerConfig wsServerConfig, IWsMsgHandler wsMsgHandler, TioUuid tioUuid, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		if (tioExecutor == null) {
 			tioExecutor = Threads.getTioExecutor();
 		}
-
 		if (groupExecutor == null) {
 			groupExecutor = Threads.getGroupExecutor();
 		}
-
 		this.wsServerConfig = wsServerConfig;
 		this.wsMsgHandler = wsMsgHandler;
 		wsTioServerHandler = new WsTioServerHandler(wsServerConfig, wsMsgHandler);
@@ -298,6 +291,6 @@ public class WsServerStarter {
 
 	public void start() throws IOException {
 		tioServer.start(wsServerConfig.getBindIp(), wsServerConfig.getBindPort());
-
 	}
+
 }

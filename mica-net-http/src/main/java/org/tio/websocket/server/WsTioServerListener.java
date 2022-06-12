@@ -211,7 +211,6 @@ public class WsTioServerListener implements TioServerListener {
 	public void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) throws Exception {
 		WsSessionContext wsSessionContext = new WsSessionContext();
 		channelContext.set(wsSessionContext);
-		return;
 	}
 
 	@Override

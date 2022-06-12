@@ -242,7 +242,7 @@ public class WsServerEncoder {
 		}
 
 		byte header0 = (byte) (0x8f & (wsResponse.getWsOpcode().getCode() | 0xf0));
-		ByteBuffer buf = null;
+		ByteBuffer buf;
 		if (wsBodyLength < 126) {
 			buf = ByteBuffer.allocate(2 + wsBodyLength);
 			buf.put(header0);
