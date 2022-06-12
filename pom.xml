@@ -10,19 +10,19 @@
     <name>${project.artifactId}</name>
     <url>https://www.dreamlu.net</url>
 
-    <description>t-io is a aio framework for java</description>
+    <description>Mica net is a net framework.</description>
 
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
-            <url>https://gitee.com/tywo45/t-io/blob/master/LICENSE</url>
+            <url>https://gitee.com/596392912/mica-mqtt/blob/master/LICENSE</url>
         </license>
     </licenses>
 
     <scm>
-        <connection>scm:svn://gitee.com/tywo45/t-io</connection>
-        <developerConnection>scm:svn://gitee.com/tywo45/t-io</developerConnection>
-        <url>svn://gitee.com/tywo45/t-io</url>
+        <connection>scm:git:git@gitee.com/596392912/mica-mqtt</connection>
+        <developerConnection>scm:git:git@gitee.com/596392912/mica-mqtt.git</developerConnection>
+        <url>git@gitee.com/596392912/mica-mqtt.git</url>
     </scm>
 
     <modules>
@@ -47,10 +47,8 @@
 
     <developers>
         <developer>
-            <id>tanyaowu</id>
-            <name>tanyaowu</name>
-            <email>tywo45@163.com</email>
-            <url>https://gitee.com/tywo45/t-io</url>
+            <name>ChunmengLu</name>
+            <email>qq596392912@gmail.com</email>
         </developer>
     </developers>
 
