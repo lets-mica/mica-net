@@ -163,7 +163,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>2.2.1</version>
+                        <version>3.2.0</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
@@ -177,7 +177,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.3</version>
+                        <version>3.2.0</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
@@ -185,7 +185,8 @@
                                     <goal>jar</goal>
                                 </goals>
                                 <configuration>
-                                    <additionalparam>-Xdoclint:none</additionalparam> <!-- 防止生成docs时报错 -->
+                                    <!-- 防止生成docs时报错 -->
+                                    <doclint>none</doclint>
                                 </configuration>
                             </execution>
                         </executions>
@@ -203,6 +204,12 @@
                                 </goals>
                             </execution>
                         </executions>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
