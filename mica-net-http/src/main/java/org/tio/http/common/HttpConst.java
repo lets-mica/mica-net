@@ -199,9 +199,9 @@ package org.tio.http.common;
 public interface HttpConst {
 
 	/**
-	 *
+	 * 服务信息
 	 */
-	String SERVER_INFO = "t-io";
+	String SERVER_INFO = "mica-net";
 	/**
 	 * 默认规定连接到本服务器的客户端统一用utf-8
 	 */
@@ -214,6 +214,9 @@ public interface HttpConst {
 	 * 2017年6月28日 上午10:03:12
 	 */
 	enum RequestBodyFormat {
+		/**
+		 * 请求内容格式
+		 */
 		URLENCODED, MULTIPART, TEXT
 	}
 
@@ -386,9 +389,9 @@ public interface HttpConst {
 	 */
 	interface ResponseHeaderValue {
 		interface Connection {
-			String keep_alive = "keep-alive";    //.toLowerCase();
-			String Upgrade = "Upgrade";    //.toLowerCase();
-			String close = "close";        //.toLowerCase();
+			String keep_alive = "keep-alive";
+			String Upgrade = "Upgrade";
+			String close = "close";
 		}
 
 		interface Upgrade {
