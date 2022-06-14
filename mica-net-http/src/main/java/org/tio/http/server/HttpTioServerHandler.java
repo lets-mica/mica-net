@@ -193,40 +193,33 @@
 */
 package org.tio.http.server;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
-import org.tio.core.TioConfig;
 import org.tio.core.Tio;
+import org.tio.core.TioConfig;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
-import org.tio.http.common.HttpConfig;
-import org.tio.http.common.HttpRequest;
-import org.tio.http.common.HttpRequestDecoder;
-import org.tio.http.common.HttpResponse;
-import org.tio.http.common.HttpResponseEncoder;
+import org.tio.http.common.*;
 import org.tio.http.common.handler.HttpRequestHandler;
 import org.tio.server.intf.TioServerHandler;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+
 /**
- *
  * @author tanyaowu
- *
  */
 public class HttpTioServerHandler implements TioServerHandler {
-	private static final Logger		log			= LoggerFactory.getLogger(HttpTioServerHandler.class);
-	public static final String	REQUEST_KEY	= "tio_request_key";
+	private static final Logger log = LoggerFactory.getLogger(HttpTioServerHandler.class);
+	public static final String REQUEST_KEY = "tio_request_key";
 
-	protected final HttpConfig		httpConfig;
-	private final HttpRequestHandler	requestHandler;
+	protected final HttpConfig httpConfig;
+	private final HttpRequestHandler requestHandler;
 
 	/**
 	 * @author tanyaowu
 	 * 2016年11月18日 上午9:13:15
-	 *
 	 */
 	public HttpTioServerHandler(HttpConfig httpConfig, HttpRequestHandler requestHandler) {
 		this.httpConfig = httpConfig;
@@ -280,7 +273,7 @@ public class HttpTioServerHandler implements TioServerHandler {
 			Tio.send(channelContext, httpResponse);
 		} else {
 			if (log.isInfoEnabled()) {
-				log.info("{}, {}, handler return null, request line: {}", channelContext.tioConfig.getName(), channelContext, request.getRequestLine().toString());
+				log.info("{}, {}, handler return null, request line: {}", channelContext.tioConfig.getName(), channelContext, request.getRequestLine());
 			}
 			request.close("handler return null");
 		}

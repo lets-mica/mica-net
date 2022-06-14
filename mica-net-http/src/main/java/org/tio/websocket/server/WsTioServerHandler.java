@@ -229,13 +229,13 @@ public class WsTioServerHandler implements TioServerHandler {
 
 	private static final byte[] SEC_WEBSOCKET_KEY_SUFFIX_BYTES = SEC_WEBSOCKET_KEY_SUFFIX.getBytes();
 	private final IWsMsgHandler wsMsgHandler;
-	private WsServerConfig wsServerConfig;
+	private final HttpConfig wsServerConfig;
 
 	/**
 	 * @param wsServerConfig
 	 * @param wsMsgHandler
 	 */
-	public WsTioServerHandler(WsServerConfig wsServerConfig, IWsMsgHandler wsMsgHandler) {
+	public WsTioServerHandler(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler) {
 		this.wsServerConfig = wsServerConfig;
 		this.wsMsgHandler = wsMsgHandler;
 	}
@@ -370,15 +370,8 @@ public class WsTioServerHandler implements TioServerHandler {
 	/**
 	 * @return the httpConfig
 	 */
-	public WsServerConfig getHttpConfig() {
+	public HttpConfig getHttpConfig() {
 		return wsServerConfig;
-	}
-
-	/**
-	 * @param httpConfig the httpConfig to set
-	 */
-	public void setHttpConfig(WsServerConfig httpConfig) {
-		this.wsServerConfig = httpConfig;
 	}
 
 	private WsResponse h(WsRequest websocketPacket, byte[] bytes, Opcode opcode, ChannelContext channelContext) throws Exception {

@@ -194,6 +194,7 @@
 package org.tio.websocket.server;
 
 import org.tio.core.intf.TioUuid;
+import org.tio.http.common.HttpConfig;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.Threads;
@@ -209,7 +210,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 2017年7月30日 上午9:45:54
  */
 public class WsServerStarter {
-	private final WsServerConfig wsServerConfig;
+	private final HttpConfig wsServerConfig;
 	private final IWsMsgHandler wsMsgHandler;
 	private final WsTioServerHandler wsTioServerHandler;
 	private final WsTioServerListener wsTioServerListener;
@@ -221,18 +222,18 @@ public class WsServerStarter {
 	}
 
 	public WsServerStarter(int port, IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) throws IOException {
-		this(new WsServerConfig(port), wsMsgHandler, tioExecutor, groupExecutor);
+		this(new HttpConfig(port), wsMsgHandler, tioExecutor, groupExecutor);
 	}
 
-	public WsServerStarter(WsServerConfig wsServerConfig, IWsMsgHandler wsMsgHandler) throws IOException {
+	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler) throws IOException {
 		this(wsServerConfig, wsMsgHandler, null, null);
 	}
 
-	public WsServerStarter(WsServerConfig wsServerConfig, IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) throws IOException {
+	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) throws IOException {
 		this(wsServerConfig, wsMsgHandler, new WsTioUuid(), tioExecutor, groupExecutor);
 	}
 
-	public WsServerStarter(WsServerConfig wsServerConfig, IWsMsgHandler wsMsgHandler, TioUuid tioUuid, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, TioUuid tioUuid, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		if (tioExecutor == null) {
 			tioExecutor = Threads.getTioExecutor();
 		}
@@ -257,7 +258,7 @@ public class WsServerStarter {
 	/**
 	 * @return the wsServerConfig
 	 */
-	public WsServerConfig getWsServerConfig() {
+	public HttpConfig getWsServerConfig() {
 		return wsServerConfig;
 	}
 
