@@ -205,28 +205,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public class StrUtil {
 	public static final int INDEX_NOT_FOUND = -1;
 	public static final String EMPTY = "";
-	private static final int CACHE_SIZE = 2048;
-	private static final String[] caches = new String[CACHE_SIZE];
-
-	static {
-		for (int i = 0; i < CACHE_SIZE; i++) {
-			caches[i] = String.valueOf(i);
-		}
-	}
-
-	/**
-	 * 用缓存将int转成str
-	 *
-	 * @param data
-	 * @return
-	 */
-	public static String int2Str(int data) {
-		if (data < CACHE_SIZE) {
-			return caches[data];
-		} else {
-			return String.valueOf(data);
-		}
-	}
 
 	/**
 	 * 去除字符串两边空白符，传入null也返回null
