@@ -49,10 +49,10 @@ public class Cache2kUtils {
 				cache = cacheManager.getCache(cacheName);
 				if (cache == null) {
 					return Cache2kBuilder.of(keyType, valueType)
+						.manager(cacheManager)
 						.name(cacheName)
 						.expireAfterWrite(timeToLiveSeconds, TimeUnit.SECONDS)
 						.entryCapacity(entryCapacity)
-						.manager(cacheManager)
 						.build();
 				}
 			}
