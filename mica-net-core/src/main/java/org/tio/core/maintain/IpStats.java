@@ -194,16 +194,13 @@
 package org.tio.core.maintain;
 
 import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
-import org.cache2k.CacheManager;
-import org.cache2k.event.CacheEntryOperationListener;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
-import org.tio.core.cache.IpStatRemovalListener;
+import org.tio.core.cache.Cache2kUtils;
 import org.tio.core.stat.IpStat;
 import org.tio.utils.hutool.CollUtil;
+
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 使用方法（注意顺序）：<br>
@@ -215,8 +212,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class IpStats {
 	private static final String CACHE_NAME = "TIO_IP_STAT";
-
-	private final TioConfig tioConfig;
 	private final String tioConfigId;
 
 	/**
@@ -226,7 +221,6 @@ public class IpStats {
 	public List<Long> durationList = null;
 
 	public IpStats(TioConfig tioConfig, Long[] durations) {
-		this.tioConfig = tioConfig;
 		this.tioConfigId = tioConfig.getId();
 		if (durations != null) {
 			addDurations(durations);
@@ -244,23 +238,10 @@ public class IpStats {
 			if (durationList == null) {
 				durationList = new ArrayList<>();
 			}
-			Cache<String, IpStat> caffeineCache = register(getCacheName(duration), duration, new IpStatRemovalListener(tioConfig, tioConfig.getIpStatListener()));
+			Cache<String, IpStat> caffeineCache = Cache2kUtils.getCache(getCacheName(duration), duration, 5000000L, String.class, IpStat.class);
 			cacheMap.put(duration, caffeineCache);
 			durationList.add(duration);
 		}
-	}
-
-	private static Cache<String, IpStat> register(String cacheName, long timeToLiveSeconds, CacheEntryOperationListener<String, IpStat> listener) {
-		Cache<String, IpStat> cache = CacheManager.getInstance().getCache(cacheName);
-		if (cache == null) {
-			return Cache2kBuilder.of(String.class, IpStat.class)
-				.name(cacheName)
-				.expireAfterWrite(timeToLiveSeconds, TimeUnit.SECONDS)
-				.entryCapacity(5000000)
-				.addListener(listener)
-				.build();
-		}
-		return cache;
 	}
 
 	/**

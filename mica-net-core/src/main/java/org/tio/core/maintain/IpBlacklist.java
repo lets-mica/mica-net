@@ -194,22 +194,21 @@
 package org.tio.core.maintain;
 
 import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
 import org.tio.core.Tio;
 import org.tio.core.TioConfig;
+import org.tio.core.cache.Cache2kUtils;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.SystemTimer;
 import org.tio.utils.time.Time;
 
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author tanyaowu
  * 2017年5月22日 下午2:53:47
  */
 public class IpBlacklist {
-	private static final String CACHE_NAME_PREFIX = "TIO_IP_BLACK_LIST";
+	private static final String CACHE_NAME_PREFIX = "IP_BLACK_LIST";
 	private static final Long TIME_TO_LIVE_SECONDS = Time.DAY_1 * 120;
 	private final String id;
 	private final Cache<String, Long> cache;
@@ -218,21 +217,13 @@ public class IpBlacklist {
 
 	private IpBlacklist() {
 		this.id = "__global__";
-		this.cache = getCache(CACHE_NAME_PREFIX + this.id);
+		this.cache = Cache2kUtils.getCache(CACHE_NAME_PREFIX + this.id, TIME_TO_LIVE_SECONDS, 5000000L, String.class, Long.class);
 	}
 
 	public IpBlacklist(String id, TioServerConfig tioServerConfig) {
 		this.id = id;
 		this.tioServerConfig = tioServerConfig;
-		this.cache = getCache(CACHE_NAME_PREFIX + this.id);
-	}
-
-	private static Cache<String, Long> getCache(String cacheName) {
-		return Cache2kBuilder.of(String.class, Long.class)
-			.name(cacheName)
-			.expireAfterWrite(TIME_TO_LIVE_SECONDS, TimeUnit.SECONDS)
-			.entryCapacity(5000000)
-			.build();
+		this.cache = Cache2kUtils.getCache(CACHE_NAME_PREFIX + this.id, TIME_TO_LIVE_SECONDS, 5000000L, String.class, Long.class);
 	}
 
 	public boolean add(String ip) {
