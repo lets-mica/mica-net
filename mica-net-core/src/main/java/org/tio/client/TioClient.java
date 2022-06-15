@@ -315,9 +315,7 @@ public class TioClient {
 	 * @throws Exception
 	 * @author tanyaowu
 	 */
-	private ClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, ClientChannelContext initClientChannelContext, Integer timeout, boolean isSyn)
-		throws Exception {
-
+	private ClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, ClientChannelContext initClientChannelContext, Integer timeout, boolean isSyn) throws Exception {
 		boolean isReconnect = initClientChannelContext != null;
 		long start = SystemTimer.currTime;
 		AsynchronousSocketChannel asynchronousSocketChannel = AsynchronousSocketChannel.open(channelGroup);
@@ -326,7 +324,6 @@ public class TioClient {
 		if (iv >= 100) {
 			log.error("{}, open 耗时:{} ms", serverNode, iv);
 		}
-
 		asynchronousSocketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
 		asynchronousSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
 		asynchronousSocketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
@@ -443,7 +440,7 @@ public class TioClient {
 								Packet packet = tioHandler.heartbeatPacket(channelContext);
 								if (packet != null) {
 									if (log.isInfoEnabled()) {
-										log.info("{}发送心跳包", channelContext.toString());
+										log.info("{}发送心跳包", channelContext);
 									}
 									Tio.send(channelContext, packet);
 								}
@@ -461,7 +458,7 @@ public class TioClient {
 							readLock.unlock();
 							Thread.sleep(tioClientConfig.heartbeatTimeout / 4);
 						} catch (Throwable e) {
-							log.error(e.toString(), e);
+							log.error(e.getMessage(), e);
 						}
 					}
 				}

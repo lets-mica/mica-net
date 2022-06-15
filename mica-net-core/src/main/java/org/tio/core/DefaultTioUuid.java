@@ -194,6 +194,7 @@
 package org.tio.core;
 
 import org.tio.core.intf.TioUuid;
+import org.tio.utils.hutool.StrUtil;
 
 /**
  * @author tanyaowu
@@ -214,6 +215,7 @@ public class DefaultTioUuid implements TioUuid {
 	 */
 	@Override
 	public String uuid() {
-		return java.util.UUID.randomUUID().toString();
+		return StrUtil.getNanoId();
 	}
+
 }
