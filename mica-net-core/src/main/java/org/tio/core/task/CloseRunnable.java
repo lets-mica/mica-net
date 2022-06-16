@@ -193,6 +193,8 @@
 */
 package org.tio.core.task;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
@@ -301,14 +303,14 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 	}
 
 	/** The msg queue. */
-	private volatile FullWaitQueue<ChannelContext> msgQueue = null;
+	private volatile Queue<ChannelContext> msgQueue = null;
 
 	@Override
-	public FullWaitQueue<ChannelContext> getMsgQueue() {
+	public Queue<ChannelContext> getMsgQueue() {
 		if (msgQueue == null) {
 			synchronized (this) {
 				if (msgQueue == null) {
-					msgQueue = new TioFullWaitQueue<>(Integer.getInteger("tio.fullqueue.capacity", null), false);
+					msgQueue = new ConcurrentLinkedQueue<>();
 				}
 			}
 		}

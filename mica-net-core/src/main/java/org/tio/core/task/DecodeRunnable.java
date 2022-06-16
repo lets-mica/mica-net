@@ -211,6 +211,8 @@ import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 
 /**
@@ -445,15 +447,15 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	/**
 	 * The msg queue.
 	 */
-	private FullWaitQueue<ByteBuffer> msgQueue = null;
+	private Queue<ByteBuffer> msgQueue = null;
 
 	@Override
-	public FullWaitQueue<ByteBuffer> getMsgQueue() {
+	public Queue<ByteBuffer> getMsgQueue() {
 		if (tioConfig.useQueueDecode) {
 			if (msgQueue == null) {
 				synchronized (this) {
 					if (msgQueue == null) {
-						msgQueue = new TioFullWaitQueue<>(Integer.getInteger("tio.fullqueue.capacity", null), true);
+						msgQueue = new ConcurrentLinkedQueue<>();
 					}
 				}
 			}

@@ -204,25 +204,23 @@ import org.tio.core.TioConfig;
 import org.tio.core.intf.Packet;
 import org.tio.core.stat.IpStat;
 import org.tio.utils.SystemTimer;
-import org.tio.utils.queue.FullWaitQueue;
-import org.tio.utils.queue.TioFullWaitQueue;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- *
  * @author 谭耀武
  * 2012-08-09
- *
  */
 public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	private static final Logger log = LoggerFactory.getLogger(HandlerRunnable.class);
 
-	private final ChannelContext	channelContext;
-	private final TioConfig		tioConfig;
+	private final ChannelContext channelContext;
+	private final TioConfig tioConfig;
 	private final AtomicLong synFailCount = new AtomicLong();
 
 	public HandlerRunnable(ChannelContext channelContext, Executor executor) {
@@ -234,9 +232,9 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 
 	/**
 	 * 处理packet
+	 *
 	 * @param packet
 	 * @return
-	 *
 	 * @author tanyaowu
 	 */
 	public void handler(Packet packet) {
@@ -298,11 +296,9 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	}
 
 	/**
-	 * @see org.tio.core.SynRunnable.intf.ISynRunnable#runTask()
-	 *
 	 * @author tanyaowu
 	 * 2016年12月5日 下午3:02:49
-	 *
+	 * @see org.tio.core.SynRunnable.intf.ISynRunnable#runTask()
 	 */
 	@Override
 	public void runTask() {
@@ -322,16 +318,18 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 		return toString();
 	}
 
-	/** The msg queue. */
-	private volatile FullWaitQueue<Packet> msgQueue = null;
+	/**
+	 * The msg queue.
+	 */
+	private volatile Queue<Packet> msgQueue = null;
 
 	@Override
-	public FullWaitQueue<Packet> getMsgQueue() {
+	public Queue<Packet> getMsgQueue() {
 		if (PacketHandlerMode.QUEUE == tioConfig.packetHandlerMode) {
 			if (msgQueue == null) {
 				synchronized (this) {
 					if (msgQueue == null) {
-						msgQueue = new TioFullWaitQueue<>(Integer.getInteger("tio.fullqueue.capacity", null), true);
+						msgQueue = new ConcurrentLinkedQueue<>();
 					}
 				}
 			}

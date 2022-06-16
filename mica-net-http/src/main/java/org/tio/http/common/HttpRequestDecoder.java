@@ -616,8 +616,7 @@ public class HttpRequestDecoder {
 			if (name == null) {
 				if (b == SysConst.COL) {
 					int len = buffer.position() - lastPosition - 1;
-					name = StrCache.get(allbs, lastPosition, len);
-					//					name = new String(allbs, lastPosition, len);
+					name = new String(allbs, lastPosition, len);
 					lastPosition = buffer.position();
 				} else if (b == SysConst.LF) {
 					byte lastByte = buffer.get(buffer.position() - 2);
@@ -625,11 +624,9 @@ public class HttpRequestDecoder {
 					if (lastByte == SysConst.CR) {
 						len = buffer.position() - lastPosition - 2;
 					}
-					name = StrCache.get(allbs, lastPosition, len);
-					//					name = new String(allbs, lastPosition, len);
+					name = new String(allbs, lastPosition, len);
 					lastPosition = buffer.position();
 					headers.put(name.toLowerCase(), "");
-
 					needIteration = true;
 					break;
 				}
@@ -818,18 +815,15 @@ public class HttpRequestDecoder {
 			if (methodStr == null) {
 				if (b == SysConst.SPACE) {
 					int len = buffer.position() - lastPosition - 1;
-					methodStr = StrCache.get(allbs, lastPosition, len);
-					//					methodStr = new String(allbs, lastPosition, len);
+					methodStr = new String(allbs, lastPosition, len);
 					lastPosition = buffer.position();
 				}
 				continue;
 			} else if (pathStr == null) {
 				if (b == SysConst.SPACE || b == SysConst.ASTERISK) {
 					int len = buffer.position() - lastPosition - 1;
-					pathStr = StrCache.get(allbs, lastPosition, len);
-					//					pathStr = new String(allbs, lastPosition, len);
+					pathStr = new String(allbs, lastPosition, len);
 					lastPosition = buffer.position();
-
 					if (b == SysConst.SPACE) {
 						queryStr = SysConst.BLANK;
 					}
@@ -845,8 +839,7 @@ public class HttpRequestDecoder {
 			} else if (protocol == null) {
 				if (b == SysConst.BACKSLASH) {
 					int len = buffer.position() - lastPosition - 1;
-					protocol = StrCache.get(allbs, lastPosition, len);
-					//					protocol = new String(allbs, lastPosition, len);
+					protocol = new String(allbs, lastPosition, len);
 					lastPosition = buffer.position();
 				}
 				continue;
@@ -857,12 +850,8 @@ public class HttpRequestDecoder {
 					if (lastByte == SysConst.CR) {
 						len = buffer.position() - lastPosition - 2;
 					}
-
-					version = StrCache.get(allbs, lastPosition, len);
-					//					version = new String(allbs, lastPosition, len);
-
+					version = new String(allbs, lastPosition, len);
 					lastPosition = buffer.position();
-
 					RequestLine requestLine = new RequestLine();
 					Method method = Method.from(methodStr);
 					requestLine.setMethod(method);
@@ -873,7 +862,6 @@ public class HttpRequestDecoder {
 					requestLine.setVersion(version);
 
 					//					requestLine.setLine(line);
-
 					return requestLine;
 				}
 				continue;

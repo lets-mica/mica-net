@@ -193,15 +193,6 @@
 */
 package org.tio.core.task;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.locks.ReentrantLock;
-
-import javax.net.ssl.SSLException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
@@ -210,29 +201,37 @@ import org.tio.core.TcpConst;
 import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.WriteCompletionHandler.WriteCompletionVo;
-import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.Packet;
+import org.tio.core.intf.TioHandler;
 import org.tio.core.ssl.SslUtils;
 import org.tio.core.ssl.SslVo;
 import org.tio.core.utils.TioUtils;
-import org.tio.utils.queue.FullWaitQueue;
-import org.tio.utils.queue.TioFullWaitQueue;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
+import javax.net.ssl.SSLException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
- *
  * @author tanyaowu
  * 2017年4月4日 上午9:19:18
  */
 public class SendRunnable extends AbstractQueueRunnable<Packet> {
-	private static final Logger				log									= LoggerFactory.getLogger(SendRunnable.class);
-	private ChannelContext					channelContext						= null;
-	private TioConfig						tioConfig							= null;
-	private TioHandler						tioHandler							= null;
-	private boolean							isSsl								= false;
-	/** The msg queue. */
-	private ConcurrentLinkedQueue<Packet>	forSendAfterSslHandshakeCompleted	= null;
-	public boolean							canSend								= true;
+	private static final Logger log = LoggerFactory.getLogger(SendRunnable.class);
+	private ChannelContext channelContext = null;
+	private TioConfig tioConfig = null;
+	private TioHandler tioHandler = null;
+	private boolean isSsl = false;
+	/**
+	 * The msg queue.
+	 */
+	private ConcurrentLinkedQueue<Packet> forSendAfterSslHandshakeCompleted = null;
+	public boolean canSend = true;
 
 	public ConcurrentLinkedQueue<Packet> getForSendAfterSslHandshakeCompleted(boolean forceCreate) {
 		if (forSendAfterSslHandshakeCompleted == null && forceCreate) {
@@ -250,7 +249,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	//	private Object sslEncryptLock = new Object();
 
 	/**
-	 *
 	 * @param channelContext
 	 * @param executor
 	 * @author tanyaowu
@@ -314,6 +312,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 
 	/**
 	 * 新旧值是否进行了切换
+	 *
 	 * @param oldValue
 	 * @param newValue
 	 * @return
@@ -326,8 +325,8 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	//		return oldValue != newValue;
 	//	}
 
-	private static final int	MAX_CAPACITY_MIN	= TcpConst.MAX_DATA_LENGTH - 1024;	//减掉1024是尽量防止溢出的一小部分还分成一个tcp包发出
-	private static final int	MAX_CAPACITY_MAX	= MAX_CAPACITY_MIN * 10;
+	private static final int MAX_CAPACITY_MIN = TcpConst.MAX_DATA_LENGTH - 1024;    //减掉1024是尽量防止溢出的一小部分还分成一个tcp包发出
+	private static final int MAX_CAPACITY_MAX = MAX_CAPACITY_MIN * 10;
 
 	//	private int repeatCount = 0;
 
@@ -435,9 +434,8 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	}
 
 	/**
-	 *
 	 * @param byteBuffer
-	 * @param packets Packet or List<Packet>
+	 * @param packets    Packet or List<Packet>
 	 * @author tanyaowu
 	 */
 	public void sendByteBuffer(ByteBuffer byteBuffer, Object packets) {
@@ -462,7 +460,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			channelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, channelContext.writeCompletionHandler);
 			channelContext.writeCompletionHandler.condition.await();
 		} catch (InterruptedException e) {
-			log.error(e.toString(), e);
+			log.error(e.getMessage(), e);
 		} finally {
 			lock.unlock();
 		}
@@ -470,7 +468,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + ":" + channelContext.toString();
+		return this.getClass().getSimpleName() + ':' + channelContext.toString();
 	}
 
 	/**
@@ -482,15 +480,17 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		return toString();
 	}
 
-	/** The msg queue. */
-	private FullWaitQueue<Packet> msgQueue = null;
+	/**
+	 * The msg queue.
+	 */
+	private Queue<Packet> msgQueue = null;
 
 	@Override
-	public FullWaitQueue<Packet> getMsgQueue() {
+	public Queue<Packet> getMsgQueue() {
 		if (msgQueue == null) {
 			synchronized (this) {
 				if (msgQueue == null) {
-					msgQueue = new TioFullWaitQueue<>(Integer.getInteger("tio.fullqueue.capacity", null), false);
+					msgQueue = new ConcurrentLinkedQueue<>();
 				}
 			}
 		}

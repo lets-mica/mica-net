@@ -193,6 +193,7 @@
 */
 package org.tio.utils.thread.pool;
 
+import java.util.Queue;
 import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
@@ -241,5 +242,5 @@ public abstract class AbstractQueueRunnable<T> extends AbstractSynRunnable {
 	 * 获取消息队列
 	 * @return
 	 */
-	public abstract FullWaitQueue<T> getMsgQueue();
+	public abstract Queue<T> getMsgQueue();
 }
