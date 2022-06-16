@@ -193,12 +193,11 @@
 */
 package org.tio.utils.thread.pool;
 
-import java.util.Queue;
-import java.util.concurrent.Executor;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.utils.queue.FullWaitQueue;
+
+import java.util.Queue;
+import java.util.concurrent.Executor;
 
 /**
  *

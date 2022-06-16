@@ -205,8 +205,6 @@ import org.tio.core.stat.ChannelStat;
 import org.tio.core.stat.IpStat;
 import org.tio.core.utils.ByteBufferUtils;
 import org.tio.utils.SystemTimer;
-import org.tio.utils.queue.FullWaitQueue;
-import org.tio.utils.queue.TioFullWaitQueue;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.nio.BufferUnderflowException;
