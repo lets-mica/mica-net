@@ -480,7 +480,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 					try {
 						tioConfig.getTioListener().onAfterSent(this, packet, isSentSuccess);
 					} catch (Exception e) {
-						log.error(e.toString(), e);
+						log.error(e.getMessage(), e);
 					}
 				}
 
@@ -525,7 +525,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 				Node clientNode = createClientNode(asynchronousSocketChannel);
 				setClientNode(clientNode);
 			} catch (IOException e) {
-				log.info(e.toString(), e);
+				log.info(e.getMessage(), e);
 				assignAnUnknownClientNode();
 			}
 		} else {
@@ -760,7 +760,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 							switchIpStat(oldIpStat, newIpStat, this.stat);
 						}
 					} catch (Exception e) {
-						log.error(e.toString(), e);
+						log.error(e.getMessage(), e);
 					}
 				}
 			}
