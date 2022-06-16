@@ -193,17 +193,15 @@
 */
 package org.tio.utils.prop;
 
-import java.util.HashMap;
-
-import org.tio.utils.lock.MapWithLock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author tanyaowu
  * 2017年8月18日 下午5:36:02
  */
 public class MapWithLockPropSupport implements IPropSupport {
-
-	private final MapWithLock<String, Object> props = new MapWithLock<>(new HashMap<>(8));
+	private final ConcurrentMap<String, Object> props = new ConcurrentHashMap<>(8);
 
 	/**
 	 *
@@ -241,7 +239,7 @@ public class MapWithLockPropSupport implements IPropSupport {
 	 * @return
 	 */
 	public Object get(String key) {
-		return props.getObj().get(key);
+		return props.get(key);
 	}
 
 	/**

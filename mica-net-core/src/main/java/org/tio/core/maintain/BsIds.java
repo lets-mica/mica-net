@@ -198,14 +198,16 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
 import org.tio.utils.hutool.StrUtil;
-import org.tio.utils.lock.MapWithLock;
 
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 一对一  (bsid <--> ChannelContext)<br>
  * Bs: business，业务id和ChannelContext绑定<br>
  * 需求见：https://gitee.com/tywo45/t-io/issues/IK30Q
+ *
  * @author tanyaowu
  */
 public class BsIds {
@@ -215,10 +217,9 @@ public class BsIds {
 	 * key: 业务id
 	 * value: ChannelContext
 	 */
-	private MapWithLock<String, ChannelContext> map = new MapWithLock<>(new HashMap<>());
+	private final ConcurrentMap<String, ChannelContext> map = new ConcurrentHashMap<>();
 
 	/**
-	 *
 	 * @param channelContext
 	 * @param bsId
 	 * @author tanyaowu
@@ -241,7 +242,6 @@ public class BsIds {
 	}
 
 	/**
-	 *
 	 * @param tioConfig
 	 * @param bsId
 	 * @return
@@ -251,25 +251,21 @@ public class BsIds {
 		if (tioConfig.isShortConnection) {
 			return null;
 		}
-
 		if (StrUtil.isBlank(bsId)) {
 			return null;
 		}
-
 		return map.get(bsId);
 	}
 
 	/**
-	 *
 	 * @return
 	 * @author tanyaowu
 	 */
-	public MapWithLock<String, ChannelContext> getMap() {
+	public Map<String, ChannelContext> getMap() {
 		return map;
 	}
 
 	/**
-	 *
 	 * @param channelContext
 	 * @author tanyaowu
 	 */
@@ -289,4 +285,5 @@ public class BsIds {
 			log.error(e.getMessage(), e);
 		}
 	}
+
 }

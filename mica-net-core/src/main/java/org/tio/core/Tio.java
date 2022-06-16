@@ -203,8 +203,6 @@ import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.convert.Converter;
-import org.tio.utils.lock.ReadLockHandler;
-import org.tio.utils.lock.SetWithLock;
 import org.tio.utils.page.Page;
 import org.tio.utils.page.PageUtils;
 
@@ -212,8 +210,6 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 /**
@@ -354,16 +350,11 @@ public class Tio {
 	 * @param group
 	 */
 	public static void bindGroup(TioConfig tioConfig, String userid, String group) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getByUserid(tioConfig, userid);
-		if (setWithLock != null) {
-			setWithLock.handle(new ReadLockHandler<Set<ChannelContext>>() {
-				@Override
-				public void handler(Set<ChannelContext> set) {
-					for (ChannelContext channelContext : set) {
-						Tio.bindGroup(channelContext, group);
-					}
-				}
-			});
+		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
+		if (contextSet != null) {
+			for (ChannelContext channelContext : contextSet) {
+				Tio.bindGroup(channelContext, group);
+			}
 		}
 	}
 
@@ -397,7 +388,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static Boolean bSend(ChannelContext channelContext, Packet packet) {
+	public static boolean bSend(ChannelContext channelContext, Packet packet) {
 		if (channelContext == null) {
 			return false;
 		}
@@ -414,7 +405,7 @@ public class Tio {
 	 * @param packet
 	 * @author tanyaowu
 	 */
-	public static Boolean bSend(TioConfig tioConfig, String ip, int port, Packet packet) {
+	public static boolean bSend(TioConfig tioConfig, String ip, int port, Packet packet) {
 		return send(tioConfig, ip, port, packet, true);
 	}
 
@@ -426,7 +417,7 @@ public class Tio {
 	 * @param channelContextFilter
 	 * @author tanyaowu
 	 */
-	public static Boolean bSendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter) {
+	public static boolean bSendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter) {
 		return sendToAll(tioConfig, packet, channelContextFilter, true);
 	}
 
@@ -438,7 +429,7 @@ public class Tio {
 	 * @param packet
 	 * @author tanyaowu
 	 */
-	public static Boolean bSendToBsId(TioConfig tioConfig, String bsId, Packet packet) {
+	public static boolean bSendToBsId(TioConfig tioConfig, String bsId, Packet packet) {
 		return sendToBsId(tioConfig, bsId, packet, true);
 	}
 
@@ -450,7 +441,7 @@ public class Tio {
 	 * @param packet
 	 * @author tanyaowu
 	 */
-	public static Boolean bSendToGroup(TioConfig tioConfig, String group, Packet packet) {
+	public static boolean bSendToGroup(TioConfig tioConfig, String group, Packet packet) {
 		return bSendToGroup(tioConfig, group, packet, null);
 	}
 
@@ -463,7 +454,7 @@ public class Tio {
 	 * @param channelContextFilter
 	 * @author tanyaowu
 	 */
-	public static Boolean bSendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter) {
+	public static boolean bSendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter) {
 		return sendToGroup(tioConfig, group, packet, channelContextFilter, true);
 	}
 
@@ -474,7 +465,7 @@ public class Tio {
 	 * @param packet
 	 * @author tanyaowu
 	 */
-	public static Boolean bSendToId(TioConfig tioConfig, String channelContextId, Packet packet) {
+	public static boolean bSendToId(TioConfig tioConfig, String channelContextId, Packet packet) {
 		return sendToId(tioConfig, channelContextId, packet, true);
 	}
 
@@ -486,7 +477,7 @@ public class Tio {
 	 * @param packet
 	 * @author: tanyaowu
 	 */
-	public static Boolean bSendToIp(TioConfig tioConfig, String ip, Packet packet) {
+	public static boolean bSendToIp(TioConfig tioConfig, String ip, Packet packet) {
 		return bSendToIp(tioConfig, ip, packet, null);
 	}
 
@@ -500,7 +491,7 @@ public class Tio {
 	 * @return
 	 * @author: tanyaowu
 	 */
-	public static Boolean bSendToIp(TioConfig tioConfig, String ip, Packet packet, ChannelContextFilter channelContextFilter) {
+	public static boolean bSendToIp(TioConfig tioConfig, String ip, Packet packet, ChannelContextFilter channelContextFilter) {
 		return sendToIp(tioConfig, ip, packet, channelContextFilter, true);
 	}
 
@@ -508,13 +499,13 @@ public class Tio {
 	 * 发消息到指定集合
 	 *
 	 * @param tioConfig
-	 * @param setWithLock
+	 * @param set
 	 * @param packet
 	 * @param channelContextFilter
 	 * @author tanyaowu
 	 */
-	public static Boolean bSendToSet(TioConfig tioConfig, SetWithLock<ChannelContext> setWithLock, Packet packet, ChannelContextFilter channelContextFilter) {
-		return sendToSet(tioConfig, setWithLock, packet, channelContextFilter, true);
+	public static boolean bSendToSet(TioConfig tioConfig, Set<ChannelContext> set, Packet packet, ChannelContextFilter channelContextFilter) {
+		return sendToSet(tioConfig, set, packet, channelContextFilter, true);
 	}
 
 	/**
@@ -706,7 +697,7 @@ public class Tio {
 	 * @param closeCode
 	 */
 	public static void closeIp(TioConfig tioConfig, String ip, String remark, CloseCode closeCode) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getByIp(tioConfig, ip);
+		Set<ChannelContext> setWithLock = Tio.getByIp(tioConfig, ip);
 		closeSet(tioConfig, setWithLock, remark, closeCode);
 	}
 
@@ -731,8 +722,8 @@ public class Tio {
 	 * @param closeCode
 	 */
 	public static void closeGroup(TioConfig tioConfig, String group, String remark, CloseCode closeCode) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getByGroup(tioConfig, group);
-		closeSet(tioConfig, setWithLock, remark, closeCode);
+		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
+		closeSet(tioConfig, contextSet, remark, closeCode);
 	}
 
 	/**
@@ -756,8 +747,8 @@ public class Tio {
 	 * @param closeCode
 	 */
 	public static void closeUser(TioConfig tioConfig, String userid, String remark, CloseCode closeCode) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getByUserid(tioConfig, userid);
-		closeSet(tioConfig, setWithLock, remark, closeCode);
+		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
+		closeSet(tioConfig, contextSet, remark, closeCode);
 	}
 
 	/**
@@ -781,7 +772,7 @@ public class Tio {
 	 * @param closeCode
 	 */
 	public static void closeToken(TioConfig tioConfig, String token, String remark, CloseCode closeCode) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getByToken(tioConfig, token);
+		Set<ChannelContext> setWithLock = Tio.getByToken(tioConfig, token);
 		closeSet(tioConfig, setWithLock, remark, closeCode);
 	}
 
@@ -806,7 +797,7 @@ public class Tio {
 	 * @param removeCode
 	 */
 	public static void removeIp(TioConfig tioConfig, String ip, String remark, CloseCode removeCode) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getByIp(tioConfig, ip);
+		Set<ChannelContext> setWithLock = Tio.getByIp(tioConfig, ip);
 		removeSet(tioConfig, setWithLock, remark, removeCode);
 	}
 
@@ -831,8 +822,8 @@ public class Tio {
 	 * @param removeCode
 	 */
 	public static void removeGroup(TioConfig tioConfig, String group, String remark, CloseCode removeCode) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getByGroup(tioConfig, group);
-		removeSet(tioConfig, setWithLock, remark, removeCode);
+		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
+		removeSet(tioConfig, contextSet, remark, removeCode);
 	}
 
 	/**
@@ -856,8 +847,8 @@ public class Tio {
 	 * @param removeCode
 	 */
 	public static void removeUser(TioConfig tioConfig, String userid, String remark, CloseCode removeCode) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getByUserid(tioConfig, userid);
-		removeSet(tioConfig, setWithLock, remark, removeCode);
+		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
+		removeSet(tioConfig, contextSet, remark, removeCode);
 	}
 
 	/**
@@ -881,26 +872,24 @@ public class Tio {
 	 * @param removeCode
 	 */
 	public static void removeToken(TioConfig tioConfig, String token, String remark, CloseCode removeCode) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getByToken(tioConfig, token);
-		removeSet(tioConfig, setWithLock, remark, removeCode);
+		Set<ChannelContext> contextSet = Tio.getByToken(tioConfig, token);
+		removeSet(tioConfig, contextSet, remark, removeCode);
 	}
 
 	/**
 	 * 关闭集合
 	 *
 	 * @param tioConfig
-	 * @param setWithLock
+	 * @param set
 	 * @param remark
 	 * @param closeCode
 	 * @author tanyaowu
 	 */
-	public static void closeSet(TioConfig tioConfig, SetWithLock<ChannelContext> setWithLock, String remark, CloseCode closeCode) {
-		if (setWithLock != null) {
-			setWithLock.handle((ReadLockHandler<Set<ChannelContext>>) set -> {
-				for (ChannelContext channelContext : set) {
-					Tio.close(channelContext, remark, closeCode);
-				}
-			});
+	public static void closeSet(TioConfig tioConfig, Set<ChannelContext> set, String remark, CloseCode closeCode) {
+		if (set != null) {
+			for (ChannelContext channelContext : set) {
+				Tio.close(channelContext, remark, closeCode);
+			}
 		}
 	}
 
@@ -908,42 +897,28 @@ public class Tio {
 	 * 移除集合
 	 *
 	 * @param tioConfig
-	 * @param setWithLock
+	 * @param set
 	 * @param remark
 	 * @param closeCode
 	 * @author tanyaowu
 	 */
-	public static void removeSet(TioConfig tioConfig, SetWithLock<ChannelContext> setWithLock, String remark, CloseCode closeCode) {
-		if (setWithLock != null) {
-			setWithLock.handle((ReadLockHandler<Set<ChannelContext>>) set -> {
-				for (ChannelContext channelContext : set) {
-					Tio.remove(channelContext, remark, closeCode);
-				}
-			});
+	public static void removeSet(TioConfig tioConfig, Set<ChannelContext> set, String remark, CloseCode closeCode) {
+		if (set != null) {
+			for (ChannelContext channelContext : set) {
+				Tio.remove(channelContext, remark, closeCode);
+			}
 		}
 	}
 
 	/**
 	 * 获取所有连接，包括当前处于断开状态的
 	 *
-	 * @param tioConfig
-	 * @return
+	 * @param tioConfig TioConfig
+	 * @return ChannelContext 集合
 	 * @author tanyaowu
 	 */
-	public static SetWithLock<ChannelContext> getAll(TioConfig tioConfig) {
+	public static Set<ChannelContext> getAll(TioConfig tioConfig) {
 		return tioConfig.connections;
-	}
-
-	/**
-	 * 获取所有连接，包括当前处于断开状态的
-	 *
-	 * @param tioConfig
-	 * @return
-	 * @author tanyaowu
-	 * @deprecated 用getAll(TioConfig tioConfig)
-	 */
-	public static SetWithLock<ChannelContext> getAllChannelContexts(TioConfig tioConfig) {
-		return getAll(tioConfig);
 	}
 
 	/**
@@ -956,19 +931,6 @@ public class Tio {
 	 */
 	public static Set<ChannelContext> getConnecteds(TioClientConfig tioClientConfig) {
 		return tioClientConfig.connecteds;
-	}
-
-	/**
-	 * 此API仅供 tio client使用
-	 * 获取所有处于正常连接状态的连接
-	 *
-	 * @param tioClientConfig
-	 * @return
-	 * @author tanyaowu
-	 * @deprecated 用getAllConnecteds(TioClientConfig tioClientConfig)
-	 */
-	public static Set<ChannelContext> getAllConnectedsChannelContexts(TioClientConfig tioClientConfig) {
-		return getConnecteds(tioClientConfig);
 	}
 
 	/**
@@ -1010,20 +972,6 @@ public class Tio {
 	}
 
 	/**
-	 * 根据clientip和clientport获取ChannelContext
-	 *
-	 * @param tioConfig
-	 * @param clientIp
-	 * @param clientPort
-	 * @return
-	 * @author tanyaowu
-	 * @deprecated getByClientNode(tioConfig, clientIp, clientPort)
-	 */
-	public static ChannelContext getChannelContextByClientNode(TioConfig tioConfig, String clientIp, Integer clientPort) {
-		return getByClientNode(tioConfig, clientIp, clientPort);
-	}
-
-	/**
 	 * 根据ChannelContext.id获取ChannelContext
 	 *
 	 * @param channelContextId
@@ -1054,21 +1002,8 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static SetWithLock<ChannelContext> getByGroup(TioConfig tioConfig, String group) {
+	public static Set<ChannelContext> getByGroup(TioConfig tioConfig, String group) {
 		return tioConfig.groups.clients(tioConfig, group);
-	}
-
-	/**
-	 * 获取一个组的所有客户端
-	 *
-	 * @param tioConfig
-	 * @param group
-	 * @return
-	 * @author tanyaowu
-	 * @deprecated 用getByGroup(tioConfig, group)
-	 */
-	public static SetWithLock<ChannelContext> getChannelContextsByGroup(TioConfig tioConfig, String group) {
-		return getByGroup(tioConfig, group);
 	}
 
 	/**
@@ -1079,7 +1014,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static SetWithLock<ChannelContext> getByToken(TioConfig tioConfig, String token) {
+	public static Set<ChannelContext> getByToken(TioConfig tioConfig, String token) {
 		return tioConfig.tokens.find(tioConfig, token);
 	}
 
@@ -1091,7 +1026,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static SetWithLock<ChannelContext> getByIp(TioConfig tioConfig, String ip) {
+	public static Set<ChannelContext> getByIp(TioConfig tioConfig, String ip) {
 		return tioConfig.ips.clients(tioConfig, ip);
 	}
 
@@ -1104,7 +1039,7 @@ public class Tio {
 	 * @author tanyaowu
 	 * @deprecated 用getByToken(tioConfig, token)
 	 */
-	public static SetWithLock<ChannelContext> getChannelContextsByToken(TioConfig tioConfig, String token) {
+	public static Set<ChannelContext> getChannelContextsByToken(TioConfig tioConfig, String token) {
 		return getByToken(tioConfig, token);
 	}
 
@@ -1116,7 +1051,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static SetWithLock<ChannelContext> getByUserid(TioConfig tioConfig, String userid) {
+	public static Set<ChannelContext> getByUserid(TioConfig tioConfig, String userid) {
 		return tioConfig.users.find(tioConfig, userid);
 	}
 
@@ -1129,7 +1064,7 @@ public class Tio {
 	 * @author tanyaowu
 	 * @deprecated 用getByUserid(tioConfig, userid)
 	 */
-	public static SetWithLock<ChannelContext> getChannelContextsByUserid(TioConfig tioConfig, String userid) {
+	public static Set<ChannelContext> getChannelContextsByUserid(TioConfig tioConfig, String userid) {
 		return getByUserid(tioConfig, userid);
 	}
 
@@ -1152,8 +1087,8 @@ public class Tio {
 	 * @return
 	 */
 	public static <T> Page<T> getPageOfAll(TioConfig tioConfig, Integer pageIndex, Integer pageSize, Converter<T> converter) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getAllChannelContexts(tioConfig);
-		return PageUtils.fromSetWithLock(setWithLock, pageIndex, pageSize, converter);
+		Set<ChannelContext> setWithLock = Tio.getAll(tioConfig);
+		return PageUtils.fromSet(setWithLock, pageIndex, pageSize, converter);
 	}
 
 	/**
@@ -1180,7 +1115,7 @@ public class Tio {
 	 * @author tanyaowu
 	 */
 	public static <T> Page<T> getPageOfConnecteds(TioClientConfig tioClientConfig, Integer pageIndex, Integer pageSize, Converter<T> converter) {
-		Set<ChannelContext> setWithLock = Tio.getAllConnectedsChannelContexts(tioClientConfig);
+		Set<ChannelContext> setWithLock = Tio.getConnecteds(tioClientConfig);
 		return PageUtils.fromSet(setWithLock, pageIndex, pageSize, converter);
 	}
 
@@ -1205,8 +1140,8 @@ public class Tio {
 	 * @return
 	 */
 	public static <T> Page<T> getPageOfGroup(TioConfig tioConfig, String group, Integer pageIndex, Integer pageSize, Converter<T> converter) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getChannelContextsByGroup(tioConfig, group);
-		return PageUtils.fromSetWithLock(setWithLock, pageIndex, pageSize, converter);
+		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
+		return PageUtils.fromSet(contextSet, pageIndex, pageSize, converter);
 	}
 
 	/**
@@ -1217,17 +1152,11 @@ public class Tio {
 	 * @return
 	 */
 	public static int groupCount(TioConfig tioConfig, String group) {
-		SetWithLock<ChannelContext> setWithLock = tioConfig.groups.clients(tioConfig, group);
-		if (setWithLock == null) {
+		Set<ChannelContext> contextSet = tioConfig.groups.clients(tioConfig, group);
+		if (contextSet == null) {
 			return 0;
 		}
-
-		Set<ChannelContext> set = setWithLock.getObj();
-		if (set == null) {
-			return 0;
-		}
-
-		return set.size();
+		return contextSet.size();
 	}
 
 	/**
@@ -1239,17 +1168,11 @@ public class Tio {
 	 * @author: tanyaowu
 	 */
 	public static boolean isInGroup(String group, ChannelContext channelContext) {
-		SetWithLock<String> setWithLock = channelContext.getGroups();
-		if (setWithLock == null) {
+		Set<String> groupSet = channelContext.getGroups();
+		if (groupSet == null || groupSet.isEmpty()) {
 			return false;
 		}
-
-		Set<String> set = setWithLock.getObj();
-		if (set == null) {
-			return false;
-		}
-
-		return set.contains(group);
+		return groupSet.contains(group);
 	}
 
 	/**
@@ -1342,19 +1265,13 @@ public class Tio {
 	 * @param closeCode
 	 */
 	public static void remove(TioServerConfig tioServerConfig, String ip, String remark, CloseCode closeCode) {
-		SetWithLock<ChannelContext> setWithLock = tioServerConfig.ips.clients(tioServerConfig, ip);
-		if (setWithLock == null) {
+		Set<ChannelContext> contextSet = tioServerConfig.ips.clients(tioServerConfig, ip);
+		if (contextSet == null) {
 			return;
 		}
-
-		setWithLock.handle(new ReadLockHandler<Set<ChannelContext>>() {
-			@Override
-			public void handler(Set<ChannelContext> set) {
-				for (ChannelContext channelContext : set) {
-					Tio.remove(channelContext, remark, closeCode);
-				}
-			}
-		});
+		for (ChannelContext channelContext : contextSet) {
+			Tio.remove(channelContext, remark, closeCode);
+		}
 	}
 
 	/**
@@ -1523,16 +1440,7 @@ public class Tio {
 	 * @author tanyaowu
 	 */
 	private static Boolean sendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
-		try {
-			SetWithLock<ChannelContext> setWithLock = tioConfig.connections;
-			if (setWithLock == null) {
-				log.debug("{}, 没有任何连接", tioConfig.getName());
-				return false;
-			}
-			Boolean ret = sendToSet(tioConfig, setWithLock, packet, channelContextFilter, isBlock);
-			return ret;
-		} finally {
-		}
+		return sendToSet(tioConfig, tioConfig.connections, packet, channelContextFilter, isBlock);
 	}
 
 	/**
@@ -1605,17 +1513,13 @@ public class Tio {
 	 * @param isBlock
 	 * @return
 	 */
-	private static Boolean sendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
-		try {
-			SetWithLock<ChannelContext> setWithLock = tioConfig.groups.clients(tioConfig, group);
-			if (setWithLock == null) {
-				log.debug("{}, 组[{}]不存在", tioConfig.getName(), group);
-				return false;
-			}
-			Boolean ret = sendToSet(tioConfig, setWithLock, packet, channelContextFilter, isBlock);
-			return ret;
-		} finally {
+	private static boolean sendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
+		Set<ChannelContext> contextSet = tioConfig.groups.clients(tioConfig, group);
+		if (contextSet == null) {
+			log.debug("{}, 组[{}]不存在", tioConfig.getName(), group);
+			return false;
 		}
+		return sendToSet(tioConfig, contextSet, packet, channelContextFilter, isBlock);
 	}
 
 	/**
@@ -1638,8 +1542,8 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	private static Boolean sendToId(TioConfig tioConfig, String channelContextId, Packet packet, boolean isBlock) {
-		ChannelContext channelContext = Tio.getChannelContextById(tioConfig, channelContextId);
+	private static boolean sendToId(TioConfig tioConfig, String channelContextId, Packet packet, boolean isBlock) {
+		ChannelContext channelContext = Tio.getByChannelContextId(tioConfig, channelContextId);
 		if (channelContext == null) {
 			return false;
 		}
@@ -1686,53 +1590,44 @@ public class Tio {
 	 * @return
 	 * @author: tanyaowu
 	 */
-	private static Boolean sendToIp(TioConfig tioConfig, String ip, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
-		try {
-			SetWithLock<ChannelContext> setWithLock = tioConfig.ips.clients(tioConfig, ip);
-			if (setWithLock == null) {
-				log.info("{}, 没有ip为[{}]的对端", tioConfig.getName(), ip);
-				return false;
-			}
-			Boolean ret = sendToSet(tioConfig, setWithLock, packet, channelContextFilter, isBlock);
-			return ret;
-		} finally {
+	private static boolean sendToIp(TioConfig tioConfig, String ip, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
+		Set<ChannelContext> contextSet = tioConfig.ips.clients(tioConfig, ip);
+		if (contextSet == null) {
+			log.info("{}, 没有ip为[{}]的对端", tioConfig.getName(), ip);
+			return false;
 		}
+		return sendToSet(tioConfig, contextSet, packet, channelContextFilter, isBlock);
 	}
 
 	/**
 	 * 发消息到指定集合
 	 *
 	 * @param tioConfig
-	 * @param setWithLock
+	 * @param set
 	 * @param packet
 	 * @param channelContextFilter
 	 * @author tanyaowu
 	 */
-	public static void sendToSet(TioConfig tioConfig, SetWithLock<ChannelContext> setWithLock, Packet packet, ChannelContextFilter channelContextFilter) {
-		sendToSet(tioConfig, setWithLock, packet, channelContextFilter, false);
+	public static void sendToSet(TioConfig tioConfig, Set<ChannelContext> set, Packet packet, ChannelContextFilter channelContextFilter) {
+		sendToSet(tioConfig, set, packet, channelContextFilter, false);
 	}
 
 	/**
 	 * 发消息到指定集合
 	 *
 	 * @param tioConfig
-	 * @param setWithLock
+	 * @param set
 	 * @param packet
 	 * @param channelContextFilter
 	 * @param isBlock
 	 * @author tanyaowu
 	 */
-	private static Boolean sendToSet(TioConfig tioConfig, SetWithLock<ChannelContext> setWithLock, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
-		boolean releasedLock = false;
-		Lock lock = setWithLock.readLock();
-		lock.lock();
+	private static boolean sendToSet(TioConfig tioConfig, Set<ChannelContext> set, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
+		if (set == null || set.isEmpty()) {
+			log.debug("{}, 集合为空", tioConfig.getName());
+			return false;
+		}
 		try {
-			Set<ChannelContext> set = setWithLock.getObj();
-			if (set.size() == 0) {
-				log.debug("{}, 集合为空", tioConfig.getName());
-				return false;
-			}
-
 			CountDownLatch countDownLatch = null;
 			if (isBlock) {
 				countDownLatch = new CountDownLatch(set.size());
@@ -1740,15 +1635,14 @@ public class Tio {
 			int sendCount = 0;
 			for (ChannelContext channelContext : set) {
 				if (channelContextFilter != null) {
-					boolean isfilter = channelContextFilter.filter(channelContext);
-					if (!isfilter) {
+					boolean isFilter = channelContextFilter.filter(channelContext);
+					if (!isFilter) {
 						if (isBlock) {
 							countDownLatch.countDown();
 						}
 						continue;
 					}
 				}
-
 				sendCount++;
 				if (isBlock) {
 					send(channelContext, packet, countDownLatch, PacketSendMode.GROUP_BLOCK);
@@ -1756,40 +1650,30 @@ public class Tio {
 					send(channelContext, packet, null, null);
 				}
 			}
-			lock.unlock();
-			releasedLock = true;
-
 			if (sendCount == 0) {
 				return false;
 			}
-
 			if (isBlock) {
 				try {
 					long timeout = sendCount / 5;
-					timeout = Math.max(timeout, 10);//timeout < 10 ? 10 : timeout;
+					timeout = Math.max(timeout, 10);
 					boolean awaitFlag = countDownLatch.await(timeout, TimeUnit.SECONDS);
 					if (!awaitFlag) {
-						log.error("{}, 同步群发超时, size:{}, timeout:{}, packet:{}", tioConfig.getName(), setWithLock.getObj().size(), timeout, packet.logstr());
+						log.error("{}, 同步群发超时, size:{}, timeout:{}, packet:{}", tioConfig.getName(), set.size(), timeout, packet.logstr());
 						return false;
 					} else {
 						return true;
 					}
 				} catch (InterruptedException e) {
-					log.error(e.toString(), e);
+					log.error(e.getMessage(), e);
 					return false;
-				} finally {
-
 				}
 			} else {
 				return true;
 			}
 		} catch (Throwable e) {
-			log.error(e.toString(), e);
+			log.error(e.getMessage(), e);
 			return false;
-		} finally {
-			if (!releasedLock) {
-				lock.unlock();
-			}
 		}
 	}
 
@@ -1802,7 +1686,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static Boolean sendToToken(TioConfig tioConfig, String token, Packet packet) {
+	public static boolean sendToToken(TioConfig tioConfig, String token, Packet packet) {
 		return sendToToken(tioConfig, token, packet, false);
 	}
 
@@ -1815,39 +1699,30 @@ public class Tio {
 	 * @param isBlock
 	 * @author tanyaowu
 	 */
-	private static Boolean sendToToken(TioConfig tioConfig, String token, Packet packet, boolean isBlock) {
-		SetWithLock<ChannelContext> setWithLock = tioConfig.tokens.find(tioConfig, token);
-		try {
-			if (setWithLock == null) {
-				return false;
-			}
-
-			ReadLock readLock = setWithLock.readLock();
-			readLock.lock();
-			try {
-				Set<ChannelContext> set = setWithLock.getObj();
-				boolean ret = false;
-				for (ChannelContext channelContext : set) {
-					boolean singleRet = false;
-					// 不要用 a = a || b()，容易漏执行后面的函数
-					if (isBlock) {
-						singleRet = bSend(channelContext, packet);
-					} else {
-						singleRet = send(channelContext, packet);
-					}
-					if (singleRet) {
-						ret = true;
-					}
-				}
-				return ret;
-			} catch (Throwable e) {
-				log.error(e.getMessage(), e);
-			} finally {
-				readLock.unlock();
-			}
+	private static boolean sendToToken(TioConfig tioConfig, String token, Packet packet, boolean isBlock) {
+		Set<ChannelContext> contextSet = tioConfig.tokens.find(tioConfig, token);
+		if (contextSet == null) {
 			return false;
-		} finally {
 		}
+		try {
+			boolean ret = false;
+			for (ChannelContext channelContext : contextSet) {
+				boolean singleRet;
+				// 不要用 a = a || b()，容易漏执行后面的函数
+				if (isBlock) {
+					singleRet = bSend(channelContext, packet);
+				} else {
+					singleRet = send(channelContext, packet);
+				}
+				if (singleRet) {
+					ret = true;
+				}
+			}
+			return ret;
+		} catch (Throwable e) {
+			log.error(e.getMessage(), e);
+		}
+		return false;
 	}
 
 	/**
@@ -1858,7 +1733,7 @@ public class Tio {
 	 * @param packet
 	 * @author tanyaowu
 	 */
-	public static Boolean sendToUser(TioConfig tioConfig, String userid, Packet packet) {
+	public static boolean sendToUser(TioConfig tioConfig, String userid, Packet packet) {
 		return sendToUser(tioConfig, userid, packet, false);
 	}
 
@@ -1871,39 +1746,30 @@ public class Tio {
 	 * @param isBlock
 	 * @author tanyaowu
 	 */
-	private static Boolean sendToUser(TioConfig tioConfig, String userid, Packet packet, boolean isBlock) {
-		SetWithLock<ChannelContext> setWithLock = tioConfig.users.find(tioConfig, userid);
-		try {
-			if (setWithLock == null) {
-				return false;
-			}
-
-			ReadLock readLock = setWithLock.readLock();
-			readLock.lock();
-			try {
-				Set<ChannelContext> set = setWithLock.getObj();
-				boolean ret = false;
-				for (ChannelContext channelContext : set) {
-					boolean singleRet = false;
-					// 不要用 a = a || b()，容易漏执行后面的函数
-					if (isBlock) {
-						singleRet = bSend(channelContext, packet);
-					} else {
-						singleRet = send(channelContext, packet);
-					}
-					if (singleRet) {
-						ret = true;
-					}
-				}
-				return ret;
-			} catch (Throwable e) {
-				log.error(e.getMessage(), e);
-			} finally {
-				readLock.unlock();
-			}
+	private static boolean sendToUser(TioConfig tioConfig, String userid, Packet packet, boolean isBlock) {
+		Set<ChannelContext> contextSet = tioConfig.users.find(tioConfig, userid);
+		if (contextSet == null) {
 			return false;
-		} finally {
 		}
+		try {
+			boolean ret = false;
+			for (ChannelContext channelContext : contextSet) {
+				boolean singleRet;
+				// 不要用 a = a || b()，容易漏执行后面的函数
+				if (isBlock) {
+					singleRet = bSend(channelContext, packet);
+				} else {
+					singleRet = send(channelContext, packet);
+				}
+				if (singleRet) {
+					ret = true;
+				}
+			}
+			return ret;
+		} catch (Throwable e) {
+			log.error(e.getMessage(), e);
+		}
+		return false;
 	}
 
 	/**
@@ -1945,16 +1811,11 @@ public class Tio {
 	 * @param group
 	 */
 	public static void unbindGroup(TioConfig tioConfig, String userid, String group) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getByUserid(tioConfig, userid);
-		if (setWithLock != null) {
-			setWithLock.handle(new ReadLockHandler<Set<ChannelContext>>() {
-				@Override
-				public void handler(Set<ChannelContext> set) {
-					for (ChannelContext channelContext : set) {
-						Tio.unbindGroup(group, channelContext);
-					}
-				}
-			});
+		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
+		if (contextSet != null) {
+			for (ChannelContext channelContext : contextSet) {
+				Tio.unbindGroup(group, channelContext);
+			}
 		}
 	}
 
@@ -1977,8 +1838,6 @@ public class Tio {
 	public static void unbindToken(TioConfig tioConfig, String token) {
 		tioConfig.tokens.unbind(tioConfig, token);
 	}
-
-	//	org.tio.core.TioConfig.ipBlacklist
 
 	/**
 	 * 解除channelContext绑定的userid

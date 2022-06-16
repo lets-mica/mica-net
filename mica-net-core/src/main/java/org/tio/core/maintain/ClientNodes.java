@@ -193,27 +193,23 @@
 */
 package org.tio.core.maintain;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.Node;
-import org.tio.utils.lock.MapWithLock;
 
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
- *一对一  (ip:port <--> ChannelContext)<br>
+ * 一对一  (ip:port <--> ChannelContext)<br>
+ *
  * @author tanyaowu
  * 2017年4月1日 上午9:35:20
  */
 public class ClientNodes {
-	private static final Logger log = LoggerFactory.getLogger(ClientNodes.class);
 
 	/**
-	 *
-	 * @param channelContext
-	 * @return
+	 * @param channelContext ChannelContext
+	 * @return key
 	 * @author tanyaowu
 	 */
 	public static String getKey(ChannelContext channelContext) {
@@ -225,10 +221,9 @@ public class ClientNodes {
 	}
 
 	/**
-	 *
-	 * @param ip
-	 * @param port
-	 * @return
+	 * @param ip   ip
+	 * @param port port
+	 * @return key
 	 * @author tanyaowu
 	 */
 	public static String getKey(String ip, int port) {
@@ -238,77 +233,60 @@ public class ClientNodes {
 	/**
 	 * remoteAndChannelContext key: "ip:port" value: ChannelContext.
 	 */
-	private final MapWithLock<String, ChannelContext> mapWithLock = new MapWithLock<>();
+	private final ConcurrentMap<String, ChannelContext> map = new ConcurrentHashMap<>();
 
 	/**
-	 *
-	 * @param key
-	 * @return
+	 * @param key key
+	 * @return ChannelContext
 	 * @author tanyaowu
 	 */
 	public ChannelContext find(String key) {
-		Lock lock = mapWithLock.readLock();
-		lock.lock();
-		try {
-			Map<String, ChannelContext> m = mapWithLock.getObj();
-			return m.get(key);
-		} finally {
-			lock.unlock();
-		}
+		return map.get(key);
 	}
 
 	/**
-	 *
-	 * @param ip
-	 * @param port
-	 * @return
+	 * @param ip   ip
+	 * @param port port
+	 * @return ChannelContext
 	 * @author tanyaowu
 	 */
 	public ChannelContext find(String ip, int port) {
-		String key = getKey(ip, port);
-		return find(key);
+		return find(getKey(ip, port));
 	}
 
 	/**
-	 *
-	 * @return
+	 * @return 数量
 	 * @author tanyaowu
 	 */
-	public MapWithLock<String, ChannelContext> getObjWithLock() {
-		return mapWithLock;
+	public int size() {
+		return map.size();
 	}
 
 	/**
 	 * 添加映射
-	 * @param channelContext
+	 *
+	 * @param channelContext ChannelContext
 	 * @author tanyaowu
 	 */
 	public void put(ChannelContext channelContext) {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-		try {
-			String key = getKey(channelContext);
-			mapWithLock.put(key, channelContext);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
+		String key = getKey(channelContext);
+		map.put(key, channelContext);
 	}
 
 	/**
 	 * Removes映射
-	 * @param channelContext
+	 *
+	 * @param channelContext ChannelContext
 	 * @author tanyaowu
 	 */
 	public void remove(ChannelContext channelContext) {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-		try {
-			String key = getKey(channelContext);
-			mapWithLock.remove(key);
-		} catch (Throwable e) {
-			log.error(e.getMessage(), e);
-		}
+		String key = getKey(channelContext);
+		map.remove(key);
 	}
 }

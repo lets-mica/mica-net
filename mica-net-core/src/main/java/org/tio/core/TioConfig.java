@@ -193,30 +193,11 @@
 */
 package org.tio.core;
 
-import java.nio.ByteOrder;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.client.TioClientConfig;
-import org.tio.core.intf.TioHandler;
-import org.tio.core.intf.TioListener;
-import org.tio.core.intf.GroupListener;
-import org.tio.core.intf.Packet;
-import org.tio.core.intf.TioUuid;
-import org.tio.core.maintain.BsIds;
-import org.tio.core.maintain.ClientNodes;
-import org.tio.core.maintain.Groups;
-import org.tio.core.maintain.Ids;
-import org.tio.core.maintain.IpBlacklist;
-import org.tio.core.maintain.IpStats;
-import org.tio.core.maintain.Ips;
-import org.tio.core.maintain.Tokens;
-import org.tio.core.maintain.Users;
+import org.tio.core.intf.*;
+import org.tio.core.maintain.*;
 import org.tio.core.ssl.SslConfig;
 import org.tio.core.stat.DefaultIpStatListener;
 import org.tio.core.stat.GroupStat;
@@ -226,10 +207,17 @@ import org.tio.server.TioServerConfig;
 import org.tio.utils.SystemTimer;
 import org.tio.utils.Threads;
 import org.tio.utils.hutool.CollUtil;
-import org.tio.utils.lock.MapWithLock;
-import org.tio.utils.lock.SetWithLock;
 import org.tio.utils.prop.MapWithLockPropSupport;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
+
+import java.nio.ByteOrder;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -242,7 +230,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	 * 默认的接收数据的buffer size
 	 */
 	public static final int						READ_BUFFER_SIZE			= Integer.getInteger("tio.default.read.buffer.size", 20480);
-	private final static AtomicInteger			ID_ATOMIC					= new AtomicInteger();
+	private static final AtomicInteger			ID_ATOMIC					= new AtomicInteger();
 	private ByteOrder							byteOrder					= ByteOrder.BIG_ENDIAN;
 	public boolean								isShortConnection			= false;
 	public SslConfig							sslConfig					= null;
@@ -293,7 +281,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	public CloseRunnable						closeRunnable;
 	public ThreadPoolExecutor					groupExecutor;
 	public ClientNodes							clientNodes					= new ClientNodes();
-	public SetWithLock<ChannelContext>			connections					= new SetWithLock<>(new HashSet<>());
+	public Set<ChannelContext>					connections					= ConcurrentHashMap.newKeySet();
 	public Groups								groups						= new Groups();
 	public Users								users						= new Users();
 	public Tokens								tokens						= new Tokens();
@@ -313,7 +301,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	 * ip黑名单
 	 */
 	public IpBlacklist							ipBlacklist					= null;
-	public MapWithLock<Integer, Packet>			waitingResps				= new MapWithLock<>(new HashMap<>());
+	public ConcurrentMap<Integer, Packet> 		waitingResps				= new ConcurrentHashMap<>();
 
 	public TioConfig() {
 		this(null, null);
@@ -401,7 +389,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	/**
 	 * @return the syns
 	 */
-	public MapWithLock<Integer, Packet> getWaitingResps() {
+	public Map<Integer, Packet> getWaitingResps() {
 		return waitingResps;
 	}
 

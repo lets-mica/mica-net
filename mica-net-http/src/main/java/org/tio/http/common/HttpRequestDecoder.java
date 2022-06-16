@@ -628,7 +628,7 @@ public class HttpRequestDecoder {
 					name = StrCache.get(allbs, lastPosition, len);
 					//					name = new String(allbs, lastPosition, len);
 					lastPosition = buffer.position();
-					headers.put(StrCache.getLowercase(name), "");
+					headers.put(name.toLowerCase(), "");
 
 					needIteration = true;
 					break;
@@ -644,7 +644,7 @@ public class HttpRequestDecoder {
 					value = new String(allbs, lastPosition, len);
 					lastPosition = buffer.position();
 
-					headers.put(StrCache.getLowercase(name), StrUtil.trimEnd(value));
+					headers.put(name.toLowerCase(), StrUtil.trimEnd(value));
 					needIteration = true;
 					break;
 				} else {

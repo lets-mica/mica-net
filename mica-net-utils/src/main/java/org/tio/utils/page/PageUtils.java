@@ -194,7 +194,6 @@
 package org.tio.utils.page;
 
 import org.tio.utils.convert.Converter;
-import org.tio.utils.lock.SetWithLock;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -277,25 +276,6 @@ public class PageUtils {
 		}
 		page.setList(pageData);
 		return (Page<T>) page;
-	}
-
-	public static <T> Page<T> fromSetWithLock(SetWithLock<T> setWithLock, int pageNumber, int pageSize) {
-		return fromSetWithLock(setWithLock, pageNumber, pageSize, null);
-	}
-
-	public static <T> Page<T> fromSetWithLock(SetWithLock<?> setWithLock, int pageNumber, int pageSize, Converter<T> converter) {
-		if (setWithLock == null) {
-			return null;
-		}
-		Lock lock = setWithLock.readLock();
-		lock.lock();
-		try {
-			@SuppressWarnings("unchecked")
-			Set<Object> set = (Set<Object>) setWithLock.getObj();
-			return fromSet(set, pageNumber, pageSize, converter);
-		} finally {
-			lock.unlock();
-		}
 	}
 
 	private static Page<Object> pre(java.util.Collection<?> allList, int pageNumber, int pageSize) {

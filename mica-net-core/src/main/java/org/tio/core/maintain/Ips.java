@@ -197,13 +197,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
+import org.tio.utils.hutool.CollUtil;
 import org.tio.utils.hutool.StrUtil;
-import org.tio.utils.lock.LockUtils;
-import org.tio.utils.lock.MapWithLock;
-import org.tio.utils.lock.SetWithLock;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 一对多  (ip <--> ChannelContext)<br>
@@ -224,24 +224,21 @@ public class Ips {
 	 * key: ip
 	 * value: SetWithLock<ChannelContext>
 	 */
-	private final MapWithLock<String, SetWithLock<ChannelContext>> ipmap = new MapWithLock<>(new HashMap<>());
-	private static final String RW_KEY = "__ips__";
+	private final ConcurrentMap<String, Set<ChannelContext>> ipMap = new ConcurrentHashMap<>();
 
 	/**
-	 * 和ip绑定
+	 * 和 ip 绑定
 	 *
-	 * @param channelContext
+	 * @param channelContext ChannelContext
 	 * @author tanyaowu
 	 */
 	public void bind(ChannelContext channelContext) {
 		if (channelContext == null) {
 			return;
 		}
-
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-
 		try {
 			String ip = channelContext.getClientNode().getIp();
 			if (ChannelContext.UNKNOWN_ADDRESS_IP.equals(ip)) {
@@ -250,15 +247,7 @@ public class Ips {
 			if (StrUtil.isBlank(ip)) {
 				return;
 			}
-			SetWithLock<ChannelContext> channelSet = ipmap.get(ip);
-			if (channelSet == null) {
-				LockUtils.runWriteOrWaitRead(RW_KEY + ip, this, () -> {
-					if (ipmap.get(ip) == null) {
-						ipmap.put(ip, new SetWithLock<>(new HashSet<>()));
-					}
-				});
-				channelSet = ipmap.get(ip);
-			}
+			Set<ChannelContext> channelSet = CollUtil.computeIfAbsent(ipMap, ip, key -> ConcurrentHashMap.newKeySet());
 			channelSet.add(channelContext);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -273,22 +262,21 @@ public class Ips {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public SetWithLock<ChannelContext> clients(TioConfig tioConfig, String ip) {
+	public Set<ChannelContext> clients(TioConfig tioConfig, String ip) {
 		if (tioConfig.isShortConnection) {
 			return null;
 		}
-
 		if (StrUtil.isBlank(ip)) {
 			return null;
 		}
-		return ipmap.get(ip);
+		return ipMap.get(ip);
 	}
 
 	/**
 	 * @return the ipmap
 	 */
-	public MapWithLock<String, SetWithLock<ChannelContext>> getIpmap() {
-		return ipmap;
+	public Map<String, Set<ChannelContext>> getIpMap() {
+		return ipMap;
 	}
 
 	/**
@@ -301,11 +289,9 @@ public class Ips {
 		if (channelContext == null) {
 			return;
 		}
-
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-
 		try {
 			String ip = channelContext.getClientNode().getIp();
 			if (StrUtil.isBlank(ip)) {
@@ -314,15 +300,14 @@ public class Ips {
 			if (ChannelContext.UNKNOWN_ADDRESS_IP.equals(ip)) {
 				return;
 			}
-
-			SetWithLock<ChannelContext> channelSet = ipmap.get(ip);
+			Set<ChannelContext> channelSet = ipMap.get(ip);
 			if (channelSet != null) {
 				channelSet.remove(channelContext);
-				if (channelSet.size() == 0) {
-					ipmap.remove(ip);
+				if (channelSet.isEmpty()) {
+					ipMap.remove(ip);
 				}
 			} else {
-				log.info("{}, ip【{}】 找不到对应的SetWithLock", channelContext.tioConfig.getName(), ip);
+				log.info("{}, ip【{}】 找不到对应的 ChannelContext set", channelContext.tioConfig.getName(), ip);
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);

@@ -197,20 +197,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
+import org.tio.utils.hutool.CollUtil;
 import org.tio.utils.hutool.StrUtil;
-import org.tio.utils.lock.LockUtils;
-import org.tio.utils.lock.MapWithLock;
-import org.tio.utils.lock.SetWithLock;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
- *一对多  (token <--> ChannelContext)<br>
+ * 一对多  (token <--> ChannelContext)<br>
+ *
  * @author tanyaowu
  * 2017年10月19日 上午9:40:40
  */
@@ -221,14 +217,12 @@ public class Tokens {
 	 * key: token
 	 * value: SetWithLock<ChannelContext>
 	 */
-	private MapWithLock<String, SetWithLock<ChannelContext>> mapWithLock = new MapWithLock<>(new HashMap<>());
-
-	private final Object synLockObj1 = new Object();
+	private final ConcurrentMap<String, Set<ChannelContext>> map = new ConcurrentHashMap<>();
 
 	/**
 	 * 绑定token.
 	 *
-	 * @param token the token
+	 * @param token          the token
 	 * @param channelContext the channel context
 	 * @author tanyaowu
 	 */
@@ -236,27 +230,12 @@ public class Tokens {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-
 		if (StrUtil.isBlank(token)) {
 			return;
 		}
-
-		try {
-			SetWithLock<ChannelContext> setWithLock = mapWithLock.get(token);
-			if (setWithLock == null) {
-				LockUtils.runWriteOrWaitRead("_tio_tokens_bind__" + token, synLockObj1, () -> {
-						if (mapWithLock.get(token) == null) {
-							mapWithLock.put(token, new SetWithLock<>(new HashSet<>()));
-						}
-				});
-				setWithLock = mapWithLock.get(token);
-			}
-			setWithLock.add(channelContext);
-
-			channelContext.setToken(token);
-		} catch (Throwable e) {
-			log.error("", e);
-		}
+		Set<ChannelContext> channelSet = CollUtil.computeIfAbsent(map, token, key -> ConcurrentHashMap.newKeySet());
+		channelSet.add(channelContext);
+		channelContext.setToken(token);
 	}
 
 	/**
@@ -265,29 +244,21 @@ public class Tokens {
 	 * @param token the token
 	 * @return the channel context
 	 */
-	public SetWithLock<ChannelContext> find(TioConfig tioConfig, String token) {
+	public Set<ChannelContext> find(TioConfig tioConfig, String token) {
 		if (tioConfig.isShortConnection) {
 			return null;
 		}
-
 		if (StrUtil.isBlank(token)) {
 			return null;
 		}
-		Lock lock = mapWithLock.readLock();
-		lock.lock();
-		try {
-			Map<String, SetWithLock<ChannelContext>> m = mapWithLock.getObj();
-			return m.get(token);
-		} finally {
-			lock.unlock();
-		}
+		return map.get(token);
 	}
 
 	/**
-	 * @return the mapWithLock
+	 * @return the token size
 	 */
-	public MapWithLock<String, SetWithLock<ChannelContext>> getMap() {
-		return mapWithLock;
+	public int size() {
+		return map.size();
 	}
 
 	/**
@@ -299,26 +270,20 @@ public class Tokens {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-		try {
-			String token = channelContext.getToken();
-			if (StrUtil.isBlank(token)) {
-				log.debug("{}, {}, 并没有绑定Token", channelContext.tioConfig.getName(), channelContext);
-				return;
-			}
-
-			SetWithLock<ChannelContext> setWithLock = mapWithLock.get(token);
-			if (setWithLock == null) {
-				log.warn("{}, {}, token:{}, 没有找到对应的SetWithLock", channelContext.tioConfig.getName(), channelContext, token);
-				return;
-			}
-			channelContext.setToken(null);
-			setWithLock.remove(channelContext);
-
-			if (setWithLock.size() == 0) {
-				mapWithLock.remove(token);
-			}
-		} catch (Throwable e) {
-			log.error(e.getMessage(), e);
+		String token = channelContext.getToken();
+		if (StrUtil.isBlank(token)) {
+			log.debug("{}, {}, 并没有绑定Token", channelContext.tioConfig.getName(), channelContext);
+			return;
+		}
+		Set<ChannelContext> contextSet = map.get(token);
+		if (contextSet == null) {
+			log.warn("{}, {}, token:{}, 没有找到对应的 ChannelContext set", channelContext.tioConfig.getName(), channelContext, token);
+			return;
+		}
+		channelContext.setToken(null);
+		contextSet.remove(channelContext);
+		if (contextSet.isEmpty()) {
+			map.remove(token);
 		}
 	}
 
@@ -335,27 +300,17 @@ public class Tokens {
 		if (StrUtil.isBlank(token)) {
 			return;
 		}
-
-		SetWithLock<ChannelContext> setWithLock = mapWithLock.get(token);
-		if (setWithLock == null) {
+		Set<ChannelContext> contextSet = map.get(token);
+		if (contextSet == null) {
 			return;
 		}
-
-		WriteLock writeLock = setWithLock.writeLock();
-		writeLock.lock();
-		try {
-			Set<ChannelContext> set = setWithLock.getObj();
-			if (!set.isEmpty()) {
-				for (ChannelContext channelContext : set) {
-					channelContext.setToken(null);
-				}
-				set.clear();
+		if (!contextSet.isEmpty()) {
+			for (ChannelContext channelContext : contextSet) {
+				channelContext.setToken(null);
 			}
-			mapWithLock.remove(token);
-		} catch (Throwable e) {
-			log.error(e.getMessage(), e);
-		} finally {
-			writeLock.unlock();
+			contextSet.clear();
 		}
+		map.remove(token);
 	}
+
 }

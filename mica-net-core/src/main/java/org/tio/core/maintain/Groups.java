@@ -198,15 +198,13 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.GroupListener;
+import org.tio.utils.hutool.CollUtil;
 import org.tio.utils.hutool.StrUtil;
-import org.tio.utils.lock.LockUtils;
-import org.tio.utils.lock.MapWithLock;
-import org.tio.utils.lock.SetWithLock;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 多对多  (group <--> ChannelContext)<br>
@@ -230,8 +228,7 @@ public class Groups {
 	 * key: groupid<br>
 	 * value: SetWithLock<ChannelContext><br>
 	 */
-	private MapWithLock<String, SetWithLock<ChannelContext>> groupmap = new MapWithLock<>(new HashMap<>());
-	private static final String RW_KEY = "_groups_bind__";
+	private final ConcurrentMap<String, Set<ChannelContext>> groupMap = new ConcurrentHashMap<>();
 
 	/**
 	 * 和组绑定
@@ -254,27 +251,12 @@ public class Groups {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-
 		if (StrUtil.isBlank(groupId)) {
 			return;
 		}
-
-		SetWithLock<ChannelContext> channelSet = groupmap.get(groupId);
-		if (channelSet == null) {
-			try {
-				LockUtils.runWriteOrWaitRead(RW_KEY + groupId, this, () -> {
-					if (groupmap.get(groupId) == null) {
-						groupmap.put(groupId, new SetWithLock<>(MaintainUtils.createSet(channelContextComparator)));
-					}
-				});
-			} catch (Exception e) {
-				log.error(e.toString(), e);
-			}
-			channelSet = groupmap.get(groupId);
-		}
+		Set<ChannelContext> channelSet = CollUtil.computeIfAbsent(groupMap, groupId, key -> ConcurrentHashMap.newKeySet());
 		channelSet.add(channelContext);
 		channelContext.getGroups().add(groupId);
-
 		if (callbackListener) {
 			GroupListener groupListener = channelContext.tioConfig.getGroupListener();
 			if (groupListener != null) {
@@ -295,21 +277,21 @@ public class Groups {
 	 * @return ChannelContext 集合
 	 * @author tanyaowu
 	 */
-	public SetWithLock<ChannelContext> clients(TioConfig tioConfig, String groupId) {
+	public Set<ChannelContext> clients(TioConfig tioConfig, String groupId) {
 		if (tioConfig.isShortConnection) {
 			return null;
 		}
 		if (StrUtil.isBlank(groupId)) {
 			return null;
 		}
-		return groupmap.get(groupId);
+		return groupMap.get(groupId);
 	}
 
 	/**
-	 * @return the groupmap
+	 * @return the groupMap size
 	 */
-	public MapWithLock<String, SetWithLock<ChannelContext>> getGroupmap() {
-		return groupmap;
+	public int size() {
+		return groupMap.size();
 	}
 
 	/**
@@ -319,7 +301,7 @@ public class Groups {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public SetWithLock<String> groups(ChannelContext channelContext) {
+	public Set<String> groups(ChannelContext channelContext) {
 		TioConfig tioConfig = channelContext.tioConfig;
 		if (tioConfig.isShortConnection) {
 			return null;
@@ -345,29 +327,20 @@ public class Groups {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-
-		try {
-			SetWithLock<String> setWithLock = channelContext.getGroups();
-			WriteLock writeLock = setWithLock.writeLock();
-			writeLock.lock();
+		Set<String> groupSet = channelContext.getGroups();
+		if (groupSet == null || groupSet.isEmpty()) {
+			return;
+		}
+		for (String groupId : groupSet) {
 			try {
-				Set<String> groups = setWithLock.getObj();
-				if (groups != null && groups.size() > 0) {
-					for (String groupid : groups) {
-						try {
-							unbind(groupid, channelContext, false, callbackListener);
-						} catch (Exception e) {
-							log.error(e.toString(), e);
-						}
-					}
-					groups.clear();
-					channelContext.getGroups().clear();
-				}
+				unbind(groupId, channelContext, false, callbackListener);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
-			} finally {
-				writeLock.unlock();
 			}
+		}
+		try {
+			groupSet.clear();
+			channelContext.getGroups().clear();
 		} catch (Throwable e) {
 			log.error(e.getMessage(), e);
 		}
@@ -405,17 +378,15 @@ public class Groups {
 			return;
 		}
 		try {
-			SetWithLock<ChannelContext> channelSet = groupmap.get(groupId);
+			Set<ChannelContext> channelSet = groupMap.get(groupId);
 			if (channelSet != null) {
 				boolean ss = channelSet.remove(channelContext);
 				if (!ss) {
 					log.warn("{}, 移除失败,group:{} cid:{}", channelContext, groupId, channelContext.getId());
 				}
-
 				if (deleteFromChannelContext) {
 					channelContext.getGroups().remove(groupId);
 				}
-
 				if (callbackListener) {
 					GroupListener groupListener = channelContext.tioConfig.getGroupListener();
 					if (groupListener != null) {
@@ -427,8 +398,8 @@ public class Groups {
 					}
 				}
 				//如果该群组没有任何连接，就把这个群组从map中删除，以释放空间
-				if (channelSet.getObj().size() == 0) {
-					groupmap.remove(groupId);
+				if (channelSet.isEmpty()) {
+					groupMap.remove(groupId);
 				}
 			}
 		} catch (Exception e) {

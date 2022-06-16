@@ -197,17 +197,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
+import org.tio.utils.hutool.CollUtil;
 import org.tio.utils.hutool.StrUtil;
-import org.tio.utils.lock.LockUtils;
-import org.tio.utils.lock.MapWithLock;
-import org.tio.utils.lock.SetWithLock;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 一对多  (userid <--> ChannelContext)<br>
@@ -221,41 +216,25 @@ public class Users {
 	 * key: userid
 	 * value: ChannelContext
 	 */
-	private MapWithLock<String, SetWithLock<ChannelContext>> mapWithLock = new MapWithLock<>(new HashMap<>());
+	private final ConcurrentMap<String, Set<ChannelContext>> map = new ConcurrentHashMap<>();
 
 	/**
 	 * 绑定userid.
 	 *
-	 * @param userid         the userid
+	 * @param userId         the userid
 	 * @param channelContext the channel context
 	 * @author tanyaowu
 	 */
-	public void bind(String userid, ChannelContext channelContext) {
+	public void bind(String userId, ChannelContext channelContext) {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-
-		if (StrUtil.isBlank(userid)) {
+		if (StrUtil.isBlank(userId)) {
 			return;
 		}
-
-		try {
-			SetWithLock<ChannelContext> setWithLock = mapWithLock.get(userid);
-			if (setWithLock == null) {
-				LockUtils.runWriteOrWaitRead("_tio_users_bind__" + userid, this, () -> {
-					if (mapWithLock.get(userid) == null) {
-						mapWithLock.put(userid, new SetWithLock<>(new HashSet<>()));
-					}
-				});
-				setWithLock = mapWithLock.get(userid);
-			}
-			setWithLock.add(channelContext);
-
-			channelContext.setUserid(userid);
-		} catch (Throwable e) {
-			log.error("", e);
-		}
-
+		Set<ChannelContext> channelSet = CollUtil.computeIfAbsent(map, userId, key -> ConcurrentHashMap.newKeySet());
+		channelSet.add(channelContext);
+		channelContext.setUserId(userId);
 	}
 
 	/**
@@ -264,23 +243,21 @@ public class Users {
 	 * @param userid the userid
 	 * @return the channel context
 	 */
-	public SetWithLock<ChannelContext> find(TioConfig tioConfig, String userid) {
+	public Set<ChannelContext> find(TioConfig tioConfig, String userid) {
 		if (tioConfig.isShortConnection) {
 			return null;
 		}
-
 		if (StrUtil.isBlank(userid)) {
 			return null;
 		}
-
-		return mapWithLock.get(userid);
+		return map.get(userid);
 	}
 
 	/**
-	 * @return the mapWithLock
+	 * @return user size
 	 */
-	public MapWithLock<String, SetWithLock<ChannelContext>> getMap() {
-		return mapWithLock;
+	public int size() {
+		return map.size();
 	}
 
 	/**
@@ -292,77 +269,45 @@ public class Users {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-
-		String userid = channelContext.userid;
-		if (StrUtil.isBlank(userid)) {
+		String userId = channelContext.userId;
+		if (StrUtil.isBlank(userId)) {
 			log.debug("{}, {}, 并没有绑定用户", channelContext.tioConfig.getName(), channelContext);
 			return;
 		}
-
-		try {
-			SetWithLock<ChannelContext> setWithLock = mapWithLock.get(userid);
-			if (setWithLock == null) {
-				log.warn("{}, {}, userid:{}, 没有找到对应的SetWithLock", channelContext.tioConfig.getName(), channelContext, userid);
-				return;
-			}
-
-			setWithLock.remove(channelContext);
-
-			if (setWithLock.size() == 0) {
-				mapWithLock.remove(userid);
-			}
-
-			channelContext.setUserid(null);
-		} catch (Throwable e) {
-			log.error(e.getMessage(), e);
+		Set<ChannelContext> contextSet = map.get(userId);
+		if (contextSet == null) {
+			log.warn("{}, {}, userid:{}, 没有找到对应的 ChannelContext set", channelContext.tioConfig.getName(), channelContext, userId);
+			return;
 		}
+		contextSet.remove(channelContext);
+		if (contextSet.isEmpty()) {
+			map.remove(userId);
+		}
+		channelContext.setUserId(null);
 	}
 
 	/**
 	 * 解除tioConfig范围内所有ChannelContext的 userid绑定
 	 *
-	 * @param userid the userid
+	 * @param userId the userid
 	 * @author tanyaowu
 	 */
-	public void unbind(TioConfig tioConfig, String userid) {
+	public void unbind(TioConfig tioConfig, String userId) {
 		if (tioConfig.isShortConnection) {
 			return;
 		}
-		if (StrUtil.isBlank(userid)) {
+		if (StrUtil.isBlank(userId)) {
 			return;
 		}
-		try {
-			Lock lock = mapWithLock.writeLock();
-			lock.lock();
-			try {
-				Map<String, SetWithLock<ChannelContext>> m = mapWithLock.getObj();
-				SetWithLock<ChannelContext> setWithLock = m.get(userid);
-				if (setWithLock == null) {
-					return;
-				}
-
-				WriteLock writeLock = setWithLock.writeLock();
-				writeLock.lock();
-				try {
-					Set<ChannelContext> set = setWithLock.getObj();
-					if (!set.isEmpty()) {
-						for (ChannelContext channelContext : set) {
-							channelContext.setUserid(null);
-						}
-						set.clear();
-					}
-
-					m.remove(userid);
-				} catch (Throwable e) {
-					log.error(e.getMessage(), e);
-				} finally {
-					writeLock.unlock();
-				}
-			} finally {
-				lock.unlock();
-			}
-		} catch (Throwable e) {
-			log.error(e.getMessage(), e);
+		Set<ChannelContext> contextSet = map.get(userId);
+		if (contextSet == null) {
+			return;
 		}
+		for (ChannelContext channelContext : contextSet) {
+			channelContext.setUserId(null);
+		}
+		contextSet.clear();
+		map.remove(userId);
 	}
+
 }

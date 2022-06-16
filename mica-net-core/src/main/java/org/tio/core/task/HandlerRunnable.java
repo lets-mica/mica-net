@@ -204,11 +204,11 @@ import org.tio.core.TioConfig;
 import org.tio.core.intf.Packet;
 import org.tio.core.stat.IpStat;
 import org.tio.utils.SystemTimer;
-import org.tio.utils.lock.MapWithLock;
 import org.tio.utils.queue.FullWaitQueue;
 import org.tio.utils.queue.TioFullWaitQueue;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -244,7 +244,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 		try {
 			Integer synSeq = packet.getSynSeq();
 			if (synSeq != null && synSeq > 0) {
-				MapWithLock<Integer, Packet> syns = tioConfig.getWaitingResps();
+				Map<Integer, Packet> syns = tioConfig.getWaitingResps();
 				Packet initPacket = syns.remove(synSeq);
 				if (initPacket != null) {
 					synchronized (initPacket) {

@@ -198,12 +198,14 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
 import org.tio.utils.hutool.StrUtil;
-import org.tio.utils.lock.MapWithLock;
 
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
- *一对一  (ChannelContext.id <--> ChannelContext)<br>
+ * 一对一  (ChannelContext.id <--> ChannelContext)<br>
+ *
  * @author tanyaowu
  * 2017年4月15日 下午12:13:19
  */
@@ -214,10 +216,9 @@ public class Ids {
 	 * key: ChannelContext对象的id字段
 	 * value: ChannelContext
 	 */
-	private MapWithLock<String, ChannelContext> map = new MapWithLock<>(new HashMap<>());
+	private final ConcurrentMap<String, ChannelContext> map = new ConcurrentHashMap<>();
 
 	/**
-	 *
 	 * @param channelContext
 	 * @author tanyaowu
 	 */
@@ -246,23 +247,20 @@ public class Ids {
 		if (tioConfig.isShortConnection) {
 			return null;
 		}
-
 		if (StrUtil.isBlank(id)) {
 			return null;
 		}
-
 		return map.get(id);
 	}
 
 	/**
 	 * @return the cacheMap
 	 */
-	public MapWithLock<String, ChannelContext> getMap() {
+	public Map<String, ChannelContext> getMap() {
 		return map;
 	}
 
 	/**
-	 *
 	 * @param channelContext
 	 * @author tanyaowu
 	 */

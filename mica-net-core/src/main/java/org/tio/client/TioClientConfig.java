@@ -215,7 +215,10 @@ public class TioClientConfig extends TioConfig {
 
 	private TioClientListener tioClientListener = null;
 
-	protected ReconnConf reconnConf;//重连配置
+	/**
+	 * 重连配置
+	 */
+	protected ReconnConf reconnConf;
 
 	private ConnectionCompletionHandler connectionCompletionHandler = new ConnectionCompletionHandler();
 
@@ -249,8 +252,7 @@ public class TioClientConfig extends TioConfig {
 	 * @param tioExecutor SynThreadPoolExecutor
 	 * @param groupExecutor ThreadPoolExecutor
 	 */
-	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener, ReconnConf reconnConf, SynThreadPoolExecutor tioExecutor,
-						   ThreadPoolExecutor groupExecutor) {
+	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener, ReconnConf reconnConf, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		super(tioExecutor, groupExecutor);
 		this.groupStat = new ClientGroupStat();
 		this.setTioClientHandler(tioHandler);

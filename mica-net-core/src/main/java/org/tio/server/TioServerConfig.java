@@ -197,7 +197,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -215,7 +214,6 @@ import org.tio.server.intf.TioServerListener;
 import org.tio.utils.SysConst;
 import org.tio.utils.SystemTimer;
 import org.tio.utils.hutool.StrUtil;
-import org.tio.utils.lock.SetWithLock;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 /**
@@ -316,17 +314,12 @@ public class TioServerConfig extends TioConfig {
 						log.error(e1.toString(), e1);
 					}
 					long start = SystemTimer.currTime;
-					SetWithLock<ChannelContext> setWithLock = TioServerConfig.this.connections;
-					Set<ChannelContext> set = null;
+					Set<ChannelContext> contextSet = TioServerConfig.this.connections;
 					long start1 = 0;
 					int count = 0;
-					ReadLock readLock = setWithLock.readLock();
-					readLock.lock();
 					try {
 						start1 = SystemTimer.currTime;
-						set = setWithLock.getObj();
-
-						for (ChannelContext channelContext : set) {
+						for (ChannelContext channelContext : contextSet) {
 							count++;
 							long compareTime = Math.max(channelContext.stat.latestTimeOfReceivedByte, channelContext.stat.latestTimeOfSentPacket);
 							long currTime = SystemTimer.currTime;
@@ -348,7 +341,6 @@ public class TioServerConfig extends TioConfig {
 					} catch (Throwable e) {
 						log.error(e.getMessage(), e);
 					} finally {
-						readLock.unlock();
 						try {
 							if (debug) {
 								StringBuilder builder = new StringBuilder();
@@ -356,8 +348,8 @@ public class TioServerConfig extends TioConfig {
 								builder.append("\r\n ├ 当前时间:").append(SystemTimer.currTime);
 								builder.append("\r\n ├ 连接统计");
 								builder.append("\r\n │ \t ├ 共接受过连接数  :").append(((ServerGroupStat) groupStat).accepted.get());
-								builder.append("\r\n │ \t ├ 当前连接数            :").append(set.size());
-								builder.append("\r\n │ \t ├ 异IP连接数           :").append(TioServerConfig.this.ips.getIpmap().getObj().size());
+								builder.append("\r\n │ \t ├ 当前连接数            :").append(contextSet.size());
+								builder.append("\r\n │ \t ├ 异IP连接数           :").append(TioServerConfig.this.ips.getIpMap().size());
 								builder.append("\r\n │ \t └ 关闭过的连接数  :").append(groupStat.closed.get());
 								builder.append("\r\n ├ 消息统计");
 								builder.append("\r\n │ \t ├ 已处理消息  :").append(groupStat.handledPackets.get());
@@ -372,13 +364,13 @@ public class TioServerConfig extends TioConfig {
 									builder.append("\r\n   \t └ ").append("没有设置ip统计时间");
 								}
 								builder.append("\r\n ├ 节点统计");
-								builder.append("\r\n │ \t ├ clientNodes :").append(TioServerConfig.this.clientNodes.getObjWithLock().getObj().size());
-								builder.append("\r\n │ \t ├ 所有连接               :").append(TioServerConfig.this.connections.getObj().size());
-								builder.append("\r\n │ \t ├ 绑定user数         :").append(TioServerConfig.this.users.getMap().getObj().size());
-								builder.append("\r\n │ \t ├ 绑定token数       :").append(TioServerConfig.this.tokens.getMap().getObj().size());
-								builder.append("\r\n │ \t └ 等待同步消息响应 :").append(TioServerConfig.this.waitingResps.getObj().size());
+								builder.append("\r\n │ \t ├ clientNodes :").append(TioServerConfig.this.clientNodes.size());
+								builder.append("\r\n │ \t ├ 所有连接               :").append(TioServerConfig.this.connections.size());
+								builder.append("\r\n │ \t ├ 绑定user数         :").append(TioServerConfig.this.users.size());
+								builder.append("\r\n │ \t ├ 绑定token数       :").append(TioServerConfig.this.tokens.size());
+								builder.append("\r\n │ \t └ 等待同步消息响应 :").append(TioServerConfig.this.waitingResps.size());
 								builder.append("\r\n ├ 群组");
-								builder.append("\r\n │ \t └ groupmap:").append(TioServerConfig.this.groups.getGroupmap().getObj().size());
+								builder.append("\r\n │ \t └ groupmap:").append(TioServerConfig.this.groups.size());
 								builder.append("\r\n └ 拉黑IP ");
 								builder.append("\r\n   \t └ ").append(StrUtil.join(TioServerConfig.this.ipBlacklist.getAll()));
 								log.warn(builder.toString());
