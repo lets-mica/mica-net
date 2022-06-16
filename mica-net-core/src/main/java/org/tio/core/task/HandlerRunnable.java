@@ -261,26 +261,26 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 			long end = SystemTimer.currTime;
 			long iv = end - start;
 			if (tioConfig.statOn) {
-				channelContext.stat.handledPackets.incrementAndGet();
-				channelContext.stat.handledBytes.addAndGet(packet.getByteCount());
-				channelContext.stat.handledPacketCosts.addAndGet(iv);
+				channelContext.stat.handledPackets.increment();
+				channelContext.stat.handledBytes.add(packet.getByteCount());
+				channelContext.stat.handledPacketCosts.add(iv);
 
-				tioConfig.groupStat.handledPackets.incrementAndGet();
-				tioConfig.groupStat.handledBytes.addAndGet(packet.getByteCount());
-				tioConfig.groupStat.handledPacketCosts.addAndGet(iv);
+				tioConfig.groupStat.handledPackets.increment();
+				tioConfig.groupStat.handledBytes.add(packet.getByteCount());
+				tioConfig.groupStat.handledPacketCosts.add(iv);
 			}
 
 			if (tioConfig.isIpStatEnable()) {
 				try {
 					for (Long v : tioConfig.ipStats.durationList) {
 						IpStat ipStat = tioConfig.ipStats.get(v, channelContext);
-						ipStat.getHandledPackets().incrementAndGet();
-						ipStat.getHandledBytes().addAndGet(packet.getByteCount());
-						ipStat.getHandledPacketCosts().addAndGet(iv);
+						ipStat.getHandledPackets().increment();
+						ipStat.getHandledBytes().add(packet.getByteCount());
+						ipStat.getHandledPacketCosts().add(iv);
 						tioConfig.getIpStatListener().onAfterHandled(channelContext, packet, ipStat, iv);
 					}
 				} catch (Exception e1) {
-					log.error(e1.toString(), e1);
+					log.error(e1.getMessage(), e1);
 				}
 			}
 
@@ -288,7 +288,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 				try {
 					tioConfig.getTioListener().onAfterHandled(channelContext, packet, iv);
 				} catch (Exception e) {
-					log.error(e.toString(), e);
+					log.error(e.getMessage(), e);
 				}
 			}
 

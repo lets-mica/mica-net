@@ -273,7 +273,7 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 
 						channelContext.setRemoved(isNeedRemove);
 						if (channelContext.tioConfig.statOn) {
-							channelContext.tioConfig.groupStat.closed.incrementAndGet();
+							channelContext.tioConfig.groupStat.closed.increment();
 						}
 						channelContext.stat.timeClosed = SystemTimer.currTime;
 						channelContext.setClosed(true);

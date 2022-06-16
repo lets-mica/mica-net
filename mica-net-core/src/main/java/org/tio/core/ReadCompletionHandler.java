@@ -233,11 +233,11 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 		if (result > 0) {
 			TioConfig tioConfig = channelContext.tioConfig;
 			if (tioConfig.statOn) {
-				tioConfig.groupStat.receivedBytes.addAndGet(result);
-				tioConfig.groupStat.receivedTcps.incrementAndGet();
+				tioConfig.groupStat.receivedBytes.add(result);
+				tioConfig.groupStat.receivedTcps.increment();
 
-				channelContext.stat.receivedBytes.addAndGet(result);
-				channelContext.stat.receivedTcps.incrementAndGet();
+				channelContext.stat.receivedBytes.add(result);
+				channelContext.stat.receivedTcps.increment();
 			}
 
 			channelContext.stat.latestTimeOfReceivedByte = SystemTimer.currTime;
@@ -246,8 +246,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 				try {
 					for (Long v : tioConfig.ipStats.durationList) {
 						IpStat ipStat = tioConfig.ipStats.get(v, channelContext);
-						ipStat.getReceivedBytes().addAndGet(result);
-						ipStat.getReceivedTcps().incrementAndGet();
+						ipStat.getReceivedBytes().add(result);
+						ipStat.getReceivedTcps().increment();
 						tioConfig.getIpStatListener().onAfterReceivedBytes(channelContext, result, ipStat);
 					}
 				} catch (Exception e1) {

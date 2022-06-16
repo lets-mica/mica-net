@@ -485,15 +485,15 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 				}
 
 				if (tioConfig.statOn) {
-					tioConfig.groupStat.sentPackets.incrementAndGet();
-					stat.sentPackets.incrementAndGet();
+					tioConfig.groupStat.sentPackets.increment();
+					stat.sentPackets.increment();
 				}
 
 				if (tioConfig.isIpStatEnable()) {
 					try {
 						for (Long v : tioConfig.ipStats.durationList) {
 							IpStat ipStat = tioConfig.ipStats.get(v, this);
-							ipStat.getSentPackets().incrementAndGet();
+							ipStat.getSentPackets().increment();
 							tioConfig.getIpStatListener().onAfterSent(this, packet, isSentSuccess, ipStat);
 						}
 					} catch (Exception e) {
@@ -721,26 +721,26 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	}
 
 	private static void switchIpStat(IpStat oldIpStat, IpStat newIpStat, ChannelStat myStat) {
-		oldIpStat.getHandledBytes().addAndGet(-myStat.getHandledBytes().get());
-		oldIpStat.getHandledPacketCosts().addAndGet(-myStat.getHandledPacketCosts().get());
-		oldIpStat.getHandledPackets().addAndGet(-myStat.getHandledPackets().get());
-		oldIpStat.getReceivedBytes().addAndGet(-myStat.getReceivedBytes().get());
-		oldIpStat.getReceivedPackets().addAndGet(-myStat.getReceivedPackets().get());
-		oldIpStat.getReceivedTcps().addAndGet(-myStat.getReceivedTcps().get());
+		oldIpStat.getHandledBytes().add(-myStat.getHandledBytes().sum());
+		oldIpStat.getHandledPacketCosts().add(-myStat.getHandledPacketCosts().sum());
+		oldIpStat.getHandledPackets().add(-myStat.getHandledPackets().sum());
+		oldIpStat.getReceivedBytes().add(-myStat.getReceivedBytes().sum());
+		oldIpStat.getReceivedPackets().add(-myStat.getReceivedPackets().sum());
+		oldIpStat.getReceivedTcps().add(-myStat.getReceivedTcps().sum());
 		oldIpStat.getRequestCount().addAndGet(-1);
-		oldIpStat.getSentBytes().addAndGet(-myStat.getSentBytes().get());
-		oldIpStat.getSentPackets().addAndGet(-myStat.getSentPackets().get());
+		oldIpStat.getSentBytes().add(-myStat.getSentBytes().sum());
+		oldIpStat.getSentPackets().add(-myStat.getSentPackets().sum());
 		oldIpStat.getStart();
 
-		newIpStat.getHandledBytes().addAndGet(myStat.getHandledBytes().get());
-		newIpStat.getHandledPacketCosts().addAndGet(myStat.getHandledPacketCosts().get());
-		newIpStat.getHandledPackets().addAndGet(myStat.getHandledPackets().get());
-		newIpStat.getReceivedBytes().addAndGet(myStat.getReceivedBytes().get());
-		newIpStat.getReceivedPackets().addAndGet(myStat.getReceivedPackets().get());
-		newIpStat.getReceivedTcps().addAndGet(myStat.getReceivedTcps().get());
+		newIpStat.getHandledBytes().add(myStat.getHandledBytes().sum());
+		newIpStat.getHandledPacketCosts().add(myStat.getHandledPacketCosts().sum());
+		newIpStat.getHandledPackets().add(myStat.getHandledPackets().sum());
+		newIpStat.getReceivedBytes().add(myStat.getReceivedBytes().sum());
+		newIpStat.getReceivedPackets().add(myStat.getReceivedPackets().sum());
+		newIpStat.getReceivedTcps().add(myStat.getReceivedTcps().sum());
 		newIpStat.getRequestCount().addAndGet(1);
-		newIpStat.getSentBytes().addAndGet(myStat.getSentBytes().get());
-		newIpStat.getSentPackets().addAndGet(myStat.getSentPackets().get());
+		newIpStat.getSentBytes().add(myStat.getSentBytes().sum());
+		newIpStat.getSentPackets().add(myStat.getSentPackets().sum());
 		newIpStat.getStart();
 	}
 

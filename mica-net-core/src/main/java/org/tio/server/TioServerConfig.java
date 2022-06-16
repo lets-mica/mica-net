@@ -350,11 +350,11 @@ public class TioServerConfig extends TioConfig {
 								builder.append("\r\n │ \t ├ 共接受过连接数  :").append(((ServerGroupStat) groupStat).accepted.get());
 								builder.append("\r\n │ \t ├ 当前连接数            :").append(contextSet.size());
 								builder.append("\r\n │ \t ├ 异IP连接数           :").append(TioServerConfig.this.ips.getIpMap().size());
-								builder.append("\r\n │ \t └ 关闭过的连接数  :").append(groupStat.closed.get());
+								builder.append("\r\n │ \t └ 关闭过的连接数  :").append(groupStat.closed.sum());
 								builder.append("\r\n ├ 消息统计");
-								builder.append("\r\n │ \t ├ 已处理消息  :").append(groupStat.handledPackets.get());
-								builder.append("\r\n │ \t ├ 已接收消息(packet/byte):").append(groupStat.receivedPackets.get()).append('/').append(groupStat.receivedBytes.get());
-								builder.append("\r\n │ \t ├ 已发送消息(packet/byte):").append(groupStat.sentPackets.get()).append('/').append(groupStat.sentBytes.get()).append('b');
+								builder.append("\r\n │ \t ├ 已处理消息  :").append(groupStat.handledPackets.sum());
+								builder.append("\r\n │ \t ├ 已接收消息(packet/byte):").append(groupStat.receivedPackets.sum()).append('/').append(groupStat.receivedBytes.sum());
+								builder.append("\r\n │ \t ├ 已发送消息(packet/byte):").append(groupStat.sentPackets.sum()).append('/').append(groupStat.sentBytes.sum()).append('b');
 								builder.append("\r\n │ \t ├ 平均每次TCP包接收的字节数  :").append(groupStat.getBytesPerTcpReceive());
 								builder.append("\r\n │ \t └ 平均每次TCP包接收的业务包  :").append(groupStat.getPacketsPerTcpReceive());
 								builder.append("\r\n └ IP统计时段 ");

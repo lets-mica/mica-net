@@ -355,15 +355,15 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 					packet.setByteCount(packetSize);
 
 					if (tioConfig.statOn) {
-						tioConfig.groupStat.receivedPackets.incrementAndGet();
-						channelContext.stat.receivedPackets.incrementAndGet();
+						tioConfig.groupStat.receivedPackets.increment();
+						channelContext.stat.receivedPackets.increment();
 					}
 
 					if (tioConfig.isIpStatEnable()) {
 						try {
 							for (Long v : tioConfig.ipStats.durationList) {
 								IpStat ipStat = tioConfig.ipStats.get(v, channelContext);
-								ipStat.getReceivedPackets().incrementAndGet();
+								ipStat.getReceivedPackets().increment();
 								tioConfig.getIpStatListener().onAfterDecoded(channelContext, packet, packetSize, ipStat);
 							}
 						} catch (Exception e1) {

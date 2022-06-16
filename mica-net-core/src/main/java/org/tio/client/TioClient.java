@@ -442,9 +442,9 @@ public class TioClient {
 							}
 						}
 						if (log.isInfoEnabled()) {
-							log.info("[{}]: curr:{}, closed:{}, received:({}p)({}b), handled:{}, sent:({}p)({}b)", id, set.size(), clientGroupStat.closed.get(),
-								clientGroupStat.receivedPackets.get(), clientGroupStat.receivedBytes.get(), clientGroupStat.handledPackets.get(),
-								clientGroupStat.sentPackets.get(), clientGroupStat.sentBytes.get());
+							log.info("[{}]: curr:{}, closed:{}, received:({}p)({}b), handled:{}, sent:({}p)({}b)", id, set.size(), clientGroupStat.closed.sum(),
+								clientGroupStat.receivedPackets.sum(), clientGroupStat.receivedBytes.sum(), clientGroupStat.handledPackets.sum(),
+								clientGroupStat.sentPackets.sum(), clientGroupStat.sentBytes.sum());
 						}
 					} catch (Throwable e) {
 						log.error("", e);

@@ -195,6 +195,7 @@ package org.tio.core.stat;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 import org.tio.utils.SystemTimer;
 
@@ -243,36 +244,36 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * 本连接已发送的字节数
 	 */
-	public final AtomicLong		sentBytes					= new AtomicLong();
+	public final LongAdder		sentBytes					= new LongAdder();
 	/**
 	 * 本连接已发送的packet数
 	 */
-	public final AtomicLong		sentPackets					= new AtomicLong();
+	public final LongAdder		sentPackets					= new LongAdder();
 	/**
 	 * 本连接已处理的字节数
 	 */
-	public final AtomicLong		handledBytes				= new AtomicLong();
+	public final LongAdder		handledBytes				= new LongAdder();
 	/**
 	 * 本连接已处理的packet数
 	 */
-	public final AtomicLong		handledPackets				= new AtomicLong();
+	public final LongAdder		handledPackets				= new LongAdder();
 	/**
 	 * 处理消息包耗时，单位：毫秒
 	 * 拿这个值除以handledPackets，就是处理每个消息包的平均耗时
 	 */
-	public final AtomicLong		handledPacketCosts			= new AtomicLong();
+	public final LongAdder		handledPacketCosts			= new LongAdder();
 	/**
 	 * 本连接已接收的字节数
 	 */
-	public final AtomicLong		receivedBytes				= new AtomicLong();
+	public final LongAdder		receivedBytes				= new LongAdder();
 	/**
 	 * 本连接已接收了多少次TCP数据包
 	 */
-	public final AtomicLong		receivedTcps				= new AtomicLong();
+	public final LongAdder		receivedTcps				= new LongAdder();
 	/**
 	 * 本连接已接收的packet数
 	 */
-	public final AtomicLong		receivedPackets				= new AtomicLong();
+	public final LongAdder		receivedPackets				= new LongAdder();
 	/**
 	 * 心跳超时次数
 	 */
@@ -282,20 +283,20 @@ public class ChannelStat implements java.io.Serializable {
 	 * 平均每次TCP接收到的字节数，这个可以用来监控慢攻击，配置PacketsPerTcpReceive定位慢攻击
 	 */
 	public double getBytesPerTcpReceive() {
-		if (receivedTcps.get() == 0) {
+		if (receivedTcps.sum() == 0) {
 			return 0;
 		}
-		return (double) receivedBytes.get() / (double) receivedTcps.get();
+		return receivedBytes.doubleValue() / receivedTcps.doubleValue();
 	}
 
 	/**
 	 * 平均每次TCP接收到的业务包数，这个可以用来监控慢攻击，此值越小越有攻击嫌疑
 	 */
 	public double getPacketsPerTcpReceive() {
-		if (receivedTcps.get() == 0) {
+		if (receivedTcps.sum() == 0) {
 			return 0;
 		}
-		return (double) receivedPackets.get() / (double) receivedTcps.get();
+		return receivedPackets.doubleValue() / receivedTcps.doubleValue();
 	}
 
 	/**
@@ -308,14 +309,14 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * @return the countHandledByte
 	 */
-	public AtomicLong getHandledBytes() {
+	public LongAdder getHandledBytes() {
 		return handledBytes;
 	}
 
 	/**
 	 * @return the countHandledPacket
 	 */
-	public AtomicLong getHandledPackets() {
+	public LongAdder getHandledPackets() {
 		return handledPackets;
 	}
 
@@ -336,28 +337,28 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * @return the countReceivedByte
 	 */
-	public AtomicLong getReceivedBytes() {
+	public LongAdder getReceivedBytes() {
 		return receivedBytes;
 	}
 
 	/**
 	 * @return the countReceivedPacket
 	 */
-	public AtomicLong getReceivedPackets() {
+	public LongAdder getReceivedPackets() {
 		return receivedPackets;
 	}
 
 	/**
 	 * @return the countSentByte
 	 */
-	public AtomicLong getSentBytes() {
+	public LongAdder getSentBytes() {
 		return sentBytes;
 	}
 
 	/**
 	 * @return the countSentPacket
 	 */
-	public AtomicLong getSentPackets() {
+	public LongAdder getSentPackets() {
 		return sentPackets;
 	}
 
@@ -448,11 +449,11 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * @return the receivedTcps
 	 */
-	public AtomicLong getReceivedTcps() {
+	public LongAdder getReceivedTcps() {
 		return receivedTcps;
 	}
 
-	public AtomicLong getHandledPacketCosts() {
+	public LongAdder getHandledPacketCosts() {
 		return handledPacketCosts;
 	}
 
@@ -461,8 +462,8 @@ public class ChannelStat implements java.io.Serializable {
 	 * @return
 	 */
 	public double getHandledCostsPerPacket() {
-		if (handledPackets.get() > 0) {
-			return (double) handledPacketCosts.get() / handledPackets.get();
+		if (handledPackets.sum() > 0) {
+			return handledPacketCosts.doubleValue() / handledPackets.doubleValue();
 		}
 		return 0;
 	}
