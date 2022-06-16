@@ -278,12 +278,8 @@ public class BsIds {
 		if (StrUtil.isBlank(bsId)) {
 			return;
 		}
-		try {
-			map.remove(bsId);
-			channelContext.setBsId(null);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
+		map.remove(bsId);
+		channelContext.setBsId(null);
 	}
 
 }

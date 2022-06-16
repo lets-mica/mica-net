@@ -212,10 +212,8 @@ import java.util.TreeSet;
  * 2017年10月19日 上午9:40:34
  */
 public class MaintainUtils {
-
 	private static final Logger log = LoggerFactory.getLogger(MaintainUtils.class);
-
-	public static final String TEMP_DIR = "TIO_TEMP_FILE/";
+	public static final String TEMP_DIR = "TEMP_FILE/";
 
 	/**
 	 * 彻底删除，不再维护

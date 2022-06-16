@@ -239,19 +239,12 @@ public class Ips {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-		try {
-			String ip = channelContext.getClientNode().getIp();
-			if (ChannelContext.UNKNOWN_ADDRESS_IP.equals(ip)) {
-				return;
-			}
-			if (StrUtil.isBlank(ip)) {
-				return;
-			}
-			Set<ChannelContext> channelSet = CollUtil.computeIfAbsent(ipMap, ip, key -> ConcurrentHashMap.newKeySet());
-			channelSet.add(channelContext);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+		String ip = channelContext.getClientNode().getIp();
+		if (StrUtil.isBlank(ip) || ChannelContext.UNKNOWN_ADDRESS_IP.equals(ip)) {
+			return;
 		}
+		Set<ChannelContext> channelSet = CollUtil.computeIfAbsent(ipMap, ip, key -> ConcurrentHashMap.newKeySet());
+		channelSet.add(channelContext);
 	}
 
 	/**
@@ -292,25 +285,18 @@ public class Ips {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-		try {
-			String ip = channelContext.getClientNode().getIp();
-			if (StrUtil.isBlank(ip)) {
-				return;
+		String ip = channelContext.getClientNode().getIp();
+		if (StrUtil.isBlank(ip) || ChannelContext.UNKNOWN_ADDRESS_IP.equals(ip)) {
+			return;
+		}
+		Set<ChannelContext> channelSet = ipMap.get(ip);
+		if (channelSet != null) {
+			channelSet.remove(channelContext);
+			if (channelSet.isEmpty()) {
+				ipMap.remove(ip);
 			}
-			if (ChannelContext.UNKNOWN_ADDRESS_IP.equals(ip)) {
-				return;
-			}
-			Set<ChannelContext> channelSet = ipMap.get(ip);
-			if (channelSet != null) {
-				channelSet.remove(channelContext);
-				if (channelSet.isEmpty()) {
-					ipMap.remove(ip);
-				}
-			} else {
-				log.info("{}, ip【{}】 找不到对应的 ChannelContext set", channelContext.tioConfig.getName(), ip);
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+		} else {
+			log.info("{}, ip【{}】 找不到对应的 ChannelContext set", channelContext.tioConfig.getName(), ip);
 		}
 	}
 }

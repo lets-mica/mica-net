@@ -193,11 +193,6 @@
 */
 package org.tio.server;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
@@ -216,22 +211,25 @@ import org.tio.utils.SystemTimer;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Set;
+import java.util.concurrent.ThreadPoolExecutor;
+
 /**
- *
  * @author tanyaowu
  * 2016年10月10日 下午5:51:56
  */
 public class TioServerConfig extends TioConfig {
-	static Logger					log						= LoggerFactory.getLogger(TioServerConfig.class);
-	private AcceptCompletionHandler	acceptCompletionHandler	= null;
-	private TioServerHandler		tioServerHandler		= null;
-	private TioServerListener		tioServerListener		= null;
-	private Thread					checkHeartbeatThread	= null;
-	private boolean					needCheckHeartbeat		= true;
+	static Logger log = LoggerFactory.getLogger(TioServerConfig.class);
+	private AcceptCompletionHandler acceptCompletionHandler = null;
+	private TioServerHandler tioServerHandler = null;
+	private TioServerListener tioServerListener = null;
+	private Thread checkHeartbeatThread = null;
+	private boolean needCheckHeartbeat = true;
 	private boolean isShared = false;
 
 	/**
-	 *
 	 * @param tioServerHandler
 	 * @param tioServerListener
 	 * @author: tanyaowu
@@ -241,7 +239,6 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 *
 	 * @param name
 	 * @param tioServerHandler
 	 * @param tioServerListener
@@ -252,7 +249,6 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 *
 	 * @param tioServerHandler
 	 * @param tioServerListener
 	 * @param tioExecutor
@@ -264,7 +260,6 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 *
 	 * @param name
 	 * @param tioServerHandler
 	 * @param tioServerListener
@@ -273,15 +268,13 @@ public class TioServerConfig extends TioConfig {
 	 * @author: tanyaowu
 	 */
 	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener, SynThreadPoolExecutor tioExecutor,
-	        ThreadPoolExecutor groupExecutor) {
+						   ThreadPoolExecutor groupExecutor) {
 		super(tioExecutor, groupExecutor);
-		this.ipStats = new IpStats(this, null);
 		this.ipBlacklist = new IpBlacklist(id, this);
 		init(name, tioServerHandler, tioServerListener);
 	}
 
 	/**
-	 *
 	 * @param name
 	 * @param tioServerHandler
 	 * @param tioServerListener
@@ -392,8 +385,7 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 *
-	 * @param keyStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
+	 * @param keyStoreFile   如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
 	 * @param trustStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
 	 * @param keyStorePwd
 	 * @throws FileNotFoundException
@@ -406,7 +398,6 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 *
 	 * @param keyStoreInputStream
 	 * @param trustStoreInputStream
 	 * @param passwd
@@ -419,6 +410,28 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
+	 * 开启 ipStat
+	 *
+	 * @param durations 时间段
+	 */
+	public void enableIpStat(Long[] durations) {
+		this.ipStats = new IpStats(this, durations);
+	}
+
+	/**
+	 * 开启 ipStat
+	 *
+	 * @param durations 时间段
+	 */
+	public void addIpStat(Long[] durations) {
+		if (this.ipStats == null) {
+			this.enableIpStat(durations);
+		} else {
+			this.ipStats.addDurations(durations);
+		}
+	}
+
+	/**
 	 * @return the acceptCompletionHandler
 	 */
 	public AcceptCompletionHandler getAcceptCompletionHandler() {
@@ -426,12 +439,10 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 * @see org.tio.core.TioConfig#getTioHandler()
-	 *
 	 * @return
 	 * @author tanyaowu
 	 * 2016年12月20日 上午11:34:37
-	 *
+	 * @see org.tio.core.TioConfig#getTioHandler()
 	 */
 	@Override
 	public TioHandler getTioHandler() {
@@ -439,12 +450,10 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 * @see org.tio.core.TioConfig#getTioListener()
-	 *
 	 * @return
 	 * @author tanyaowu
 	 * 2016年12月20日 上午11:34:37
-	 *
+	 * @see org.tio.core.TioConfig#getTioListener()
 	 */
 	@Override
 	public TioListener getTioListener() {

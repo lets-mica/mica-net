@@ -338,12 +338,8 @@ public class Groups {
 				log.error(e.getMessage(), e);
 			}
 		}
-		try {
-			groupSet.clear();
-			channelContext.getGroups().clear();
-		} catch (Throwable e) {
-			log.error(e.getMessage(), e);
-		}
+		groupSet.clear();
+		channelContext.getGroups().clear();
 	}
 
 	/**
@@ -377,33 +373,30 @@ public class Groups {
 		if (channelContext.tioConfig.isShortConnection || StrUtil.isBlank(groupId)) {
 			return;
 		}
-		try {
-			Set<ChannelContext> channelSet = groupMap.get(groupId);
-			if (channelSet != null) {
-				boolean ss = channelSet.remove(channelContext);
-				if (!ss) {
-					log.warn("{}, 移除失败,group:{} cid:{}", channelContext, groupId, channelContext.getId());
-				}
-				if (deleteFromChannelContext) {
-					channelContext.getGroups().remove(groupId);
-				}
-				if (callbackListener) {
-					GroupListener groupListener = channelContext.tioConfig.getGroupListener();
-					if (groupListener != null) {
-						try {
-							groupListener.onAfterUnbind(channelContext, groupId);
-						} catch (Throwable e) {
-							log.error(e.getMessage(), e);
-						}
-					}
-				}
-				//如果该群组没有任何连接，就把这个群组从map中删除，以释放空间
-				if (channelSet.isEmpty()) {
-					groupMap.remove(groupId);
+		Set<ChannelContext> channelSet = groupMap.get(groupId);
+		if (channelSet == null) {
+			return;
+		}
+		boolean ss = channelSet.remove(channelContext);
+		if (!ss) {
+			log.warn("{}, 移除失败,group:{} cid:{}", channelContext, groupId, channelContext.getId());
+		}
+		if (deleteFromChannelContext) {
+			channelContext.getGroups().remove(groupId);
+		}
+		if (callbackListener) {
+			GroupListener groupListener = channelContext.tioConfig.getGroupListener();
+			if (groupListener != null) {
+				try {
+					groupListener.onAfterUnbind(channelContext, groupId);
+				} catch (Throwable e) {
+					log.error(e.getMessage(), e);
 				}
 			}
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+		}
+		//如果该群组没有任何连接，就把这个群组从map中删除，以释放空间
+		if (channelSet.isEmpty()) {
+			groupMap.remove(groupId);
 		}
 	}
 

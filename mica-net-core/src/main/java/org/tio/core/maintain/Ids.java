@@ -226,15 +226,11 @@ public class Ids {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-		try {
-			String key = channelContext.getId();
-			if (StrUtil.isBlank(key)) {
-				return;
-			}
-			map.put(key, channelContext);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+		String key = channelContext.getId();
+		if (StrUtil.isBlank(key)) {
+			return;
 		}
+		map.put(key, channelContext);
 	}
 
 	/**
@@ -268,14 +264,10 @@ public class Ids {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-		try {
-			String key = channelContext.getId();
-			if (StrUtil.isBlank(key)) {
-				return;
-			}
-			map.remove(key);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+		String key = channelContext.getId();
+		if (StrUtil.isBlank(key)) {
+			return;
 		}
+		map.remove(key);
 	}
 }

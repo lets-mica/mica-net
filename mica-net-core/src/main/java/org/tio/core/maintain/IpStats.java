@@ -218,7 +218,7 @@ public class IpStats {
 	 * key: 时长，单位：秒
 	 */
 	public final Map<Long, Cache<String, IpStat>> cacheMap = new HashMap<>();
-	public List<Long> durationList = null;
+	public final List<Long> durationList = new ArrayList<>();
 
 	public IpStats(TioConfig tioConfig, Long[] durations) {
 		this.tioConfigId = tioConfig.getId();
@@ -234,14 +234,9 @@ public class IpStats {
 	 * @author: tanyaowu
 	 */
 	public void addDuration(Long duration) {
-		synchronized (this) {
-			if (durationList == null) {
-				durationList = new ArrayList<>();
-			}
-			Cache<String, IpStat> caffeineCache = Cache2kUtils.getCache(getCacheName(duration), duration, 5000000L, String.class, IpStat.class);
-			cacheMap.put(duration, caffeineCache);
-			durationList.add(duration);
-		}
+		Cache<String, IpStat> caffeineCache = Cache2kUtils.getCache(getCacheName(duration), duration, 5000000L, String.class, IpStat.class);
+		cacheMap.put(duration, caffeineCache);
+		durationList.add(duration);
 	}
 
 	/**
@@ -266,7 +261,11 @@ public class IpStats {
 	 */
 	public void removeDuration(Long duration) {
 		clear(duration);
-		cacheMap.remove(duration);
+		Cache<String, IpStat> cache = cacheMap.remove(duration);
+		if (cache != null) {
+			cache.clear();
+			cache.close();
+		}
 		if (CollUtil.isNotEmpty(durationList)) {
 			durationList.remove(duration);
 		}
