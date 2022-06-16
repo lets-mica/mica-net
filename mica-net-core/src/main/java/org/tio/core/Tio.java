@@ -193,19 +193,11 @@
 */
 package org.tio.core;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.client.ClientChannelContext;
-import org.tio.client.TioClientConfig;
 import org.tio.client.ReconnConf;
+import org.tio.client.TioClientConfig;
 import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
@@ -216,6 +208,14 @@ import org.tio.utils.lock.SetWithLock;
 import org.tio.utils.page.Page;
 import org.tio.utils.page.PageUtils;
 
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+
 /**
  * The Class Tio. t-io用户关心的API几乎全在这
  *
@@ -225,6 +225,7 @@ public class Tio {
 	public static class IpBlacklist {
 		/**
 		 * 把ip添加到黑名单，此黑名单只针对tioConfig有效，其它tioConfig不会把这个ip视为黑名单
+		 *
 		 * @param tioConfig
 		 * @param ip
 		 * @author tanyaowu
@@ -235,6 +236,7 @@ public class Tio {
 
 		/**
 		 * 添加全局ip黑名单
+		 *
 		 * @param ip
 		 * @return
 		 * @author tanyaowu
@@ -245,6 +247,7 @@ public class Tio {
 
 		/**
 		 * 清空黑名单，只针对tioConfig有效
+		 *
 		 * @param tioConfig
 		 * @author tanyaowu
 		 */
@@ -254,6 +257,7 @@ public class Tio {
 
 		/**
 		 * 清空全局黑名单
+		 *
 		 * @author tanyaowu
 		 */
 		public static void clear() {
@@ -262,6 +266,7 @@ public class Tio {
 
 		/**
 		 * 获取ip黑名单列表
+		 *
 		 * @param tioConfig
 		 * @return
 		 * @author tanyaowu
@@ -272,6 +277,7 @@ public class Tio {
 
 		/**
 		 * 获取全局黑名单
+		 *
 		 * @return
 		 * @author tanyaowu
 		 */
@@ -281,6 +287,7 @@ public class Tio {
 
 		/**
 		 * 是否在黑名单中
+		 *
 		 * @param tioConfig
 		 * @param ip
 		 * @return
@@ -292,6 +299,7 @@ public class Tio {
 
 		/**
 		 * 把ip从黑名单中删除
+		 *
 		 * @param tioConfig
 		 * @param ip
 		 * @author tanyaowu
@@ -302,6 +310,7 @@ public class Tio {
 
 		/**
 		 * 删除全局黑名单
+		 *
 		 * @param ip
 		 * @author tanyaowu
 		 */
@@ -310,11 +319,14 @@ public class Tio {
 		}
 	}
 
-	/** The log. */
+	/**
+	 * The log.
+	 */
 	private static Logger log = LoggerFactory.getLogger(Tio.class);
 
 	/**
 	 * 绑定业务id
+	 *
 	 * @param channelContext
 	 * @param bsId
 	 * @author tanyaowu
@@ -325,6 +337,7 @@ public class Tio {
 
 	/**
 	 * 绑定群组
+	 *
 	 * @param channelContext
 	 * @param group
 	 * @author tanyaowu
@@ -335,6 +348,7 @@ public class Tio {
 
 	/**
 	 * 将用户绑定到群组
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @param group
@@ -355,6 +369,7 @@ public class Tio {
 
 	/**
 	 * 绑定token
+	 *
 	 * @param channelContext
 	 * @param token
 	 * @author tanyaowu
@@ -365,6 +380,7 @@ public class Tio {
 
 	/**
 	 * 绑定用户
+	 *
 	 * @param channelContext
 	 * @param userid
 	 * @author tanyaowu
@@ -375,6 +391,7 @@ public class Tio {
 
 	/**
 	 * 阻塞发送消息到指定ChannelContext
+	 *
 	 * @param channelContext
 	 * @param packet
 	 * @return
@@ -390,6 +407,7 @@ public class Tio {
 
 	/**
 	 * 发送到指定的ip和port
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param port
@@ -402,6 +420,7 @@ public class Tio {
 
 	/**
 	 * 发消息到所有连接
+	 *
 	 * @param tioConfig
 	 * @param packet
 	 * @param channelContextFilter
@@ -413,6 +432,7 @@ public class Tio {
 
 	/**
 	 * 阻塞发消息给指定业务ID
+	 *
 	 * @param tioConfig
 	 * @param bsId
 	 * @param packet
@@ -424,6 +444,7 @@ public class Tio {
 
 	/**
 	 * 发消息到组
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param packet
@@ -435,6 +456,7 @@ public class Tio {
 
 	/**
 	 * 发消息到组
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param packet
@@ -447,6 +469,7 @@ public class Tio {
 
 	/**
 	 * 发消息给指定ChannelContext id
+	 *
 	 * @param channelContextId
 	 * @param packet
 	 * @author tanyaowu
@@ -457,6 +480,7 @@ public class Tio {
 
 	/**
 	 * 阻塞发送到指定ip对应的集合
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param packet
@@ -468,6 +492,7 @@ public class Tio {
 
 	/**
 	 * 阻塞发送到指定ip对应的集合
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param packet
@@ -481,6 +506,7 @@ public class Tio {
 
 	/**
 	 * 发消息到指定集合
+	 *
 	 * @param tioConfig
 	 * @param setWithLock
 	 * @param packet
@@ -493,6 +519,7 @@ public class Tio {
 
 	/**
 	 * 阻塞发消息到指定token
+	 *
 	 * @param tioConfig
 	 * @param token
 	 * @param packet
@@ -505,6 +532,7 @@ public class Tio {
 
 	/**
 	 * 阻塞发消息给指定用户
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @param packet
@@ -517,6 +545,7 @@ public class Tio {
 
 	/**
 	 * 关闭连接
+	 *
 	 * @param channelContext
 	 * @param remark
 	 * @author tanyaowu
@@ -526,7 +555,6 @@ public class Tio {
 	}
 
 	/**
-	 *
 	 * @param channelContext
 	 * @param remark
 	 * @param closeCode
@@ -537,6 +565,7 @@ public class Tio {
 
 	/**
 	 * 关闭连接
+	 *
 	 * @param channelContext
 	 * @param throwable
 	 * @param remark
@@ -563,7 +592,6 @@ public class Tio {
 	}
 
 	/**
-	 *
 	 * @param channelContext
 	 * @param throwable
 	 * @param remark
@@ -644,6 +672,7 @@ public class Tio {
 
 	/**
 	 * 关闭连接
+	 *
 	 * @param tioConfig
 	 * @param clientIp
 	 * @param clientPort
@@ -658,6 +687,7 @@ public class Tio {
 
 	/**
 	 * 关闭某群所有连接
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param remark
@@ -669,6 +699,7 @@ public class Tio {
 
 	/**
 	 * 关闭某群所有连接
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param remark
@@ -681,6 +712,7 @@ public class Tio {
 
 	/**
 	 * 关闭某群所有连接
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param remark
@@ -692,6 +724,7 @@ public class Tio {
 
 	/**
 	 * 关闭某群所有连接
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param remark
@@ -704,6 +737,7 @@ public class Tio {
 
 	/**
 	 * 关闭用户的所有连接
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @param remark
@@ -715,6 +749,7 @@ public class Tio {
 
 	/**
 	 * 关闭某用户的所有连接
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @param remark
@@ -727,6 +762,7 @@ public class Tio {
 
 	/**
 	 * 关闭token的所有连接
+	 *
 	 * @param tioConfig
 	 * @param token
 	 * @param remark
@@ -738,6 +774,7 @@ public class Tio {
 
 	/**
 	 * 关闭某token的所有连接
+	 *
 	 * @param tioConfig
 	 * @param token
 	 * @param remark
@@ -750,6 +787,7 @@ public class Tio {
 
 	/**
 	 * 关闭某群所有连接
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param remark
@@ -761,6 +799,7 @@ public class Tio {
 
 	/**
 	 * 关闭某群所有连接
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param remark
@@ -773,6 +812,7 @@ public class Tio {
 
 	/**
 	 * 关闭某群所有连接
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param remark
@@ -784,6 +824,7 @@ public class Tio {
 
 	/**
 	 * 关闭某群所有连接
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param remark
@@ -796,6 +837,7 @@ public class Tio {
 
 	/**
 	 * 关闭用户的所有连接
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @param remark
@@ -807,6 +849,7 @@ public class Tio {
 
 	/**
 	 * 关闭某用户的所有连接
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @param remark
@@ -819,6 +862,7 @@ public class Tio {
 
 	/**
 	 * 关闭token的所有连接
+	 *
 	 * @param tioConfig
 	 * @param token
 	 * @param remark
@@ -830,6 +874,7 @@ public class Tio {
 
 	/**
 	 * 关闭某token的所有连接
+	 *
 	 * @param tioConfig
 	 * @param token
 	 * @param remark
@@ -842,6 +887,7 @@ public class Tio {
 
 	/**
 	 * 关闭集合
+	 *
 	 * @param tioConfig
 	 * @param setWithLock
 	 * @param remark
@@ -860,6 +906,7 @@ public class Tio {
 
 	/**
 	 * 移除集合
+	 *
 	 * @param tioConfig
 	 * @param setWithLock
 	 * @param remark
@@ -878,6 +925,7 @@ public class Tio {
 
 	/**
 	 * 获取所有连接，包括当前处于断开状态的
+	 *
 	 * @param tioConfig
 	 * @return
 	 * @author tanyaowu
@@ -888,6 +936,7 @@ public class Tio {
 
 	/**
 	 * 获取所有连接，包括当前处于断开状态的
+	 *
 	 * @param tioConfig
 	 * @return
 	 * @author tanyaowu
@@ -900,28 +949,31 @@ public class Tio {
 	/**
 	 * 此API仅供 tio client使用
 	 * 获取所有处于正常连接状态的连接
+	 *
 	 * @param tioClientConfig
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static SetWithLock<ChannelContext> getConnecteds(TioClientConfig tioClientConfig) {
+	public static Set<ChannelContext> getConnecteds(TioClientConfig tioClientConfig) {
 		return tioClientConfig.connecteds;
 	}
 
 	/**
 	 * 此API仅供 tio client使用
 	 * 获取所有处于正常连接状态的连接
+	 *
 	 * @param tioClientConfig
 	 * @return
 	 * @author tanyaowu
 	 * @deprecated 用getAllConnecteds(TioClientConfig tioClientConfig)
 	 */
-	public static SetWithLock<ChannelContext> getAllConnectedsChannelContexts(TioClientConfig tioClientConfig) {
+	public static Set<ChannelContext> getAllConnectedsChannelContexts(TioClientConfig tioClientConfig) {
 		return getConnecteds(tioClientConfig);
 	}
 
 	/**
 	 * 根据业务id找ChannelContext
+	 *
 	 * @param tioConfig
 	 * @param bsId
 	 * @return
@@ -933,6 +985,7 @@ public class Tio {
 
 	/**
 	 * 根据业务id找ChannelContext
+	 *
 	 * @param tioConfig
 	 * @param bsId
 	 * @return
@@ -945,6 +998,7 @@ public class Tio {
 
 	/**
 	 * 根据clientip和clientport获取ChannelContext
+	 *
 	 * @param tioConfig
 	 * @param clientIp
 	 * @param clientPort
@@ -957,6 +1011,7 @@ public class Tio {
 
 	/**
 	 * 根据clientip和clientport获取ChannelContext
+	 *
 	 * @param tioConfig
 	 * @param clientIp
 	 * @param clientPort
@@ -970,6 +1025,7 @@ public class Tio {
 
 	/**
 	 * 根据ChannelContext.id获取ChannelContext
+	 *
 	 * @param channelContextId
 	 * @return
 	 * @author tanyaowu
@@ -980,6 +1036,7 @@ public class Tio {
 
 	/**
 	 * 根据ChannelContext.id获取ChannelContext
+	 *
 	 * @param channelContextId
 	 * @return
 	 * @author tanyaowu
@@ -991,6 +1048,7 @@ public class Tio {
 
 	/**
 	 * 获取一个组的所有客户端
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @return
@@ -1002,6 +1060,7 @@ public class Tio {
 
 	/**
 	 * 获取一个组的所有客户端
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @return
@@ -1014,6 +1073,7 @@ public class Tio {
 
 	/**
 	 * 根据token获取SetWithLock<ChannelContext>
+	 *
 	 * @param tioConfig
 	 * @param token
 	 * @return
@@ -1025,6 +1085,7 @@ public class Tio {
 
 	/**
 	 * 根据客户端ip获取SetWithLock<ChannelContext>
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @return
@@ -1036,6 +1097,7 @@ public class Tio {
 
 	/**
 	 * 根据token获取SetWithLock<ChannelContext>
+	 *
 	 * @param tioConfig
 	 * @param token
 	 * @return
@@ -1048,6 +1110,7 @@ public class Tio {
 
 	/**
 	 * 根据userid获取SetWithLock<ChannelContext>
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @return
@@ -1059,6 +1122,7 @@ public class Tio {
 
 	/**
 	 * 根据userid获取SetWithLock<ChannelContext>
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @return
@@ -1070,7 +1134,6 @@ public class Tio {
 	}
 
 	/**
-	 *
 	 * @param tioConfig
 	 * @param pageIndex
 	 * @param pageSize
@@ -1082,7 +1145,6 @@ public class Tio {
 	}
 
 	/**
-	 *
 	 * @param tioConfig
 	 * @param pageIndex
 	 * @param pageSize
@@ -1096,6 +1158,7 @@ public class Tio {
 
 	/**
 	 * 这个方法是给客户器端用的
+	 *
 	 * @param tioClientConfig
 	 * @param pageIndex
 	 * @param pageSize
@@ -1108,6 +1171,7 @@ public class Tio {
 
 	/**
 	 * 这个方法是给客户器端用的
+	 *
 	 * @param tioClientConfig
 	 * @param pageIndex
 	 * @param pageSize
@@ -1116,12 +1180,11 @@ public class Tio {
 	 * @author tanyaowu
 	 */
 	public static <T> Page<T> getPageOfConnecteds(TioClientConfig tioClientConfig, Integer pageIndex, Integer pageSize, Converter<T> converter) {
-		SetWithLock<ChannelContext> setWithLock = Tio.getAllConnectedsChannelContexts(tioClientConfig);
-		return PageUtils.fromSetWithLock(setWithLock, pageIndex, pageSize, converter);
+		Set<ChannelContext> setWithLock = Tio.getAllConnectedsChannelContexts(tioClientConfig);
+		return PageUtils.fromSet(setWithLock, pageIndex, pageSize, converter);
 	}
 
 	/**
-	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param pageIndex
@@ -1134,7 +1197,6 @@ public class Tio {
 	}
 
 	/**
-	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param pageIndex
@@ -1149,6 +1211,7 @@ public class Tio {
 
 	/**
 	 * 群组有多少个连接
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @return
@@ -1169,6 +1232,7 @@ public class Tio {
 
 	/**
 	 * 某通道是否在某群组中
+	 *
 	 * @param group
 	 * @param channelContext
 	 * @return true：在该群组
@@ -1189,7 +1253,6 @@ public class Tio {
 	}
 
 	/**
-	 *
 	 * @param channelContext
 	 * @param remark
 	 */
@@ -1199,6 +1262,7 @@ public class Tio {
 
 	/**
 	 * 和close方法对应，只不过不再进行重连等维护性的操作
+	 *
 	 * @param channelContext
 	 * @param remark
 	 * @param closeCode
@@ -1209,6 +1273,7 @@ public class Tio {
 
 	/**
 	 * 和close方法对应，只不过不再进行重连等维护性的操作
+	 *
 	 * @param channelContext
 	 * @param throwable
 	 * @param remark
@@ -1219,6 +1284,7 @@ public class Tio {
 
 	/**
 	 * 和close方法对应，只不过不再进行重连等维护性的操作
+	 *
 	 * @param channelContext
 	 * @param throwable
 	 * @param remark
@@ -1230,6 +1296,7 @@ public class Tio {
 
 	/**
 	 * 和close方法对应，只不过不再进行重连等维护性的操作
+	 *
 	 * @param tioConfig
 	 * @param clientIp
 	 * @param clientPort
@@ -1242,6 +1309,7 @@ public class Tio {
 
 	/**
 	 * 删除clientip和clientPort为指定值的连接
+	 *
 	 * @param tioConfig
 	 * @param clientIp
 	 * @param clientPort
@@ -1256,6 +1324,7 @@ public class Tio {
 
 	/**
 	 * 删除clientip为指定值的所有连接
+	 *
 	 * @param tioServerConfig
 	 * @param ip
 	 * @param remark
@@ -1265,7 +1334,8 @@ public class Tio {
 	}
 
 	/**
-	 *  删除clientip为指定值的所有连接
+	 * 删除clientip为指定值的所有连接
+	 *
 	 * @param tioServerConfig
 	 * @param ip
 	 * @param remark
@@ -1289,6 +1359,7 @@ public class Tio {
 
 	/**
 	 * 发送消息到指定ChannelContext
+	 *
 	 * @param channelContext
 	 * @param packet
 	 * @author tanyaowu
@@ -1298,7 +1369,6 @@ public class Tio {
 	}
 
 	/**
-	 *
 	 * @param channelContext
 	 * @param packet
 	 * @param countDownLatch
@@ -1393,6 +1463,7 @@ public class Tio {
 
 	/**
 	 * 发送到指定的ip和port
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param port
@@ -1405,6 +1476,7 @@ public class Tio {
 
 	/**
 	 * 发送到指定的ip和port
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param port
@@ -1433,6 +1505,7 @@ public class Tio {
 
 	/**
 	 * 发消息到所有连接
+	 *
 	 * @param tioConfig
 	 * @param packet
 	 * @param channelContextFilter
@@ -1443,7 +1516,6 @@ public class Tio {
 	}
 
 	/**
-	 *
 	 * @param tioConfig
 	 * @param packet
 	 * @param channelContextFilter
@@ -1465,6 +1537,7 @@ public class Tio {
 
 	/**
 	 * 发消息给指定业务ID
+	 *
 	 * @param tioConfig
 	 * @param bsId
 	 * @param packet
@@ -1477,6 +1550,7 @@ public class Tio {
 
 	/**
 	 * 发消息给指定业务ID
+	 *
 	 * @param tioConfig
 	 * @param bsId
 	 * @param packet
@@ -1498,6 +1572,7 @@ public class Tio {
 
 	/**
 	 * 发消息到组
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param packet
@@ -1509,6 +1584,7 @@ public class Tio {
 
 	/**
 	 * 发消息到组
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param packet
@@ -1521,6 +1597,7 @@ public class Tio {
 
 	/**
 	 * 发消息到组
+	 *
 	 * @param tioConfig
 	 * @param group
 	 * @param packet
@@ -1543,6 +1620,7 @@ public class Tio {
 
 	/**
 	 * 发消息给指定ChannelContext id
+	 *
 	 * @param channelContextId
 	 * @param packet
 	 * @author tanyaowu
@@ -1553,6 +1631,7 @@ public class Tio {
 
 	/**
 	 * 发消息给指定ChannelContext id
+	 *
 	 * @param channelContextId
 	 * @param packet
 	 * @param isBlock
@@ -1573,6 +1652,7 @@ public class Tio {
 
 	/**
 	 * 发送到指定ip对应的集合
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param packet
@@ -1584,6 +1664,7 @@ public class Tio {
 
 	/**
 	 * 发送到指定ip对应的集合
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param packet
@@ -1596,6 +1677,7 @@ public class Tio {
 
 	/**
 	 * 发送到指定ip对应的集合
+	 *
 	 * @param tioConfig
 	 * @param ip
 	 * @param packet
@@ -1619,6 +1701,7 @@ public class Tio {
 
 	/**
 	 * 发消息到指定集合
+	 *
 	 * @param tioConfig
 	 * @param setWithLock
 	 * @param packet
@@ -1631,6 +1714,7 @@ public class Tio {
 
 	/**
 	 * 发消息到指定集合
+	 *
 	 * @param tioConfig
 	 * @param setWithLock
 	 * @param packet
@@ -1711,6 +1795,7 @@ public class Tio {
 
 	/**
 	 * 发消息到指定token
+	 *
 	 * @param tioConfig
 	 * @param token
 	 * @param packet
@@ -1723,6 +1808,7 @@ public class Tio {
 
 	/**
 	 * 发消息给指定token
+	 *
 	 * @param tioConfig
 	 * @param token
 	 * @param packet
@@ -1766,6 +1852,7 @@ public class Tio {
 
 	/**
 	 * 发消息给指定用户
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @param packet
@@ -1777,6 +1864,7 @@ public class Tio {
 
 	/**
 	 * 发消息给指定用户
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @param packet
@@ -1820,6 +1908,7 @@ public class Tio {
 
 	/**
 	 * 解绑业务id
+	 *
 	 * @param channelContext
 	 * @author tanyaowu
 	 */
@@ -1829,6 +1918,7 @@ public class Tio {
 
 	/**
 	 * 与所有组解除解绑关系
+	 *
 	 * @param channelContext
 	 * @author tanyaowu
 	 */
@@ -1838,6 +1928,7 @@ public class Tio {
 
 	/**
 	 * 与指定组解除绑定关系
+	 *
 	 * @param group
 	 * @param channelContext
 	 * @author tanyaowu
@@ -1848,6 +1939,7 @@ public class Tio {
 
 	/**
 	 * 将某用户从组中解除绑定
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @param group
@@ -1868,6 +1960,7 @@ public class Tio {
 
 	/**
 	 * 解除channelContext绑定的token
+	 *
 	 * @param channelContext
 	 * @author tanyaowu
 	 */
@@ -1877,6 +1970,7 @@ public class Tio {
 
 	/**
 	 * 解除token
+	 *
 	 * @param tioConfig
 	 * @param token
 	 */
@@ -1888,6 +1982,7 @@ public class Tio {
 
 	/**
 	 * 解除channelContext绑定的userid
+	 *
 	 * @param channelContext
 	 * @author tanyaowu
 	 */
@@ -1897,6 +1992,7 @@ public class Tio {
 
 	/**
 	 * 解除userid的绑定。一般用于多地登录，踢掉前面登录的场景
+	 *
 	 * @param tioConfig
 	 * @param userid
 	 * @author: tanyaowu

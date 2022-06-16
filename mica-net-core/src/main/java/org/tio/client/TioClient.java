@@ -204,7 +204,6 @@ import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.stat.ChannelStat;
 import org.tio.utils.SystemTimer;
 import org.tio.utils.hutool.StrUtil;
-import org.tio.utils.lock.SetWithLock;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -215,7 +214,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 
 /**
  * @author tanyaowu
@@ -422,11 +420,8 @@ public class TioClient {
 						log.warn("用户取消了框架层面的心跳定时发送功能，请用户自己去完成心跳机制");
 						break;
 					}
-					SetWithLock<ChannelContext> setWithLock = tioClientConfig.connecteds;
-					ReadLock readLock = setWithLock.readLock();
-					readLock.lock();
+					Set<ChannelContext> set = tioClientConfig.connecteds;
 					try {
-						Set<ChannelContext> set = setWithLock.getObj();
 						long currTime = SystemTimer.currTime;
 						for (ChannelContext entry : set) {
 							ClientChannelContext channelContext = (ClientChannelContext) entry;
@@ -455,7 +450,6 @@ public class TioClient {
 						log.error("", e);
 					} finally {
 						try {
-							readLock.unlock();
 							Thread.sleep(tioClientConfig.heartbeatTimeout / 4);
 						} catch (Throwable e) {
 							log.error(e.getMessage(), e);

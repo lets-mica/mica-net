@@ -193,14 +193,14 @@
 */
 package org.tio.core.maintain;
 
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.utils.lock.MapWithLock;
+
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
 /**
  *一对一  (ip:port <--> ChannelContext)<br>
@@ -219,7 +219,7 @@ public class ClientNodes {
 	public static String getKey(ChannelContext channelContext) {
 		Node clientNode = channelContext.getClientNode();
 		if (clientNode == null) {
-			throw new RuntimeException("client node is null");
+			throw new IllegalArgumentException("client node is null");
 		}
 		return getKey(clientNode.getIp(), clientNode.getPort());
 	}
@@ -291,7 +291,7 @@ public class ClientNodes {
 			String key = getKey(channelContext);
 			mapWithLock.put(key, channelContext);
 		} catch (Exception e) {
-			log.error(e.toString(), e);
+			log.error(e.getMessage(), e);
 		}
 	}
 
@@ -308,7 +308,7 @@ public class ClientNodes {
 			String key = getKey(channelContext);
 			mapWithLock.remove(key);
 		} catch (Throwable e) {
-			log.error(e.toString(), e);
+			log.error(e.getMessage(), e);
 		}
 	}
 }

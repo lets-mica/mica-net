@@ -200,14 +200,13 @@ import org.tio.core.TioConfig;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.SslConfig;
-import org.tio.utils.lock.SetWithLock;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
-import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月1日 上午9:31:31
  */
@@ -220,11 +219,12 @@ public class TioClientConfig extends TioConfig {
 
 	private ConnectionCompletionHandler connectionCompletionHandler = new ConnectionCompletionHandler();
 
-	public final SetWithLock<ChannelContext>	connecteds	= new SetWithLock<>(new HashSet<>());
-	public final SetWithLock<ChannelContext>	closeds		= new SetWithLock<>(new HashSet<>());
+	public final Set<ChannelContext> connecteds = ConcurrentHashMap.newKeySet();
+	public final Set<ChannelContext> closeds = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * 不重连
+	 *
 	 * @param tioHandler
 	 * @param tioListener
 	 * @author tanyaowu
@@ -234,35 +234,33 @@ public class TioClientConfig extends TioConfig {
 	}
 
 	/**
-	 *
 	 * @param tioHandler
 	 * @param tioListener
-	 * @param reconnConf 不用框架自动重连，就传null
+	 * @param reconnConf  不用框架自动重连，就传null
 	 */
 	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener, ReconnConf reconnConf) {
 		this(tioHandler, tioListener, reconnConf, null, null);
 	}
 
 	/**
-	 *
-	 * @param tioHandler
-	 * @param tioListener
-	 * @param reconnConf 不用框架自动重连，就传null
-	 * @param tioExecutor
-	 * @param groupExecutor
+	 * @param tioHandler TioClientHandler
+	 * @param tioListener TioClientListener
+	 * @param reconnConf    不用框架自动重连，就传null
+	 * @param tioExecutor SynThreadPoolExecutor
+	 * @param groupExecutor ThreadPoolExecutor
 	 */
 	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener, ReconnConf reconnConf, SynThreadPoolExecutor tioExecutor,
-	        ThreadPoolExecutor groupExecutor) {
+						   ThreadPoolExecutor groupExecutor) {
 		super(tioExecutor, groupExecutor);
 		this.groupStat = new ClientGroupStat();
 		this.setTioClientHandler(tioHandler);
 		this.setTioClientListener(tioListener);
-
 		this.reconnConf = reconnConf;
 	}
 
 	/**
 	 * 使用ssl访问
+	 *
 	 * @throws Exception
 	 * @author tanyaowu
 	 */
@@ -272,12 +270,10 @@ public class TioClientConfig extends TioConfig {
 	}
 
 	/**
-	 * @see org.tio.core.TioConfig#getTioHandler()
-	 *
 	 * @return
 	 * @author tanyaowu
 	 * 2016年12月20日 上午11:33:46
-	 *
+	 * @see org.tio.core.TioConfig#getTioHandler()
 	 */
 	@Override
 	public TioHandler getTioHandler() {
@@ -285,12 +281,10 @@ public class TioClientConfig extends TioConfig {
 	}
 
 	/**
-	 * @see org.tio.core.TioConfig#getTioListener()
-	 *
 	 * @return
 	 * @author tanyaowu
 	 * 2016年12月20日 上午11:33:46
-	 *
+	 * @see org.tio.core.TioConfig#getTioListener()
 	 */
 	@Override
 	public TioListener getTioListener() {
@@ -350,7 +344,6 @@ public class TioClientConfig extends TioConfig {
 	}
 
 	/**
-	 *
 	 * @return
 	 * @author tanyaowu
 	 */

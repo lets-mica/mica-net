@@ -193,23 +193,22 @@
 */
 package org.tio.client;
 
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.client.intf.TioClientListener;
 import org.tio.core.ChannelContext.CloseCode;
-import org.tio.core.TioConfig;
 import org.tio.core.Node;
 import org.tio.core.ReadCompletionHandler;
 import org.tio.core.Tio;
+import org.tio.core.TioConfig;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.ssl.SslUtils;
 import org.tio.core.stat.IpStat;
 import org.tio.utils.SystemTimer;
-import org.tio.utils.hutool.CollUtil;
+
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
 
 /**
  *
@@ -311,7 +310,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 				}
 			}
 		} catch (Throwable e) {
-			log.error(e.toString(), e);
+			log.error(e.getMessage(), e);
 		} finally {
 			if (attachment.getCountDownLatch() != null) {
 				attachment.getCountDownLatch().countDown();
@@ -348,12 +347,12 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 								tioConfig.getIpStatListener().onAfterConnected(channelContext, isConnected, isReconnect, ipStat);
 							}
 						} catch (Exception e) {
-							log.error(e.toString(), e);
+							log.error(e.getMessage(), e);
 						}
 					}
 				}
 			} catch (Throwable e1) {
-				log.error(e1.toString(), e1);
+				log.error(e1.getMessage(), e1);
 			}
 		}
 	}

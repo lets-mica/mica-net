@@ -211,7 +211,7 @@ import java.util.*;
  * 2017年4月15日 下午12:13:19
  */
 public class IpStats {
-	private static final String CACHE_NAME = "TIO_IP_STAT";
+	private static final String CACHE_NAME = "IP_STAT";
 	private final String tioConfigId;
 
 	/**

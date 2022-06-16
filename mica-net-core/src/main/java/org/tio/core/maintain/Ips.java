@@ -225,12 +225,11 @@ public class Ips {
 	 * value: SetWithLock<ChannelContext>
 	 */
 	private final MapWithLock<String, SetWithLock<ChannelContext>> ipmap = new MapWithLock<>(new HashMap<>());
-	private static final String rwKey = "_tio_ips__";
+	private static final String RW_KEY = "__ips__";
 
 	/**
 	 * 和ip绑定
 	 *
-	 * @param ip
 	 * @param channelContext
 	 * @author tanyaowu
 	 */
@@ -253,7 +252,7 @@ public class Ips {
 			}
 			SetWithLock<ChannelContext> channelSet = ipmap.get(ip);
 			if (channelSet == null) {
-				LockUtils.runWriteOrWaitRead(rwKey + ip, this, () -> {
+				LockUtils.runWriteOrWaitRead(RW_KEY + ip, this, () -> {
 					if (ipmap.get(ip) == null) {
 						ipmap.put(ip, new SetWithLock<>(new HashSet<>()));
 					}
@@ -262,7 +261,7 @@ public class Ips {
 			}
 			channelSet.add(channelContext);
 		} catch (Exception e) {
-			log.error(e.toString(), e);
+			log.error(e.getMessage(), e);
 		}
 	}
 
@@ -326,7 +325,7 @@ public class Ips {
 				log.info("{}, ip【{}】 找不到对应的SetWithLock", channelContext.tioConfig.getName(), ip);
 			}
 		} catch (Exception e) {
-			log.error(e.toString(), e);
+			log.error(e.getMessage(), e);
 		}
 	}
 }

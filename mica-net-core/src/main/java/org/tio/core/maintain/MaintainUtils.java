@@ -193,18 +193,18 @@
 */
 package org.tio.core.maintain;
 
-import java.io.File;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.client.TioClientConfig;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
 import org.tio.utils.hutool.FileUtil;
+
+import java.io.File;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *
@@ -231,11 +231,9 @@ public class MaintainUtils {
 			tioClientConfig.closeds.remove(channelContext);
 			tioClientConfig.connecteds.remove(channelContext);
 		}
-
 		tioConfig.connections.remove(channelContext);
 		tioConfig.ips.unbind(channelContext);
 		tioConfig.ids.unbind(channelContext);
-
 		close(channelContext);
 	}
 
@@ -255,9 +253,10 @@ public class MaintainUtils {
 	}
 
 	/**
+	 * createSet
 	 *
-	 * @param tioConfig
-	 * @return
+	 * @param comparator
+	 * @return ChannelContext set
 	 */
 	public static Set<ChannelContext> createSet(Comparator<ChannelContext> comparator) {
 		if (comparator == null) {

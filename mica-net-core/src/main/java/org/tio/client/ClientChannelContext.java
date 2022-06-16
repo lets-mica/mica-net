@@ -193,14 +193,14 @@
 */
 package org.tio.client;
 
+import org.tio.core.ChannelContext;
+import org.tio.core.Node;
+import org.tio.core.TioConfig;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.tio.core.ChannelContext;
-import org.tio.core.TioConfig;
-import org.tio.core.Node;
 
 /**
  *
@@ -217,7 +217,7 @@ public class ClientChannelContext extends ChannelContext {
 	/**
 	 * 连续重连次数，连接成功后，此值会被重置0
 	 */
-	private AtomicInteger reconnCount = new AtomicInteger();
+	private final AtomicInteger reconnCount = new AtomicInteger();
 
 	/**
 	 * @param tioConfig
@@ -301,10 +301,6 @@ public class ClientChannelContext extends ChannelContext {
 
 	public AtomicInteger getReconnCount() {
 		return reconnCount;
-	}
-
-	public void setReconnCount(AtomicInteger reconnCount) {
-		this.reconnCount = reconnCount;
 	}
 
 }
