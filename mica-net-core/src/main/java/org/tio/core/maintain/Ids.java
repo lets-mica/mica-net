@@ -193,8 +193,6 @@
 */
 package org.tio.core.maintain;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
 import org.tio.utils.hutool.StrUtil;
@@ -210,7 +208,6 @@ import java.util.concurrent.ConcurrentMap;
  * 2017年4月15日 下午12:13:19
  */
 public class Ids {
-	private static final Logger log = LoggerFactory.getLogger(Ids.class);
 
 	/**
 	 * key: ChannelContext对象的id字段

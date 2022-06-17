@@ -199,7 +199,6 @@ import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
 import org.tio.utils.hutool.StrUtil;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -220,8 +219,8 @@ public class BsIds {
 	private final ConcurrentMap<String, ChannelContext> map = new ConcurrentHashMap<>();
 
 	/**
-	 * @param channelContext
-	 * @param bsId
+	 * @param channelContext ChannelContext
+	 * @param bsId           bsId
 	 * @author tanyaowu
 	 */
 	public void bind(ChannelContext channelContext, String bsId) {
@@ -242,9 +241,9 @@ public class BsIds {
 	}
 
 	/**
-	 * @param tioConfig
-	 * @param bsId
-	 * @return
+	 * @param tioConfig TioConfig
+	 * @param bsId      bsId
+	 * @return ChannelContext
 	 * @author tanyaowu
 	 */
 	public ChannelContext find(TioConfig tioConfig, String bsId) {
@@ -258,15 +257,7 @@ public class BsIds {
 	}
 
 	/**
-	 * @return
-	 * @author tanyaowu
-	 */
-	public Map<String, ChannelContext> getMap() {
-		return map;
-	}
-
-	/**
-	 * @param channelContext
+	 * @param channelContext ChannelContext
 	 * @author tanyaowu
 	 */
 	public void unbind(ChannelContext channelContext) {

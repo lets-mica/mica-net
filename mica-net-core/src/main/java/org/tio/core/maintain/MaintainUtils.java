@@ -207,7 +207,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- *
  * @author tanyaowu
  * 2017年10月19日 上午9:40:34
  */
@@ -217,10 +216,9 @@ public class MaintainUtils {
 
 	/**
 	 * 彻底删除，不再维护
-	 * @param channelContext
 	 *
+	 * @param channelContext ChannelContext
 	 * @author tanyaowu
-	 *
 	 */
 	public static void remove(ChannelContext channelContext) {
 		TioConfig tioConfig = channelContext.tioConfig;
@@ -236,8 +234,7 @@ public class MaintainUtils {
 	}
 
 	/**
-	 *
-	 * @param channelContext
+	 * @param channelContext ChannelContext
 	 * @author tanyaowu
 	 */
 	public static void close(ChannelContext channelContext) {
@@ -253,7 +250,7 @@ public class MaintainUtils {
 	/**
 	 * createSet
 	 *
-	 * @param comparator
+	 * @param comparator comparator
 	 * @return ChannelContext set
 	 */
 	public static Set<ChannelContext> createSet(Comparator<ChannelContext> comparator) {
@@ -276,7 +273,6 @@ public class MaintainUtils {
 	}
 
 	/**
-	 *
 	 * @param channelContext
 	 * @return
 	 * @author tanyaowu

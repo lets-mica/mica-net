@@ -201,6 +201,8 @@ import org.tio.core.stat.IpStat;
 import org.tio.utils.hutool.CollUtil;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 使用方法（注意顺序）：<br>
@@ -217,7 +219,7 @@ public class IpStats {
 	/**
 	 * key: 时长，单位：秒
 	 */
-	public final Map<Long, Cache<String, IpStat>> cacheMap = new HashMap<>();
+	public final ConcurrentMap<Long, Cache<String, IpStat>> cacheMap = new ConcurrentHashMap<>();
 	public final List<Long> durationList = new ArrayList<>();
 
 	public IpStats(TioConfig tioConfig, Long[] durations) {
@@ -234,8 +236,8 @@ public class IpStats {
 	 * @author: tanyaowu
 	 */
 	public void addDuration(Long duration) {
-		Cache<String, IpStat> caffeineCache = Cache2kUtils.getCache(getCacheName(duration), duration, 5000000L, String.class, IpStat.class);
-		cacheMap.put(duration, caffeineCache);
+		Cache<String, IpStat> cache = CollUtil.computeIfAbsent(cacheMap, duration, key -> Cache2kUtils.getCache(getCacheName(key), key, 5000000L, String.class, IpStat.class));
+		cacheMap.put(duration, cache);
 		durationList.add(duration);
 	}
 
@@ -272,13 +274,12 @@ public class IpStats {
 	}
 
 	/**
-	 * @param duration
-	 * @return
+	 * @param duration duration
+	 * @return cache name
 	 * @author: tanyaowu
 	 */
-	public String getCacheName(Long duration) {
-		String cacheName = CACHE_NAME + '_' + this.tioConfigId + '_';
-		return cacheName + duration;
+	protected String getCacheName(Long duration) {
+		return CACHE_NAME + '_' + this.tioConfigId + '_' + duration;
 	}
 
 	/**
