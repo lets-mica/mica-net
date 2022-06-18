@@ -209,7 +209,10 @@ import java.util.Collection;
  */
 public class IpBlacklist {
 	private static final String CACHE_NAME_PREFIX = "IP_BLACK_LIST";
-	private static final Long TIME_TO_LIVE_SECONDS = Time.DAY_1 * 120;
+	/**
+	 * ip 黑名单缓存时间，默认：30天
+	 */
+	private static final long TIME_TO_LIVE_SECONDS = Time.DAY_1 * 30;
 	private final String id;
 	private final Cache<String, Long> cache;
 	private TioServerConfig tioServerConfig;
@@ -249,8 +252,8 @@ public class IpBlacklist {
 	/**
 	 * 是否在黑名单中
 	 *
-	 * @param ip
-	 * @return
+	 * @param ip ip
+	 * @return 是否在黑名单中
 	 * @author tanyaowu
 	 */
 	public boolean isInBlacklist(String ip) {

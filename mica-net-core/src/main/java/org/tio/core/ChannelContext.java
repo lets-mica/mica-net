@@ -730,7 +730,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		oldIpStat.getRequestCount().addAndGet(-1);
 		oldIpStat.getSentBytes().add(-myStat.getSentBytes().sum());
 		oldIpStat.getSentPackets().add(-myStat.getSentPackets().sum());
-		oldIpStat.getStart();
 
 		newIpStat.getHandledBytes().add(myStat.getHandledBytes().sum());
 		newIpStat.getHandledPacketCosts().add(myStat.getHandledPacketCosts().sum());
@@ -741,7 +740,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		newIpStat.getRequestCount().addAndGet(1);
 		newIpStat.getSentBytes().add(myStat.getSentBytes().sum());
 		newIpStat.getSentPackets().add(myStat.getSentPackets().sum());
-		newIpStat.getStart();
 	}
 
 	/**

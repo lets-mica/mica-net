@@ -197,7 +197,6 @@ import org.tio.utils.SystemTimer;
 import org.tio.utils.hutool.BetweenFormater;
 import org.tio.utils.hutool.BetweenFormater.Level;
 
-import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -209,7 +208,7 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class IpStat implements java.io.Serializable {
 	private static final long serialVersionUID = -6942731710053482089L;
-	private Date start = new Date();
+	private final long startTime = System.currentTimeMillis();
 	/**
 	 * 当前统计了多久，单位：毫秒
 	 */
@@ -217,52 +216,52 @@ public class IpStat implements java.io.Serializable {
 	/**
 	 * 时长类型，单位：秒，譬如60，3600等
 	 */
-	private Long durationType;
+	private final Long durationType;
 	/**
 	 * 客户端ip
 	 */
-	private String ip;
+	private final String ip;
 
 	/**
 	 * 解码异常的次数
 	 */
-	private AtomicInteger decodeErrorCount = new AtomicInteger();
+	private final AtomicInteger decodeErrorCount = new AtomicInteger();
 	/**
 	 * 收到该IP连接请求的次数
 	 */
-	private AtomicInteger requestCount = new AtomicInteger();
+	private final AtomicInteger requestCount = new AtomicInteger();
 	/**
 	 * 本IP已发送的字节数
 	 */
-	private LongAdder sentBytes = new LongAdder();
+	private final LongAdder sentBytes = new LongAdder();
 	/**
 	 * 本IP已发送的packet数
 	 */
-	private LongAdder sentPackets = new LongAdder();
+	private final LongAdder sentPackets = new LongAdder();
 	/**
 	 * 本IP已处理的字节数
 	 */
-	private LongAdder handledBytes = new LongAdder();
+	private final LongAdder handledBytes = new LongAdder();
 	/**
 	 * 本IP已处理的packet数
 	 */
-	private LongAdder handledPackets = new LongAdder();
+	private final LongAdder handledPackets = new LongAdder();
 	/**
 	 * 处理消息包耗时，单位：毫秒
 	 */
-	private LongAdder handledPacketCosts = new LongAdder();
+	private final LongAdder handledPacketCosts = new LongAdder();
 	/**
 	 * 本IP已接收的字节数
 	 */
-	private LongAdder receivedBytes = new LongAdder();
+	private final LongAdder receivedBytes = new LongAdder();
 	/**
 	 * 本IP已接收了多少次TCP数据包
 	 */
-	private LongAdder receivedTcps = new LongAdder();
+	private final LongAdder receivedTcps = new LongAdder();
 	/**
 	 * 本IP已接收的packet数
 	 */
-	private LongAdder receivedPackets = new LongAdder();
+	private final LongAdder receivedPackets = new LongAdder();
 
 	/**
 	 * 平均每次TCP接收到的字节数，这个可以用来监控慢攻击，配置PacketsPerTcpReceive定位慢攻击
@@ -282,8 +281,8 @@ public class IpStat implements java.io.Serializable {
 	}
 
 	public long getDuration() {
-		duration = SystemTimer.currTime - this.start.getTime();
-		return duration;
+		this.duration = SystemTimer.currTime - this.startTime;
+		return this.duration;
 	}
 
 	public IpStat(String ip, Long durationType) {
@@ -302,7 +301,7 @@ public class IpStat implements java.io.Serializable {
 	 * @return the duration
 	 */
 	public String getFormatedDuration() {
-		duration = SystemTimer.currTime - this.start.getTime();
+		duration = SystemTimer.currTime - this.startTime;
 		BetweenFormater betweenFormater = new BetweenFormater(duration, Level.MILLSECOND);
 		return betweenFormater.format();
 	}
@@ -383,29 +382,8 @@ public class IpStat implements java.io.Serializable {
 	/**
 	 * @return the start
 	 */
-	public Date getStart() {
-		return start;
-	}
-
-	/**
-	 * @param durationType the durationType to set
-	 */
-	public void setDurationType(Long durationType) {
-		this.durationType = durationType;
-	}
-
-	/**
-	 * @param ip the ip to set
-	 */
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
-
-	/**
-	 * @param start the start to set
-	 */
-	public void setStart(Date start) {
-		this.start = start;
+	public long getStartTime() {
+		return startTime;
 	}
 
 	public LongAdder getHandledPacketCosts() {
