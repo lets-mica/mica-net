@@ -193,17 +193,16 @@
 */
 package org.tio.core.ssl.facade;
 
-import java.nio.ByteBuffer;
-
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.ssl.SslVo;
 import org.tio.utils.hutool.StrUtil;
+
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLException;
+import java.nio.ByteBuffer;
 
 class Worker {
 
@@ -212,8 +211,8 @@ class Worker {
 	/*  Uses the SSLEngine and Buffers to perform wrap/unwrap operations.
 	 Also, provides access to SSLEngine ops for handshake
 	 */
-	private final static String		TAG						= "Worker";
-	private final SSLEngine			_engine;
+	private final static String TAG = "Worker";
+	private final SSLEngine _engine;
 	private final Buffers			_buffers;
 	private ISSLListener			_sslListener;
 	private ISessionClosedListener	_sessionClosedListener	= new DefaultOnCloseListener();

@@ -193,17 +193,15 @@
 */
 package org.tio.server;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.tio.core.stat.GroupStat;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
- *
  * @author tanyaowu
- *
  */
 public class ServerGroupStat extends GroupStat {
-	private static final long	serialVersionUID	= -139100692961946342L;
+	private static final long serialVersionUID = -139100692961946342L;
 	/**
 	 * 接受了多少连接
 	 */

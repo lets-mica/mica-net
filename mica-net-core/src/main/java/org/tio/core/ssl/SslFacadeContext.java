@@ -196,8 +196,6 @@
  */
 package org.tio.core.ssl;
 
-import javax.net.ssl.SSLContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
@@ -205,9 +203,10 @@ import org.tio.core.ssl.facade.DefaultTaskHandler;
 import org.tio.core.ssl.facade.ISSLFacade;
 import org.tio.core.ssl.facade.SSLFacade;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * @author tanyaowu
- *
  */
 public class SslFacadeContext {
 	private static final Logger log = LoggerFactory.getLogger(SslFacadeContext.class);

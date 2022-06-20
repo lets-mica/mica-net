@@ -196,8 +196,6 @@
  */
 package org.tio.core.ssl;
 
-import java.nio.ByteBuffer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
@@ -205,9 +203,10 @@ import org.tio.core.intf.Packet;
 import org.tio.core.ssl.facade.ISSLListener;
 import org.tio.core.utils.ByteBufferUtils;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author tanyaowu
- *
  */
 public class SslListener implements ISSLListener {
 	private static final Logger log = LoggerFactory.getLogger(SslListener.class);

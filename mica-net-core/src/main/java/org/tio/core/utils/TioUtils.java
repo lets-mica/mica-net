@@ -196,8 +196,8 @@ package org.tio.core.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
-import org.tio.core.Tio;
 import org.tio.core.ChannelContext.CloseCode;
+import org.tio.core.Tio;
 import org.tio.utils.thread.ThreadUtils;
 
 /**

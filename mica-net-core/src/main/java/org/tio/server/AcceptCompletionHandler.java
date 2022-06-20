@@ -193,20 +193,19 @@
 */
 package org.tio.server;
 
-import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousServerSocketChannel;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ReadCompletionHandler;
 import org.tio.core.ssl.SslUtils;
 import org.tio.core.stat.IpStat;
 import org.tio.utils.SystemTimer;
-import org.tio.utils.hutool.CollUtil;
+
+import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousServerSocketChannel;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
 
 /**
  *

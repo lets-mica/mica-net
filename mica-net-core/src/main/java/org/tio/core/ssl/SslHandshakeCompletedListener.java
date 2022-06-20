@@ -196,17 +196,16 @@
  */
 package org.tio.core.ssl;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.intf.Packet;
 import org.tio.core.ssl.facade.IHandshakeCompletedListener;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 /**
  * @author tanyaowu
- *
  */
 public class SslHandshakeCompletedListener implements IHandshakeCompletedListener {
 	private static final Logger log = LoggerFactory.getLogger(SslHandshakeCompletedListener.class);

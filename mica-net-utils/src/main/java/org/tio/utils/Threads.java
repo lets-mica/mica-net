@@ -196,14 +196,14 @@
  */
 package org.tio.utils;
 
+import org.tio.utils.thread.pool.DefaultThreadFactory;
+import org.tio.utils.thread.pool.SynThreadPoolExecutor;
+import org.tio.utils.thread.pool.TioCallerRunsPolicy;
+
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 import java.util.concurrent.TimeUnit;
-
-import org.tio.utils.thread.pool.DefaultThreadFactory;
-import org.tio.utils.thread.pool.SynThreadPoolExecutor;
-import org.tio.utils.thread.pool.TioCallerRunsPolicy;
 
 /**
  *

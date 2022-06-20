@@ -193,14 +193,13 @@
 */
 package org.tio.core.ssl.facade;
 
-import java.nio.BufferOverflowException;
-import java.nio.ByteBuffer;
-
-import javax.net.ssl.SSLSession;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
+
+import javax.net.ssl.SSLSession;
+import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
 
 class Buffers {
 

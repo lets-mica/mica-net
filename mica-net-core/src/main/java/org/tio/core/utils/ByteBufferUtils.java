@@ -193,18 +193,17 @@
 */
 package org.tio.core.utils;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.exception.LengthOverflowException;
 import org.tio.utils.hutool.StrUtil;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
- *
  * @author tanyaowu
  * 2017年10月19日 上午9:41:00
  */

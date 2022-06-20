@@ -193,9 +193,6 @@
 */
 package org.tio.core;
 
-import java.nio.ByteBuffer;
-import java.nio.channels.CompletionHandler;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext.CloseCode;
@@ -203,7 +200,9 @@ import org.tio.core.stat.IpStat;
 import org.tio.core.utils.ByteBufferUtils;
 import org.tio.core.utils.TioUtils;
 import org.tio.utils.SystemTimer;
-import org.tio.utils.hutool.CollUtil;
+
+import java.nio.ByteBuffer;
+import java.nio.channels.CompletionHandler;
 
 /**
  *

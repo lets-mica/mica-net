@@ -193,13 +193,14 @@
 */
 package org.tio.core.ssl.facade;
 
-import java.nio.ByteBuffer;
-
 import org.tio.core.ssl.SslVo;
+
+import java.nio.ByteBuffer;
 
 public interface ISSLListener {
 	/**
 	 * 业务层通过这个方法把SSL加密后的数据发出去
+	 *
 	 * @param sslVo
 	 */
 	void onWrappedData(SslVo sslVo);

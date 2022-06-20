@@ -193,19 +193,18 @@
 */
 package org.tio.core.ssl.facade;
 
-import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.ssl.SslVo;
 import org.tio.core.utils.ByteBufferUtils;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class SSLFacade implements ISSLFacade {
 	@SuppressWarnings("unused")
