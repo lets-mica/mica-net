@@ -238,8 +238,8 @@ public class ReconnRunnable extends AbstractSynRunnable {
 			long end = SystemTimer.currTime;
 			long iv = end - start;
 			log.error("{}, 第{}次重连,重连耗时:{} ms", channelContext, channelContext.getReconnCount(), iv);
-		} catch (java.lang.Throwable e) {
-			log.error(e.toString(), e);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
 		} finally {
 			writeLock.unlock();
 		}

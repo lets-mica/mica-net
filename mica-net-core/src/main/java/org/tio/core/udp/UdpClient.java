@@ -269,7 +269,7 @@ public class UdpClient {
 			byte[] bs = data.getBytes(charset);
 			send(bs);
 		} catch (UnsupportedEncodingException e) {
-			log.error(e.toString(), e);
+			log.error(e.getMessage(), e);
 		}
 	}
 

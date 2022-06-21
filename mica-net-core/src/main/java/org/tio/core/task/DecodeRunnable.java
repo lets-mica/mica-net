@@ -375,7 +375,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						try {
 							tioConfig.getTioListener().onAfterDecoded(channelContext, packet, packetSize);
 						} catch (Throwable e) {
-							log.error(e.toString(), e);
+							log.error(e.getMessage(), e);
 						}
 					}
 
@@ -415,7 +415,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 							tioConfig.getIpStatListener().onDecodeError(channelContext, ipStat);
 						}
 					} catch (Exception e1) {
-						log.error(e1.toString(), e1);
+						log.error(e1.getMessage(), e1);
 					}
 				}
 

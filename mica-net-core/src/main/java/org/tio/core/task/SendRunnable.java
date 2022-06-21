@@ -288,7 +288,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			try {
 				channelContext.processAfterSent(p, false);
 			} catch (Throwable e) {
-				log.error(e.toString(), e);
+				log.error(e.getMessage(), e);
 			}
 		}
 	}

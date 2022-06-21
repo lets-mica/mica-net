@@ -267,7 +267,7 @@ public class MaintainUtils {
 				File dirFile = tempDir(channelContext, false);
 				FileUtil.del(dirFile);
 			} catch (Exception e) {
-				log.error(e.toString(), e);
+				log.error(e.getMessage(), e);
 			}
 		}
 	}
