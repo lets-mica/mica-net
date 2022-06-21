@@ -29,6 +29,8 @@
         <module>mica-net-utils</module>
         <module>mica-net-core</module>
         <module>mica-net-http</module>
+        <module>mica-net-cluster-api</module>
+        <module>mica-net-cluster-core</module>
     </modules>
 
     <properties>
@@ -69,6 +71,16 @@
             <dependency>
                 <groupId>net.dreamlu</groupId>
                 <artifactId>mica-net-http</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.dreamlu</groupId>
+                <artifactId>mica-net-cluster-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.dreamlu</groupId>
+                <artifactId>mica-net-cluster-core</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
