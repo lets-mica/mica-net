@@ -12,4 +12,11 @@
         <version>${revision}</version>
     </parent>
 
+    <dependencies>
+        <dependency>
+            <groupId>net.dreamlu</groupId>
+            <artifactId>mica-net-cluster-api</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>
