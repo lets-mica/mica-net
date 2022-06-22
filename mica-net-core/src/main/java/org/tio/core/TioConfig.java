@@ -289,7 +289,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	public BsIds								bsIds						= new BsIds();
 	public Ips									ips							= new Ips();
 	public IpStats								ipStats						= null;
-	protected String							id;
+	public final String							id;
 	/**
 	 * 解码失败多少次抛出异常
 	 */

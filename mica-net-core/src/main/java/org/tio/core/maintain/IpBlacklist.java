@@ -223,8 +223,8 @@ public class IpBlacklist {
 		this.cache = Cache2kUtils.getCache(CACHE_NAME_PREFIX + this.id, TIME_TO_LIVE_SECONDS, 5000000L, String.class, Long.class);
 	}
 
-	public IpBlacklist(String id, TioServerConfig tioServerConfig) {
-		this.id = id;
+	public IpBlacklist(TioServerConfig tioServerConfig) {
+		this.id = tioServerConfig.id;
 		this.tioServerConfig = tioServerConfig;
 		this.cache = Cache2kUtils.getCache(CACHE_NAME_PREFIX + this.id, TIME_TO_LIVE_SECONDS, 5000000L, String.class, Long.class);
 	}

@@ -201,7 +201,6 @@ import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
-import org.tio.core.maintain.IpBlacklist;
 import org.tio.core.maintain.IpStats;
 import org.tio.core.ssl.SslConfig;
 import org.tio.server.intf.TioServerHandler;
@@ -270,7 +269,6 @@ public class TioServerConfig extends TioConfig {
 	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener, SynThreadPoolExecutor tioExecutor,
 						   ThreadPoolExecutor groupExecutor) {
 		super(tioExecutor, groupExecutor);
-		this.ipBlacklist = new IpBlacklist(id, this);
 		init(name, tioServerHandler, tioServerListener);
 	}
 
