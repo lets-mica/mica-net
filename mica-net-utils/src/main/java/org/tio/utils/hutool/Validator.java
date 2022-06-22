@@ -202,7 +202,6 @@ import java.util.regex.Pattern;
 public class Validator {
 
 	/**
-	 *
 	 * @author tanyaowu
 	 */
 	public Validator() {
@@ -212,21 +211,15 @@ public class Validator {
 	 * 通过正则表达式验证
 	 *
 	 * @param pattern 正则模式
-	 * @param value 值
+	 * @param value   值
 	 * @return 是否匹配正则
 	 */
-	public static boolean isMactchRegex(Pattern pattern, String value) {
-		return ReUtil.isMatch(pattern, value);
-	}
-
-	/**
-	 * 验证是否为IPV4地址
-	 *
-	 * @param value 值
-	 * @return 是否为IPV4地址
-	 */
-	public static boolean isIpv4(String value) {
-		return isMactchRegex(org.tio.utils.hutool.PatternPool.IPV4, value);
+	public static boolean isMactch(Pattern pattern, String value) {
+		if (value == null || pattern == null) {
+			// 提供null的字符串为不匹配
+			return false;
+		}
+		return pattern.matcher(value).matches();
 	}
 
 	/**
@@ -263,7 +256,7 @@ public class Validator {
 			}
 		}
 		sz--; // don't want to loop to the last char, check it afterwords
-		      // for type qualifiers
+		// for type qualifiers
 		int i = start;
 		// loop to the next to last char or to the last char if we need another digit to
 		// make a valid number (e.g. chars[0..5] = "1234E")

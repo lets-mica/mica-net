@@ -196,6 +196,9 @@ package org.tio.utils.hutool;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 public class ArrayUtil {
 
@@ -343,11 +346,11 @@ public class ArrayUtil {
 	 * @param editor 编辑器接口
 	 * @return 过滤后的数组
 	 */
-	public static <T> T[] filter(T[] array, Editor<T> editor) {
+	public static <T> T[] filter(T[] array, UnaryOperator<T> editor) {
 		ArrayList<T> list = new ArrayList<>(array.length);
 		T modified;
 		for (T t : array) {
-			modified = editor.edit(t);
+			modified = editor.apply(t);
 			if (null != modified) {
 				list.add(modified);
 			}
@@ -360,7 +363,7 @@ public class ArrayUtil {
 	 * 过滤过程通过传入的Filter实现来过滤返回需要的元素内容，这个Editor实现可以实现以下功能：
 	 *
 	 * <pre>
-	 * 1、过滤出需要的对象，{@link Filter#accept(Object)}方法返回true的对象将被加入结果集合中
+	 * 1、过滤出需要的对象，{@link java.util.function.Predicate#test(Object)} (Object)}方法返回true的对象将被加入结果集合中
 	 * </pre>
 	 *
 	 * @param <T>    数组元素类型
@@ -369,11 +372,11 @@ public class ArrayUtil {
 	 * @return 过滤后的数组
 	 * @since 3.2.1
 	 */
-	public static <T> T[] filter(T[] array, Filter<T> filter) {
+	public static <T> T[] filter(T[] array, Predicate<T> filter) {
 		ArrayList<T> list = new ArrayList<>(array.length);
 		boolean isAccept;
 		for (T t : array) {
-			isAccept = filter.accept(t);
+			isAccept = filter.test(t);
 			if (isAccept) {
 				list.add(t);
 			}

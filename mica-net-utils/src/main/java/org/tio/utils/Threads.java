@@ -206,21 +206,19 @@ import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 import java.util.concurrent.TimeUnit;
 
 /**
- *
  * @author tanyaowu
  * 2017年7月7日 上午11:12:03
  */
 public class Threads {
-	public static final int					AVAILABLE_PROCESSORS	= Runtime.getRuntime().availableProcessors();
-	public static final int					CORE_POOL_SIZE			= AVAILABLE_PROCESSORS;
-	public static final int					MAX_POOL_SIZE_FOR_TIO	= Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_TIO", Math.max(CORE_POOL_SIZE * 3, 64));
-	public static final int					MAX_POOL_SIZE_FOR_GROUP	= Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_GROUP", Math.max(CORE_POOL_SIZE * 16, 256));
-	public static final long				KEEP_ALIVE_TIME			= 0L;
-	private static ThreadPoolExecutor		groupExecutor			= null;
-	private static SynThreadPoolExecutor	tioExecutor				= null;
+	public static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
+	public static final int CORE_POOL_SIZE = AVAILABLE_PROCESSORS;
+	public static final int MAX_POOL_SIZE_FOR_TIO = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_TIO", Math.max(CORE_POOL_SIZE * 3, 64));
+	public static final int MAX_POOL_SIZE_FOR_GROUP = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_GROUP", Math.max(CORE_POOL_SIZE * 16, 256));
+	public static final long KEEP_ALIVE_TIME = 0L;
+	private static ThreadPoolExecutor groupExecutor = null;
+	private static SynThreadPoolExecutor tioExecutor = null;
 
 	/**
-	 *
 	 * @return
 	 * @author tanyaowu
 	 */
@@ -242,7 +240,6 @@ public class Threads {
 	}
 
 	/**
-	 *
 	 * @return
 	 * @author tanyaowu
 	 */
@@ -261,6 +258,21 @@ public class Threads {
 			tioExecutor.prestartCoreThread();
 			return tioExecutor;
 		}
+	}
+
+	/**
+	 * stackTrace
+	 *
+	 * @return stackTrace
+	 */
+	public static String stackTrace() {
+		StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+		StringBuilder buf = new StringBuilder();
+		for (StackTraceElement element : elements) {
+			buf.append("\r\n	").append(element.getClassName()).append('.').append(element.getMethodName()).append('(').append(element.getFileName()).append(':')
+				.append(element.getLineNumber()).append(')');
+		}
+		return buf.toString();
 	}
 
 	/**

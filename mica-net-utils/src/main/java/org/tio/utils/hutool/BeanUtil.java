@@ -199,6 +199,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * @author tanyaowu
@@ -224,7 +225,7 @@ public class BeanUtil {
 	public static PropertyDescriptor[] getPropertyDescriptors(Class<?> clazz) throws IntrospectionException {
 		BeanInfo beanInfo;
 		beanInfo = Introspector.getBeanInfo(clazz);
-		return ArrayUtil.filter(beanInfo.getPropertyDescriptors(), (Filter<PropertyDescriptor>) t -> {
+		return ArrayUtil.filter(beanInfo.getPropertyDescriptors(), (Predicate<PropertyDescriptor>) t -> {
 			//过滤掉getClass方法
 			return !"class".equals(t.getName());
 		});
