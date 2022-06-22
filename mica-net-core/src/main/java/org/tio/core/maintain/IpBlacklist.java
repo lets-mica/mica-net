@@ -199,9 +199,9 @@ import org.tio.core.TioConfig;
 import org.tio.core.cache.Cache2kUtils;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.SystemTimer;
-import org.tio.utils.time.Time;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author tanyaowu
@@ -212,7 +212,7 @@ public class IpBlacklist {
 	/**
 	 * ip 黑名单缓存时间，默认：30天
 	 */
-	private static final long TIME_TO_LIVE_SECONDS = Time.DAY_1 * 30;
+	private static final long TIME_TO_LIVE_SECONDS = TimeUnit.DAYS.toSeconds(30);
 	private final String id;
 	private final Cache<String, Long> cache;
 	private TioServerConfig tioServerConfig;
