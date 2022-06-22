@@ -247,10 +247,7 @@ public class BsIds {
 	 * @author tanyaowu
 	 */
 	public ChannelContext find(TioConfig tioConfig, String bsId) {
-		if (tioConfig.isShortConnection) {
-			return null;
-		}
-		if (StrUtil.isBlank(bsId)) {
+		if (tioConfig.isShortConnection || StrUtil.isBlank(bsId)) {
 			return null;
 		}
 		return map.get(bsId);

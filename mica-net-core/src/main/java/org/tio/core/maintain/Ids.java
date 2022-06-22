@@ -237,10 +237,7 @@ public class Ids {
 	 * @return the channel context
 	 */
 	public ChannelContext find(TioConfig tioConfig, String id) {
-		if (tioConfig.isShortConnection) {
-			return null;
-		}
-		if (StrUtil.isBlank(id)) {
+		if (tioConfig.isShortConnection || StrUtil.isBlank(id)) {
 			return null;
 		}
 		return map.get(id);

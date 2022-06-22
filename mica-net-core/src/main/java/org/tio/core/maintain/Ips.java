@@ -233,10 +233,7 @@ public class Ips {
 	 * @author tanyaowu
 	 */
 	public void bind(ChannelContext channelContext) {
-		if (channelContext == null) {
-			return;
-		}
-		if (channelContext.tioConfig.isShortConnection) {
+		if (channelContext == null || channelContext.tioConfig.isShortConnection) {
 			return;
 		}
 		String ip = channelContext.getClientNode().getIp();
@@ -256,10 +253,7 @@ public class Ips {
 	 * @author tanyaowu
 	 */
 	public Set<ChannelContext> clients(TioConfig tioConfig, String ip) {
-		if (tioConfig.isShortConnection) {
-			return null;
-		}
-		if (StrUtil.isBlank(ip)) {
+		if (tioConfig.isShortConnection || StrUtil.isBlank(ip)) {
 			return null;
 		}
 		return ipMap.get(ip);
@@ -279,10 +273,7 @@ public class Ips {
 	 * @author tanyaowu
 	 */
 	public void unbind(ChannelContext channelContext) {
-		if (channelContext == null) {
-			return;
-		}
-		if (channelContext.tioConfig.isShortConnection) {
+		if (channelContext == null || channelContext.tioConfig.isShortConnection) {
 			return;
 		}
 		String ip = channelContext.getClientNode().getIp();

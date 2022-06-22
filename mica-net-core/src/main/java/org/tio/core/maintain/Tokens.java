@@ -227,10 +227,7 @@ public class Tokens {
 	 * @author tanyaowu
 	 */
 	public void bind(String token, ChannelContext channelContext) {
-		if (channelContext.tioConfig.isShortConnection) {
-			return;
-		}
-		if (StrUtil.isBlank(token)) {
+		if (channelContext.tioConfig.isShortConnection || StrUtil.isBlank(token)) {
 			return;
 		}
 		Set<ChannelContext> channelSet = CollUtil.computeIfAbsent(map, token, key -> ConcurrentHashMap.newKeySet());
@@ -245,10 +242,7 @@ public class Tokens {
 	 * @return the channel context
 	 */
 	public Set<ChannelContext> find(TioConfig tioConfig, String token) {
-		if (tioConfig.isShortConnection) {
-			return null;
-		}
-		if (StrUtil.isBlank(token)) {
+		if (tioConfig.isShortConnection || StrUtil.isBlank(token)) {
 			return null;
 		}
 		return map.get(token);
@@ -294,10 +288,7 @@ public class Tokens {
 	 * @author tanyaowu
 	 */
 	public void unbind(TioConfig tioConfig, String token) {
-		if (tioConfig.isShortConnection) {
-			return;
-		}
-		if (StrUtil.isBlank(token)) {
+		if (tioConfig.isShortConnection || StrUtil.isBlank(token)) {
 			return;
 		}
 		Set<ChannelContext> contextSet = map.get(token);

@@ -248,10 +248,7 @@ public class Groups {
 	 * @param callbackListener 是否回调GroupListener
 	 */
 	public void bind(String groupId, ChannelContext channelContext, boolean callbackListener) {
-		if (channelContext.tioConfig.isShortConnection) {
-			return;
-		}
-		if (StrUtil.isBlank(groupId)) {
+		if (channelContext.tioConfig.isShortConnection || StrUtil.isBlank(groupId)) {
 			return;
 		}
 		Set<ChannelContext> channelSet = CollUtil.computeIfAbsent(groupMap, groupId, key -> ConcurrentHashMap.newKeySet());
@@ -278,10 +275,7 @@ public class Groups {
 	 * @author tanyaowu
 	 */
 	public Set<ChannelContext> clients(TioConfig tioConfig, String groupId) {
-		if (tioConfig.isShortConnection) {
-			return null;
-		}
-		if (StrUtil.isBlank(groupId)) {
+		if (tioConfig.isShortConnection || StrUtil.isBlank(groupId)) {
 			return null;
 		}
 		return groupMap.get(groupId);

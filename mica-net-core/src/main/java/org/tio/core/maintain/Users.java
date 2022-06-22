@@ -226,10 +226,8 @@ public class Users {
 	 * @author tanyaowu
 	 */
 	public void bind(String userId, ChannelContext channelContext) {
-		if (channelContext.tioConfig.isShortConnection) {
-			return;
-		}
-		if (StrUtil.isBlank(userId)) {
+		// 短链接和 userId 为空，跳出
+		if (channelContext.tioConfig.isShortConnection || StrUtil.isBlank(userId)) {
 			return;
 		}
 		Set<ChannelContext> channelSet = CollUtil.computeIfAbsent(map, userId, key -> ConcurrentHashMap.newKeySet());
@@ -244,10 +242,7 @@ public class Users {
 	 * @return the channel context
 	 */
 	public Set<ChannelContext> find(TioConfig tioConfig, String userid) {
-		if (tioConfig.isShortConnection) {
-			return null;
-		}
-		if (StrUtil.isBlank(userid)) {
+		if (tioConfig.isShortConnection || StrUtil.isBlank(userid)) {
 			return null;
 		}
 		return map.get(userid);
@@ -293,10 +288,7 @@ public class Users {
 	 * @author tanyaowu
 	 */
 	public void unbind(TioConfig tioConfig, String userId) {
-		if (tioConfig.isShortConnection) {
-			return;
-		}
-		if (StrUtil.isBlank(userId)) {
+		if (tioConfig.isShortConnection || StrUtil.isBlank(userId)) {
 			return;
 		}
 		Set<ChannelContext> contextSet = map.get(userId);
