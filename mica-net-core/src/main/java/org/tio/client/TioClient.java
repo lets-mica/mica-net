@@ -226,7 +226,7 @@ public class TioClient {
 
 	/**
 	 * @param tioClientConfig TioClientConfig
-	 * @throws IOException
+	 * @throws IOException IOException
 	 * @author tanyaowu
 	 */
 	public TioClient(final TioClientConfig tioClientConfig) throws IOException {
@@ -237,8 +237,10 @@ public class TioClient {
 	}
 
 	/**
-	 * @param serverNode
-	 * @throws Exception
+	 * asyncConnect
+	 *
+	 * @param serverNode serverNode
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	public void asyncConnect(Node serverNode) throws Exception {
@@ -246,9 +248,11 @@ public class TioClient {
 	}
 
 	/**
-	 * @param serverNode
-	 * @param timeout
-	 * @throws Exception
+	 * asyncConnect
+	 *
+	 * @param serverNode serverNode
+	 * @param timeout timeout
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	public void asyncConnect(Node serverNode, Integer timeout) throws Exception {
@@ -256,11 +260,13 @@ public class TioClient {
 	}
 
 	/**
-	 * @param serverNode
-	 * @param bindIp
-	 * @param bindPort
-	 * @param timeout
-	 * @throws Exception
+	 * asyncConnect
+	 *
+	 * @param serverNode serverNode
+	 * @param bindIp bindIp
+	 * @param bindPort bindPort
+	 * @param timeout timeout
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	public void asyncConnect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
@@ -346,7 +352,6 @@ public class TioClient {
 		}
 
 		InetSocketAddress inetSocketAddress = new InetSocketAddress(serverNode.getIp(), serverNode.getPort());
-
 		ConnectionCompletionVo attachment = new ConnectionCompletionVo(initClientChannelContext, this, isReconnect, asynchronousSocketChannel, serverNode, bindIp, bindPort);
 
 		if (isSyn) {
@@ -362,7 +367,7 @@ public class TioClient {
 			if (f) {
 				return attachment.getChannelContext();
 			} else {
-				log.error("countDownLatch.await(realTimeout, TimeUnit.SECONDS) 返回false ");
+				log.error("countDownLatch.await(realTimeout, TimeUnit.SECONDS) 返回 false");
 				return attachment.getChannelContext();
 			}
 		} else {
