@@ -201,6 +201,7 @@ import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
+import org.tio.core.maintain.IpBlacklist;
 import org.tio.core.maintain.IpStats;
 import org.tio.core.ssl.SslConfig;
 import org.tio.server.intf.TioServerHandler;
@@ -269,6 +270,8 @@ public class TioServerConfig extends TioConfig {
 	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener, SynThreadPoolExecutor tioExecutor,
 						   ThreadPoolExecutor groupExecutor) {
 		super(tioExecutor, groupExecutor);
+		// 默认使用全局的 ip 黑名单
+		this.ipBlacklist = IpBlacklist.GLOBAL;
 		init(name, tioServerHandler, tioServerListener);
 	}
 
