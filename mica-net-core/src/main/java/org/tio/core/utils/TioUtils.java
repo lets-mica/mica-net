@@ -221,7 +221,7 @@ public class TioUtils {
 						Tio.close(channelContext,
 						        "asynchronousSocketChannel is open, but channelContext isClosed: " + channelContext.isClosed + ", isRemoved: " + channelContext.isRemoved, CloseCode.CHANNEL_NOT_OPEN);
 					} catch (Throwable e) {
-						log.error(e.toString(), e);
+						log.error(e.getMessage(), e);
 					}
 				}
 				log.info("{}, isopen:{}, isClosed:{}, isRemoved:{}", channelContext, isOpen, channelContext.isClosed, channelContext.isRemoved);

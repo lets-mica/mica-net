@@ -193,8 +193,6 @@
 */
 package org.tio.core.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.core.exception.LengthOverflowException;
 import org.tio.utils.hutool.StrUtil;
 
@@ -208,11 +206,10 @@ import java.nio.charset.StandardCharsets;
  * 2017年10月19日 上午9:41:00
  */
 public class ByteBufferUtils {
-	@SuppressWarnings("unused")
-	private static final Logger log = LoggerFactory.getLogger(ByteBufferUtils.class);
 
 	/**
 	 * 组合两个bytebuffer，把可读部分的组合成一个新的bytebuffer
+	 *
 	 * @param byteBuffer1
 	 * @param byteBuffer2
 	 * @return
@@ -231,7 +228,6 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
 	 * @param src
 	 * @param srcStartindex
 	 * @param dest
@@ -243,14 +239,11 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
-	 * @param src 本方法不会改变position等指针变量
+	 * @param src        本方法不会改变position等指针变量
 	 * @param startindex 从0开始
 	 * @param endindex
 	 * @return
-	 *
 	 * @author: tanyaowu
-	 *
 	 */
 	public static ByteBuffer copy(ByteBuffer src, int startindex, int endindex) {
 		int size = endindex - startindex;
@@ -269,7 +262,6 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
 	 * @param src 本方法不会改变position等指针变量
 	 * @return
 	 * @author tanyaowu
@@ -281,7 +273,6 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
 	 * @param src
 	 * @param unitSize 每个单元的大小
 	 * @return 如果不需要拆分，则返回null
@@ -313,7 +304,6 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
 	 * @param buffer
 	 * @return
 	 * @throws LengthOverflowException
@@ -324,7 +314,6 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
 	 * @param buffer
 	 * @param maxlength
 	 * @return
@@ -341,9 +330,8 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
-	 * @param buffer position会被移动
-	 * @param theChar 结束
+	 * @param buffer    position会被移动
+	 * @param theChar   结束
 	 * @param maxlength
 	 * @return
 	 * @throws LengthOverflowException
@@ -373,7 +361,6 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
 	 * @param buffer
 	 * @param length
 	 * @param charset
@@ -389,7 +376,6 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
 	 * @param buffer
 	 * @param charset
 	 * @return
@@ -400,7 +386,6 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
 	 * @param buffer
 	 * @param charset
 	 * @param maxlength
@@ -435,7 +420,7 @@ public class ByteBufferUtils {
 		return null;
 	}
 
-		public static String readString(ByteBuffer buffer, int length, Charset charset) {
+	public static String readString(ByteBuffer buffer, int length, Charset charset) {
 		byte[] bs = readBytes(buffer, length);
 		if (charset != null) {
 			return new String(bs, charset);
@@ -444,7 +429,6 @@ public class ByteBufferUtils {
 	}
 
 	/**
-	 *
 	 * @param buffer
 	 * @param charset
 	 * @param endChar
@@ -483,25 +467,27 @@ public class ByteBufferUtils {
 
 	/**
 	 * 获取utf-8字符串
+	 *
 	 * @param bytes
 	 * @return
-	 *
 	 */
 	public static String getUtf8(byte[] bytes) {
 		return new String(bytes, StandardCharsets.UTF_8);
 	}
 
 	/**
-	* 读取byte
-	* @param buffer
-	* @return
-	*/
+	 * 读取byte
+	 *
+	 * @param buffer
+	 * @return
+	 */
 	public static byte read(ByteBuffer buffer) {
 		return buffer.get();
 	}
 
 	/**
 	 * 读取short
+	 *
 	 * @param buffer
 	 * @return
 	 */
@@ -547,24 +533,24 @@ public class ByteBufferUtils {
 		return ret;
 	}
 
-	public static final void writeUB2(ByteBuffer buffer, int i) {
+	public static void writeUB2(ByteBuffer buffer, int i) {
 		buffer.put((byte) (i & 0xff));
 		buffer.put((byte) (i >>> 8));
 	}
 
-	public static final void writeUB2WithBigEdian(ByteBuffer buffer, int i) {
+	public static void writeUB2WithBigEdian(ByteBuffer buffer, int i) {
 		buffer.put((byte) (i >>> 8));
 		buffer.put((byte) (i & 0xff));
 	}
 
-	public static final void writeUB4(ByteBuffer buffer, long l) {
+	public static void writeUB4(ByteBuffer buffer, long l) {
 		buffer.put((byte) (l & 0xff));
 		buffer.put((byte) (l >>> 8));
 		buffer.put((byte) (l >>> 16));
 		buffer.put((byte) (l >>> 24));
 	}
 
-	public static final void writeUB4WithBigEdian(ByteBuffer buffer, long l) {
+	public static void writeUB4WithBigEdian(ByteBuffer buffer, long l) {
 		buffer.put((byte) (l >>> 24));
 		buffer.put((byte) (l >>> 16));
 		buffer.put((byte) (l >>> 8));
