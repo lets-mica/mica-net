@@ -224,12 +224,11 @@ public class TioServer {
 	private boolean isWaitingStop = false;
 
 	/**
-	 * @param tioServerConfig
+	 * @param tioServerConfig TioServerConfig
 	 * @author tanyaowu
 	 * 2017年1月2日 下午5:53:06
 	 */
 	public TioServer(TioServerConfig tioServerConfig) {
-		super();
 		this.tioServerConfig = tioServerConfig;
 	}
 
@@ -259,13 +258,6 @@ public class TioServer {
 	 */
 	public boolean isWaitingStop() {
 		return isWaitingStop;
-	}
-
-	/**
-	 * @param isWaitingStop the isWaitingStop to set
-	 */
-	public void setWaitingStop(boolean isWaitingStop) {
-		this.isWaitingStop = isWaitingStop;
 	}
 
 	public void start(String serverIp, int serverPort) throws IOException {
@@ -356,22 +348,22 @@ public class TioServer {
 		try {
 			tioServerConfig.groupExecutor.shutdown();
 		} catch (Exception e1) {
-			log.error(e1.toString(), e1);
+			log.error(e1.getMessage(), e1);
 		}
 		try {
 			tioServerConfig.tioExecutor.shutdown();
 		} catch (Exception e1) {
-			log.error(e1.toString(), e1);
+			log.error(e1.getMessage(), e1);
 		}
 		tioServerConfig.setStopped(true);
 		try {
 			ret = ret && tioServerConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 			ret = ret && tioServerConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			log.error(e.getLocalizedMessage(), e);
+			Thread.currentThread().interrupt();
+			log.error(e.getMessage(), e);
 		}
-
-		log.info(this.serverNode + " stopped");
+		log.info("{} stopped", this.serverNode);
 		return ret;
 	}
 

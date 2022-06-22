@@ -241,8 +241,8 @@ public class TioClient {
 	 * @throws Exception
 	 * @author tanyaowu
 	 */
-	public void asynConnect(Node serverNode) throws Exception {
-		asynConnect(serverNode, null);
+	public void asyncConnect(Node serverNode) throws Exception {
+		asyncConnect(serverNode, null);
 	}
 
 	/**
@@ -251,8 +251,8 @@ public class TioClient {
 	 * @throws Exception
 	 * @author tanyaowu
 	 */
-	public void asynConnect(Node serverNode, Integer timeout) throws Exception {
-		asynConnect(serverNode, null, null, timeout);
+	public void asyncConnect(Node serverNode, Integer timeout) throws Exception {
+		asyncConnect(serverNode, null, null, timeout);
 	}
 
 	/**
@@ -263,14 +263,16 @@ public class TioClient {
 	 * @throws Exception
 	 * @author tanyaowu
 	 */
-	public void asynConnect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
+	public void asyncConnect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
 		connect(serverNode, bindIp, bindPort, null, timeout, false);
 	}
 
 	/**
-	 * @param serverNode
-	 * @return
-	 * @throws Exception
+	 * connect
+	 *
+	 * @param serverNode serverNode
+	 * @return ClientChannelContext
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	public ClientChannelContext connect(Node serverNode) throws Exception {
@@ -278,10 +280,12 @@ public class TioClient {
 	}
 
 	/**
-	 * @param serverNode
-	 * @param timeout
-	 * @return
-	 * @throws Exception
+	 * connect
+	 *
+	 * @param serverNode serverNode
+	 * @param timeout    timeout
+	 * @return ClientChannelContext
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	public ClientChannelContext connect(Node serverNode, Integer timeout) throws Exception {
@@ -289,13 +293,15 @@ public class TioClient {
 	}
 
 	/**
-	 * @param serverNode
-	 * @param bindIp
-	 * @param bindPort
-	 * @param initClientChannelContext
+	 * connect
+	 *
+	 * @param serverNode               serverNode
+	 * @param bindIp                   bindIp
+	 * @param bindPort                 bindPort
+	 * @param initClientChannelContext initClientChannelContext
 	 * @param timeout                  超时时间，单位秒
-	 * @return
-	 * @throws Exception
+	 * @return ClientChannelContext
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	public ClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, ClientChannelContext initClientChannelContext, Integer timeout) throws Exception {
@@ -451,7 +457,8 @@ public class TioClient {
 					} finally {
 						try {
 							Thread.sleep(tioClientConfig.heartbeatTimeout / 4);
-						} catch (Throwable e) {
+						} catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
 							log.error(e.getMessage(), e);
 						}
 					}
@@ -470,7 +477,6 @@ public class TioClient {
 		if (reconnConf == null || reconnConf.getInterval() <= 0) {
 			return;
 		}
-
 		final String id = tioClientConfig.getId();
 		Thread thread = new Thread(new Runnable() {
 			@Override
@@ -482,7 +488,8 @@ public class TioClient {
 					try {
 						channelContext = (ClientChannelContext) queue.take();
 					} catch (InterruptedException e1) {
-						log.error(e1.toString(), e1);
+						Thread.currentThread().interrupt();
+						log.error(e1.getMessage(), e1);
 					}
 					// 未连接的和已经删除的，不需要重新再连
 					if (channelContext == null || channelContext.isRemoved) {
@@ -497,7 +504,8 @@ public class TioClient {
 						try {
 							Thread.sleep(sleepTime);
 						} catch (InterruptedException e) {
-							log.error(e.toString(), e);
+							Thread.currentThread().interrupt();
+							log.error(e.getMessage(), e);
 						}
 					}
 					// 已经删除的和已经连上的，不需要重新再连
@@ -526,7 +534,9 @@ public class TioClient {
 	}
 
 	/**
-	 * @return
+	 * 停止
+	 *
+	 * @return boolean
 	 * @author tanyaowu
 	 */
 	public boolean stop() {
@@ -534,22 +544,23 @@ public class TioClient {
 		try {
 			tioClientConfig.groupExecutor.shutdown();
 		} catch (Exception e1) {
-			log.error(e1.toString(), e1);
+			log.error(e1.getMessage(), e1);
 		}
 		try {
 			tioClientConfig.tioExecutor.shutdown();
 		} catch (Exception e1) {
-			log.error(e1.toString(), e1);
+			log.error(e1.getMessage(), e1);
 		}
-
 		tioClientConfig.setStopped(true);
 		try {
 			ret = ret && tioClientConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 			ret = ret && tioClientConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			log.error(e.getLocalizedMessage(), e);
+			Thread.currentThread().interrupt();
+			log.error(e.getMessage(), e);
 		}
 		log.info("client resource has released");
 		return ret;
 	}
+
 }
