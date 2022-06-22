@@ -201,14 +201,13 @@ import java.net.URL;
  * 资源工具类
  *
  * @author looly
- *
  */
 public class ResourceUtil {
-
 	private static final String CLASSPATH_PRE = "classpath:";
 
 	/**
 	 * 获取ClassPath绝对路径
+	 *
 	 * @param path classpath路径
 	 * @return 绝对路径
 	 */
@@ -220,7 +219,6 @@ public class ResourceUtil {
 	 * 获得资源相对路径对应的URL
 	 *
 	 * @param path 资源相对路径
-	 * @param baseClass 基准Class，获得的相对路径相对于此Class所在路径，如果为{@code null}则相对ClassPath
 	 * @return {@link URL}
 	 */
 	public static URL getResource(String path) {
@@ -249,7 +247,7 @@ public class ResourceUtil {
 	 *
 	 * <pre>
 	 * 1、获取当前线程的ContextClassLoader
-	 * 2、获取{@link ClassLoaderUtil}类对应的ClassLoader
+	 * 2、获取类对应的ClassLoader
 	 * 3、获取系统ClassLoader（{@link ClassLoader#getSystemClassLoader()}）
 	 * </pre>
 	 *
@@ -287,4 +285,5 @@ public class ResourceUtil {
 		}
 		return (null != path) ? path : url.getPath();
 	}
+
 }
