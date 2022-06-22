@@ -193,36 +193,33 @@
 */
 package org.tio.utils.page;
 
-import org.tio.utils.convert.Converter;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
- *
  * @author tanyaowu
  * 2017年5月10日 下午12:01:18
  */
 public class Page<T> implements Serializable {
 
-	private static final long	serialVersionUID	= 6551482606063638959L;
-	private List<T>				list				= null;					//当前页的数据
-	private Integer				pageNumber;									//当前页码，从1开始，如果值小于等于0，则视为1
-	private Integer				pageSize;									//每页记录数
-	private Integer				totalRow;									//总条数
-	private Integer				totalPage;									//总页数
+	private static final long serialVersionUID = 6551482606063638959L;
+	private List<T> list = null;                    //当前页的数据
+	private Integer pageNumber;                                    //当前页码，从1开始，如果值小于等于0，则视为1
+	private Integer pageSize;                                    //每页记录数
+	private Integer totalRow;                                    //总条数
+	private Integer totalPage;                                    //总页数
 
 	public Page() {
 
 	}
 
 	/**
-	 *
-	 * @param list
-	 * @param pageIndex
-	 * @param pageSize
-	 * @param recordCount
+	 * @param list       list
+	 * @param pageNumber pageNumber
+	 * @param pageSize   pageSize
+	 * @param totalRow   totalRow
 	 * @author tanyaowu
 	 */
 	public Page(List<T> list, Integer pageNumber, Integer pageSize, Integer totalRow) {
@@ -232,11 +229,11 @@ public class Page<T> implements Serializable {
 		this.totalRow = totalRow;
 	}
 
-	public Page(List<?> list, Integer pageNumber, Integer pageSize, Integer totalRow, Converter<T> converter) {
-		if (list != null && list.size() > 0 && converter != null) {
+	public Page(List<?> list, Integer pageNumber, Integer pageSize, Integer totalRow, Function<Object, T> converter) {
+		if (list != null && !list.isEmpty() && converter != null) {
 			this.list = new ArrayList<>(list.size());
 			for (Object object : list) {
-				T t = converter.convert(object);
+				T t = converter.apply(object);
 				this.list.add(t);
 			}
 		}
@@ -297,6 +294,13 @@ public class Page<T> implements Serializable {
 
 	@Override
 	public String toString() {
-		return String.format("Page [list=%s, pageNumber=%s, pageSize=%s, totalRow=%s, totalPage=%s]", getList(), getPageNumber(), getPageSize(), getTotalRow(), getTotalPage());
+		return "Page{" +
+			"list=" + list +
+			", pageNumber=" + pageNumber +
+			", pageSize=" + pageSize +
+			", totalRow=" + totalRow +
+			", totalPage=" + getTotalPage() +
+			'}';
 	}
+
 }

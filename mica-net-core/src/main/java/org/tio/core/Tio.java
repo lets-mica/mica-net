@@ -202,7 +202,6 @@ import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.convert.Converter;
 import org.tio.utils.page.Page;
 import org.tio.utils.page.PageUtils;
 
@@ -211,6 +210,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.function.Function;
 
 /**
  * The Class Tio. t-io用户关心的API几乎全在这
@@ -1086,7 +1086,7 @@ public class Tio {
 	 * @param converter
 	 * @return
 	 */
-	public static <T> Page<T> getPageOfAll(TioConfig tioConfig, Integer pageIndex, Integer pageSize, Converter<T> converter) {
+	public static <T> Page<T> getPageOfAll(TioConfig tioConfig, Integer pageIndex, Integer pageSize, Function<Object, T> converter) {
 		Set<ChannelContext> setWithLock = Tio.getAll(tioConfig);
 		return PageUtils.fromSet(setWithLock, pageIndex, pageSize, converter);
 	}
@@ -1114,7 +1114,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static <T> Page<T> getPageOfConnecteds(TioClientConfig tioClientConfig, Integer pageIndex, Integer pageSize, Converter<T> converter) {
+	public static <T> Page<T> getPageOfConnecteds(TioClientConfig tioClientConfig, Integer pageIndex, Integer pageSize, Function<Object, T> converter) {
 		Set<ChannelContext> setWithLock = Tio.getConnecteds(tioClientConfig);
 		return PageUtils.fromSet(setWithLock, pageIndex, pageSize, converter);
 	}
@@ -1139,7 +1139,7 @@ public class Tio {
 	 * @param converter
 	 * @return
 	 */
-	public static <T> Page<T> getPageOfGroup(TioConfig tioConfig, String group, Integer pageIndex, Integer pageSize, Converter<T> converter) {
+	public static <T> Page<T> getPageOfGroup(TioConfig tioConfig, String group, Integer pageIndex, Integer pageSize, Function<Object, T> converter) {
 		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
 		return PageUtils.fromSet(contextSet, pageIndex, pageSize, converter);
 	}

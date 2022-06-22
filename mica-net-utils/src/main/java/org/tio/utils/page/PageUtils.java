@@ -193,11 +193,10 @@
 */
 package org.tio.utils.page;
 
-import org.tio.utils.convert.Converter;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author tanyaowu
@@ -210,11 +209,10 @@ public class PageUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> Page<T> fromList(List<?> list, int pageNumber, int pageSize, Converter<T> converter) {
+	public static <T> Page<T> fromList(List<?> list, int pageNumber, int pageSize, Function<Object, T> converter) {
 		if (list == null) {
 			return null;
 		}
-
 		Page<Object> page = pre(list, pageNumber, pageSize);
 
 		List<Object> pageData = page.getList();
@@ -227,11 +225,10 @@ public class PageUtils {
 
 		for (int i = startIndex; i < endIndex; i++) {
 			if (converter != null) {
-				pageData.add(converter.convert(list.get(i)));
+				pageData.add(converter.apply(list.get(i)));
 			} else {
 				pageData.add(list.get(i));
 			}
-
 		}
 		page.setList(pageData);
 		return (Page<T>) page;
@@ -242,7 +239,7 @@ public class PageUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> Page<T> fromSet(Set<?> set, int pageNumber, int pageSize, Converter<T> converter) {
+	public static <T> Page<T> fromSet(Set<?> set, int pageNumber, int pageSize, Function<Object, T> converter) {
 		if (set == null) {
 			return null;
 		}
@@ -267,7 +264,7 @@ public class PageUtils {
 			}
 
 			if (converter != null) {
-				pageData.add(converter.convert(t));
+				pageData.add(converter.apply(t));
 			} else {
 				pageData.add(t);
 			}
@@ -283,7 +280,7 @@ public class PageUtils {
 		}
 
 		pageSize = processPageSize(pageSize);
-		pageNumber = processpageNumber(pageNumber);
+		pageNumber = processPageNumber(pageNumber);
 
 		int recordCount = allList.size();
 		if (pageSize > recordCount) {
@@ -294,7 +291,7 @@ public class PageUtils {
 		return new Page<>(pageData, pageNumber, pageSize, recordCount);
 	}
 
-	private static int processpageNumber(int pageNumber) {
+	private static int processPageNumber(int pageNumber) {
 		return pageNumber <= 0 ? 1 : pageNumber;
 	}
 
