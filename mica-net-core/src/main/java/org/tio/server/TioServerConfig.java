@@ -270,8 +270,7 @@ public class TioServerConfig extends TioConfig {
 	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener, SynThreadPoolExecutor tioExecutor,
 						   ThreadPoolExecutor groupExecutor) {
 		super(tioExecutor, groupExecutor);
-		// 默认使用全局的 ip 黑名单
-		this.ipBlacklist = IpBlacklist.GLOBAL;
+		this.ipBlacklist = new IpBlacklist(this);
 		init(name, tioServerHandler, tioServerListener);
 	}
 
@@ -506,6 +505,8 @@ public class TioServerConfig extends TioConfig {
 			this.tokens = tioConfig.tokens;
 			this.ids = tioConfig.ids;
 			this.bsIds = tioConfig.bsIds;
+			// 先清理缓存
+			this.ipBlacklist.clear();
 			this.ipBlacklist = tioConfig.ipBlacklist;
 			this.ips = tioConfig.ips;
 			if (!tioConfig.isShared && !this.isShared) {
