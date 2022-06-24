@@ -193,10 +193,11 @@
 */
 package org.tio.core.maintain;
 
-import org.cache2k.Cache;
+import com.github.benmanes.caffeine.cache.Cache;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
-import org.tio.core.cache.Cache2kUtils;
+import org.tio.core.cache.CaffeineUtils;
+import org.tio.core.cache.IpStatRemovalListener;
 import org.tio.core.stat.IpStat;
 import org.tio.utils.hutool.CollUtil;
 
@@ -215,6 +216,7 @@ import java.util.concurrent.ConcurrentMap;
 public class IpStats {
 	private static final String CACHE_NAME = "IP_STAT";
 	private final String tioConfigId;
+	private final TioConfig tioConfig;
 
 	/**
 	 * key: 时长，单位：秒
@@ -224,9 +226,20 @@ public class IpStats {
 
 	public IpStats(TioConfig tioConfig, Long[] durations) {
 		this.tioConfigId = tioConfig.getId();
+		this.tioConfig = tioConfig;
 		if (durations != null) {
 			addDurations(durations);
 		}
+	}
+
+	/**
+	 * 获取缓存名
+	 * @param duration duration
+	 * @return
+	 * @author: tanyaowu
+	 */
+	public String getCacheName(Long duration) {
+		return CACHE_NAME + '_' + this.tioConfigId + '_' + duration;
 	}
 
 	/**
@@ -236,7 +249,7 @@ public class IpStats {
 	 * @author: tanyaowu
 	 */
 	public void addDuration(Long duration) {
-		Cache<String, IpStat> cache = CollUtil.computeIfAbsent(cacheMap, duration, key -> Cache2kUtils.getCache(getCacheName(key), key, 5000000L, String.class, IpStat.class));
+		Cache<String, IpStat> cache = CollUtil.computeIfAbsent(cacheMap, duration, key -> CaffeineUtils.getIpStatCache(getCacheName(key), key, 5000000L, new IpStatRemovalListener(tioConfig, tioConfig.getIpStatListener())));
 		cacheMap.put(duration, cache);
 		durationList.add(duration);
 	}
@@ -258,28 +271,18 @@ public class IpStats {
 	/**
 	 * 删除监控时间段
 	 *
-	 * @param duration
+	 * @param duration duration
 	 * @author: tanyaowu
 	 */
 	public void removeDuration(Long duration) {
 		clear(duration);
 		Cache<String, IpStat> cache = cacheMap.remove(duration);
 		if (cache != null) {
-			cache.clear();
-			cache.close();
+			cache.cleanUp();
 		}
 		if (CollUtil.isNotEmpty(durationList)) {
 			durationList.remove(duration);
 		}
-	}
-
-	/**
-	 * @param duration duration
-	 * @return cache name
-	 * @author: tanyaowu
-	 */
-	protected String getCacheName(Long duration) {
-		return CACHE_NAME + '_' + this.tioConfigId + '_' + duration;
 	}
 
 	/**
@@ -292,7 +295,7 @@ public class IpStats {
 		if (cache == null) {
 			return;
 		}
-		cache.clear();
+		cache.cleanUp();
 	}
 
 	/**
@@ -342,10 +345,10 @@ public class IpStats {
 		} else {
 			ip = channelContext.getClientNode().getIp();
 		}
-		IpStat ipStat = cache.get(ip);
+		IpStat ipStat = cache.getIfPresent(ip);
 		if (ipStat == null && forceCreate) {
 			synchronized (this) {
-				ipStat = cache.get(ip);
+				ipStat = cache.getIfPresent(ip);
 				if (ipStat == null) {
 					ipStat = new IpStat(ip, duration);
 					cache.put(ip, ipStat);
@@ -356,7 +359,10 @@ public class IpStats {
 	}
 
 	/**
-	 * @return
+	 * map
+	 *
+	 * @param duration duration
+	 * @return map
 	 * @author: tanyaowu
 	 */
 	public Map<String, IpStat> map(Long duration) {
@@ -368,19 +374,25 @@ public class IpStats {
 	}
 
 	/**
-	 * @return
+	 * size
+	 *
+	 * @param duration duration
+	 * @return size
 	 * @author: tanyaowu
 	 */
-	public int size(Long duration) {
+	public long size(Long duration) {
 		Cache<String, IpStat> cache = cacheMap.get(duration);
 		if (cache == null) {
 			return 0;
 		}
-		return cache.entries().size();
+		return cache.estimatedSize();
 	}
 
 	/**
-	 * @return
+	 * values
+	 *
+	 * @param duration duration
+	 * @return value 结婚
 	 * @author: tanyaowu
 	 */
 	public Collection<IpStat> values(Long duration) {

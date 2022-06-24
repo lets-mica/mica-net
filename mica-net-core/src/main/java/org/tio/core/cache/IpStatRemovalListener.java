@@ -193,11 +193,10 @@
 */
 package org.tio.core.cache;
 
-import org.cache2k.Cache;
-import org.cache2k.CacheEntry;
-import org.cache2k.event.CacheEntryEvictedListener;
-import org.cache2k.event.CacheEntryExpiredListener;
-import org.cache2k.event.CacheEntryRemovedListener;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.RemovalListener;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.tio.core.TioConfig;
 import org.tio.core.stat.IpStat;
 import org.tio.core.stat.IpStatListener;
@@ -206,37 +205,19 @@ import org.tio.core.stat.IpStatListener;
  * @author tanyaowu
  * 2017年8月21日 下午1:32:32
  */
-public class IpStatRemovalListener implements CacheEntryRemovedListener<String, IpStat>, CacheEntryExpiredListener<String, IpStat>, CacheEntryEvictedListener<String, IpStat> {
-
+public class IpStatRemovalListener implements RemovalListener<Object, Object> {
 	private final TioConfig tioConfig;
 	private final IpStatListener ipStatListener;
 
-	/**
-	 * @author: tanyaowu
-	 */
 	public IpStatRemovalListener(TioConfig tioConfig, IpStatListener ipStatListener) {
 		this.tioConfig = tioConfig;
 		this.ipStatListener = ipStatListener;
 	}
 
 	@Override
-	public void onEntryRemoved(Cache<String, IpStat> cache, CacheEntry<String, IpStat> cacheEntry) throws Exception {
+	public void onRemoval(@Nullable Object key, @Nullable Object value, @NonNull RemovalCause cause) {
 		if (ipStatListener != null) {
-			ipStatListener.onExpired(tioConfig, cacheEntry.getValue());
-		}
-	}
-
-	@Override
-	public void onEntryEvicted(Cache<String, IpStat> cache, CacheEntry<String, IpStat> cacheEntry) throws Exception {
-		if (ipStatListener != null) {
-			ipStatListener.onExpired(tioConfig, cacheEntry.getValue());
-		}
-	}
-
-	@Override
-	public void onEntryExpired(Cache<String, IpStat> cache, CacheEntry<String, IpStat> cacheEntry) throws Exception {
-		if (ipStatListener != null) {
-			ipStatListener.onExpired(tioConfig, cacheEntry.getValue());
+			ipStatListener.onExpired(tioConfig, (IpStat) value);
 		}
 	}
 

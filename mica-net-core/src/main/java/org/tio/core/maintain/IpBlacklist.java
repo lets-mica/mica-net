@@ -193,10 +193,10 @@
 */
 package org.tio.core.maintain;
 
-import org.cache2k.Cache;
+import com.github.benmanes.caffeine.cache.Cache;
 import org.tio.core.Tio;
 import org.tio.core.TioConfig;
-import org.tio.core.cache.Cache2kUtils;
+import org.tio.core.cache.CaffeineUtils;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.SystemTimer;
 
@@ -220,13 +220,13 @@ public class IpBlacklist {
 
 	private IpBlacklist() {
 		this.id = "__global__";
-		this.cache = Cache2kUtils.getCache(CACHE_NAME_PREFIX + this.id, TIME_TO_LIVE_SECONDS, 5000000L, String.class, Long.class);
+		this.cache = CaffeineUtils.getCache(CACHE_NAME_PREFIX + this.id, TIME_TO_LIVE_SECONDS, 5000000L);
 	}
 
 	public IpBlacklist(TioServerConfig tioServerConfig) {
 		this.id = tioServerConfig.id;
 		this.tioServerConfig = tioServerConfig;
-		this.cache = Cache2kUtils.getCache(CACHE_NAME_PREFIX + this.id, TIME_TO_LIVE_SECONDS, 5000000L, String.class, Long.class);
+		this.cache = CaffeineUtils.getCache(CACHE_NAME_PREFIX + this.id, TIME_TO_LIVE_SECONDS, 5000000L);
 	}
 
 	public boolean add(String ip) {
@@ -242,11 +242,11 @@ public class IpBlacklist {
 	}
 
 	public void clear() {
-		cache.clear();
+		cache.cleanUp();
 	}
 
 	public Collection<String> getAll() {
-		return cache.keys();
+		return cache.asMap().keySet();
 	}
 
 	/**
@@ -257,17 +257,17 @@ public class IpBlacklist {
 	 * @author tanyaowu
 	 */
 	public boolean isInBlacklist(String ip) {
-		return cache.get(ip) != null;
+		return cache.getIfPresent(ip) != null;
 	}
 
 	/**
 	 * 从黑名单中删除
 	 *
-	 * @param ip
-	 * @return
+	 * @param ip ip
 	 * @author: tanyaowu
 	 */
 	public void remove(String ip) {
-		cache.remove(ip);
+		cache.invalidate(ip);
 	}
+
 }
