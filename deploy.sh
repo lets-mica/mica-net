@@ -9,4 +9,4 @@ mvn -version
 printf "\n"
 
 ## 3. deploy
-mvn clean package deploy -Prelease
+mvn clean package deploy -Prelease -pl mica-net-utils,mica-net-core,mica-net-http
