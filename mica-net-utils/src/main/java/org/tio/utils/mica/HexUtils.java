@@ -30,6 +30,35 @@ public class HexUtils {
 	public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 	private static final byte[] DIGITS_LOWER = new byte[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 	private static final byte[] DIGITS_UPPER = new byte[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+	private static final int OFFSET_BASIS = (int) 2166136261L;
+	private static final int PRIME = 16777619;
+
+	/**
+	 * FNV1算法
+	 *
+	 * @param src src
+	 * @return int
+	 */
+	public static int hashFNV1(byte[] src) {
+		return hashFNV1(src, 0, src.length);
+	}
+
+	/**
+	 * FNV1算法
+	 *
+	 * @param src   src
+	 * @param start start
+	 * @param len   len
+	 * @return int
+	 */
+	public static int hashFNV1(byte[] src, int start, int len) {
+		int hash = OFFSET_BASIS;
+		int end = start + len;
+		for (int i = start; i < end; i++) {
+			hash = (hash ^ src[i]) * PRIME;
+		}
+		return hash;
+	}
 
 	/**
 	 * encode Hex
@@ -50,6 +79,19 @@ public class HexUtils {
 	 */
 	public static byte[] encode(byte[] data, boolean toLowerCase) {
 		return encode(data, toLowerCase ? DIGITS_LOWER : DIGITS_UPPER);
+	}
+
+	/**
+	 * encode Hex
+	 *
+	 * @param data byte to Hex
+	 * @return bytes as a hex string
+	 */
+	public static String encode(byte data) {
+		byte[] out = new byte[2];
+		out[0] = DIGITS_LOWER[(0xF0 & data) >>> 4];
+		out[1] = DIGITS_LOWER[0xF & data];
+		return new String(out);
 	}
 
 	/**
