@@ -195,7 +195,7 @@ package org.tio.server;
 
 import org.tio.core.stat.GroupStat;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * @author tanyaowu
@@ -205,7 +205,7 @@ public class ServerGroupStat extends GroupStat {
 	/**
 	 * 接受了多少连接
 	 */
-	public final AtomicLong		accepted			= new AtomicLong();
+	public final LongAdder accepted			= new LongAdder();
 
 	/**
 	 *
@@ -217,10 +217,4 @@ public class ServerGroupStat extends GroupStat {
 	public ServerGroupStat() {
 	}
 
-	/**
-	 * @return the accepted
-	 */
-	public AtomicLong getAccepted() {
-		return accepted;
-	}
 }

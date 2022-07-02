@@ -237,7 +237,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			}
 
 			if (tioServerConfig.statOn) {
-				((ServerGroupStat) tioServerConfig.groupStat).accepted.incrementAndGet();
+				((ServerGroupStat) tioServerConfig.groupStat).accepted.increment();
 			}
 			asynchronousSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
 			asynchronousSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);

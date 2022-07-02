@@ -289,13 +289,12 @@ public class TioServerConfig extends TioConfig {
 		checkHeartbeatThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				//第一次先休息一下
+				// 第一次先休息一下 10s
 				try {
-					Thread.sleep(1000 * 10);
+					Thread.sleep(10_1000L);
 				} catch (InterruptedException e1) {
-					log.error(e1.toString(), e1);
+					log.error(e1.getMessage(), e1);
 				}
-
 				while (needCheckHeartbeat && !isStopped()) {
 					if (heartbeatTimeout <= 0) {
 						log.info("{}, 用户取消了框架层面的心跳检测，如果业务需要，请用户自己去完成心跳检测", TioServerConfig.this.name);
@@ -304,7 +303,7 @@ public class TioServerConfig extends TioConfig {
 					try {
 						Thread.sleep(heartbeatTimeout);
 					} catch (InterruptedException e1) {
-						log.error(e1.toString(), e1);
+						log.error(e1.getMessage(), e1);
 					}
 					long start = SystemTimer.currTime;
 					Set<ChannelContext> contextSet = TioServerConfig.this.connections;
@@ -323,12 +322,10 @@ public class TioServerConfig extends TioConfig {
 							} else {
 								needRemove = interval > heartbeatTimeout;
 							}
-							if (needRemove) {
-								if (!TioServerConfig.this.tioServerListener.onHeartbeatTimeout(channelContext, interval, channelContext.stat.heartbeatTimeoutCount.incrementAndGet())) {
-									log.info("{}, {} ms没有收发消息", channelContext, interval);
-									channelContext.setCloseCode(CloseCode.HEARTBEAT_TIMEOUT);
-									Tio.remove(channelContext, interval + " ms没有收发消息");
-								}
+							if (needRemove && !TioServerConfig.this.tioServerListener.onHeartbeatTimeout(channelContext, interval, channelContext.stat.heartbeatTimeoutCount.incrementAndGet())) {
+								log.info("{}, {} ms没有收发消息", channelContext, interval);
+								channelContext.setCloseCode(CloseCode.HEARTBEAT_TIMEOUT);
+								Tio.remove(channelContext, interval + " ms没有收发消息");
 							}
 						}
 					} catch (Throwable e) {
@@ -340,7 +337,7 @@ public class TioServerConfig extends TioConfig {
 								builder.append(SysConst.CRLF).append(TioServerConfig.this.getName());
 								builder.append("\r\n ├ 当前时间:").append(SystemTimer.currTime);
 								builder.append("\r\n ├ 连接统计");
-								builder.append("\r\n │ \t ├ 共接受过连接数  :").append(((ServerGroupStat) groupStat).accepted.get());
+								builder.append("\r\n │ \t ├ 共接受过连接数  :").append(((ServerGroupStat) groupStat).accepted.sum());
 								builder.append("\r\n │ \t ├ 当前连接数            :").append(contextSet.size());
 								builder.append("\r\n │ \t ├ 异IP连接数           :").append(TioServerConfig.this.ips.getIpMap().size());
 								builder.append("\r\n │ \t └ 关闭过的连接数  :").append(groupStat.closed.sum());
