@@ -222,12 +222,16 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	private final ChannelContext channelContext;
 	private final TioConfig tioConfig;
 	private final AtomicLong synFailCount = new AtomicLong();
+	/**
+	 * The msg queue.
+	 */
+	private final Queue<Packet> msgQueue;
 
 	public HandlerRunnable(ChannelContext channelContext, Executor executor) {
 		super(executor);
 		this.channelContext = channelContext;
-		tioConfig = channelContext.tioConfig;
-		getMsgQueue();
+		this.tioConfig = channelContext.tioConfig;
+		this.msgQueue = PacketHandlerMode.QUEUE == tioConfig.packetHandlerMode ? new ConcurrentLinkedQueue<>() : null;
 	}
 
 	/**
@@ -318,24 +322,9 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 		return toString();
 	}
 
-	/**
-	 * The msg queue.
-	 */
-	private volatile Queue<Packet> msgQueue = null;
-
 	@Override
 	public Queue<Packet> getMsgQueue() {
-		if (PacketHandlerMode.QUEUE == tioConfig.packetHandlerMode) {
-			if (msgQueue == null) {
-				synchronized (this) {
-					if (msgQueue == null) {
-						msgQueue = new ConcurrentLinkedQueue<>();
-					}
-				}
-			}
-			return msgQueue;
-		}
-		return null;
+		return msgQueue;
 	}
 
 }

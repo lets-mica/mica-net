@@ -223,30 +223,19 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	private static final Logger log = LoggerFactory.getLogger(SendRunnable.class);
-	private ChannelContext channelContext = null;
-	private TioConfig tioConfig = null;
-	private TioHandler tioHandler = null;
-	private boolean isSsl = false;
+	private final ChannelContext channelContext;
+	private final TioConfig tioConfig;
+	private final TioHandler tioHandler;
+	private final boolean isSsl;
 	/**
 	 * The msg queue.
 	 */
 	private ConcurrentLinkedQueue<Packet> forSendAfterSslHandshakeCompleted = null;
 	public boolean canSend = true;
-
-	public ConcurrentLinkedQueue<Packet> getForSendAfterSslHandshakeCompleted(boolean forceCreate) {
-		if (forSendAfterSslHandshakeCompleted == null && forceCreate) {
-			synchronized (this) {
-				if (forSendAfterSslHandshakeCompleted == null) {
-					forSendAfterSslHandshakeCompleted = new ConcurrentLinkedQueue<>();
-				}
-			}
-		}
-
-		return forSendAfterSslHandshakeCompleted;
-	}
-
-	//SSL加密锁
-	//	private Object sslEncryptLock = new Object();
+	/**
+	 * The msg queue.
+	 */
+	private final Queue<Packet> msgQueue;
 
 	/**
 	 * @param channelContext
@@ -259,8 +248,18 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		this.tioConfig = channelContext.tioConfig;
 		this.tioHandler = tioConfig.getTioHandler();
 		this.isSsl = SslUtils.isSsl(tioConfig);
+		this.msgQueue = new ConcurrentLinkedQueue<>();
+	}
 
-		getMsgQueue();
+	public ConcurrentLinkedQueue<Packet> getForSendAfterSslHandshakeCompleted(boolean forceCreate) {
+		if (forSendAfterSslHandshakeCompleted == null && forceCreate) {
+			synchronized (this) {
+				if (forSendAfterSslHandshakeCompleted == null) {
+					forSendAfterSslHandshakeCompleted = new ConcurrentLinkedQueue<>();
+				}
+			}
+		}
+		return forSendAfterSslHandshakeCompleted;
 	}
 
 	@Override
@@ -282,7 +281,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	 */
 	@Override
 	public void clearMsgQueue() {
-		Packet p = null;
+		Packet p;
 		forSendAfterSslHandshakeCompleted = null;
 		while ((p = msgQueue.poll()) != null) {
 			try {
@@ -310,25 +309,8 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		}
 	}
 
-	/**
-	 * 新旧值是否进行了切换
-	 *
-	 * @param oldValue
-	 * @param newValue
-	 * @return
-	 */
-	//	private static boolean changed(Boolean oldValue, boolean newValue) {
-	//		if (oldValue == null) {
-	//			return false;
-	//		}
-	//
-	//		return oldValue != newValue;
-	//	}
-
 	private static final int MAX_CAPACITY_MIN = TcpConst.MAX_DATA_LENGTH - 1024;    //减掉1024是尽量防止溢出的一小部分还分成一个tcp包发出
 	private static final int MAX_CAPACITY_MAX = MAX_CAPACITY_MIN * 10;
-
-	//	private int repeatCount = 0;
 
 	@Override
 	public void runTask() {
@@ -338,7 +320,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 
 		int queueSize = msgQueue.size();
 		if (queueSize == 1) {
-			//			System.out.println(1);
 			Packet packet = msgQueue.poll();
 			if (packet != null) {
 				sendPacket(packet);
@@ -348,10 +329,9 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 
 		int listInitialCapacity = Math.min(queueSize, canSend ? 300 : 1000);
 
-		Packet packet = null;
+		Packet packet;
 		List<Packet> packets = new ArrayList<>(listInitialCapacity);
 		List<ByteBuffer> byteBuffers = new ArrayList<>(listInitialCapacity);
-		//		int packetCount = 0;
 		int allBytebufferCapacity = 0;
 		Boolean needSslEncrypted = null;
 		boolean sslChanged = false;
@@ -360,7 +340,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 
 			packets.add(packet);
 			byteBuffers.add(byteBuffer);
-			//			packetCount++;
 			allBytebufferCapacity += byteBuffer.limit();
 
 			if (isSsl) {
@@ -377,8 +356,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 				break;
 			}
 		}
-
-		//		System.out.println(packets.size());
 		if (allBytebufferCapacity == 0) {
 			return;
 		}
@@ -402,30 +379,19 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		}
 
 		this.sendByteBuffer(allByteBuffer, packets);
-		//		queueSize = msgQueue.size();
-		//		if (queueSize > 0) {
-		//			repeatCount++;
-		//			if (repeatCount < 3) {
-		//				runTask();
-		//				return;
-		//			}
-		//		}
-		//		repeatCount = 0;
 	}
 
 	public boolean sendPacket(Packet packet) {
 		ByteBuffer byteBuffer = getByteBuffer(packet);
-		if (isSsl) {
-			if (!packet.isSslEncrypted()) {
-				SslVo sslVo = new SslVo(byteBuffer, packet);
-				try {
-					channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
-					byteBuffer = sslVo.getByteBuffer();
-				} catch (SSLException e) {
-					log.error(channelContext.toString() + ", 进行SSL加密时发生了异常", e);
-					Tio.close(channelContext, "进行SSL加密时发生了异常", CloseCode.SSL_ENCRYPTION_ERROR);
-					return false;
-				}
+		if (isSsl && !packet.isSslEncrypted()) {
+			SslVo sslVo = new SslVo(byteBuffer, packet);
+			try {
+				channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
+				byteBuffer = sslVo.getByteBuffer();
+			} catch (SSLException e) {
+				log.error("{}, 进行SSL加密时发生了异常", channelContext, e);
+				Tio.close(channelContext, "进行SSL加密时发生了异常", CloseCode.SSL_ENCRYPTION_ERROR);
+				return false;
 			}
 		}
 
@@ -447,10 +413,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		if (!TioUtils.checkBeforeIO(channelContext)) {
 			return;
 		}
-
-		//		if (!byteBuffer.hasRemaining()) {
-		//			byteBuffer.flip();
-		//		}
 
 		ReentrantLock lock = channelContext.writeCompletionHandler.lock;
 		lock.lock();
@@ -480,20 +442,8 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		return toString();
 	}
 
-	/**
-	 * The msg queue.
-	 */
-	private Queue<Packet> msgQueue = null;
-
 	@Override
 	public Queue<Packet> getMsgQueue() {
-		if (msgQueue == null) {
-			synchronized (this) {
-				if (msgQueue == null) {
-					msgQueue = new ConcurrentLinkedQueue<>();
-				}
-			}
-		}
 		return msgQueue;
 	}
 

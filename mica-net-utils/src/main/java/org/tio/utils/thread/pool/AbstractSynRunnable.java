@@ -213,7 +213,7 @@ public abstract class AbstractSynRunnable implements Runnable {
 	 */
 	public boolean executed = false;
 	protected ReentrantLock runningLock = new ReentrantLock();
-	public Executor executor;
+	public final Executor executor;
 	private boolean isCanceled = false;
 
 	/**
@@ -248,7 +248,7 @@ public abstract class AbstractSynRunnable implements Runnable {
 		try {
 			tryLock = runningLock.tryLock(1L, TimeUnit.SECONDS);
 		} catch (InterruptedException e1) {
-			log.error(e1.toString(), e1);
+			log.error(e1.getMessage(), e1);
 		}
 		if (tryLock) {
 			try {

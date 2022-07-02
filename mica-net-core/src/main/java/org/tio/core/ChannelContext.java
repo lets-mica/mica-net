@@ -321,8 +321,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	}
 
 	private void assignAnUnknownClientNode() {
-		Node clientNode = new Node(UNKNOWN_ADDRESS_IP, UNKNOWN_ADDRESS_PORT_SEQ.incrementAndGet());
-		setClientNode(clientNode);
+		setClientNode(new Node(UNKNOWN_ADDRESS_IP, UNKNOWN_ADDRESS_PORT_SEQ.incrementAndGet()));
 	}
 
 	/**
@@ -522,8 +521,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
 		if (asynchronousSocketChannel != null) {
 			try {
-				Node clientNode = createClientNode(asynchronousSocketChannel);
-				setClientNode(clientNode);
+				setClientNode(createClientNode(asynchronousSocketChannel));
 			} catch (IOException e) {
 				log.info(e.getMessage(), e);
 				assignAnUnknownClientNode();

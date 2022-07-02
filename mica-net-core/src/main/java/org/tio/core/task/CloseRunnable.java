@@ -208,16 +208,20 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 
 /**
- *
  * @author tanyaowu
  * 2017年10月19日 上午9:39:59
  */
 public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 	private static final Logger log = LoggerFactory.getLogger(CloseRunnable.class);
 
+	/**
+	 * The msg queue.
+	 */
+	private final Queue<ChannelContext> msgQueue;
+
 	public CloseRunnable(Executor executor) {
 		super(executor);
-		getMsgQueue();
+		this.msgQueue = new ConcurrentLinkedQueue<>();
 	}
 
 	@Override
@@ -237,7 +241,7 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 					try {
 						channelContext.tioConfig.getTioListener().onBeforeClose(channelContext, throwable, remark, isNeedRemove);
 					} catch (Throwable e) {
-						log.error(e.toString(), e);
+						log.error(e.getMessage(), e);
 					}
 				}
 
@@ -278,7 +282,7 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 						channelContext.stat.timeClosed = SystemTimer.currTime;
 						channelContext.setClosed(true);
 					} catch (Throwable e) {
-						log.error(e.toString(), e);
+						log.error(e.getMessage(), e);
 					} finally {
 						// 不删除且没有连接上，则加到重连队列中
 						if (!isNeedRemove && channelContext.isClosed && !channelContext.isServer()) {
@@ -300,18 +304,9 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 		return super.logstr();
 	}
 
-	/** The msg queue. */
-	private volatile Queue<ChannelContext> msgQueue = null;
-
 	@Override
 	public Queue<ChannelContext> getMsgQueue() {
-		if (msgQueue == null) {
-			synchronized (this) {
-				if (msgQueue == null) {
-					msgQueue = new ConcurrentLinkedQueue<>();
-				}
-			}
-		}
 		return msgQueue;
 	}
+
 }

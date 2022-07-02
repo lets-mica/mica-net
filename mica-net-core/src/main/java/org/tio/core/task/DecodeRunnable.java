@@ -231,6 +231,17 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	 * 新收到的数据
 	 */
 	private ByteBuffer newReceivedByteBuffer = null;
+	/**
+	 * The msg queue.
+	 */
+	private final Queue<ByteBuffer> msgQueue;
+
+	public DecodeRunnable(ChannelContext channelContext, Executor executor) {
+		super(executor);
+		this.channelContext = channelContext;
+		this.tioConfig = channelContext.tioConfig;
+		this.msgQueue = tioConfig.useQueueDecode ? new ConcurrentLinkedQueue<>() : null;
+	}
 
 	/**
 	 * @param packet
@@ -250,16 +261,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 				channelContext.handlerRunnable.handler(packet);
 				break;
 		}
-	}
-
-	/**
-	 *
-	 */
-	public DecodeRunnable(ChannelContext channelContext, Executor executor) {
-		super(executor);
-		this.channelContext = channelContext;
-		this.tioConfig = channelContext.tioConfig;
-		getMsgQueue();
 	}
 
 	/**
@@ -432,7 +433,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + ":" + channelContext.toString();
+		return this.getClass().getSimpleName() + ':' + channelContext.toString();
 	}
 
 	@Override
@@ -440,24 +441,9 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 		return toString();
 	}
 
-	/**
-	 * The msg queue.
-	 */
-	private Queue<ByteBuffer> msgQueue = null;
-
 	@Override
 	public Queue<ByteBuffer> getMsgQueue() {
-		if (tioConfig.useQueueDecode) {
-			if (msgQueue == null) {
-				synchronized (this) {
-					if (msgQueue == null) {
-						msgQueue = new ConcurrentLinkedQueue<>();
-					}
-				}
-			}
-			return msgQueue;
-		}
-		return null;
+		return msgQueue;
 	}
 
 }
