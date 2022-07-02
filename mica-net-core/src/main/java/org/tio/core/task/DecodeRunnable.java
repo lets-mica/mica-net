@@ -290,7 +290,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 			lastByteBuffer = null;
 		}
 
-		label_2:
 		while (true) {
 			try {
 				int initPosition = byteBuffer.position();
@@ -390,7 +389,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						if (log.isDebugEnabled()) {
 							log.debug("{},组包后，还剩有数据:{}", channelContext, byteBuffer.remaining());
 						}
-						continue label_2;
 					} else//组包后，数据刚好用完
 					{
 						lastByteBuffer = null;

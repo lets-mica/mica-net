@@ -210,11 +210,9 @@ import java.nio.channels.CompletionHandler;
  * 2017年4月4日 上午9:22:04
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
-	private static Logger	log				= LoggerFactory.getLogger(ReadCompletionHandler.class);
-	private ChannelContext	channelContext	= null;
+	private static final Logger	log				= LoggerFactory.getLogger(ReadCompletionHandler.class);
+	private final ChannelContext	channelContext;
 	private ByteBuffer		readByteBuffer;
-
-	//	private ByteBuffer byteBuffer = ByteBuffer.allocate(ChannelContext.READ_BUFFER_SIZE);
 
 	/**
 	 *

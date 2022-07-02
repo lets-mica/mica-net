@@ -240,18 +240,18 @@ public class ByteBufferUtils {
 
 	/**
 	 * @param src        本方法不会改变position等指针变量
-	 * @param startindex 从0开始
-	 * @param endindex
+	 * @param startIndex 从0开始
+	 * @param endIndex
 	 * @return
 	 * @author: tanyaowu
 	 */
-	public static ByteBuffer copy(ByteBuffer src, int startindex, int endindex) {
-		int size = endindex - startindex;
+	public static ByteBuffer copy(ByteBuffer src, int startIndex, int endIndex) {
+		int size = endIndex - startIndex;
 		int initPosition = src.position();
 		int initLimit = src.limit();
 
-		src.position(startindex);
-		src.limit(endindex);
+		src.position(startIndex);
+		src.limit(endIndex);
 		ByteBuffer ret = ByteBuffer.allocate(size);
 		ret.put(src);
 		ret.flip();
@@ -267,9 +267,9 @@ public class ByteBufferUtils {
 	 * @author tanyaowu
 	 */
 	public static ByteBuffer copy(ByteBuffer src) {
-		int startindex = src.position();
-		int endindex = src.limit();
-		return copy(src, startindex, endindex);
+		int startIndex = src.position();
+		int endIndex = src.limit();
+		return copy(src, startIndex, endIndex);
 	}
 
 	/**
