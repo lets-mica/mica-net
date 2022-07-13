@@ -196,83 +196,36 @@ package org.tio.core.udp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.Node;
-import org.tio.core.udp.intf.UdpHandler;
 import org.tio.core.udp.task.UdpHandlerRunnable;
 import org.tio.core.udp.task.UdpSendRunnable;
 import org.tio.utils.hutool.StrUtil;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author tanyaowu
  * 2017年7月5日 下午2:47:16
  */
 public class UdpServer {
-	private static Logger log = LoggerFactory.getLogger(UdpServer.class);
+	private static final Logger log = LoggerFactory.getLogger(UdpServer.class);
 
-	/**
-	 * @param args
-	 * @author tanyaowu
-	 */
-	public static void main(String[] args) throws IOException {
-		final AtomicLong count = new AtomicLong();
-		UdpServer udpServer = null;
-		UdpHandler udpHandler = new UdpHandler() {
-			@Override
-			public void handler(UdpPacket udpPacket, DatagramSocket datagramSocket) {
-				byte[] data = udpPacket.getData();
-				String msg = new String(data);
-				Node remote = udpPacket.getRemote();
-				long c = count.incrementAndGet();
-				if (c % 10000 == 0) {
-					String str = "【" + msg + "】 from " + remote;
-					log.error(str);
-				}String str = "【" + msg + "】 from " + remote;
-				log.error(str);
+	private final LinkedBlockingQueue<UdpPacket> handlerQueue = new LinkedBlockingQueue<>();
+	private final LinkedBlockingQueue<DatagramPacket> sendQueue = new LinkedBlockingQueue<>();
 
-				//				log.info("收到来自{}的消息:【{}】", remote, msg);
+	private DatagramSocket datagramSocket;
 
-				// 演示 start ---- 下面的代码仅作演示，如果两边要交互，那么两边都要开udpclient和udpserver
-				int otherPartyPort = 8000;
-				DatagramPacket datagramPacket = new DatagramPacket(data, data.length, new InetSocketAddress(remote.getIp(), otherPartyPort));
-				try {
-					datagramSocket.send(datagramPacket);
-				} catch (Throwable e) {
-					log.error(e.toString(), e);
-				}
-				// 演示 end
-
-			}
-		};
-		UdpServerConf udpServerConf = new UdpServerConf(3000, udpHandler, 5000);
-
-		udpServer = new UdpServer(udpServerConf);
-
-		udpServer.start();
-	}
-
-	private LinkedBlockingQueue<UdpPacket> handlerQueue = new LinkedBlockingQueue<>();
-
-	private LinkedBlockingQueue<DatagramPacket> sendQueue = new LinkedBlockingQueue<>();
-
-	private DatagramSocket datagramSocket = null;
-
-	private byte[] readBuf = null;
+	private byte[] readBuf;
 
 	private volatile boolean isStopped = false;
 
-	private UdpHandlerRunnable udpHandlerRunnable;
-
-	private UdpSendRunnable udpSendRunnable = null;
-
-	private UdpServerConf udpServerConf;
+	private final UdpHandlerRunnable udpHandlerRunnable;
+	private final UdpSendRunnable udpSendRunnable;
+	private final UdpServerConf udpServerConf;
 
 	/**
 	 *
@@ -284,7 +237,6 @@ public class UdpServer {
 		datagramSocket = new DatagramSocket(this.udpServerConf.getServerNode().getPort());
 		readBuf = new byte[this.udpServerConf.getReadBufferSize()];
 		udpHandlerRunnable = new UdpHandlerRunnable(udpServerConf.getUdpHandler(), handlerQueue, datagramSocket);
-
 		udpSendRunnable = new UdpSendRunnable(sendQueue, udpServerConf, datagramSocket);
 	}
 
@@ -351,7 +303,7 @@ public class UdpServer {
 
 						handlerQueue.put(udpPacket);
 					} catch (Throwable e) {
-						log.error(e.toString(), e);
+						log.error(e.getMessage(), e);
 					}
 				}
 			}
