@@ -204,7 +204,16 @@ import java.nio.ByteBuffer;
 class Buffers {
 
 	private static Logger log = LoggerFactory.getLogger(Buffers.class);
-
+	/**
+	 * 待解密的bytebuffer
+	 */
+	private final AppendableBuffer waitUnwrapBuffer;
+	/**
+	 *
+	 */
+	private final SSLSession ssLSession;
+	@SuppressWarnings("unused")
+	private final ChannelContext channelContext;
 	/*
 	 Buffers is a simple abstraction that encapsulates the 4 SSL
 	 buffers and an unwrap caching buffer.
@@ -236,20 +245,10 @@ class Buffers {
 	 maintainable to allow the host application to inject its own buffers.
 	 In short, leave these buffers alone!
 	 */
-	private ByteBuffer				_peerApp;
-	private ByteBuffer				_myApp;
-	private ByteBuffer				_peerNet;
-	private ByteBuffer				_myNet;
-	/**
-	 * 待解密的bytebuffer
-	 */
-	private final AppendableBuffer	waitUnwrapBuffer;
-	/**
-	 *
-	 */
-	private final SSLSession		ssLSession;
-	@SuppressWarnings("unused")
-	private final ChannelContext channelContext;
+	private ByteBuffer _peerApp;
+	private ByteBuffer _myApp;
+	private ByteBuffer _peerNet;
+	private ByteBuffer _myNet;
 
 	public Buffers(SSLSession ssLSession, ChannelContext channelContext) {
 		this.channelContext = channelContext;
@@ -261,18 +260,18 @@ class Buffers {
 	ByteBuffer get(BufferType t) {
 		ByteBuffer result = null;
 		switch (t) {
-		case IN_PLAIN:
-			result = _peerApp;
-			break;
-		case IN_CIPHER:
-			result = _peerNet;
-			break;
-		case OUT_PLAIN:
-			result = _myApp;
-			break;
-		case OUT_CIPHER:
-			result = _myNet;
-			break;
+			case IN_PLAIN:
+				result = _peerApp;
+				break;
+			case IN_CIPHER:
+				result = _peerNet;
+				break;
+			case OUT_PLAIN:
+				result = _myApp;
+				break;
+			case OUT_CIPHER:
+				result = _myNet;
+				break;
 		}
 		return result;
 	}
@@ -280,18 +279,18 @@ class Buffers {
 	void grow(BufferType t) {
 		/* Grows buffer to recommended SSL sizes */
 		switch (t) {
-		case IN_PLAIN:
-			assign(t, grow(t, ssLSession.getApplicationBufferSize()));
-			break;
-		case IN_CIPHER:
-			assign(t, grow(t, ssLSession.getPacketBufferSize()));
-			break;
-		case OUT_PLAIN:
-			//No known reason for this case to occur
-			break;
-		case OUT_CIPHER:
-			assign(t, grow(t, ssLSession.getPacketBufferSize()));
-			break;
+			case IN_PLAIN:
+				assign(t, grow(t, ssLSession.getApplicationBufferSize()));
+				break;
+			case IN_CIPHER:
+				assign(t, grow(t, ssLSession.getPacketBufferSize()));
+				break;
+			case OUT_PLAIN:
+				//No known reason for this case to occur
+				break;
+			case OUT_CIPHER:
+				assign(t, grow(t, ssLSession.getPacketBufferSize()));
+				break;
 		}
 
 	}
@@ -319,7 +318,6 @@ class Buffers {
 	}
 
 	/**
-	 *
 	 * @param plainData 待加密的ByteBuffer
 	 */
 	void prepareForWrap(ByteBuffer plainData) {
@@ -375,18 +373,18 @@ class Buffers {
 	private void assign(BufferType t, ByteBuffer b) {
 		switch (t) {
 
-		case IN_PLAIN:
-			_peerApp = b;
-			break;
-		case IN_CIPHER:
-			_peerNet = b;
-			break;
-		case OUT_PLAIN:
-			_myApp = b;
-			break;
-		case OUT_CIPHER:
-			_myNet = b;
-			break;
+			case IN_PLAIN:
+				_peerApp = b;
+				break;
+			case IN_CIPHER:
+				_peerNet = b;
+				break;
+			case OUT_PLAIN:
+				_myApp = b;
+				break;
+			case OUT_CIPHER:
+				_myNet = b;
+				break;
 		}
 	}
 

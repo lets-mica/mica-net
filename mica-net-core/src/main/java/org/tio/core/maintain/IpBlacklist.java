@@ -208,6 +208,7 @@ import java.util.concurrent.TimeUnit;
  * 2017年5月22日 下午2:53:47
  */
 public class IpBlacklist {
+	public static final IpBlacklist GLOBAL = new IpBlacklist();
 	private static final String CACHE_NAME_PREFIX = "IP_BLACK_LIST";
 	/**
 	 * ip 黑名单缓存时间，默认：30天
@@ -216,7 +217,6 @@ public class IpBlacklist {
 	private final String id;
 	private final Cache<String, Long> cache;
 	private TioServerConfig tioServerConfig;
-	public static final IpBlacklist GLOBAL = new IpBlacklist();
 
 	private IpBlacklist() {
 		this.id = "__global__";

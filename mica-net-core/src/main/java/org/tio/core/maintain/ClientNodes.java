@@ -208,6 +208,11 @@ import java.util.concurrent.ConcurrentMap;
 public class ClientNodes {
 
 	/**
+	 * remoteAndChannelContext key: "ip:port" value: ChannelContext.
+	 */
+	private final ConcurrentMap<String, ChannelContext> map = new ConcurrentHashMap<>();
+
+	/**
 	 * @param channelContext ChannelContext
 	 * @return key
 	 * @author tanyaowu
@@ -229,11 +234,6 @@ public class ClientNodes {
 	public static String getKey(String ip, int port) {
 		return ip + ':' + port;
 	}
-
-	/**
-	 * remoteAndChannelContext key: "ip:port" value: ChannelContext.
-	 */
-	private final ConcurrentMap<String, ChannelContext> map = new ConcurrentHashMap<>();
 
 	/**
 	 * @param key key

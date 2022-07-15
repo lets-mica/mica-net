@@ -201,7 +201,6 @@ import java.io.InputStream;
 
 /**
  * @author tanyaowu
- *
  */
 public class HttpResource {
 	private String path = null;

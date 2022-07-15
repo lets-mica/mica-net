@@ -224,6 +224,10 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	private final ChannelContext channelContext;
 	private final TioConfig tioConfig;
 	/**
+	 * The msg queue.
+	 */
+	private final Queue<ByteBuffer> msgQueue;
+	/**
 	 * 上一次解码剩下的数据
 	 */
 	private ByteBuffer lastByteBuffer = null;
@@ -231,10 +235,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	 * 新收到的数据
 	 */
 	private ByteBuffer newReceivedByteBuffer = null;
-	/**
-	 * The msg queue.
-	 */
-	private final Queue<ByteBuffer> msgQueue;
 
 	public DecodeRunnable(ChannelContext channelContext, Executor executor) {
 		super(executor);

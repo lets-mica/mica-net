@@ -205,6 +205,22 @@ import java.util.concurrent.ThreadLocalRandom;
 public class StrUtil {
 	public static final int INDEX_NOT_FOUND = -1;
 	public static final String EMPTY = "";
+	/**
+	 * All possible chars for representing a number as a String
+	 */
+	private static final byte[] DIGITS = {
+		'0', '1', '2', '3', '4', '5',
+		'6', '7', '8', '9', 'a', 'b',
+		'c', 'd', 'e', 'f', 'g', 'h',
+		'i', 'j', 'k', 'l', 'm', 'n',
+		'o', 'p', 'q', 'r', 's', 't',
+		'u', 'v', 'w', 'x', 'y', 'z',
+		'A', 'B', 'C', 'D', 'E', 'F',
+		'G', 'H', 'I', 'J', 'K', 'L',
+		'M', 'N', 'O', 'P', 'Q', 'R',
+		'S', 'T', 'U', 'V', 'W', 'X',
+		'Y', 'Z'
+	};
 
 	/**
 	 * 去除字符串两边空白符，传入null也返回null
@@ -1560,23 +1576,6 @@ public class StrUtil {
 		formatUnsignedLong(msb >>> 32, radix, buf, 0, 6);
 		return new String(buf);
 	}
-
-	/**
-	 * All possible chars for representing a number as a String
-	 */
-	private static final byte[] DIGITS = {
-		'0', '1', '2', '3', '4', '5',
-		'6', '7', '8', '9', 'a', 'b',
-		'c', 'd', 'e', 'f', 'g', 'h',
-		'i', 'j', 'k', 'l', 'm', 'n',
-		'o', 'p', 'q', 'r', 's', 't',
-		'u', 'v', 'w', 'x', 'y', 'z',
-		'A', 'B', 'C', 'D', 'E', 'F',
-		'G', 'H', 'I', 'J', 'K', 'L',
-		'M', 'N', 'O', 'P', 'Q', 'R',
-		'S', 'T', 'U', 'V', 'W', 'X',
-		'Y', 'Z'
-	};
 
 	private static void formatUnsignedLong(long val, int radix, byte[] buf, int offset, int len) {
 		int charPos = offset + len;

@@ -213,6 +213,21 @@ public class DefaultThreadFactory implements ThreadFactory {
 	 * The cacheMap of name and atomic integer.
 	 */
 	private static final Map<String, AtomicInteger> mapOfNameAndAtomicInteger = new HashMap<>();
+	/**
+	 * The thread pool name.
+	 */
+	private String threadPoolName = null;
+	/**
+	 * The priority.
+	 */
+	private int priority = Thread.NORM_PRIORITY;
+
+	/**
+	 * Instantiates a new default thread factory.
+	 */
+	private DefaultThreadFactory() {
+
+	}
 
 	public static DefaultThreadFactory getInstance(String threadName) {
 		return getInstance(threadName, Thread.NORM_PRIORITY);
@@ -238,23 +253,6 @@ public class DefaultThreadFactory implements ThreadFactory {
 			mapOfNameAndAtomicInteger.put(threadName, new AtomicInteger());
 		}
 		return defaultThreadFactory;
-	}
-
-	/**
-	 * The thread pool name.
-	 */
-	private String threadPoolName = null;
-
-	/**
-	 * The priority.
-	 */
-	private int priority = Thread.NORM_PRIORITY;
-
-	/**
-	 * Instantiates a new default thread factory.
-	 */
-	private DefaultThreadFactory() {
-
 	}
 
 	/**

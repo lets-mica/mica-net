@@ -196,7 +196,6 @@ package org.tio.client.intf;
 import org.tio.core.intf.TioListener;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月1日 上午9:15:04
  */

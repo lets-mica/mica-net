@@ -208,7 +208,6 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月4日 上午9:27:45
  */
@@ -219,7 +218,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	}
 
 	/**
-	 *
 	 * @param asynchronousSocketChannel
 	 * @param tioServer
 	 * @author tanyaowu
@@ -294,7 +292,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	}
 
 	/**
-	 *
 	 * @param exc
 	 * @param tioServer
 	 * @author tanyaowu

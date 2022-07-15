@@ -203,7 +203,6 @@ import org.tio.utils.hutool.StrUtil;
 public class DefaultTioUuid implements TioUuid {
 
 	/**
-	 *
 	 * @author tanyaowu
 	 */
 	public DefaultTioUuid() {

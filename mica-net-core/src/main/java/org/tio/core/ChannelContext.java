@@ -220,10 +220,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * 2017年10月19日 上午9:39:46
  */
 public abstract class ChannelContext extends MapWithLockPropSupport {
-	private static final Logger log = LoggerFactory.getLogger(ChannelContext.class);
-	private static final String DEFAULT_ATTUBITE_KEY = "t-io-d-a-k";
 	public static final String UNKNOWN_ADDRESS_IP = "$UNKNOWN";
 	public static final AtomicInteger UNKNOWN_ADDRESS_PORT_SEQ = new AtomicInteger();
+	private static final Logger log = LoggerFactory.getLogger(ChannelContext.class);
+	private static final String DEFAULT_ATTUBITE_KEY = "t-io-d-a-k";
+	public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
+	public final ChannelStat stat = new ChannelStat();
+	public final CloseMeta closeMeta = new CloseMeta();
 	public boolean isReconnect = false;
 	/**
 	 * 解码出现异常时，是否打印异常日志
@@ -243,23 +246,21 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	public DecodeRunnable decodeRunnable = null;
 	public HandlerRunnable handlerRunnable = null;
 	public SendRunnable sendRunnable = null;
-	public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
-	private ReadCompletionHandler readCompletionHandler = null;
 	public WriteCompletionHandler writeCompletionHandler = null;
 	public SslFacadeContext sslFacadeContext;
 	public String userId;
-	private String token;
-	private String bsId;
 	public boolean isWaitingClose = false;
 	public boolean isClosed = true;
 	public boolean isRemoved = false;
 	public boolean isVirtual = false;
 	public boolean hasTempDir = false;
-	public final ChannelStat stat = new ChannelStat();
 	/**
 	 * The asynchronous socket channel.
 	 */
 	public AsynchronousSocketChannel asynchronousSocketChannel;
+	private ReadCompletionHandler readCompletionHandler = null;
+	private String token;
+	private String bsId;
 	private String id = null;
 	private Node clientNode;
 	private Node proxyClientNode = null;                                            //一些连接是代理的，譬如web服务器放在nginx后面，此时需要知道最原始的ip
@@ -269,7 +270,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	 */
 	private Set<String> groups = null;
 	private Integer readBufferSize = null;                                            //个性化readBufferSize
-	public final CloseMeta closeMeta = new CloseMeta();
 	private CloseCode closeCode = CloseCode.INIT_STATUS;                        //连接关闭的原因码
 
 	/**
@@ -318,6 +318,28 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 			this.id = tioConfig.getTioUuid().uuid();
 		}
 		initOther();
+	}
+
+	private static void switchIpStat(IpStat oldIpStat, IpStat newIpStat, ChannelStat myStat) {
+		oldIpStat.getHandledBytes().add(-myStat.getHandledBytes().sum());
+		oldIpStat.getHandledPacketCosts().add(-myStat.getHandledPacketCosts().sum());
+		oldIpStat.getHandledPackets().add(-myStat.getHandledPackets().sum());
+		oldIpStat.getReceivedBytes().add(-myStat.getReceivedBytes().sum());
+		oldIpStat.getReceivedPackets().add(-myStat.getReceivedPackets().sum());
+		oldIpStat.getReceivedTcps().add(-myStat.getReceivedTcps().sum());
+		oldIpStat.getRequestCount().addAndGet(-1);
+		oldIpStat.getSentBytes().add(-myStat.getSentBytes().sum());
+		oldIpStat.getSentPackets().add(-myStat.getSentPackets().sum());
+
+		newIpStat.getHandledBytes().add(myStat.getHandledBytes().sum());
+		newIpStat.getHandledPacketCosts().add(myStat.getHandledPacketCosts().sum());
+		newIpStat.getHandledPackets().add(myStat.getHandledPackets().sum());
+		newIpStat.getReceivedBytes().add(myStat.getReceivedBytes().sum());
+		newIpStat.getReceivedPackets().add(myStat.getReceivedPackets().sum());
+		newIpStat.getReceivedTcps().add(myStat.getReceivedTcps().sum());
+		newIpStat.getRequestCount().addAndGet(1);
+		newIpStat.getSentBytes().add(myStat.getSentBytes().sum());
+		newIpStat.getSentPackets().add(myStat.getSentPackets().sum());
 	}
 
 	private void assignAnUnknownClientNode() {
@@ -372,6 +394,19 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	}
 
 	/**
+	 * 等价于：setAttribute(DEFAULT_ATTUBITE_KEY, value)<br>
+	 * 仅仅是为了内部方便，不建议大家使用<br>
+	 *
+	 * @param value
+	 * @author tanyaowu
+	 * @deprecated 不建议各位同学使用这个方法，建议使用set("name1", object1)
+	 */
+	@Deprecated
+	public void setAttribute(Object value) {
+		set(value);
+	}
+
+	/**
 	 * 等价于：getAttribute(DEFAULT_ATTUBITE_KEY)<br>
 	 * 等价于：getAttribute()<br>
 	 *
@@ -386,6 +421,24 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	 */
 	public Node getClientNode() {
 		return clientNode;
+	}
+
+	/**
+	 * @param clientNode the clientNode to set
+	 */
+	public void setClientNode(Node clientNode) {
+		if (!this.tioConfig.isShortConnection && this.clientNode != null) {
+			tioConfig.clientNodes.remove(this);
+		}
+
+		this.clientNode = clientNode;
+		if (this.tioConfig.isShortConnection) {
+			return;
+		}
+
+		if (this.clientNode != null && !Objects.equals(UNKNOWN_ADDRESS_IP, this.clientNode.getIp())) {
+			tioConfig.clientNodes.put(this);
+		}
 	}
 
 	public Set<String> getGroups() {
@@ -413,8 +466,19 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		return serverNode;
 	}
 
+	/**
+	 * @param serverNode the serverNode to set
+	 */
+	public void setServerNode(Node serverNode) {
+		this.serverNode = serverNode;
+	}
+
 	public String getToken() {
 		return token;
+	}
+
+	public void setToken(String token) {
+		this.token = token;
 	}
 
 	/**
@@ -532,19 +596,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	}
 
 	/**
-	 * 等价于：setAttribute(DEFAULT_ATTUBITE_KEY, value)<br>
-	 * 仅仅是为了内部方便，不建议大家使用<br>
-	 *
-	 * @param value
-	 * @author tanyaowu
-	 * @deprecated 不建议各位同学使用这个方法，建议使用set("name1", object1)
-	 */
-	@Deprecated
-	public void setAttribute(Object value) {
-		set(value);
-	}
-
-	/**
 	 * 等价于：set(DEFAULT_ATTUBITE_KEY, value)<br>
 	 * 等价于：setAttribute(Object value)<br>
 	 *
@@ -554,24 +605,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	@Deprecated
 	public void set(Object value) {
 		set(DEFAULT_ATTUBITE_KEY, value);
-	}
-
-	/**
-	 * @param clientNode the clientNode to set
-	 */
-	public void setClientNode(Node clientNode) {
-		if (!this.tioConfig.isShortConnection && this.clientNode != null) {
-			tioConfig.clientNodes.remove(this);
-		}
-
-		this.clientNode = clientNode;
-		if (this.tioConfig.isShortConnection) {
-			return;
-		}
-
-		if (this.clientNode != null && !Objects.equals(UNKNOWN_ADDRESS_IP, this.clientNode.getIp())) {
-			tioConfig.clientNodes.put(this);
-		}
 	}
 
 	/**
@@ -585,19 +618,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 				assignAnUnknownClientNode();
 				log.info("关闭前{}, 关闭后{}", before, this);
 			}
-		}
-	}
-
-	/**
-	 * @param tioConfig the tioConfig to set
-	 */
-	public void setTioConfig(TioConfig tioConfig) {
-		this.tioConfig = tioConfig;
-		if (tioConfig != null) {
-			decodeRunnable = new DecodeRunnable(this, tioConfig.tioExecutor);
-			handlerRunnable = new HandlerRunnable(this, tioConfig.tioExecutor);
-			sendRunnable = new SendRunnable(this, tioConfig.tioExecutor);
-			tioConfig.connections.add(this);
 		}
 	}
 
@@ -616,19 +636,8 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		this.isRemoved = isRemoved;
 	}
 
-	/**
-	 * @param serverNode the serverNode to set
-	 */
-	public void setServerNode(Node serverNode) {
-		this.serverNode = serverNode;
-	}
-
 	public void setSslFacadeContext(SslFacadeContext sslFacadeContext) {
 		this.sslFacadeContext = sslFacadeContext;
-	}
-
-	public void setToken(String token) {
-		this.token = token;
 	}
 
 	/**
@@ -679,6 +688,19 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	}
 
 	/**
+	 * @param tioConfig the tioConfig to set
+	 */
+	public void setTioConfig(TioConfig tioConfig) {
+		this.tioConfig = tioConfig;
+		if (tioConfig != null) {
+			decodeRunnable = new DecodeRunnable(this, tioConfig.tioExecutor);
+			handlerRunnable = new HandlerRunnable(this, tioConfig.tioExecutor);
+			sendRunnable = new SendRunnable(this, tioConfig.tioExecutor);
+			tioConfig.connections.add(this);
+		}
+	}
+
+	/**
 	 * 是否是服务器端
 	 *
 	 * @return
@@ -718,28 +740,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		return proxyClientNode;
 	}
 
-	private static void switchIpStat(IpStat oldIpStat, IpStat newIpStat, ChannelStat myStat) {
-		oldIpStat.getHandledBytes().add(-myStat.getHandledBytes().sum());
-		oldIpStat.getHandledPacketCosts().add(-myStat.getHandledPacketCosts().sum());
-		oldIpStat.getHandledPackets().add(-myStat.getHandledPackets().sum());
-		oldIpStat.getReceivedBytes().add(-myStat.getReceivedBytes().sum());
-		oldIpStat.getReceivedPackets().add(-myStat.getReceivedPackets().sum());
-		oldIpStat.getReceivedTcps().add(-myStat.getReceivedTcps().sum());
-		oldIpStat.getRequestCount().addAndGet(-1);
-		oldIpStat.getSentBytes().add(-myStat.getSentBytes().sum());
-		oldIpStat.getSentPackets().add(-myStat.getSentPackets().sum());
-
-		newIpStat.getHandledBytes().add(myStat.getHandledBytes().sum());
-		newIpStat.getHandledPacketCosts().add(myStat.getHandledPacketCosts().sum());
-		newIpStat.getHandledPackets().add(myStat.getHandledPackets().sum());
-		newIpStat.getReceivedBytes().add(myStat.getReceivedBytes().sum());
-		newIpStat.getReceivedPackets().add(myStat.getReceivedPackets().sum());
-		newIpStat.getReceivedTcps().add(myStat.getReceivedTcps().sum());
-		newIpStat.getRequestCount().addAndGet(1);
-		newIpStat.getSentBytes().add(myStat.getSentBytes().sum());
-		newIpStat.getSentPackets().add(myStat.getSentPackets().sum());
-	}
-
 	/**
 	 * @param proxyClientNode the proxyClientNode to set
 	 */
@@ -769,39 +769,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
 	public void setCloseCode(CloseCode closeCode) {
 		this.closeCode = closeCode;
-	}
-
-	/**
-	 * @author tanyaowu
-	 */
-	public static class CloseMeta {
-		public Throwable throwable;
-		public String remark;
-		public boolean isNeedRemove;
-
-		public Throwable getThrowable() {
-			return throwable;
-		}
-
-		public void setThrowable(Throwable throwable) {
-			this.throwable = throwable;
-		}
-
-		public String getRemark() {
-			return remark;
-		}
-
-		public void setRemark(String remark) {
-			this.remark = remark;
-		}
-
-		public boolean isNeedRemove() {
-			return isNeedRemove;
-		}
-
-		public void setNeedRemove(boolean isNeedRemove) {
-			this.isNeedRemove = isNeedRemove;
-		}
 	}
 
 	/**
@@ -926,6 +893,12 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		OTHER_ERROR((byte) 200),
 		;
 
+		final byte value;
+
+		CloseCode(Byte value) {
+			this.value = value;
+		}
+
 		public static CloseCode from(byte value) {
 			CloseCode[] values = CloseCode.values();
 			for (CloseCode v : values) {
@@ -936,14 +909,41 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 			return null;
 		}
 
-		final byte value;
-
-		CloseCode(Byte value) {
-			this.value = value;
-		}
-
 		public byte getValue() {
 			return value;
+		}
+	}
+
+	/**
+	 * @author tanyaowu
+	 */
+	public static class CloseMeta {
+		public Throwable throwable;
+		public String remark;
+		public boolean isNeedRemove;
+
+		public Throwable getThrowable() {
+			return throwable;
+		}
+
+		public void setThrowable(Throwable throwable) {
+			this.throwable = throwable;
+		}
+
+		public String getRemark() {
+			return remark;
+		}
+
+		public void setRemark(String remark) {
+			this.remark = remark;
+		}
+
+		public boolean isNeedRemove() {
+			return isNeedRemove;
+		}
+
+		public void setNeedRemove(boolean isNeedRemove) {
+			this.isNeedRemove = isNeedRemove;
 		}
 	}
 }

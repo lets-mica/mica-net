@@ -227,20 +227,20 @@ public class UdpPacket {
 		return data;
 	}
 
-	public Node getRemote() {
-		return remote;
-	}
-
-	public long getTime() {
-		return time;
-	}
-
 	public void setData(byte[] data) {
 		this.data = data;
 	}
 
+	public Node getRemote() {
+		return remote;
+	}
+
 	public void setRemote(Node remote) {
 		this.remote = remote;
+	}
+
+	public long getTime() {
+		return time;
 	}
 
 	public void setTime(long time) {

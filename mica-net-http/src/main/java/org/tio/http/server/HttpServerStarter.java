@@ -255,6 +255,10 @@ public class HttpServerStarter {
 		return httpRequestHandler;
 	}
 
+	public void setHttpRequestHandler(HttpRequestHandler requestHandler) {
+		this.httpRequestHandler = requestHandler;
+	}
+
 	/**
 	 * @return the httpTioServerHandler
 	 */
@@ -300,10 +304,6 @@ public class HttpServerStarter {
 		tioServer = new TioServer(tioServerConfig);
 		HttpUuid imTioUuid = new HttpUuid();
 		tioServerConfig.setTioUuid(imTioUuid);
-	}
-
-	public void setHttpRequestHandler(HttpRequestHandler requestHandler) {
-		this.httpRequestHandler = requestHandler;
 	}
 
 	/**

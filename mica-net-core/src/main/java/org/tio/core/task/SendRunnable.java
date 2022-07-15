@@ -223,6 +223,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	private static final Logger log = LoggerFactory.getLogger(SendRunnable.class);
+	private static final int MAX_CAPACITY_MIN = TcpConst.MAX_DATA_LENGTH - 1024;    //减掉1024是尽量防止溢出的一小部分还分成一个tcp包发出
+	private static final int MAX_CAPACITY_MAX = MAX_CAPACITY_MIN * 10;
 	private final ChannelContext channelContext;
 	private final TioConfig tioConfig;
 	private final TioHandler tioHandler;
@@ -230,12 +232,12 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	/**
 	 * The msg queue.
 	 */
-	private ConcurrentLinkedQueue<Packet> forSendAfterSslHandshakeCompleted = null;
+	private final Queue<Packet> msgQueue;
 	public boolean canSend = true;
 	/**
 	 * The msg queue.
 	 */
-	private final Queue<Packet> msgQueue;
+	private ConcurrentLinkedQueue<Packet> forSendAfterSslHandshakeCompleted = null;
 
 	/**
 	 * @param channelContext
@@ -308,9 +310,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			throw new RuntimeException(e);
 		}
 	}
-
-	private static final int MAX_CAPACITY_MIN = TcpConst.MAX_DATA_LENGTH - 1024;    //减掉1024是尽量防止溢出的一小部分还分成一个tcp包发出
-	private static final int MAX_CAPACITY_MAX = MAX_CAPACITY_MIN * 10;
 
 	@Override
 	public void runTask() {

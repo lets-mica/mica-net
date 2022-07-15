@@ -194,9 +194,9 @@
 package org.tio.core;
 
 /**
- *  消息处理模式
- * @author tanyaowu
+ * 消息处理模式
  *
+ * @author tanyaowu
  */
 public enum PacketHandlerMode {
 	/**
@@ -208,21 +208,21 @@ public enum PacketHandlerMode {
 	 */
 	QUEUE(2);
 
-	public static PacketHandlerMode forNumber(int value) {
-		switch (value) {
-		case 1:
-			return SINGLE_THREAD;
-		case 2:
-			return QUEUE;
-		default:
-			return null;
-		}
-	}
-
 	private final int value;
 
 	PacketHandlerMode(int value) {
 		this.value = value;
+	}
+
+	public static PacketHandlerMode forNumber(int value) {
+		switch (value) {
+			case 1:
+				return SINGLE_THREAD;
+			case 2:
+				return QUEUE;
+			default:
+				return null;
+		}
 	}
 
 	/**

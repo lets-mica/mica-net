@@ -10,10 +10,10 @@ import java.util.List;
  * @author talent.tan
  */
 public class DecodeByteBufferList {
-	private final int					listCapacity;
-	private final List<ByteBuffer>	list;
-	private int					byteSize		= 0;
-	private int					listIndex		= 0;
+	private final int listCapacity;
+	private final List<ByteBuffer> list;
+	private int byteSize = 0;
+	private int listIndex = 0;
 
 	public DecodeByteBufferList(int listCapacity) {
 		this.listCapacity = listCapacity;
@@ -30,6 +30,7 @@ public class DecodeByteBufferList {
 
 	/**
 	 * 有多少个byte
+	 *
 	 * @return
 	 * @author talent.tan
 	 */
@@ -39,6 +40,7 @@ public class DecodeByteBufferList {
 
 	/**
 	 * 应用需要设置好limit和position
+	 *
 	 * @param byteBuffer
 	 * @return
 	 * @author talent.tan
@@ -96,6 +98,7 @@ public class DecodeByteBufferList {
 	/**
 	 * 应用告之，已经解码成功
 	 * 此时需要清空前面参与编码的
+	 *
 	 * @author talent.tan
 	 */
 	public void notifySuccess() {
@@ -119,6 +122,7 @@ public class DecodeByteBufferList {
 	/**
 	 * 应用告之，已经解码失败，相当于半包
 	 * 此时需要恢复各状态到编码前
+	 *
 	 * @author talent.tan
 	 */
 	public void notifyFail() {

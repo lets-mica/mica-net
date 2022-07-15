@@ -201,40 +201,39 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月1日 上午9:34:59
  */
 public class Packet implements java.io.Serializable, Cloneable {
-	private static final Logger			log						= LoggerFactory.getLogger(Packet.class);
-	private static final long		serialVersionUID		= 5275372187150637318L;
-	private static final AtomicLong	ID_ATOMICLONG			= new AtomicLong();
-	private Long					id						= ID_ATOMICLONG.incrementAndGet();
+	private static final Logger log = LoggerFactory.getLogger(Packet.class);
+	private static final long serialVersionUID = 5275372187150637318L;
+	private static final AtomicLong ID_ATOMICLONG = new AtomicLong();
+	private Long id = ID_ATOMICLONG.incrementAndGet();
 	/**
 	 * 本packet在解码时，消耗的字节数
 	 */
-	private int						byteCount				= 0;
-	private Long					respId					= null;
-	private PacketListener			packetListener;
-	private boolean					isBlockSend				= false;
-	private Meta					meta					= null;
+	private int byteCount = 0;
+	private Long respId = null;
+	private PacketListener packetListener;
+	private boolean isBlockSend = false;
+	private Meta meta = null;
 	/**
 	 * 消息是否是另外一台机器通过topic转过来的，如果是就不要死循环地再一次转发啦
 	 * 这个属性是tio内部使用，业务层的用户请勿使用
 	 */
-	private boolean					isFromCluster			= false;
+	private boolean isFromCluster = false;
 	/**
 	 * 同步发送时，需要的同步序列号
 	 */
-	private Integer					synSeq					= 0;
+	private Integer synSeq = 0;
 	/**
 	 * 预编码过的bytebuffer，如果此值不为null，框架则会忽略原来的encode()而直接用此值
 	 */
-	private ByteBuffer				preEncodedByteBuffer	= null;
+	private ByteBuffer preEncodedByteBuffer = null;
 	/**
 	 * 是否已经进行ssl加密过
 	 */
-	private boolean					isSslEncrypted			= false;
+	private boolean isSslEncrypted = false;
 
 	@Override
 	public Packet clone() {
@@ -257,63 +256,17 @@ public class Packet implements java.io.Serializable, Cloneable {
 	}
 
 	/**
-	 * @return the id
-	 */
-	public Long getId() {
-		return id;
-	}
-
-	/**
-	 * @return the packetListener
-	 */
-	public PacketListener getPacketListener() {
-		return packetListener;
-	}
-
-	/**
-	 * @return the preEncodedByteBuffer
-	 */
-	public ByteBuffer getPreEncodedByteBuffer() {
-		return preEncodedByteBuffer;
-	}
-
-	/**
-	 * @return the respId
-	 */
-	public Long getRespId() {
-		return respId;
-	}
-
-	/**
-	 * @return the synSeq
-	 */
-	public Integer getSynSeq() {
-		return synSeq;
-	}
-
-	/**
-	 * @return the isBlockSend
-	 */
-	public boolean isBlockSend() {
-		return isBlockSend;
-	}
-
-	public String logstr() {
-		return "";
-	}
-
-	/**
-	 * @param isBlockSend the isBlockSend to set
-	 */
-	public void setBlockSend(boolean isBlockSend) {
-		this.isBlockSend = isBlockSend;
-	}
-
-	/**
 	 * @param byteCount the byteCount to set
 	 */
 	public void setByteCount(int byteCount) {
 		this.byteCount = byteCount;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
 	}
 
 	/**
@@ -324,10 +277,24 @@ public class Packet implements java.io.Serializable, Cloneable {
 	}
 
 	/**
+	 * @return the packetListener
+	 */
+	public PacketListener getPacketListener() {
+		return packetListener;
+	}
+
+	/**
 	 * @param packetListener the packetListener to set
 	 */
 	public void setPacketListener(PacketListener packetListener) {
 		this.packetListener = packetListener;
+	}
+
+	/**
+	 * @return the preEncodedByteBuffer
+	 */
+	public ByteBuffer getPreEncodedByteBuffer() {
+		return preEncodedByteBuffer;
 	}
 
 	/**
@@ -338,6 +305,13 @@ public class Packet implements java.io.Serializable, Cloneable {
 	}
 
 	/**
+	 * @return the respId
+	 */
+	public Long getRespId() {
+		return respId;
+	}
+
+	/**
 	 * @param respId the respId to set
 	 */
 	public void setRespId(Long respId) {
@@ -345,10 +319,35 @@ public class Packet implements java.io.Serializable, Cloneable {
 	}
 
 	/**
+	 * @return the synSeq
+	 */
+	public Integer getSynSeq() {
+		return synSeq;
+	}
+
+	/**
 	 * @param synSeq the synSeq to set
 	 */
 	public void setSynSeq(Integer synSeq) {
 		this.synSeq = synSeq;
+	}
+
+	/**
+	 * @return the isBlockSend
+	 */
+	public boolean isBlockSend() {
+		return isBlockSend;
+	}
+
+	/**
+	 * @param isBlockSend the isBlockSend to set
+	 */
+	public void setBlockSend(boolean isBlockSend) {
+		this.isBlockSend = isBlockSend;
+	}
+
+	public String logstr() {
+		return "";
 	}
 
 	public boolean isFromCluster() {
@@ -377,8 +376,8 @@ public class Packet implements java.io.Serializable, Cloneable {
 
 	public static class Meta implements java.io.Serializable {
 		private static final long serialVersionUID = 6209036094326369490L;
-		private Boolean			isSentSuccess	= false;
-		private CountDownLatch	countDownLatch	= null;
+		private Boolean isSentSuccess = false;
+		private CountDownLatch countDownLatch = null;
 
 		public Boolean getIsSentSuccess() {
 			return isSentSuccess;

@@ -210,10 +210,6 @@ public class IpStat implements java.io.Serializable {
 	private static final long serialVersionUID = -6942731710053482089L;
 	private final long startTime = System.currentTimeMillis();
 	/**
-	 * 当前统计了多久，单位：毫秒
-	 */
-	private long duration;
-	/**
 	 * 时长类型，单位：秒，譬如60，3600等
 	 */
 	private final Long durationType;
@@ -221,7 +217,6 @@ public class IpStat implements java.io.Serializable {
 	 * 客户端ip
 	 */
 	private final String ip;
-
 	/**
 	 * 解码异常的次数
 	 */
@@ -262,6 +257,15 @@ public class IpStat implements java.io.Serializable {
 	 * 本IP已接收的packet数
 	 */
 	private final LongAdder receivedPackets = new LongAdder();
+	/**
+	 * 当前统计了多久，单位：毫秒
+	 */
+	private long duration;
+
+	public IpStat(String ip, Long durationType) {
+		this.ip = ip;
+		this.durationType = durationType;
+	}
 
 	/**
 	 * 平均每次TCP接收到的字节数，这个可以用来监控慢攻击，配置PacketsPerTcpReceive定位慢攻击
@@ -283,11 +287,6 @@ public class IpStat implements java.io.Serializable {
 	public long getDuration() {
 		this.duration = SystemTimer.currTime - this.startTime;
 		return this.duration;
-	}
-
-	public IpStat(String ip, Long durationType) {
-		this.ip = ip;
-		this.durationType = durationType;
 	}
 
 	/**

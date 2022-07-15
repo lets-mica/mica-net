@@ -195,22 +195,29 @@ package org.tio.utils.hutool;
 
 /**
  * 时长格式化器
- * @author Looly
  *
+ * @author Looly
  */
 public class BetweenFormater {
 
-	/** 时长毫秒数 */
-	private long	betweenMs;
-	/** 格式化级别 */
-	private Level	level;
-	/** 格式化级别的最大个数 */
-	private int		levelMaxCount;
+	/**
+	 * 时长毫秒数
+	 */
+	private long betweenMs;
+	/**
+	 * 格式化级别
+	 */
+	private Level level;
+	/**
+	 * 格式化级别的最大个数
+	 */
+	private int levelMaxCount;
 
 	/**
 	 * 构造
+	 *
 	 * @param betweenMs 日期间隔
-	 * @param level 级别，按照天、小时、分、秒、毫秒分为5个等级，根据传入等级，格式化到相应级别
+	 * @param level     级别，按照天、小时、分、秒、毫秒分为5个等级，根据传入等级，格式化到相应级别
 	 */
 	public BetweenFormater(long betweenMs, Level level) {
 		this(betweenMs, level, 0);
@@ -218,8 +225,9 @@ public class BetweenFormater {
 
 	/**
 	 * 构造
-	 * @param betweenMs 日期间隔
-	 * @param level 级别，按照天、小时、分、秒、毫秒分为5个等级，根据传入等级，格式化到相应级别
+	 *
+	 * @param betweenMs     日期间隔
+	 * @param level         级别，按照天、小时、分、秒、毫秒分为5个等级，根据传入等级，格式化到相应级别
 	 * @param levelMaxCount 格式化级别的最大个数，假如级别个数为1，但是级别到秒，那只显示一个级别
 	 */
 	public BetweenFormater(long betweenMs, Level level, int levelMaxCount) {
@@ -276,6 +284,7 @@ public class BetweenFormater {
 
 	/**
 	 * 获得 时长毫秒数
+	 *
 	 * @return 时长毫秒数
 	 */
 	public long getBetweenMs() {
@@ -284,6 +293,7 @@ public class BetweenFormater {
 
 	/**
 	 * 设置 时长毫秒数
+	 *
 	 * @param betweenMs 时长毫秒数
 	 */
 	public void setBetweenMs(long betweenMs) {
@@ -292,6 +302,7 @@ public class BetweenFormater {
 
 	/**
 	 * 获得 格式化级别
+	 *
 	 * @return 格式化级别
 	 */
 	public Level getLevel() {
@@ -300,48 +311,11 @@ public class BetweenFormater {
 
 	/**
 	 * 设置格式化级别
+	 *
 	 * @param level 格式化级别
 	 */
 	public void setLevel(Level level) {
 		this.level = level;
-	}
-
-	/**
-	 * 格式化等级枚举
-	 *
-	 * @author Looly
-	 */
-	public enum Level {
-
-		/** 天 */
-		DAY("天"),
-		/** 小时 */
-		HOUR("小时"),
-		/** 分钟 */
-		MINUTE("分"),
-		/** 秒 */
-		SECOND("秒"),
-		/** 毫秒 */
-		MILLSECOND("毫秒");
-
-		/** 级别名称 */
-		private String name;
-
-		/**
-		 * 构造
-		 * @param name 级别名称
-		 */
-		private Level(String name) {
-			this.name = name;
-		}
-
-		/**
-		 * 获取级别名称
-		 * @return 级别名称
-		 */
-		public String getName() {
-			return this.name;
-		}
 	}
 
 	@Override
@@ -358,5 +332,57 @@ public class BetweenFormater {
 	 */
 	private boolean isLevelCountValid(int levelCount) {
 		return this.levelMaxCount <= 0 || levelCount < this.levelMaxCount;
+	}
+
+	/**
+	 * 格式化等级枚举
+	 *
+	 * @author Looly
+	 */
+	public enum Level {
+
+		/**
+		 * 天
+		 */
+		DAY("天"),
+		/**
+		 * 小时
+		 */
+		HOUR("小时"),
+		/**
+		 * 分钟
+		 */
+		MINUTE("分"),
+		/**
+		 * 秒
+		 */
+		SECOND("秒"),
+		/**
+		 * 毫秒
+		 */
+		MILLSECOND("毫秒");
+
+		/**
+		 * 级别名称
+		 */
+		private String name;
+
+		/**
+		 * 构造
+		 *
+		 * @param name 级别名称
+		 */
+		private Level(String name) {
+			this.name = name;
+		}
+
+		/**
+		 * 获取级别名称
+		 *
+		 * @return 级别名称
+		 */
+		public String getName() {
+			return this.name;
+		}
 	}
 }

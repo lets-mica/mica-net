@@ -200,7 +200,6 @@ import java.util.Queue;
 import java.util.concurrent.Executor;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月4日 上午9:23:12
  */
@@ -213,7 +212,6 @@ public abstract class AbstractQueueRunnable<T> extends AbstractSynRunnable {
 
 	/**
 	 * @return
-	 *
 	 */
 	public boolean addMsg(T t) {
 		if (this.isCanceled()) {
@@ -234,11 +232,12 @@ public abstract class AbstractQueueRunnable<T> extends AbstractSynRunnable {
 
 	@Override
 	public boolean isNeededExecute() {
-		return  (getMsgQueue() != null && !getMsgQueue().isEmpty()) && !this.isCanceled();
+		return (getMsgQueue() != null && !getMsgQueue().isEmpty()) && !this.isCanceled();
 	}
 
 	/**
 	 * 获取消息队列
+	 *
 	 * @return
 	 */
 	public abstract Queue<T> getMsgQueue();

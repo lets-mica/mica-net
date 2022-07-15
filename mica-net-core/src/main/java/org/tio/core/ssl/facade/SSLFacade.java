@@ -210,10 +210,10 @@ public class SSLFacade implements ISSLFacade {
 	@SuppressWarnings("unused")
 	private static final String TAG = "SSLFascade";
 	private static final Logger log = LoggerFactory.getLogger(SSLFacade.class);
+	private final Worker _worker;
 	private AtomicLong sslSeq = new AtomicLong();
 	private Handshaker _handshaker;
 	private IHandshakeCompletedListener _hcl;
-	private final Worker _worker;
 	private boolean _clientMode;
 	private ChannelContext channelContext;
 

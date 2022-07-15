@@ -211,19 +211,15 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 2017年4月1日 上午9:31:31
  */
 public class TioClientConfig extends TioConfig {
-	private TioClientHandler tioClientHandler = null;
-
-	private TioClientListener tioClientListener = null;
-
+	public final Set<ChannelContext> connecteds = ConcurrentHashMap.newKeySet();
+	public final Set<ChannelContext> closeds = ConcurrentHashMap.newKeySet();
 	/**
 	 * 重连配置
 	 */
 	protected ReconnConf reconnConf;
-
+	private TioClientHandler tioClientHandler = null;
+	private TioClientListener tioClientListener = null;
 	private ConnectionCompletionHandler connectionCompletionHandler = new ConnectionCompletionHandler();
-
-	public final Set<ChannelContext> connecteds = ConcurrentHashMap.newKeySet();
-	public final Set<ChannelContext> closeds = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * 不重连
@@ -246,10 +242,10 @@ public class TioClientConfig extends TioConfig {
 	}
 
 	/**
-	 * @param tioHandler TioClientHandler
-	 * @param tioListener TioClientListener
+	 * @param tioHandler    TioClientHandler
+	 * @param tioListener   TioClientListener
 	 * @param reconnConf    不用框架自动重连，就传null
-	 * @param tioExecutor SynThreadPoolExecutor
+	 * @param tioExecutor   SynThreadPoolExecutor
 	 * @param groupExecutor ThreadPoolExecutor
 	 */
 	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener, ReconnConf reconnConf, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
@@ -301,24 +297,17 @@ public class TioClientConfig extends TioConfig {
 	}
 
 	/**
-	 * @return the tioClientListener
-	 */
-	public TioClientListener getTioClientListener() {
-		return tioClientListener;
-	}
-
-	/**
-	 * @return the connectionCompletionHandler
-	 */
-	public ConnectionCompletionHandler getConnectionCompletionHandler() {
-		return connectionCompletionHandler;
-	}
-
-	/**
 	 * @param tioClientHandler the tioClientHandler to set
 	 */
 	public void setTioClientHandler(TioClientHandler tioClientHandler) {
 		this.tioClientHandler = tioClientHandler;
+	}
+
+	/**
+	 * @return the tioClientListener
+	 */
+	public TioClientListener getTioClientListener() {
+		return tioClientListener;
 	}
 
 	/**
@@ -332,17 +321,17 @@ public class TioClientConfig extends TioConfig {
 	}
 
 	/**
+	 * @return the connectionCompletionHandler
+	 */
+	public ConnectionCompletionHandler getConnectionCompletionHandler() {
+		return connectionCompletionHandler;
+	}
+
+	/**
 	 * @param connectionCompletionHandler the connectionCompletionHandler to set
 	 */
 	public void setConnectionCompletionHandler(ConnectionCompletionHandler connectionCompletionHandler) {
 		this.connectionCompletionHandler = connectionCompletionHandler;
-	}
-
-	/**
-	 * @param reconnConf the reconnConf to set
-	 */
-	public void setReconnConf(ReconnConf reconnConf) {
-		this.reconnConf = reconnConf;
 	}
 
 	/**
@@ -351,6 +340,13 @@ public class TioClientConfig extends TioConfig {
 	 */
 	public ReconnConf getReconnConf() {
 		return reconnConf;
+	}
+
+	/**
+	 * @param reconnConf the reconnConf to set
+	 */
+	public void setReconnConf(ReconnConf reconnConf) {
+		this.reconnConf = reconnConf;
 	}
 
 	/**

@@ -219,20 +219,20 @@ public class UdpConf {
 		return charset;
 	}
 
-	public Node getServerNode() {
-		return serverNode;
-	}
-
-	public int getTimeout() {
-		return timeout;
-	}
-
 	public void setCharset(Charset charset) {
 		this.charset = charset;
 	}
 
+	public Node getServerNode() {
+		return serverNode;
+	}
+
 	public void setServerNode(Node serverNode) {
 		this.serverNode = serverNode;
+	}
+
+	public int getTimeout() {
+		return timeout;
 	}
 
 	public void setTimeout(int timeout) {

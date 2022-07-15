@@ -213,11 +213,11 @@ class Worker {
 	 */
 	private final static String TAG = "Worker";
 	private final SSLEngine _engine;
-	private final Buffers			_buffers;
-	private ISSLListener			_sslListener;
-	private ISessionClosedListener	_sessionClosedListener	= new DefaultOnCloseListener();
+	private final Buffers _buffers;
+	private ISSLListener _sslListener;
+	private ISessionClosedListener _sessionClosedListener = new DefaultOnCloseListener();
 	@SuppressWarnings("unused")
-	private String					who;
+	private String who;
 
 	private ChannelContext channelContext;
 
@@ -226,6 +226,13 @@ class Worker {
 		_buffers = buffers;
 		this.channelContext = channelContext;
 		this.who = "[Worker:" + debugTag + "]";
+	}
+
+	private static ByteBuffer makeExternalBuffer(ByteBuffer internalBuffer) {
+		ByteBuffer newBuffer = ByteBuffer.allocate(internalBuffer.position());
+		internalBuffer.flip();
+		BufferUtils.copy(internalBuffer, newBuffer);
+		return newBuffer;
 	}
 
 	void setSessionClosedListener(final ISessionClosedListener scl) {
@@ -242,6 +249,7 @@ class Worker {
 
 	/**
 	 * 只是简单地调一下SSLEngine.getDelegatedTask()
+	 *
 	 * @return
 	 */
 	Runnable getDelegatedTask() {
@@ -250,6 +258,7 @@ class Worker {
 
 	/**
 	 * 加密
+	 *
 	 * @param sslVo
 	 * @param plainData
 	 * @return
@@ -262,27 +271,28 @@ class Worker {
 		emitWrappedData(sslVo, result);
 
 		switch (result.getStatus()) {
-		case BUFFER_UNDERFLOW:
-			throw new RuntimeException("BUFFER_UNDERFLOW while wrapping!");
-		case BUFFER_OVERFLOW:
-			_buffers.grow(BufferType.OUT_CIPHER);
-			if (plainData != null && plainData.hasRemaining()) {
-				plainData.position(result.bytesConsumed());
-				ByteBuffer remainingData = BufferUtils.slice(plainData);
-				wrap(sslVo, remainingData);
-			}
-			break;
-		case OK:
-			break;
-		case CLOSED:
-			_sessionClosedListener.onSessionClosed();
-			break;
+			case BUFFER_UNDERFLOW:
+				throw new RuntimeException("BUFFER_UNDERFLOW while wrapping!");
+			case BUFFER_OVERFLOW:
+				_buffers.grow(BufferType.OUT_CIPHER);
+				if (plainData != null && plainData.hasRemaining()) {
+					plainData.position(result.bytesConsumed());
+					ByteBuffer remainingData = BufferUtils.slice(plainData);
+					wrap(sslVo, remainingData);
+				}
+				break;
+			case OK:
+				break;
+			case CLOSED:
+				_sessionClosedListener.onSessionClosed();
+				break;
 		}
 		return result;
 	}
 
 	/**
 	 * 解密
+	 *
 	 * @param encryptedData 待解密的数据
 	 * @return
 	 * @throws SSLException
@@ -298,28 +308,28 @@ class Worker {
 		emitPlainData(result);
 
 		switch (result.getStatus()) {
-		case BUFFER_UNDERFLOW: //数据不够解密不了，则把剩下的数据存起来，下次继续使用
-			_buffers.cache(unprocessedEncryptedData);
-			break;
-		case BUFFER_OVERFLOW:
-			_buffers.grow(BufferType.IN_PLAIN);
-			if (unprocessedEncryptedData == null) {
-				throw new RuntimeException("Worker.unwrap had " + "buffer_overflow but all data was consumed!!");
-			} else {
-				//				unwrap(sslVo, unprocessedEncryptedData);
-				unwrap(unprocessedEncryptedData);
-			}
-			break;
-		case OK:
-			if (unprocessedEncryptedData == null) {
-				_buffers.clearCache();
-			} else {
+			case BUFFER_UNDERFLOW: //数据不够解密不了，则把剩下的数据存起来，下次继续使用
 				_buffers.cache(unprocessedEncryptedData);
-			}
-			break;
-		case CLOSED:
-			_sessionClosedListener.onSessionClosed();
-			break;
+				break;
+			case BUFFER_OVERFLOW:
+				_buffers.grow(BufferType.IN_PLAIN);
+				if (unprocessedEncryptedData == null) {
+					throw new RuntimeException("Worker.unwrap had " + "buffer_overflow but all data was consumed!!");
+				} else {
+					//				unwrap(sslVo, unprocessedEncryptedData);
+					unwrap(unprocessedEncryptedData);
+				}
+				break;
+			case OK:
+				if (unprocessedEncryptedData == null) {
+					_buffers.clearCache();
+				} else {
+					_buffers.cache(unprocessedEncryptedData);
+				}
+				break;
+			case CLOSED:
+				_sessionClosedListener.onSessionClosed();
+				break;
 		}
 		if (_buffers.isCacheEmpty() == false && result.getStatus() == SSLEngineResult.Status.OK && result.bytesConsumed() > 0) {
 			//			debug("Still data in cahce");
@@ -379,6 +389,7 @@ class Worker {
 
 	/**
 	 * 加密
+	 *
 	 * @return
 	 * @throws SSLException
 	 */
@@ -393,6 +404,7 @@ class Worker {
 
 	/**
 	 * 解密
+	 *
 	 * @return
 	 * @throws SSLException
 	 */
@@ -412,13 +424,6 @@ class Worker {
 			}
 			throw e;
 		}
-	}
-
-	private static ByteBuffer makeExternalBuffer(ByteBuffer internalBuffer) {
-		ByteBuffer newBuffer = ByteBuffer.allocate(internalBuffer.position());
-		internalBuffer.flip();
-		BufferUtils.copy(internalBuffer, newBuffer);
-		return newBuffer;
 	}
 
 }

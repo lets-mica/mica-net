@@ -208,12 +208,12 @@ public abstract class AbstractSynRunnable implements Runnable {
 	 * The log.
 	 */
 	private static final Logger log = LoggerFactory.getLogger(AbstractSynRunnable.class);
+	public final Executor executor;
 	/**
 	 * 是否已经提交到线程池了
 	 */
 	public boolean executed = false;
 	protected ReentrantLock runningLock = new ReentrantLock();
-	public final Executor executor;
 	private boolean isCanceled = false;
 
 	/**
@@ -236,6 +236,10 @@ public abstract class AbstractSynRunnable implements Runnable {
 
 	public boolean isCanceled() {
 		return isCanceled;
+	}
+
+	public void setCanceled(boolean isCanceled) {
+		this.isCanceled = isCanceled;
 	}
 
 	@Override
@@ -276,10 +280,6 @@ public abstract class AbstractSynRunnable implements Runnable {
 	 * @author tanyaowu
 	 */
 	public abstract void runTask();
-
-	public void setCanceled(boolean isCanceled) {
-		this.isCanceled = isCanceled;
-	}
 
 	public String logstr() {
 		return this.getClass().getName();

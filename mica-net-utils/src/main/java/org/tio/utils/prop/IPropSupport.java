@@ -195,6 +195,7 @@ package org.tio.utils.prop;
 
 /**
  * 属性支持接口
+ *
  * @author tanyaowu
  * 2017年8月18日 下午5:34:14
  */
@@ -208,6 +209,7 @@ public interface IPropSupport {
 
 	/**
 	 * 获取属性
+	 *
 	 * @param key
 	 * @return
 	 * @author: tanyaowu
@@ -216,6 +218,7 @@ public interface IPropSupport {
 
 	/**
 	 * 删除属性
+	 *
 	 * @param key
 	 * @author: tanyaowu
 	 */
@@ -223,6 +226,7 @@ public interface IPropSupport {
 
 	/**
 	 * 设置属性
+	 *
 	 * @param key
 	 * @param value
 	 * @author: tanyaowu

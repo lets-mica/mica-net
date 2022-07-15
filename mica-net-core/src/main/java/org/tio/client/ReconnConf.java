@@ -208,6 +208,49 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class ReconnConf {
 	private static final Logger log = LoggerFactory.getLogger(ReconnConf.class);
+	/**
+	 * 用来重连的线程池
+	 */
+	private final SynThreadPoolExecutor threadPoolExecutor;
+	LinkedBlockingQueue<ChannelContext> queue = new LinkedBlockingQueue<>();
+	/**
+	 * 重连的间隔时间，单位毫秒
+	 */
+	private long interval = 5000;
+	/**
+	 * 连续重连次数，当连续重连这么多次都失败时，不再重连。0和负数则一直重连
+	 */
+	private int retryCount = 0;
+
+	/**
+	 * @author tanyaowu
+	 */
+	public ReconnConf() {
+		LinkedBlockingQueue<Runnable> tioQueue = new LinkedBlockingQueue<>();
+		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("tio-client-reconn", Thread.MAX_PRIORITY);
+		// 重连一般都是客户端重连，只用一个线程即可
+		threadPoolExecutor = new SynThreadPoolExecutor(1, 1, 60L, tioQueue, defaultThreadFactory);
+	}
+
+	/**
+	 * @param interval
+	 * @author tanyaowu
+	 */
+	public ReconnConf(long interval) {
+		this();
+		this.setInterval(interval);
+	}
+
+	/**
+	 * @param interval
+	 * @param retryCount
+	 * @author tanyaowu
+	 */
+	public ReconnConf(long interval, int retryCount) {
+		this();
+		this.interval = interval;
+		this.retryCount = retryCount;
+	}
 
 	public static ReconnConf getReconnConf(ClientChannelContext clientChannelContext) {
 		TioClientConfig tioClientConfig = (TioClientConfig) clientChannelContext.tioConfig;
@@ -260,57 +303,17 @@ public class ReconnConf {
 	}
 
 	/**
-	 * 重连的间隔时间，单位毫秒
-	 */
-	private long interval = 5000;
-
-	/**
-	 * 连续重连次数，当连续重连这么多次都失败时，不再重连。0和负数则一直重连
-	 */
-	private int retryCount = 0;
-
-	LinkedBlockingQueue<ChannelContext> queue = new LinkedBlockingQueue<>();
-
-	/**
-	 * 用来重连的线程池
-	 */
-	private final SynThreadPoolExecutor threadPoolExecutor;
-
-	/**
-	 * @author tanyaowu
-	 */
-	public ReconnConf() {
-		LinkedBlockingQueue<Runnable> tioQueue = new LinkedBlockingQueue<>();
-		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("tio-client-reconn", Thread.MAX_PRIORITY);
-		// 重连一般都是客户端重连，只用一个线程即可
-		threadPoolExecutor = new SynThreadPoolExecutor(1, 1, 60L, tioQueue, defaultThreadFactory);
-	}
-
-	/**
-	 * @param interval
-	 * @author tanyaowu
-	 */
-	public ReconnConf(long interval) {
-		this();
-		this.setInterval(interval);
-	}
-
-	/**
-	 * @param interval
-	 * @param retryCount
-	 * @author tanyaowu
-	 */
-	public ReconnConf(long interval, int retryCount) {
-		this();
-		this.interval = interval;
-		this.retryCount = retryCount;
-	}
-
-	/**
 	 * @return the interval
 	 */
 	public long getInterval() {
 		return interval;
+	}
+
+	/**
+	 * @param interval the interval to set
+	 */
+	public void setInterval(long interval) {
+		this.interval = interval;
 	}
 
 	/**
@@ -330,26 +333,19 @@ public class ReconnConf {
 	}
 
 	/**
-	 * @return the threadPoolExecutor
-	 */
-	public SynThreadPoolExecutor getThreadPoolExecutor() {
-		return threadPoolExecutor;
-	}
-
-	/**
-	 * @param interval the interval to set
-	 */
-	public void setInterval(long interval) {
-		this.interval = interval;
-	}
-
-	/**
 	 * 连续重连次数，当连续重连这么多次都失败时，不再重连。0和负数则一直重连
 	 *
 	 * @param retryCount the retryCount to set
 	 */
 	public void setRetryCount(int retryCount) {
 		this.retryCount = retryCount;
+	}
+
+	/**
+	 * @return the threadPoolExecutor
+	 */
+	public SynThreadPoolExecutor getThreadPoolExecutor() {
+		return threadPoolExecutor;
 	}
 
 }

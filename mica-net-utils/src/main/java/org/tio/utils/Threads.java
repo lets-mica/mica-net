@@ -219,6 +219,12 @@ public class Threads {
 	private static SynThreadPoolExecutor tioExecutor = null;
 
 	/**
+	 *
+	 */
+	private Threads() {
+	}
+
+	/**
 	 * @return
 	 * @author tanyaowu
 	 */
@@ -273,11 +279,5 @@ public class Threads {
 				.append(element.getLineNumber()).append(')');
 		}
 		return buf.toString();
-	}
-
-	/**
-	 *
-	 */
-	private Threads() {
 	}
 }

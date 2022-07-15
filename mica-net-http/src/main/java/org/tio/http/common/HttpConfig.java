@@ -221,6 +221,14 @@ public class HttpConfig {
 	 */
 	public static final String JSONP_PARAM_NAME = "tio_http_jsonp";
 	public static final int MAX_FORWARD_COUNT = 10;
+	/**
+	 * 监听端口
+	 */
+	private final int bindPort;
+	/**
+	 * 访问路径前缀，譬如"/api"
+	 */
+	private final String contextPath;
 	public int maxForwardCount = MAX_FORWARD_COUNT;
 	/**
 	 * 是否兼容1.0
@@ -248,14 +256,6 @@ public class HttpConfig {
 	private String bindIp = null;
 	private String serverInfo = HttpConst.SERVER_INFO;
 	private String charset = HttpConst.CHARSET_NAME;
-	/**
-	 * 监听端口
-	 */
-	private final int bindPort;
-	/**
-	 * 访问路径前缀，譬如"/api"
-	 */
-	private final String contextPath;
 	private HttpRequestHandler httpRequestHandler;
 	/**
 	 * ip被拉黑时，服务器给的响应，如果是null，服务器会直接断开连接

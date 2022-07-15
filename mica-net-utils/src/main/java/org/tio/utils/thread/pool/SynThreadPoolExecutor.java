@@ -196,17 +196,15 @@ package org.tio.utils.thread.pool;
 import java.util.concurrent.*;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月26日 下午2:18:30
  */
 public class SynThreadPoolExecutor extends ThreadPoolExecutor {
 
 	/**
-	 *
 	 * @param corePoolSize
 	 * @param maximumPoolSize
-	 * @param keepAliveTime 单位: 秒
+	 * @param keepAliveTime   单位: 秒
 	 * @param runnableQueue
 	 * @param threadFactory
 	 * @param name
@@ -217,7 +215,6 @@ public class SynThreadPoolExecutor extends ThreadPoolExecutor {
 	}
 
 	/**
-	 *
 	 * @param corePoolSize
 	 * @param maximumPoolSize
 	 * @param keepAliveTime
@@ -231,7 +228,6 @@ public class SynThreadPoolExecutor extends ThreadPoolExecutor {
 	}
 
 	/**
-	 *
 	 * @param runnable
 	 * @return
 	 * @author tanyaowu

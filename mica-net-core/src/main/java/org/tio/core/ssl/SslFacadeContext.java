@@ -220,7 +220,6 @@ public class SslFacadeContext {
 	private boolean isHandshakeCompleted;
 
 	/**
-	 *
 	 * @param channelContext
 	 * @throws Exception
 	 */
@@ -232,7 +231,7 @@ public class SslFacadeContext {
 
 		sslContext = SSLContext.getInstance("TLS");
 		sslContext.init(channelContext.tioConfig.sslConfig.getKeyManagerFactory().getKeyManagers(),
-		        channelContext.tioConfig.sslConfig.getTrustManagerFactory().getTrustManagers(), null);
+			channelContext.tioConfig.sslConfig.getTrustManagerFactory().getTrustManagers(), null);
 
 		DefaultTaskHandler taskHandler = new DefaultTaskHandler();
 		// 是否客户端模式
@@ -245,7 +244,6 @@ public class SslFacadeContext {
 	}
 
 	/**
-	 *
 	 * @throws Exception
 	 */
 	public void beginHandshake() throws Exception {

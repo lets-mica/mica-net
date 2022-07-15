@@ -251,7 +251,7 @@ public class TioClient {
 	 * asyncConnect
 	 *
 	 * @param serverNode serverNode
-	 * @param timeout timeout
+	 * @param timeout    timeout
 	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
@@ -263,9 +263,9 @@ public class TioClient {
 	 * asyncConnect
 	 *
 	 * @param serverNode serverNode
-	 * @param bindIp bindIp
-	 * @param bindPort bindPort
-	 * @param timeout timeout
+	 * @param bindIp     bindIp
+	 * @param bindPort   bindPort
+	 * @param timeout    timeout
 	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */

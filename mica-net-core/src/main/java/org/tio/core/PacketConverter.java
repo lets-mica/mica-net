@@ -200,11 +200,9 @@ import org.tio.core.intf.Packet;
 
 /**
  * @author tanyaowu
- *
  */
 public interface PacketConverter {
 	/**
-	 *
 	 * @param packet
 	 * @param channelContext 要发往的channelContext
 	 * @return

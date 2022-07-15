@@ -211,7 +211,6 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月1日 上午9:32:10
  */
@@ -219,7 +218,6 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 	private static final Logger log = LoggerFactory.getLogger(ConnectionCompletionHandler.class);
 
 	/**
-	 *
 	 * @param result
 	 * @param attachment
 	 * @author tanyaowu
@@ -230,7 +228,6 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 	}
 
 	/**
-	 *
 	 * @param throwable
 	 * @param attachment
 	 * @author tanyaowu
@@ -241,7 +238,6 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 	}
 
 	/**
-	 *
 	 * @param result
 	 * @param attachment
 	 * @param throwable

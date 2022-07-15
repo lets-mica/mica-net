@@ -194,7 +194,6 @@
 package org.tio.core.exception;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月1日 上午9:33:24
  */
@@ -202,10 +201,7 @@ public class LengthOverflowException extends java.lang.Throwable {
 	private static final long serialVersionUID = 5231789012657669073L;
 
 	/**
-	 *
-	 *
 	 * @author: tanyaowu
-	 *
 	 */
 	public LengthOverflowException() {
 	}
@@ -215,9 +211,7 @@ public class LengthOverflowException extends java.lang.Throwable {
 	 * @param cause
 	 * @param enableSuppression
 	 * @param writableStackTrace
-	 *
 	 * @author: tanyaowu
-	 *
 	 */
 	public LengthOverflowException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
@@ -227,9 +221,7 @@ public class LengthOverflowException extends java.lang.Throwable {
 	/**
 	 * @param message
 	 * @param cause
-	 *
 	 * @author: tanyaowu
-	 *
 	 */
 	public LengthOverflowException(String message, Throwable cause) {
 		super(message, cause);
@@ -237,9 +229,7 @@ public class LengthOverflowException extends java.lang.Throwable {
 
 	/**
 	 * @param message
-	 *
 	 * @author: tanyaowu
-	 *
 	 */
 	public LengthOverflowException(String message) {
 		super(message);
@@ -248,9 +238,7 @@ public class LengthOverflowException extends java.lang.Throwable {
 
 	/**
 	 * @param cause
-	 *
 	 * @author: tanyaowu
-	 *
 	 */
 	public LengthOverflowException(Throwable cause) {
 		super(cause);

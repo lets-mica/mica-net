@@ -215,14 +215,13 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class IpStats {
 	private static final String CACHE_NAME = "IP_STAT";
-	private final String tioConfigId;
-	private final TioConfig tioConfig;
-
 	/**
 	 * key: 时长，单位：秒
 	 */
 	public final ConcurrentMap<Long, Cache<String, IpStat>> cacheMap = new ConcurrentHashMap<>();
 	public final List<Long> durationList = new ArrayList<>();
+	private final String tioConfigId;
+	private final TioConfig tioConfig;
 
 	public IpStats(TioConfig tioConfig, Long[] durations) {
 		this.tioConfigId = tioConfig.getId();
@@ -234,6 +233,7 @@ public class IpStats {
 
 	/**
 	 * 获取缓存名
+	 *
 	 * @param duration duration
 	 * @return
 	 * @author: tanyaowu

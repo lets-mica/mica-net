@@ -206,6 +206,7 @@ import java.util.Map.Entry;
 public class HttpResponse extends HttpPacket {
 	public static final HttpResponse NULL_RESPONSE = new HttpResponse();
 	private static final long serialVersionUID = -3512681144230291786L;
+	private final Map<HeaderName, HeaderValue> headers = new HashMap<>();
 	/**
 	 * 服务器端用（因为服务器端可以直接枚举）
 	 */
@@ -217,7 +218,6 @@ public class HttpResponse extends HttpPacket {
 	private boolean isStaticRes = false;
 	private HttpRequest request = null;
 	private List<Cookie> cookies = null;
-	private final Map<HeaderName, HeaderValue> headers = new HashMap<>();
 	private int headerByteCount = 2;
 	/**
 	 * 是否已经被gzip压缩过了，防止重复压缩

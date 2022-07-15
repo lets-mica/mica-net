@@ -218,8 +218,6 @@ import java.util.Objects;
  * @author tanyaowu
  */
 public class HttpRequestDecoder {
-	private static final Logger log = LoggerFactory.getLogger(HttpRequestDecoder.class);
-
 	/**
 	 * 头部，最多有多少字节
 	 */
@@ -232,6 +230,7 @@ public class HttpRequestDecoder {
 	 * 请求行的最大长度
 	 */
 	public static final int MAX_LENGTH_OF_REQUESTLINE = 2048;
+	private static final Logger log = LoggerFactory.getLogger(HttpRequestDecoder.class);
 
 	/**
 	 * @author tanyaowu

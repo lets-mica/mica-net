@@ -199,7 +199,6 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.CountDownLatch;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月1日 上午9:32:17
  */
@@ -223,7 +222,6 @@ public class ConnectionCompletionVo {
 
 	/**
 	 * @author tanyaowu
-	 *
 	 */
 	public ConnectionCompletionVo() {
 
@@ -237,12 +235,10 @@ public class ConnectionCompletionVo {
 	 * @param serverNode
 	 * @param bindIp
 	 * @param bindPort
-	 *
 	 * @author tanyaowu
-	 *
 	 */
 	public ConnectionCompletionVo(ClientChannelContext channelContext, TioClient tioClient, boolean isReconnect, AsynchronousSocketChannel asynchronousSocketChannel,
-	        Node serverNode, String bindIp, Integer bindPort) {
+								  Node serverNode, String bindIp, Integer bindPort) {
 		super();
 		this.channelContext = channelContext;
 		this.tioClient = tioClient;
@@ -261,59 +257,17 @@ public class ConnectionCompletionVo {
 	}
 
 	/**
-	 * @return the asynchronousSocketChannel
-	 */
-	public AsynchronousSocketChannel getAsynchronousSocketChannel() {
-		return asynchronousSocketChannel;
-	}
-
-	/**
-	 * @return the bindIp
-	 */
-	public String getBindIp() {
-		return bindIp;
-	}
-
-	/**
-	 * @return the bindPort
-	 */
-	public Integer getBindPort() {
-		return bindPort;
-	}
-
-	/**
-	 * @return the channelContext
-	 */
-	public ClientChannelContext getChannelContext() {
-		return channelContext;
-	}
-
-	/**
-	 * @return the countDownLatch
-	 */
-	public java.util.concurrent.CountDownLatch getCountDownLatch() {
-		return countDownLatch;
-	}
-
-	/**
-	 * @return the serverNode
-	 */
-	public Node getServerNode() {
-		return serverNode;
-	}
-
-	/**
-	 * @return the isReconnect
-	 */
-	public boolean isReconnect() {
-		return isReconnect;
-	}
-
-	/**
 	 * @param tioClient the tioClient to set
 	 */
 	public void setTioClient(TioClient tioClient) {
 		this.tioClient = tioClient;
+	}
+
+	/**
+	 * @return the asynchronousSocketChannel
+	 */
+	public AsynchronousSocketChannel getAsynchronousSocketChannel() {
+		return asynchronousSocketChannel;
 	}
 
 	/**
@@ -324,10 +278,24 @@ public class ConnectionCompletionVo {
 	}
 
 	/**
+	 * @return the bindIp
+	 */
+	public String getBindIp() {
+		return bindIp;
+	}
+
+	/**
 	 * @param bindIp the bindIp to set
 	 */
 	public void setBindIp(String bindIp) {
 		this.bindIp = bindIp;
+	}
+
+	/**
+	 * @return the bindPort
+	 */
+	public Integer getBindPort() {
+		return bindPort;
 	}
 
 	/**
@@ -338,10 +306,24 @@ public class ConnectionCompletionVo {
 	}
 
 	/**
+	 * @return the channelContext
+	 */
+	public ClientChannelContext getChannelContext() {
+		return channelContext;
+	}
+
+	/**
 	 * @param channelContext the channelContext to set
 	 */
 	public void setChannelContext(ClientChannelContext channelContext) {
 		this.channelContext = channelContext;
+	}
+
+	/**
+	 * @return the countDownLatch
+	 */
+	public java.util.concurrent.CountDownLatch getCountDownLatch() {
+		return countDownLatch;
 	}
 
 	/**
@@ -352,10 +334,10 @@ public class ConnectionCompletionVo {
 	}
 
 	/**
-	 * @param isReconnect the isReconnect to set
+	 * @return the serverNode
 	 */
-	public void setReconnect(boolean isReconnect) {
-		this.isReconnect = isReconnect;
+	public Node getServerNode() {
+		return serverNode;
 	}
 
 	/**
@@ -363,6 +345,20 @@ public class ConnectionCompletionVo {
 	 */
 	public void setServerNode(Node serverNode) {
 		this.serverNode = serverNode;
+	}
+
+	/**
+	 * @return the isReconnect
+	 */
+	public boolean isReconnect() {
+		return isReconnect;
+	}
+
+	/**
+	 * @param isReconnect the isReconnect to set
+	 */
+	public void setReconnect(boolean isReconnect) {
+		this.isReconnect = isReconnect;
 	}
 
 }

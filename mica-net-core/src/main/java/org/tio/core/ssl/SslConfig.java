@@ -219,7 +219,7 @@ public class SslConfig {
 	 *
 	 * @param keyStoreInputStream   InputStream
 	 * @param trustStoreInputStream InputStream
-	 * @param passChars                passwd
+	 * @param passChars             passwd
 	 * @throws Exception Exception
 	 */
 	private SslConfig(InputStream keyStoreInputStream, InputStream trustStoreInputStream, char[] passChars) throws Exception {

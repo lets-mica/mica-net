@@ -205,14 +205,11 @@ public class ServerGroupStat extends GroupStat {
 	/**
 	 * 接受了多少连接
 	 */
-	public final LongAdder accepted			= new LongAdder();
+	public final LongAdder accepted = new LongAdder();
 
 	/**
-	 *
-	 *
 	 * @author tanyaowu
 	 * 2016年12月3日 下午2:29:28
-	 *
 	 */
 	public ServerGroupStat() {
 	}

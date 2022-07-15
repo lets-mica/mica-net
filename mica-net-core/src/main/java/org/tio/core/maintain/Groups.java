@@ -217,18 +217,17 @@ public class Groups {
 	 * The log.
 	 */
 	private static final Logger log = LoggerFactory.getLogger(Groups.class);
-
-	/**
-	 * 对ChannelContext进行排序的比较器
-	 * 该对象必须在服务启动前进行设置，并且不要再去修改，否则会导致有的排序了，有的没有排序
-	 */
-	private Comparator<ChannelContext> channelContextComparator = null;
 	/**
 	 * 一个组有哪些客户端<br>
 	 * key: groupid<br>
 	 * value: SetWithLock<ChannelContext><br>
 	 */
 	private final ConcurrentMap<String, Set<ChannelContext>> groupMap = new ConcurrentHashMap<>();
+	/**
+	 * 对ChannelContext进行排序的比较器
+	 * 该对象必须在服务启动前进行设置，并且不要再去修改，否则会导致有的排序了，有的没有排序
+	 */
+	private Comparator<ChannelContext> channelContextComparator = null;
 
 	/**
 	 * 和组绑定

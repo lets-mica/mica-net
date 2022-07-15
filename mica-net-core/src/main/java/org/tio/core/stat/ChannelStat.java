@@ -203,80 +203,80 @@ import java.util.concurrent.atomic.LongAdder;
  * 2017年4月1日 下午2:17:35
  */
 public class ChannelStat implements java.io.Serializable {
-	private static final long	serialVersionUID			= -6942731710053482089L;
-	/**
-	 * 本次解码失败的次数
-	 */
-	public int					decodeFailCount				= 0;
-	/**
-	 * 最近一次收到业务消息包的时间(一个完整的业务消息包，一部分消息不算)
-	 */
-	public long					latestTimeOfReceivedPacket	= SystemTimer.currTime;
-	/**
-	 * 最近一次发送业务消息包的时间(一个完整的业务消息包，一部分消息不算)
-	 */
-	public long					latestTimeOfSentPacket		= SystemTimer.currTime;
-	/**
-	 * 最近一次收到业务消息包的时间:收到字节就算
-	 */
-	public long					latestTimeOfReceivedByte	= SystemTimer.currTime;
-	/**
-	 * 最近一次发送业务消息包的时间：发送字节就算
-	 */
-	public long					latestTimeOfSentByte		= SystemTimer.currTime;
-	/**
-	 * ChannelContext对象创建的时间
-	 */
-	public long					timeCreated					= SystemTimer.currTime;
-	/**
-	 * 第一次连接成功的时间
-	 */
-	public Long					timeFirstConnected			= null;
-	/**
-	 * 连接关闭的时间
-	 */
-	public long					timeClosed					= SystemTimer.currTime;
-	/**
-	 * 进入重连队列时间
-	 */
-	public long					timeInReconnQueue			= SystemTimer.currTime;
+	private static final long serialVersionUID = -6942731710053482089L;
 	/**
 	 * 本连接已发送的字节数
 	 */
-	public final LongAdder		sentBytes					= new LongAdder();
+	public final LongAdder sentBytes = new LongAdder();
 	/**
 	 * 本连接已发送的packet数
 	 */
-	public final LongAdder		sentPackets					= new LongAdder();
+	public final LongAdder sentPackets = new LongAdder();
 	/**
 	 * 本连接已处理的字节数
 	 */
-	public final LongAdder		handledBytes				= new LongAdder();
+	public final LongAdder handledBytes = new LongAdder();
 	/**
 	 * 本连接已处理的packet数
 	 */
-	public final LongAdder		handledPackets				= new LongAdder();
+	public final LongAdder handledPackets = new LongAdder();
 	/**
 	 * 处理消息包耗时，单位：毫秒
 	 * 拿这个值除以handledPackets，就是处理每个消息包的平均耗时
 	 */
-	public final LongAdder		handledPacketCosts			= new LongAdder();
+	public final LongAdder handledPacketCosts = new LongAdder();
 	/**
 	 * 本连接已接收的字节数
 	 */
-	public final LongAdder		receivedBytes				= new LongAdder();
+	public final LongAdder receivedBytes = new LongAdder();
 	/**
 	 * 本连接已接收了多少次TCP数据包
 	 */
-	public final LongAdder		receivedTcps				= new LongAdder();
+	public final LongAdder receivedTcps = new LongAdder();
 	/**
 	 * 本连接已接收的packet数
 	 */
-	public final LongAdder		receivedPackets				= new LongAdder();
+	public final LongAdder receivedPackets = new LongAdder();
 	/**
 	 * 心跳超时次数
 	 */
-	public final AtomicInteger	heartbeatTimeoutCount		= new AtomicInteger();
+	public final AtomicInteger heartbeatTimeoutCount = new AtomicInteger();
+	/**
+	 * 本次解码失败的次数
+	 */
+	public int decodeFailCount = 0;
+	/**
+	 * 最近一次收到业务消息包的时间(一个完整的业务消息包，一部分消息不算)
+	 */
+	public long latestTimeOfReceivedPacket = SystemTimer.currTime;
+	/**
+	 * 最近一次发送业务消息包的时间(一个完整的业务消息包，一部分消息不算)
+	 */
+	public long latestTimeOfSentPacket = SystemTimer.currTime;
+	/**
+	 * 最近一次收到业务消息包的时间:收到字节就算
+	 */
+	public long latestTimeOfReceivedByte = SystemTimer.currTime;
+	/**
+	 * 最近一次发送业务消息包的时间：发送字节就算
+	 */
+	public long latestTimeOfSentByte = SystemTimer.currTime;
+	/**
+	 * ChannelContext对象创建的时间
+	 */
+	public long timeCreated = SystemTimer.currTime;
+	/**
+	 * 第一次连接成功的时间
+	 */
+	public Long timeFirstConnected = null;
+	/**
+	 * 连接关闭的时间
+	 */
+	public long timeClosed = SystemTimer.currTime;
+	/**
+	 * 进入重连队列时间
+	 */
+	public long timeInReconnQueue = SystemTimer.currTime;
 
 	/**
 	 * 平均每次TCP接收到的字节数，这个可以用来监控慢攻击，配置PacketsPerTcpReceive定位慢攻击
@@ -334,6 +334,13 @@ public class ChannelStat implements java.io.Serializable {
 	}
 
 	/**
+	 * @param latestTimeOfSentPacket the timeLatestSentMsg to set
+	 */
+	public void setLatestTimeOfSentPacket(long latestTimeOfSentPacket) {
+		this.latestTimeOfSentPacket = latestTimeOfSentPacket;
+	}
+
+	/**
 	 * @return the countReceivedByte
 	 */
 	public LongAdder getReceivedBytes() {
@@ -369,6 +376,13 @@ public class ChannelStat implements java.io.Serializable {
 	}
 
 	/**
+	 * @param timeClosed the timeClosed to set
+	 */
+	public void setTimeClosed(long timeClosed) {
+		this.timeClosed = timeClosed;
+	}
+
+	/**
 	 * @return the timeCreated
 	 */
 	public long getTimeCreated() {
@@ -383,31 +397,17 @@ public class ChannelStat implements java.io.Serializable {
 	}
 
 	/**
-	 * @return the timeInReconnQueue
-	 */
-	public long getTimeInReconnQueue() {
-		return timeInReconnQueue;
-	}
-
-	/**
-	 * @param latestTimeOfSentPacket the timeLatestSentMsg to set
-	 */
-	public void setLatestTimeOfSentPacket(long latestTimeOfSentPacket) {
-		this.latestTimeOfSentPacket = latestTimeOfSentPacket;
-	}
-
-	/**
-	 * @param timeClosed the timeClosed to set
-	 */
-	public void setTimeClosed(long timeClosed) {
-		this.timeClosed = timeClosed;
-	}
-
-	/**
 	 * @param timeFirstConnected the timeFirstConnected to set
 	 */
 	public void setTimeFirstConnected(Long timeFirstConnected) {
 		this.timeFirstConnected = timeFirstConnected;
+	}
+
+	/**
+	 * @return the timeInReconnQueue
+	 */
+	public long getTimeInReconnQueue() {
+		return timeInReconnQueue;
 	}
 
 	/**
@@ -458,6 +458,7 @@ public class ChannelStat implements java.io.Serializable {
 
 	/**
 	 * 处理packet平均耗时，单位：毫秒
+	 *
 	 * @return
 	 */
 	public double getHandledCostsPerPacket() {

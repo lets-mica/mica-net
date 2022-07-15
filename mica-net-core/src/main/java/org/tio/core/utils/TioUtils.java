@@ -201,7 +201,6 @@ import org.tio.core.Tio;
 import org.tio.utils.Threads;
 
 /**
- *
  * @author tanyaowu
  * 2017年10月19日 上午9:40:54
  */
@@ -219,7 +218,7 @@ public class TioUtils {
 				if (isOpen) {
 					try {
 						Tio.close(channelContext,
-						        "asynchronousSocketChannel is open, but channelContext isClosed: " + channelContext.isClosed + ", isRemoved: " + channelContext.isRemoved, CloseCode.CHANNEL_NOT_OPEN);
+							"asynchronousSocketChannel is open, but channelContext isClosed: " + channelContext.isClosed + ", isRemoved: " + channelContext.isRemoved, CloseCode.CHANNEL_NOT_OPEN);
 					} catch (Throwable e) {
 						log.error(e.getMessage(), e);
 					}
@@ -229,7 +228,7 @@ public class TioUtils {
 			}
 		} else {
 			log.error("{}, 请检查此异常, asynchronousSocketChannel is null, isClosed:{}, isRemoved:{}, {} ", channelContext, channelContext.isClosed, channelContext.isRemoved,
-			        Threads.stackTrace());
+				Threads.stackTrace());
 			return false;
 		}
 		if (!isOpen) {

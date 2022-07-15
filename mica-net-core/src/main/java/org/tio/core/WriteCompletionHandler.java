@@ -213,29 +213,12 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class WriteCompletionHandler implements CompletionHandler<Integer, WriteCompletionVo> {
 	private static final Logger log = LoggerFactory.getLogger(WriteCompletionHandler.class);
-	private final ChannelContext channelContext;
 	public final ReentrantLock lock = new ReentrantLock();
 	public final Condition condition = lock.newCondition();
+	private final ChannelContext channelContext;
 
 	public WriteCompletionHandler(ChannelContext channelContext) {
 		this.channelContext = channelContext;
-	}
-
-	public static class WriteCompletionVo {
-		private final ByteBuffer byteBuffer;
-		private final Object obj;
-
-		/**
-		 * WriteCompletionVo
-		 *
-		 * @param byteBuffer byteBuffer
-		 * @param obj        obj
-		 * @author tanyaowu
-		 */
-		public WriteCompletionVo(ByteBuffer byteBuffer, Object obj) {
-			this.byteBuffer = byteBuffer; //[pos=0 lim=212 cap=212]
-			this.obj = obj;
-		}
 	}
 
 	@Override
@@ -333,6 +316,23 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 			log.error(e.getMessage(), e);
 		}
 
+	}
+
+	public static class WriteCompletionVo {
+		private final ByteBuffer byteBuffer;
+		private final Object obj;
+
+		/**
+		 * WriteCompletionVo
+		 *
+		 * @param byteBuffer byteBuffer
+		 * @param obj        obj
+		 * @author tanyaowu
+		 */
+		public WriteCompletionVo(ByteBuffer byteBuffer, Object obj) {
+			this.byteBuffer = byteBuffer; //[pos=0 lim=212 cap=212]
+			this.obj = obj;
+		}
 	}
 
 }

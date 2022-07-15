@@ -194,9 +194,9 @@
 package org.tio.core;
 
 /**
- *  消息发送模式
- * @author tanyaowu
+ * 消息发送模式
  *
+ * @author tanyaowu
  */
 public enum PacketSendMode {
 	/**
@@ -213,23 +213,23 @@ public enum PacketSendMode {
 	 */
 	GROUP_BLOCK(3);
 
-	public static PacketSendMode forNumber(int value) {
-		switch (value) {
-		case 1:
-			return QUEUE;
-		case 2:
-			return SINGLE_BLOCK;
-		case 3:
-			return GROUP_BLOCK;
-		default:
-			return null;
-		}
-	}
-
 	private final int value;
 
 	PacketSendMode(int value) {
 		this.value = value;
+	}
+
+	public static PacketSendMode forNumber(int value) {
+		switch (value) {
+			case 1:
+				return QUEUE;
+			case 2:
+				return SINGLE_BLOCK;
+			case 3:
+				return GROUP_BLOCK;
+			default:
+				return null;
+		}
 	}
 
 	/**

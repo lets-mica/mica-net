@@ -214,12 +214,12 @@ public class UdpServerConf extends UdpConf {
 		return readBufferSize;
 	}
 
-	public UdpHandler getUdpHandler() {
-		return udpHandler;
-	}
-
 	public void setReadBufferSize(int readBufferSize) {
 		this.readBufferSize = readBufferSize;
+	}
+
+	public UdpHandler getUdpHandler() {
+		return udpHandler;
 	}
 
 }

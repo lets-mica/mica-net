@@ -201,87 +201,87 @@ import java.nio.charset.StandardCharsets;
  * 2018年7月1日 下午10:51:59
  */
 public interface SysConst {
-	String	TIO_CORE_VERSION		= "3.8.1.v20220401-RELEASE";
-	String	TIO_URL_GITEE			= "https://gitee.com/tywo45/t-io";
-	String	TIO_URL_GITHUB			= "https://github.com/tywo45/t-io";
-	String	TIO_URL_SITE			= "https://www.tiocloud.com";
+	String TIO_CORE_VERSION = "3.8.1.v20220401-RELEASE";
+	String TIO_URL_GITEE = "https://gitee.com/tywo45/t-io";
+	String TIO_URL_GITHUB = "https://github.com/tywo45/t-io";
+	String TIO_URL_SITE = "https://www.tiocloud.com";
 	/**
 	 * 空串
 	 */
-	String	BLANK					= "";
+	String BLANK = "";
 	/**
 	 * 反斜扛
 	 */
-	byte	BACKSLASH				= '/';
+	byte BACKSLASH = '/';
 	/**
 	 * 斜扛
 	 */
-	byte	SLASH					= '\\';
+	byte SLASH = '\\';
 	/**
 	 * \r
 	 */
-	byte	CR						= 13;
+	byte CR = 13;
 	/**
 	 * \n
 	 */
-	byte	LF						= 10;
+	byte LF = 10;
 	/**
 	 * =
 	 */
-	byte	EQ						= '=';
+	byte EQ = '=';
 	/**
 	 * =
 	 */
-	String	STR_EQ					= "=";
+	String STR_EQ = "=";
 	/**
 	 * &
 	 */
-	byte	AMP						= '&';
+	byte AMP = '&';
 	/**
 	 * &
 	 */
-	String	STR_AMP					= "&";
+	String STR_AMP = "&";
 	/**
 	 * :
 	 */
-	byte	COL						= ':';
+	byte COL = ':';
 	/**
 	 * :
 	 */
-	String	STR_COL					= ":";
+	String STR_COL = ":";
 	/**
 	 * ;
 	 */
-	byte	SEMI_COL				= ';';
+	byte SEMI_COL = ';';
 	/**
 	 * 一个空格
 	 */
-	byte	SPACE					= ' ';
+	byte SPACE = ' ';
 	/**
 	 * 左括号
 	 */
-	byte	LEFT_BRACKET			= '(';
+	byte LEFT_BRACKET = '(';
 	/**
 	 * 右括号
 	 */
-	byte	RIGHT_BRACKET			= ')';
+	byte RIGHT_BRACKET = ')';
 	/**
 	 * ?
 	 */
-	byte	ASTERISK				= '?';
-	byte[]	CR_LF_CR_LF				= { CR, LF, CR, LF };
-	byte[]	CR_LF					= { CR, LF };
-	byte[]	LF_LF					= { LF, LF };
-	byte[]	SPACE_					= { SPACE };
-	byte[]	CR_						= { CR };
-	byte[]	LF_						= { LF };
-	byte[]	NULL					= { 'n', 'u', 'l', 'l' };
+	byte ASTERISK = '?';
+	byte[] CR_LF_CR_LF = {CR, LF, CR, LF};
+	byte[] CR_LF = {CR, LF};
+	byte[] LF_LF = {LF, LF};
+	byte[] SPACE_ = {SPACE};
+	byte[] CR_ = {CR};
+	byte[] LF_ = {LF};
+	byte[] NULL = {'n', 'u', 'l', 'l'};
 	/**
 	 * \r\n
 	 */
-	String	CRLF					= "\r\n";
+	String CRLF = "\r\n";
 
 	Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-	String	DEFAULT_ENCODING		= DEFAULT_CHARSET.name();
+	String DEFAULT_ENCODING = DEFAULT_CHARSET.name();
 
 }

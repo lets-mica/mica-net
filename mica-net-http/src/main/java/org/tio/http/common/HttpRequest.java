@@ -521,7 +521,7 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * 设置好header后，会把cookie等头部信息也设置好
 	 *
-	 * @param headers        the headers to set
+	 * @param headers the headers to set
 	 */
 	public void setHeaders(Map<String, String> headers) {
 		this.headers = headers;

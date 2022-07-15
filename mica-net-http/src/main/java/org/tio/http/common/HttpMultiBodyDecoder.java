@@ -331,8 +331,7 @@ public class HttpMultiBodyDecoder {
 				System.arraycopy(buffer.array(), startIndex, dst, 0, length);
 				String filename = header.getFilename();
 				// 该字段类型是file
-				if (filename != null)
-				{
+				if (filename != null) {
 					if (StrUtil.isNotBlank(filename)) { //
 						UploadFile uploadFile = new UploadFile();
 						uploadFile.setName(filename.replaceAll("%", ""));

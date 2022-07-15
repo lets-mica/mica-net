@@ -220,95 +220,93 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * @author tanyaowu
  * 2016年10月10日 下午5:25:43
  */
 public abstract class TioConfig extends MapWithLockPropSupport {
-	static Logger								log							= LoggerFactory.getLogger(TioConfig.class);
 	/**
 	 * 默认的接收数据的buffer size
 	 */
-	public static final int						READ_BUFFER_SIZE			= Integer.getInteger("tio.default.read.buffer.size", 20480);
-	private static final AtomicInteger			ID_ATOMIC					= new AtomicInteger();
-	private ByteOrder							byteOrder					= ByteOrder.BIG_ENDIAN;
-	public boolean								isShortConnection			= false;
-	public SslConfig							sslConfig					= null;
-	public boolean								debug						= false;
-	public GroupStat							groupStat					= null;
-	public boolean								statOn						= true;
-	public PacketConverter						packetConverter				= null;
+	public static final int READ_BUFFER_SIZE = Integer.getInteger("tio.default.read.buffer.size", 20480);
 	/**
 	 * 本jvm中所有的TioServerConfig对象
 	 */
-	public static final Set<TioServerConfig>	ALL_SERVER_GROUPCONTEXTS	= new HashSet<>();
+	public static final Set<TioServerConfig> ALL_SERVER_GROUPCONTEXTS = new HashSet<>();
 	/**
 	 * 本jvm中所有的TioClientConfig对象
 	 */
-	public static final Set<TioClientConfig>	ALL_CLIENT_GROUPCONTEXTS	= new HashSet<>();
+	public static final Set<TioClientConfig> ALL_CLIENT_GROUPCONTEXTS = new HashSet<>();
 	/**
 	 * 本jvm中所有的TioConfig对象
 	 */
-	public static final Set<TioConfig>			ALL_GROUPCONTEXTS			= new HashSet<>();
+	public static final Set<TioConfig> ALL_GROUPCONTEXTS = new HashSet<>();
+	private static final AtomicInteger ID_ATOMIC = new AtomicInteger();
+	static Logger log = LoggerFactory.getLogger(TioConfig.class);
+	public final String id;
+	public boolean isShortConnection = false;
+	public SslConfig sslConfig = null;
+	public boolean debug = false;
+	public GroupStat groupStat = null;
+	public boolean statOn = true;
+	public PacketConverter packetConverter = null;
 	/**
 	 * 启动时间
 	 */
-	public long									startTime					= SystemTimer.currTime;
+	public long startTime = SystemTimer.currTime;
 	/**
 	 * 是否用队列发送
 	 */
-	public boolean								useQueueSend				= true;
+	public boolean useQueueSend = true;
 	/**
-	 *  是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失）
+	 * 是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失）
 	 */
-	public boolean								useQueueDecode				= false;
+	public boolean useQueueDecode = false;
 	/**
 	 * 心跳超时时间(单位: 毫秒)，如果用户不希望框架层面做心跳相关工作，请把此值设为0或负数
 	 */
-	public long									heartbeatTimeout			= 1000 * 120;
+	public long heartbeatTimeout = 1000 * 120;
 	/**
 	 * 解码出现异常时，是否打印异常日志
 	 */
-	public boolean								logWhenDecodeError			= false;
-	public PacketHandlerMode					packetHandlerMode			= PacketHandlerMode.SINGLE_THREAD;									//.queue;
-	/**
-	 * 接收数据的buffer size
-	 */
-	private int									readBufferSize				= READ_BUFFER_SIZE;
-	private GroupListener						groupListener				= null;
-	private TioUuid								tioUuid						= new DefaultTioUuid();
-	public SynThreadPoolExecutor				tioExecutor;
-	public CloseRunnable						closeRunnable;
-	public ThreadPoolExecutor					groupExecutor;
-	public ClientNodes							clientNodes					= new ClientNodes();
-	public Set<ChannelContext>					connections					= ConcurrentHashMap.newKeySet();
-	public Groups								groups						= new Groups();
-	public Users								users						= new Users();
-	public Tokens								tokens						= new Tokens();
-	public Ids									ids							= new Ids();
-	public BsIds								bsIds						= new BsIds();
-	public Ips									ips							= new Ips();
-	public IpStats								ipStats						= null;
-	public final String							id;
+	public boolean logWhenDecodeError = false;
+	public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD;                                    //.queue;
+	public SynThreadPoolExecutor tioExecutor;
+	public CloseRunnable closeRunnable;
+	public ThreadPoolExecutor groupExecutor;
+	public ClientNodes clientNodes = new ClientNodes();
+	public Set<ChannelContext> connections = ConcurrentHashMap.newKeySet();
+	public Groups groups = new Groups();
+	public Users users = new Users();
+	public Tokens tokens = new Tokens();
+	public Ids ids = new Ids();
+	public BsIds bsIds = new BsIds();
+	public Ips ips = new Ips();
+	public IpStats ipStats = null;
 	/**
 	 * 解码失败多少次抛出异常
 	 */
-	public int									maxDecodeFailCount			= 10;
-	protected String							name						= "未命名";
-	private IpStatListener						ipStatListener				= DefaultIpStatListener.me;
-	private boolean								isStopped					= false;
+	public int maxDecodeFailCount = 10;
 	/**
 	 * ip黑名单
 	 */
-	public IpBlacklist							ipBlacklist					= null;
-	public ConcurrentMap<Integer, Packet> 		waitingResps				= new ConcurrentHashMap<>();
+	public IpBlacklist ipBlacklist = null;
+	public ConcurrentMap<Integer, Packet> waitingResps = new ConcurrentHashMap<>();
+	protected String name = "未命名";
+	private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
+	/**
+	 * 接收数据的buffer size
+	 */
+	private int readBufferSize = READ_BUFFER_SIZE;
+	private GroupListener groupListener = null;
+	private TioUuid tioUuid = new DefaultTioUuid();
+	private IpStatListener ipStatListener = DefaultIpStatListener.me;
+	private boolean isStopped = false;
 
 	public TioConfig() {
 		this(null, null);
 	}
 
 	/**
-	 *
 	 * @param tioExecutor
 	 * @param groupExecutor
 	 * @author: tanyaowu
@@ -338,6 +336,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
 	/**
 	 * 获取TioHandler对象
+	 *
 	 * @return
 	 * @author: tanyaowu
 	 */
@@ -345,18 +344,26 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
 	/**
 	 * 获取TioListener对象
+	 *
 	 * @return
 	 * @author: tanyaowu
 	 */
 	public abstract TioListener getTioListener();
 
 	/**
-	 *
 	 * @return
 	 * @author tanyaowu
 	 */
 	public ByteOrder getByteOrder() {
 		return byteOrder;
+	}
+
+	/**
+	 * @param byteOrder
+	 * @author tanyaowu
+	 */
+	public void setByteOrder(ByteOrder byteOrder) {
+		this.byteOrder = byteOrder;
 	}
 
 	/**
@@ -367,7 +374,13 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	}
 
 	/**
-	 *
+	 * @param groupListener the groupListener to set
+	 */
+	public void setGroupListener(GroupListener groupListener) {
+		this.groupListener = groupListener;
+	}
+
+	/**
 	 * @return
 	 * @author tanyaowu
 	 */
@@ -379,11 +392,22 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 		return name;
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	/**
 	 * @return the tioUuid
 	 */
 	public TioUuid getTioUuid() {
 		return tioUuid;
+	}
+
+	/**
+	 * @param tioUuid the tioUuid to set
+	 */
+	public void setTioUuid(TioUuid tioUuid) {
+		this.tioUuid = tioUuid;
 	}
 
 	/**
@@ -401,19 +425,10 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	}
 
 	/**
-	 *
-	 * @param byteOrder
-	 * @author tanyaowu
+	 * @param isStopped the isStop to set
 	 */
-	public void setByteOrder(ByteOrder byteOrder) {
-		this.byteOrder = byteOrder;
-	}
-
-	/**
-	 * @param groupListener the groupListener to set
-	 */
-	public void setGroupListener(GroupListener groupListener) {
-		this.groupListener = groupListener;
+	public void setStopped(boolean isStopped) {
+		this.isStopped = isStopped;
 	}
 
 	/**
@@ -421,10 +436,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	 */
 	public void setHeartbeatTimeout(long heartbeatTimeout) {
 		this.heartbeatTimeout = heartbeatTimeout;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	/**
@@ -435,31 +446,10 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	}
 
 	/**
-	 * @param readBufferSize the readBufferSize to set
-	 */
-	public void setReadBufferSize(int readBufferSize) {
-		this.readBufferSize = Math.min(readBufferSize, TcpConst.MAX_DATA_LENGTH);
-	}
-
-	/**
 	 * @param isShortConnection the isShortConnection to set
 	 */
 	public void setShortConnection(boolean isShortConnection) {
 		this.isShortConnection = isShortConnection;
-	}
-
-	/**
-	 * @param isStopped the isStop to set
-	 */
-	public void setStopped(boolean isStopped) {
-		this.isStopped = isStopped;
-	}
-
-	/**
-	 * @param tioUuid the tioUuid to set
-	 */
-	public void setTioUuid(TioUuid tioUuid) {
-		this.tioUuid = tioUuid;
 	}
 
 	public void setSslConfig(SslConfig sslConfig) {
@@ -484,6 +474,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
 	/**
 	 * 是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失
+	 *
 	 * @param useQueueDecode
 	 * @author tanyaowu
 	 */
@@ -493,6 +484,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
 	/**
 	 * 是否用队列发送，可以随时切换
+	 *
 	 * @param useQueueSend
 	 * @author tanyaowu
 	 */
@@ -502,6 +494,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
 	/**
 	 * 是服务器端还是客户端
+	 *
 	 * @return
 	 * @author tanyaowu
 	 */
@@ -509,6 +502,13 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
 	public int getReadBufferSize() {
 		return readBufferSize;
+	}
+
+	/**
+	 * @param readBufferSize the readBufferSize to set
+	 */
+	public void setReadBufferSize(int readBufferSize) {
+		this.readBufferSize = Math.min(readBufferSize, TcpConst.MAX_DATA_LENGTH);
 	}
 
 	public boolean isSsl() {

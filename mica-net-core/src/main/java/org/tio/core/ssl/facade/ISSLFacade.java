@@ -208,18 +208,21 @@ public interface ISSLFacade {
 
 	/**
 	 * 开始握手
+	 *
 	 * @throws IOException
 	 */
 	void beginHandshake() throws IOException;
 
 	/**
 	 * SSL握手是否已经完成
+	 *
 	 * @return
 	 */
 	boolean isHandshakeCompleted();
 
 	/**
 	 * 加密
+	 *
 	 * @param sslVo
 	 * @throws SSLException
 	 */
@@ -227,6 +230,7 @@ public interface ISSLFacade {
 
 	/**
 	 * 解密
+	 *
 	 * @param byteBuffer
 	 * @throws SSLException
 	 */

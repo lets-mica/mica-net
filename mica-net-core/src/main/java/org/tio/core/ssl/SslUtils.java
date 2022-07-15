@@ -201,7 +201,6 @@ import org.tio.core.intf.Packet;
 
 /**
  * @author tanyaowu
- *
  */
 public class SslUtils {
 
@@ -214,6 +213,7 @@ public class SslUtils {
 
 	/**
 	 * 是否需要对这个packet进行SSL加密
+	 *
 	 * @param packet
 	 * @param tioConfig
 	 * @return
@@ -224,6 +224,7 @@ public class SslUtils {
 
 	/**
 	 * 是否是SSL连接
+	 *
 	 * @param tioConfig
 	 * @return
 	 */

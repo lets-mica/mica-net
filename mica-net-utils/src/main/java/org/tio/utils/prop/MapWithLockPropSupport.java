@@ -204,7 +204,6 @@ public class MapWithLockPropSupport implements IPropSupport {
 	private final ConcurrentMap<String, Object> props = new ConcurrentHashMap<>(8);
 
 	/**
-	 *
 	 * @author tanyaowu
 	 */
 	public MapWithLockPropSupport() {
@@ -223,7 +222,6 @@ public class MapWithLockPropSupport implements IPropSupport {
 	}
 
 	/**
-	 *
 	 * @param key
 	 * @return
 	 * @author tanyaowu
@@ -235,6 +233,7 @@ public class MapWithLockPropSupport implements IPropSupport {
 
 	/**
 	 * 同：getAttribute(String key)
+	 *
 	 * @param key
 	 * @return
 	 */
@@ -253,6 +252,7 @@ public class MapWithLockPropSupport implements IPropSupport {
 
 	/**
 	 * 同：removeAttribute(String key)
+	 *
 	 * @param key
 	 */
 	public void remove(String key) {
@@ -260,7 +260,6 @@ public class MapWithLockPropSupport implements IPropSupport {
 	}
 
 	/**
-	 *
 	 * @param key
 	 * @param value
 	 * @author tanyaowu
@@ -272,6 +271,7 @@ public class MapWithLockPropSupport implements IPropSupport {
 
 	/**
 	 * 同：setAttribute(String key, Object value)
+	 *
 	 * @param key
 	 * @param value
 	 */

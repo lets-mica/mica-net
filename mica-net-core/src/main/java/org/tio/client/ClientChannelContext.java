@@ -203,28 +203,22 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月1日 上午9:31:16
  */
 public class ClientChannelContext extends ChannelContext {
-	private String bindIp;
-
-	private Integer bindPort;
-
-	private ReconnRunnable reconnRunnable;
-
 	/**
 	 * 连续重连次数，连接成功后，此值会被重置0
 	 */
 	private final AtomicInteger reconnCount = new AtomicInteger();
+	private String bindIp;
+	private Integer bindPort;
+	private ReconnRunnable reconnRunnable;
 
 	/**
 	 * @param tioConfig
 	 * @param asynchronousSocketChannel
-	 *
 	 * @author tanyaowu
-	 *
 	 */
 	public ClientChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
 		super(tioConfig, asynchronousSocketChannel);
@@ -232,6 +226,7 @@ public class ClientChannelContext extends ChannelContext {
 
 	/**
 	 * 创建一个虚拟ChannelContext，主要用来模拟一些操作，真实场景中用得少
+	 *
 	 * @param tioConfig
 	 */
 	public ClientChannelContext(TioConfig tioConfig) {
@@ -239,14 +234,12 @@ public class ClientChannelContext extends ChannelContext {
 	}
 
 	/**
-	 * @see org.tio.core.ChannelContext#createClientNode(java.nio.channels.AsynchronousSocketChannel)
-	 *
 	 * @param asynchronousSocketChannel
 	 * @return
 	 * @throws IOException
 	 * @author tanyaowu
 	 * 2016年12月6日 下午12:18:08
-	 *
+	 * @see org.tio.core.ChannelContext#createClientNode(java.nio.channels.AsynchronousSocketChannel)
 	 */
 	@Override
 	public Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException {
@@ -262,17 +255,17 @@ public class ClientChannelContext extends ChannelContext {
 	}
 
 	/**
-	 * @return the bindPort
-	 */
-	public Integer getBindPort() {
-		return bindPort;
-	}
-
-	/**
 	 * @param bindIp the bindIp to set
 	 */
 	public void setBindIp(String bindIp) {
 		this.bindIp = bindIp;
+	}
+
+	/**
+	 * @return the bindPort
+	 */
+	public Integer getBindPort() {
+		return bindPort;
 	}
 
 	/**

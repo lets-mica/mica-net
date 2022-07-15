@@ -204,7 +204,6 @@ import java.util.function.Function;
 public class CollUtil {
 
 	/**
-	 *
 	 * @author tanyaowu
 	 */
 	private CollUtil() {

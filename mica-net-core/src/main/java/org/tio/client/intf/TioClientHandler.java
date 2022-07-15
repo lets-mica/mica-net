@@ -198,13 +198,13 @@ import org.tio.core.intf.Packet;
 import org.tio.core.intf.TioHandler;
 
 /**
- *
  * @author tanyaowu
  * 2017年4月1日 上午9:14:24
  */
 public interface TioClientHandler extends TioHandler {
 	/**
 	 * 创建心跳包
+	 *
 	 * @return
 	 * @author tanyaowu
 	 */
