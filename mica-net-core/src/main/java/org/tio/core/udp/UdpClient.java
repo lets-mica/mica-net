@@ -193,15 +193,13 @@
 */
 package org.tio.core.udp;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.core.Node;
 import org.tio.core.udp.task.UdpSendRunnable;
-import org.tio.utils.hutool.StrUtil;
 
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -209,10 +207,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * 2017年7月5日 下午2:54:12
  */
 public class UdpClient {
-	private static final Logger log = LoggerFactory.getLogger(UdpClient.class);
 	private final LinkedBlockingQueue<DatagramPacket> queue = new LinkedBlockingQueue<>();
-
-	private final UdpClientConf udpClientConf;
 	/**
 	 * 服务器地址
 	 */
@@ -221,8 +216,7 @@ public class UdpClient {
 
 	public UdpClient(UdpClientConf udpClientConf) {
 		super();
-		this.udpClientConf = udpClientConf;
-		Node node = this.udpClientConf.getServerNode();
+		Node node = udpClientConf.getServerNode();
 		inetSocketAddress = new InetSocketAddress(node.getIp(), node.getPort());
 		udpSendRunnable = new UdpSendRunnable(queue, udpClientConf, null);
 	}
@@ -233,22 +227,17 @@ public class UdpClient {
 	}
 
 	public void send(String str) {
-		send(str, null);
+		send(str, StandardCharsets.UTF_8);
 	}
 
-	public void send(String data, String charset) {
-		if (StrUtil.isBlank(data)) {
+	public void send(String data, Charset charset) {
+		if (data == null) {
 			return;
 		}
-		try {
-			if (StrUtil.isBlank(charset)) {
-				charset = udpClientConf.getCharset();
-			}
-			byte[] bs = data.getBytes(charset);
-			send(bs);
-		} catch (UnsupportedEncodingException e) {
-			log.error(e.getMessage(), e);
+		if (charset == null) {
+			charset = StandardCharsets.UTF_8;
 		}
+		send(data.getBytes(charset));
 	}
 
 	public void start() {

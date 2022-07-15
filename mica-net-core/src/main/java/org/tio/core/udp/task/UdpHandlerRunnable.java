@@ -206,13 +206,11 @@ import java.util.concurrent.LinkedBlockingQueue;
  * 2017年7月6日 上午9:47:24
  */
 public class UdpHandlerRunnable implements Runnable {
-	private static Logger log = LoggerFactory.getLogger(UdpHandlerRunnable.class);
+	private static final Logger log = LoggerFactory.getLogger(UdpHandlerRunnable.class);
 
-	private UdpHandler udpHandler;
-	private LinkedBlockingQueue<UdpPacket> queue;
-
-	private DatagramSocket datagramSocket;
-
+	private final UdpHandler udpHandler;
+	private final LinkedBlockingQueue<UdpPacket> queue;
+	private final DatagramSocket datagramSocket;
 	private boolean isStopped = false;
 
 	public UdpHandlerRunnable(UdpHandler udpHandler, LinkedBlockingQueue<UdpPacket> queue, DatagramSocket datagramSocket) {
@@ -231,7 +229,7 @@ public class UdpHandlerRunnable implements Runnable {
 					udpHandler.handler(udpPacket, datagramSocket);
 				}
 			} catch (Throwable e) {
-				log.error(e.toString(), e);
+				log.error(e.getMessage(), e);
 			}
 		}
 	}

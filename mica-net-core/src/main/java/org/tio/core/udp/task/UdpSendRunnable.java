@@ -206,18 +206,15 @@ import java.util.concurrent.LinkedBlockingQueue;
  * 2017年7月5日 下午5:54:13
  */
 public class UdpSendRunnable implements Runnable {
-	private static Logger log = LoggerFactory.getLogger(UdpSendRunnable.class);
+	private static final Logger log = LoggerFactory.getLogger(UdpSendRunnable.class);
 
-	private LinkedBlockingQueue<DatagramPacket> queue;
+	private final LinkedBlockingQueue<DatagramPacket> queue;
 
-	private UdpConf udpConf;
-
+	private final UdpConf udpConf;
+	private final DatagramSocket datagramSocket;
 	private boolean isStopped = false;
 
-	private DatagramSocket datagramSocket;
-
 	/**
-	 *
 	 * @author tanyaowu
 	 */
 	public UdpSendRunnable(LinkedBlockingQueue<DatagramPacket> queue, UdpConf udpConf, DatagramSocket datagramSocket) {
@@ -237,11 +234,10 @@ public class UdpSendRunnable implements Runnable {
 					datagramSocket.setSoTimeout(udpConf.getTimeout());
 				}
 				datagramSocket.send(datagramPacket);
-
 			} catch (Throwable e) {
-				log.error(e.toString(), e);
+				log.error(e.getMessage(), e);
 			} finally {
-				if (queue.size() == 0) {
+				if (queue.isEmpty()) {
 					if (this.datagramSocket == null && datagramSocket != null) {
 						datagramSocket.close();
 						datagramSocket = null;

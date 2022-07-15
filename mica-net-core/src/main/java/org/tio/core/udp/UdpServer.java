@@ -198,13 +198,13 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.Node;
 import org.tio.core.udp.task.UdpHandlerRunnable;
 import org.tio.core.udp.task.UdpSendRunnable;
-import org.tio.utils.hutool.StrUtil;
 
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -216,21 +216,17 @@ public class UdpServer {
 
 	private final LinkedBlockingQueue<UdpPacket> handlerQueue = new LinkedBlockingQueue<>();
 	private final LinkedBlockingQueue<DatagramPacket> sendQueue = new LinkedBlockingQueue<>();
-
-	private DatagramSocket datagramSocket;
-
-	private byte[] readBuf;
-
-	private volatile boolean isStopped = false;
-
+	private final DatagramSocket datagramSocket;
+	private final byte[] readBuf;
 	private final UdpHandlerRunnable udpHandlerRunnable;
 	private final UdpSendRunnable udpSendRunnable;
 	private final UdpServerConf udpServerConf;
 
+	private volatile boolean isStopped = false;
+
 	/**
-	 *
-	 * @author tanyaowu
 	 * @throws SocketException
+	 * @author tanyaowu
 	 */
 	public UdpServer(UdpServerConf udpServerConf) throws SocketException {
 		this.udpServerConf = udpServerConf;
@@ -247,22 +243,17 @@ public class UdpServer {
 	}
 
 	public void send(String str, Node remoteNode) {
-		send(str, null, remoteNode);
+		send(str, StandardCharsets.UTF_8, remoteNode);
 	}
 
-	public void send(String data, String charset, Node remoteNode) {
-		if (StrUtil.isBlank(data)) {
+	public void send(String data, Charset charset, Node remoteNode) {
+		if (data == null) {
 			return;
 		}
-		try {
-			if (StrUtil.isBlank(charset)) {
-				charset = udpServerConf.getCharset();
-			}
-			byte[] bs = data.getBytes(charset);
-			send(bs, remoteNode);
-		} catch (UnsupportedEncodingException e) {
-			log.error(e.toString(), e);
+		if (charset == null) {
+			charset = StandardCharsets.UTF_8;
 		}
+		send(data.getBytes(charset), remoteNode);
 	}
 
 	public void start() {
@@ -296,9 +287,9 @@ public class UdpServer {
 						byte[] data = new byte[datagramPacket.getLength()];
 						System.arraycopy(readBuf, 0, data, 0, datagramPacket.getLength());
 
-						String remoteip = datagramPacket.getAddress().getHostAddress();
-						int remoteport = datagramPacket.getPort();
-						Node remote = new Node(remoteip, remoteport);
+						String remoteIp = datagramPacket.getAddress().getHostAddress();
+						int remotePort = datagramPacket.getPort();
+						Node remote = new Node(remoteIp, remotePort);
 						UdpPacket udpPacket = new UdpPacket(data, remote);
 
 						handlerQueue.put(udpPacket);

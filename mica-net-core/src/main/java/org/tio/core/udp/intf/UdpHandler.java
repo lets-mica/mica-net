@@ -204,10 +204,9 @@ import java.net.DatagramSocket;
 public interface UdpHandler {
 
 	/**
-	 *
-	 * @param udpPacket
-	 * @param datagramSocket
+	 * @param udpPacket      UdpPacket
+	 * @param datagramSocket DatagramSocket
 	 * @author tanyaowu
 	 */
-	public void handler(UdpPacket udpPacket, DatagramSocket datagramSocket);
+	void handler(UdpPacket udpPacket, DatagramSocket datagramSocket);
 }
