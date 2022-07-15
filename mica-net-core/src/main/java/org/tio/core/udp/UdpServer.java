@@ -225,7 +225,7 @@ public class UdpServer {
 	private volatile boolean isStopped = false;
 
 	/**
-	 * @throws SocketException
+	 * @throws SocketException SocketException
 	 * @author tanyaowu
 	 */
 	public UdpServer(UdpServerConf udpServerConf) throws SocketException {
