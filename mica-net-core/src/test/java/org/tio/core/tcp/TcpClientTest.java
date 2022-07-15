@@ -4,15 +4,15 @@ import org.tio.client.DefaultTioClientListener;
 import org.tio.client.TioClient;
 import org.tio.client.TioClientConfig;
 import org.tio.client.intf.TioClientHandler;
-import org.tio.client.intf.TioClientListener;
 import org.tio.core.Node;
+import org.tio.core.TcpConst;
 
 public class TcpClientTest {
 
 	public static void main(String[] args) throws Exception {
 		TioClientHandler tioHandler = new TestTioClientHandler();
-		TioClientListener tioListener = new DefaultTioClientListener();
-		TioClientConfig config = new TioClientConfig(tioHandler, tioListener);
+		TioClientConfig config = new TioClientConfig(tioHandler, new DefaultTioClientListener());
+		config.setReadBufferSize(TcpConst.MAX_DATA_LENGTH);
 		TioClient tioClient = new TioClient(config);
 		tioClient.connect(new Node("127.0.0.1", 502));
 	}
