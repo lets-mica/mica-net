@@ -221,7 +221,7 @@ public class Tio {
 	/**
 	 * The log.
 	 */
-	private static Logger log = LoggerFactory.getLogger(Tio.class);
+	private static final Logger log = LoggerFactory.getLogger(Tio.class);
 
 	private Tio() {
 	}
@@ -229,8 +229,8 @@ public class Tio {
 	/**
 	 * 绑定业务id
 	 *
-	 * @param channelContext
-	 * @param bsId
+	 * @param channelContext channelContext
+	 * @param bsId           bsId
 	 * @author tanyaowu
 	 */
 	public static void bindBsId(ChannelContext channelContext, String bsId) {
@@ -240,8 +240,8 @@ public class Tio {
 	/**
 	 * 绑定群组
 	 *
-	 * @param channelContext
-	 * @param group
+	 * @param channelContext channelContext
+	 * @param group          group
 	 * @author tanyaowu
 	 */
 	public static void bindGroup(ChannelContext channelContext, String group) {
@@ -423,7 +423,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static Boolean bSendToToken(TioConfig tioConfig, String token, Packet packet) {
+	public static boolean bSendToToken(TioConfig tioConfig, String token, Packet packet) {
 		return sendToToken(tioConfig, token, packet, true);
 	}
 
@@ -436,7 +436,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static Boolean bSendToUser(TioConfig tioConfig, String userid, Packet packet) {
+	public static boolean bSendToUser(TioConfig tioConfig, String userid, Packet packet) {
 		return sendToUser(tioConfig, userid, packet, true);
 	}
 
@@ -1832,8 +1832,8 @@ public class Tio {
 		/**
 		 * 是否在黑名单中
 		 *
-		 * @param tioConfig
-		 * @param ip
+		 * @param tioConfig tioConfig
+		 * @param ip        ip
 		 * @return
 		 * @author tanyaowu
 		 */
@@ -1844,8 +1844,8 @@ public class Tio {
 		/**
 		 * 把ip从黑名单中删除
 		 *
-		 * @param tioConfig
-		 * @param ip
+		 * @param tioConfig tioConfig
+		 * @param ip        ip
 		 * @author tanyaowu
 		 */
 		public static void remove(TioConfig tioConfig, String ip) {
@@ -1855,7 +1855,7 @@ public class Tio {
 		/**
 		 * 删除全局黑名单
 		 *
-		 * @param ip
+		 * @param ip ip
 		 * @author tanyaowu
 		 */
 		public static void remove(String ip) {
