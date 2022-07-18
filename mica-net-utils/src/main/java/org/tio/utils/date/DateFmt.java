@@ -235,8 +235,10 @@ public class DateFmt {
 	}
 
 	/**
-	 * @param pattern
-	 * @return
+	 * DateTimeFormatter
+	 *
+	 * @param pattern pattern
+	 * @return DateTimeFormatter
 	 */
 	public static DateTimeFormatter of(String pattern) {
 		DateTimeFormatter ret = map.get(pattern);
@@ -249,8 +251,11 @@ public class DateFmt {
 	}
 
 	/**
-	 * @param pattern
-	 * @return
+	 * DateTimeFormatter
+	 *
+	 * @param pattern pattern
+	 * @param locale  locale
+	 * @return DateTimeFormatter
 	 */
 	public static DateTimeFormatter of(String pattern, Locale locale) {
 		DateTimeFormatter ret = map.get(pattern);
