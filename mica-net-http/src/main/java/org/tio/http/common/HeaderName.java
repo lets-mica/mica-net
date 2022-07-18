@@ -201,6 +201,11 @@ import java.util.Map;
  * 2018年7月1日 上午9:51:04
  */
 public class HeaderName {
+	/**
+	 * 缓存
+	 */
+	private static final Map<String, HeaderName> map = new HashMap<>();
+
 	public static final HeaderName SET_COOKIE = new HeaderName(HttpConst.ResponseHeaderKey.Set_Cookie);
 	public static final HeaderName CONTENT_TYPE = new HeaderName(HttpConst.ResponseHeaderKey.Content_Type);
 	public static final HeaderName CACHE_CONTROL = new HeaderName(HttpConst.ResponseHeaderKey.Cache_Control);
@@ -227,7 +232,7 @@ public class HeaderName {
 	public static final HeaderName tio_from_cache = new HeaderName(HttpConst.ResponseHeaderKey.tio_from_cache);
 	public static final HeaderName tio_webpack_used_cache = new HeaderName(HttpConst.ResponseHeaderKey.tio_webpack_used_cache);
 	public static final HeaderName Access_Control_Allow_Credentials = new HeaderName(HttpConst.ResponseHeaderKey.Access_Control_Allow_Credentials);
-	private static final Map<String, HeaderName> map = new HashMap<>();
+
 	public static final HeaderName Sec_Websocket_Protocol = HeaderName.from(HttpConst.RequestHeaderKey.Sec_Websocket_Protocol);
 
 	public final String name;
