@@ -231,10 +231,6 @@ public class WsTioServerHandler implements TioServerHandler {
 	private final IWsMsgHandler wsMsgHandler;
 	private final HttpConfig wsServerConfig;
 
-	/**
-	 * @param wsServerConfig
-	 * @param wsMsgHandler
-	 */
 	public WsTioServerHandler(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler) {
 		this.wsServerConfig = wsServerConfig;
 		this.wsMsgHandler = wsMsgHandler;
@@ -268,7 +264,6 @@ public class WsTioServerHandler implements TioServerHandler {
 	@Override
 	public WsRequest decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException {
 		WsSessionContext wsSessionContext = (WsSessionContext) channelContext.get();
-		// int initPosition = buffer.position();
 		// 尚未握手
 		if (!wsSessionContext.isHandshaked()) {
 			HttpRequest request = HttpRequestDecoder.decode(buffer, limit, position, readableLength, channelContext, wsServerConfig);
@@ -359,8 +354,7 @@ public class WsTioServerHandler implements TioServerHandler {
 				return null;
 			}
 		}
-
-		return WsServerEncoder.encode(wsResponse, tioConfig, channelContext);
+		return WsServerEncoder.encode(wsResponse);
 	}
 
 	/**
@@ -393,7 +387,7 @@ public class WsTioServerHandler implements TioServerHandler {
 
 			return wsResponse;
 		} else if (opcode == Opcode.PING || opcode == Opcode.PONG) {
-			log.debug("收到" + opcode);
+			log.debug("收到:{}", opcode);
 			return null;
 		} else if (opcode == Opcode.CLOSE) {
 			Object retObj = wsMsgHandler.onClose(websocketPacket, bytes, channelContext);
@@ -440,7 +434,7 @@ public class WsTioServerHandler implements TioServerHandler {
 		}
 	}
 
-	private WsResponse processRetObj(Object obj, String methodName, ChannelContext channelContext) throws Exception {
+	private WsResponse processRetObj(Object obj, String methodName, ChannelContext channelContext) {
 		WsResponse wsResponse;
 		if (obj == null) {
 			return null;
@@ -482,11 +476,10 @@ public class WsTioServerHandler implements TioServerHandler {
 			System.arraycopy(secWebSocketKeyBytes, 0, allBs, 0, secWebSocketKeyBytes.length);
 			System.arraycopy(SEC_WEBSOCKET_KEY_SUFFIX_BYTES, 0, allBs, secWebSocketKeyBytes.length, SEC_WEBSOCKET_KEY_SUFFIX_BYTES.length);
 
-//			String Sec_WebSocket_Key_Magic = Sec_WebSocket_Key + SEC_WEBSOCKET_KEY_SUFFIX_BYTES;
 			byte[] keyArray = DigestUtils.sha1(allBs);
 			String acceptKey = Base64.getEncoder().encodeToString(keyArray);
 			HttpResponse httpResponse = new HttpResponse(request);
-
+			// 101 协议转换
 			httpResponse.setStatus(HttpResponseStatus.C101);
 
 			Map<HeaderName, HeaderValue> respHeaders = new HashMap<>();

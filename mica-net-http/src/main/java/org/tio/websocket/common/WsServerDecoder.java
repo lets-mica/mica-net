@@ -208,19 +208,14 @@ import java.nio.ByteBuffer;
 public class WsServerDecoder {
 	private static final Logger log = LoggerFactory.getLogger(WsServerDecoder.class);
 
-	/**
-	 * @author tanyaowu 2017年2月22日 下午4:06:42
-	 */
-	public WsServerDecoder() {
+	private WsServerDecoder() {
 	}
 
 	public static WsRequest decode(ByteBuffer buf, ChannelContext channelContext) throws TioDecodeException {
 		// 第一阶段解析
 		int initPosition = buf.position();
 		int readableLength = buf.limit() - initPosition;
-
 		int headLength = WsPacket.MINIMUM_HEADER_LENGTH;
-
 		if (readableLength < headLength) {
 			return null;
 		}
