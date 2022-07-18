@@ -194,7 +194,7 @@
 package org.tio.core.udp;
 
 import org.tio.core.Node;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 
 /**
  * @author tanyaowu
@@ -210,7 +210,7 @@ public class UdpPacket {
 	/**
 	 * 收到消息的时间
 	 */
-	private long time = SystemTimer.currTime;
+	private long time = SystemTimerClock.currTime;
 
 	/**
 	 * @author tanyaowu

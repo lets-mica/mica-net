@@ -195,7 +195,7 @@ package org.tio.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 import org.tio.utils.thread.pool.AbstractSynRunnable;
 
 import java.util.concurrent.Executor;
@@ -233,9 +233,9 @@ public class ReconnRunnable extends AbstractSynRunnable {
 			if (!channelContext.isClosed) {
 				return;
 			}
-			long start = SystemTimer.currTime;
+			long start = SystemTimerClock.currTime;
 			tioClient.reconnect(channelContext, 2);
-			long end = SystemTimer.currTime;
+			long end = SystemTimerClock.currTime;
 			long iv = end - start;
 			log.error("{}, 第{}次重连,重连耗时:{} ms", channelContext, channelContext.getReconnCount(), iv);
 		} catch (Exception e) {

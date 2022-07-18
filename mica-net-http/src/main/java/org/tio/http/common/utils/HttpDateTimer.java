@@ -194,7 +194,7 @@
 package org.tio.http.common.utils;
 
 import org.tio.http.common.HeaderValue;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 import org.tio.utils.hutool.DateUtil;
 
 /**
@@ -206,7 +206,7 @@ public class HttpDateTimer {
 	public static volatile HeaderValue httpDateValue = HeaderValue.from(httpDateString);
 
 	static {
-		SystemTimer.addTimerListener(currTime -> {
+		SystemTimerClock.addTimerListener(currTime -> {
 			httpDateString = DateUtil.httpDate(currTime);
 			httpDateValue = HeaderValue.from(httpDateString);
 		});

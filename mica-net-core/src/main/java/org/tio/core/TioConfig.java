@@ -204,7 +204,7 @@ import org.tio.core.stat.GroupStat;
 import org.tio.core.stat.IpStatListener;
 import org.tio.core.task.CloseRunnable;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 import org.tio.utils.Threads;
 import org.tio.utils.hutool.CollUtil;
 import org.tio.utils.prop.MapWithLockPropSupport;
@@ -252,7 +252,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	/**
 	 * 启动时间
 	 */
-	public long startTime = SystemTimer.currTime;
+	public long startTime = SystemTimerClock.currTime;
 	/**
 	 * 是否用队列发送
 	 */

@@ -202,7 +202,7 @@ import org.tio.core.Tio;
 import org.tio.core.intf.Packet;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.stat.ChannelStat;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 import org.tio.utils.hutool.StrUtil;
 
 import java.io.IOException;
@@ -327,9 +327,9 @@ public class TioClient {
 	 */
 	private ClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, ClientChannelContext initClientChannelContext, Integer timeout, boolean isSyn) throws Exception {
 		boolean isReconnect = initClientChannelContext != null;
-		long start = SystemTimer.currTime;
+		long start = SystemTimerClock.currTime;
 		AsynchronousSocketChannel asynchronousSocketChannel = AsynchronousSocketChannel.open(channelGroup);
-		long end = SystemTimer.currTime;
+		long end = SystemTimerClock.currTime;
 		long iv = end - start;
 		if (iv >= 100) {
 			log.error("{}, open 耗时:{} ms", serverNode, iv);
@@ -433,7 +433,7 @@ public class TioClient {
 					}
 					Set<ChannelContext> set = tioClientConfig.connecteds;
 					try {
-						long currTime = SystemTimer.currTime;
+						long currTime = SystemTimerClock.currTime;
 						for (ChannelContext entry : set) {
 							ClientChannelContext channelContext = (ClientChannelContext) entry;
 							if (channelContext.isClosed || channelContext.isRemoved) {
@@ -504,7 +504,7 @@ public class TioClient {
 					if (sslFacadeContext != null) {
 						sslFacadeContext.setHandshakeCompleted(false);
 					}
-					long sleepTime = reconnConf.getInterval() - (SystemTimer.currTime - channelContext.stat.timeInReconnQueue);
+					long sleepTime = reconnConf.getInterval() - (SystemTimerClock.currTime - channelContext.stat.timeInReconnQueue);
 					if (sleepTime > 0) {
 						try {
 							Thread.sleep(sleepTime);

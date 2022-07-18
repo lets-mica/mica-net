@@ -207,7 +207,7 @@ import org.tio.core.ssl.SslConfig;
 import org.tio.server.intf.TioServerHandler;
 import org.tio.server.intf.TioServerListener;
 import org.tio.utils.SysConst;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
@@ -305,16 +305,16 @@ public class TioServerConfig extends TioConfig {
 					} catch (InterruptedException e1) {
 						log.error(e1.getMessage(), e1);
 					}
-					long start = SystemTimer.currTime;
+					long start = SystemTimerClock.currTime;
 					Set<ChannelContext> contextSet = TioServerConfig.this.connections;
 					long start1 = 0;
 					int count = 0;
 					try {
-						start1 = SystemTimer.currTime;
+						start1 = SystemTimerClock.currTime;
 						for (ChannelContext channelContext : contextSet) {
 							count++;
 							long compareTime = Math.max(channelContext.stat.latestTimeOfReceivedByte, channelContext.stat.latestTimeOfSentPacket);
-							long currTime = SystemTimer.currTime;
+							long currTime = SystemTimerClock.currTime;
 							long interval = currTime - compareTime;
 							boolean needRemove;
 							if (channelContext.heartbeatTimeout != null && channelContext.heartbeatTimeout > 0) {
@@ -335,7 +335,7 @@ public class TioServerConfig extends TioConfig {
 							if (debug) {
 								StringBuilder builder = new StringBuilder();
 								builder.append(SysConst.CRLF).append(TioServerConfig.this.getName());
-								builder.append("\r\n ├ 当前时间:").append(SystemTimer.currTime);
+								builder.append("\r\n ├ 当前时间:").append(SystemTimerClock.currTime);
 								builder.append("\r\n ├ 连接统计");
 								builder.append("\r\n │ \t ├ 共接受过连接数  :").append(((ServerGroupStat) groupStat).accepted.sum());
 								builder.append("\r\n │ \t ├ 当前连接数            :").append(contextSet.size());
@@ -364,7 +364,7 @@ public class TioServerConfig extends TioConfig {
 								builder.append("\r\n └ 拉黑IP ");
 								builder.append("\r\n   \t └ ").append(StrUtil.join(TioServerConfig.this.ipBlacklist.getAll()));
 								log.warn(builder.toString());
-								long end = SystemTimer.currTime;
+								long end = SystemTimerClock.currTime;
 								long iv1 = start1 - start;
 								long iv = end - start1;
 								log.warn("{}, 检查心跳, 共{}个连接, 取锁耗时{}ms, 循环耗时{}ms, 心跳超时时间:{}ms", TioServerConfig.this.name, count, iv1, iv, heartbeatTimeout);

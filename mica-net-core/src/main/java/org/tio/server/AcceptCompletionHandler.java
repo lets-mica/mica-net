@@ -198,7 +198,7 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ReadCompletionHandler;
 import org.tio.core.ssl.SslUtils;
 import org.tio.core.stat.IpStat;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
@@ -244,7 +244,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 
 			ServerChannelContext channelContext = new ServerChannelContext(tioServerConfig, asynchronousSocketChannel);
 			channelContext.setClosed(false);
-			channelContext.stat.setTimeFirstConnected(SystemTimer.currTime);
+			channelContext.stat.setTimeFirstConnected(SystemTimerClock.currTime);
 			channelContext.setServerNode(tioServer.getServerNode());
 			tioServerConfig.ips.bind(channelContext);
 

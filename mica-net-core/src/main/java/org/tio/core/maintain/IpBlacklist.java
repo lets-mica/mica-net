@@ -198,7 +198,7 @@ import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.cache.CaffeineUtils;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -231,7 +231,7 @@ public class IpBlacklist {
 
 	public boolean add(String ip) {
 		//先添加到黑名单列表
-		cache.put(ip, SystemTimer.currTime);
+		cache.put(ip, SystemTimerClock.currTime);
 		if (tioServerConfig != null) {
 			//删除相关连接
 			Tio.remove(tioServerConfig, ip, "ip[" + ip + "]被加入了黑名单, " + tioServerConfig.getName());

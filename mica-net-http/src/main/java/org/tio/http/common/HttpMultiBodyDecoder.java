@@ -200,7 +200,7 @@ import org.tio.core.exception.LengthOverflowException;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.utils.ByteBufferUtils;
 import org.tio.http.common.utils.HttpParseUtils;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 import org.tio.utils.hutool.StrUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -240,7 +240,7 @@ public class HttpMultiBodyDecoder {
 			throw new TioDecodeException("boundary is null");
 		}
 
-		long start = SystemTimer.currTime;
+		long start = SystemTimerClock.currTime;
 
 		ByteBuffer buffer = ByteBuffer.wrap(bodyBytes);
 		buffer.position(0);
@@ -295,7 +295,7 @@ public class HttpMultiBodyDecoder {
 		} catch (UnsupportedEncodingException e) {
 			log.error(channelContext.toString(), e);
 		} finally {
-			long end = SystemTimer.currTime;
+			long end = SystemTimerClock.currTime;
 			long iv = end - start;
 			log.info("解析耗时:{}ms", iv);
 		}

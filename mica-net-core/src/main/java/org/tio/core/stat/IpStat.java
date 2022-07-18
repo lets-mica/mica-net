@@ -193,7 +193,7 @@
 */
 package org.tio.core.stat;
 
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 import org.tio.utils.hutool.BetweenFormater;
 import org.tio.utils.hutool.BetweenFormater.Level;
 
@@ -285,7 +285,7 @@ public class IpStat implements java.io.Serializable {
 	}
 
 	public long getDuration() {
-		this.duration = SystemTimer.currTime - this.startTime;
+		this.duration = SystemTimerClock.currTime - this.startTime;
 		return this.duration;
 	}
 
@@ -300,7 +300,7 @@ public class IpStat implements java.io.Serializable {
 	 * @return the duration
 	 */
 	public String getFormatedDuration() {
-		duration = SystemTimer.currTime - this.startTime;
+		duration = SystemTimerClock.currTime - this.startTime;
 		BetweenFormater betweenFormater = new BetweenFormater(duration, Level.MILLSECOND);
 		return betweenFormater.format();
 	}

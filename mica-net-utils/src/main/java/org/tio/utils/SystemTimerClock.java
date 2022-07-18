@@ -203,9 +203,9 @@ import java.util.concurrent.TimeUnit;
  * @author tanyaowu
  * 2017年8月13日 上午11:36:12
  */
-public class SystemTimer {
+public class SystemTimerClock {
 	private static final ScheduledExecutorService EXECUTOR = new ScheduledThreadPoolExecutor(1, runnable -> {
-		Thread thread = new Thread(runnable, "TioSystemTimer");
+		Thread thread = new Thread(runnable, "TioSystemTimerClock");
 		thread.setDaemon(true);
 		return thread;
 	});
@@ -214,6 +214,7 @@ public class SystemTimer {
 	private static volatile List<TimerListener> list = null;
 
 	static {
+
 		EXECUTOR.scheduleAtFixedRate(new TimerTask(), PERIOD, PERIOD, TimeUnit.MILLISECONDS);
 		Runtime.getRuntime().addShutdownHook(new Thread("TioSystemTimer-Shutdown") {
 			@Override
@@ -243,7 +244,7 @@ public class SystemTimer {
 		return currTime;
 	}
 
-	public static interface TimerListener {
+	public interface TimerListener {
 		void onChange(long currTime);
 	}
 

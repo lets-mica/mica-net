@@ -204,7 +204,7 @@ import org.tio.core.intf.Packet;
 import org.tio.core.stat.ChannelStat;
 import org.tio.core.stat.IpStat;
 import org.tio.core.utils.ByteBufferUtils;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.nio.BufferUnderflowException;
@@ -348,7 +348,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 				} else //解码成功
 				{
 					channelContext.setPacketNeededLength(null);
-					channelContext.stat.latestTimeOfReceivedPacket = SystemTimer.currTime;
+					channelContext.stat.latestTimeOfReceivedPacket = SystemTimerClock.currTime;
 					channelContext.stat.decodeFailCount = 0;
 
 					int packetSize = byteBuffer.position() - initPosition;

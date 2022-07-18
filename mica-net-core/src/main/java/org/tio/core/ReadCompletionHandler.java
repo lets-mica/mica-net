@@ -199,7 +199,7 @@ import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.stat.IpStat;
 import org.tio.core.utils.ByteBufferUtils;
 import org.tio.core.utils.TioUtils;
-import org.tio.utils.SystemTimer;
+import org.tio.utils.SystemTimerClock;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
@@ -234,7 +234,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 				channelContext.stat.receivedTcps.increment();
 			}
 
-			channelContext.stat.latestTimeOfReceivedByte = SystemTimer.currTime;
+			channelContext.stat.latestTimeOfReceivedByte = SystemTimerClock.currTime;
 
 			if (tioConfig.isIpStatEnable()) {
 				try {
