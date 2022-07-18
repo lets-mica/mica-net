@@ -203,6 +203,7 @@ import org.tio.utils.SysConst;
 import org.tio.utils.SystemTimer;
 import org.tio.utils.hutool.StrUtil;
 
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -228,7 +229,7 @@ public class HttpRequest extends HttpPacket {
 	private String connection;
 	private String bodyString;
 	private RequestBodyFormat bodyFormat;
-	private String charset = HttpConst.CHARSET_NAME;
+	private Charset charset = HttpConst.CHARSET;
 	private Boolean isAjax = null;
 	@SuppressWarnings("unused")
 	private Boolean isSupportGzip = null;
@@ -433,14 +434,14 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * @return the charset
 	 */
-	public String getCharset() {
+	public Charset getCharset() {
 		return charset;
 	}
 
 	/**
 	 * @param charset the charset to set
 	 */
-	public void setCharset(String charset) {
+	public void setCharset(Charset charset) {
 		this.charset = charset;
 	}
 

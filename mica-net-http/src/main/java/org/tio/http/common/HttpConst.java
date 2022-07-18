@@ -193,6 +193,11 @@
 */
 package org.tio.http.common;
 
+import org.tio.utils.SysConst;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
  * @author tanyaowu
  */
@@ -203,9 +208,13 @@ public interface HttpConst {
 	 */
 	String SERVER_INFO = "mica-net";
 	/**
+	 * 默认的字符集
+	 */
+	Charset CHARSET = SysConst.DEFAULT_CHARSET;
+	/**
 	 * 默认规定连接到本服务器的客户端统一用utf-8
 	 */
-	String CHARSET_NAME = "utf-8";
+	String CHARSET_NAME = SysConst.DEFAULT_ENCODING;
 
 	/**
 	 * 请求体的格式

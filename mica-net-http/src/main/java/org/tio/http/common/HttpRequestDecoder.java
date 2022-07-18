@@ -208,6 +208,7 @@ import org.tio.utils.hutool.StrUtil;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -327,7 +328,7 @@ public class HttpRequestDecoder {
 			}
 		}
 
-		Node realNode = null;
+		Node realNode;
 		if (Objects.equals(realIp, channelContext.getClientNode().getIp())) {
 			realNode = channelContext.getClientNode();
 		} else {
@@ -399,45 +400,43 @@ public class HttpRequestDecoder {
 	 * @throws TioDecodeException
 	 * @author tanyaowu
 	 */
-	public static void decodeParams(Map<String, Object[]> params, String queryString, String charset, ChannelContext channelContext) throws TioDecodeException {
+	public static void decodeParams(Map<String, Object[]> params, String queryString, Charset charset, ChannelContext channelContext) throws TioDecodeException {
 		if (StrUtil.isBlank(queryString)) {
 			return;
 		}
 
-		String[] keyvalues = queryString.split(SysConst.STR_AMP);
-		for (String keyvalue : keyvalues) {
-			String[] keyvalueArr = keyvalue.split(SysConst.STR_EQ);
+		String[] keyValues = queryString.split(SysConst.STR_AMP);
+		for (String keyValue : keyValues) {
+			String[] keyValueArr = keyValue.split(SysConst.STR_EQ);
 			String value1 = null;
-			if (keyvalueArr.length == 2) {
-				value1 = keyvalueArr[1];
-			} else if (keyvalueArr.length > 2) {
+			if (keyValueArr.length == 2) {
+				value1 = keyValueArr[1];
+			} else if (keyValueArr.length > 2) {
 				throw new TioDecodeException("含有多个" + SysConst.STR_EQ);
 			}
 
-			String key = keyvalueArr[0];
+			String key = keyValueArr[0];
 			String value;
 			if (StrUtil.isBlank(value1)) {
 				value = null;
 			} else {
 				try {
-					value = URLDecoder.decode(value1, charset);
+					value = URLDecoder.decode(value1, charset.name());
 				} catch (UnsupportedEncodingException e) {
 					throw new TioDecodeException(e);
 				}
 			}
-
 			Object[] existValue = params.get(key);
-			if (existValue != null) {
-				String[] newExistValue = new String[existValue.length + 1];
+			String[] newExistValue;
+			if (existValue == null) {
+				newExistValue = new String[]{value};
+			} else {
+				newExistValue = new String[existValue.length + 1];
 				System.arraycopy(existValue, 0, newExistValue, 0, existValue.length);
 				newExistValue[newExistValue.length - 1] = value;
-				params.put(key, newExistValue);
-			} else {
-				String[] newExistValue = new String[]{value};
-				params.put(key, newExistValue);
 			}
+			params.put(key, newExistValue);
 		}
-		return;
 	}
 
 	/**
@@ -498,17 +497,11 @@ public class HttpRequestDecoder {
 
 		switch (bodyFormat) {
 			case MULTIPART:
-				if (log.isInfoEnabled()) {
-					String bodyString = null;
+				if (log.isDebugEnabled()) {
+					String bodyString;
 					if (bodyBytes != null && bodyBytes.length > 0) {
-						if (log.isDebugEnabled()) {
-							try {
-								bodyString = new String(bodyBytes, httpRequest.getCharset());
-								log.debug("{} multipart body value\r\n{}", channelContext, bodyString);
-							} catch (UnsupportedEncodingException e) {
-								log.error(channelContext.toString(), e);
-							}
-						}
+						bodyString = new String(bodyBytes, httpRequest.getCharset());
+						log.debug("{} multipart body value\r\n{}", channelContext, bodyString);
 					}
 				}
 
@@ -520,21 +513,15 @@ public class HttpRequestDecoder {
 				}
 				HttpMultiBodyDecoder.decode(httpRequest, firstLine, bodyBytes, initboundary, channelContext, httpConfig);
 				break;
-
 			default:
 				String bodyString = null;
 				if (bodyBytes != null && bodyBytes.length > 0) {
-					try {
-						bodyString = new String(bodyBytes, httpRequest.getCharset());
-						httpRequest.setBodyString(bodyString);
-						if (log.isInfoEnabled()) {
-							log.info("{} body value\r\n{}", channelContext, bodyString);
-						}
-					} catch (UnsupportedEncodingException e) {
-						log.error(channelContext.toString(), e);
+					bodyString = new String(bodyBytes, httpRequest.getCharset());
+					httpRequest.setBodyString(bodyString);
+					if (log.isInfoEnabled()) {
+						log.info("{} body value\r\n{}", channelContext, bodyString);
 					}
 				}
-
 				if (bodyFormat == RequestBodyFormat.URLENCODED) {
 					parseUrlencoded(httpRequest, firstLine, bodyBytes, bodyString, channelContext);
 				}
@@ -551,24 +538,26 @@ public class HttpRequestDecoder {
 	 * @author tanyaowu
 	 */
 	public static void parseBodyFormat(HttpRequest httpRequest, Map<String, String> headers) {
-		String contentType = headers.get(HttpConst.RequestHeaderKey.Content_Type);
-		String Content_Type = null;
-		if (contentType != null) {
-			Content_Type = contentType.toLowerCase();
+		String contentTypeStr = headers.get(HttpConst.RequestHeaderKey.Content_Type);
+		String contentType = null;
+		if (contentTypeStr != null) {
+			contentType = contentTypeStr.toLowerCase();
 		}
-		if (Content_Type.startsWith(HttpConst.RequestHeaderValue.Content_Type.text_plain)) {
+		if (contentType == null) {
+			httpRequest.setBodyFormat(RequestBodyFormat.URLENCODED);
+		} else if (contentType.startsWith(HttpConst.RequestHeaderValue.Content_Type.text_plain)) {
 			httpRequest.setBodyFormat(RequestBodyFormat.TEXT);
-		} else if (Content_Type.startsWith(HttpConst.RequestHeaderValue.Content_Type.multipart_form_data)) {
+		} else if (contentType.startsWith(HttpConst.RequestHeaderValue.Content_Type.multipart_form_data)) {
 			httpRequest.setBodyFormat(RequestBodyFormat.MULTIPART);
 		} else {
 			httpRequest.setBodyFormat(RequestBodyFormat.URLENCODED);
 		}
-		if (StrUtil.isNotBlank(Content_Type)) {
-			String charset = HttpParseUtils.getSubAttribute(Content_Type, "charset");
+		if (StrUtil.isNotBlank(contentType)) {
+			String charset = HttpParseUtils.getSubAttribute(contentType, "charset");
 			if (StrUtil.isNotBlank(charset)) {
-				httpRequest.setCharset(charset);
+				httpRequest.setCharset(Charset.forName(charset));
 			} else {
-				httpRequest.setCharset(SysConst.DEFAULT_ENCODING);
+				httpRequest.setCharset(SysConst.DEFAULT_CHARSET);
 			}
 		}
 	}
@@ -674,7 +663,7 @@ public class HttpRequestDecoder {
 	/**
 	 * 解析请求头的每一行
 	 *
-	 * @param line
+	 * @param buffer
 	 * @param headers
 	 * @return 头部是否解析完成，true: 解析完成, false: 没有解析完成
 	 * @author tanyaowu
@@ -787,7 +776,7 @@ public class HttpRequestDecoder {
 	/**
 	 * parse request line(the first line)
 	 *
-	 * @param line           GET /tio?value=tanyaowu HTTP/1.1
+	 * @param buffer           GET /tio?value=tanyaowu HTTP/1.1
 	 * @param channelContext
 	 * @return
 	 * @author tanyaowu

@@ -229,13 +229,13 @@ public class ByteBufferUtils {
 
 	/**
 	 * @param src
-	 * @param srcStartindex
+	 * @param srcStartIndex
 	 * @param dest
 	 * @param destStartIndex
 	 * @param length
 	 */
-	public static void copy(ByteBuffer src, int srcStartindex, ByteBuffer dest, int destStartIndex, int length) {
-		System.arraycopy(src.array(), srcStartindex, dest.array(), destStartIndex, length);
+	public static void copy(ByteBuffer src, int srcStartIndex, ByteBuffer dest, int destStartIndex, int length) {
+		System.arraycopy(src.array(), srcStartIndex, dest.array(), destStartIndex, length);
 	}
 
 	/**
@@ -381,7 +381,7 @@ public class ByteBufferUtils {
 	 * @return
 	 * @author: tanyaowu
 	 */
-	public static String readLine(ByteBuffer buffer, String charset) throws LengthOverflowException {
+	public static String readLine(ByteBuffer buffer, Charset charset) throws LengthOverflowException {
 		return readLine(buffer, charset, Integer.MAX_VALUE);
 	}
 
@@ -392,7 +392,7 @@ public class ByteBufferUtils {
 	 * @return
 	 * @author: tanyaowu
 	 */
-	public static String readLine(ByteBuffer buffer, String charset, Integer maxlength) throws LengthOverflowException {
+	public static String readLine(ByteBuffer buffer, Charset charset, Integer maxlength) throws LengthOverflowException {
 		int startPosition = buffer.position();
 		int endPosition = lineEnd(buffer, maxlength);
 		if (endPosition == -1) {
@@ -405,14 +405,10 @@ public class ByteBufferUtils {
 			buffer.position(startPosition);
 			buffer.get(bs);
 			buffer.position(nowPosition);
-			if (StrUtil.isNotBlank(charset)) {
-				try {
-					return new String(bs, charset);
-				} catch (UnsupportedEncodingException e) {
-					throw new RuntimeException(e);
-				}
-			} else {
+			if (charset == null) {
 				return new String(bs);
+			} else {
+				return new String(bs, charset);
 			}
 		} else if (endPosition == startPosition) {
 			return "";
@@ -437,27 +433,22 @@ public class ByteBufferUtils {
 	 * @throws LengthOverflowException
 	 * @author tanyaowu
 	 */
-	public static String readString(ByteBuffer buffer, String charset, char endChar, Integer maxlength) throws LengthOverflowException {
+	public static String readString(ByteBuffer buffer, Charset charset, char endChar, Integer maxlength) throws LengthOverflowException {
 		int startPosition = buffer.position();
 		int endPosition = indexOf(buffer, endChar, maxlength);
 		if (endPosition == -1) {
 			return null;
 		}
-
 		int nowPosition = buffer.position();
 		if (endPosition > startPosition) {
 			byte[] bs = new byte[endPosition - startPosition];
 			buffer.position(startPosition);
 			buffer.get(bs);
 			buffer.position(nowPosition);
-			if (StrUtil.isNotBlank(charset)) {
-				try {
-					return new String(bs, charset);
-				} catch (UnsupportedEncodingException e) {
-					throw new RuntimeException(e);
-				}
-			} else {
+			if (charset == null) {
 				return new String(bs);
+			} else {
+				return new String(bs, charset);
 			}
 		} else if (endPosition == startPosition) {
 			return "";

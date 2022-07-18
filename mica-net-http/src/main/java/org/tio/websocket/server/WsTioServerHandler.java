@@ -327,12 +327,8 @@ public class WsTioServerHandler implements TioServerHandler {
 				if (websocketPacket.getWsOpcode() != Opcode.BINARY) {
 					byte[] bodyBs = websocketPacket.getBody();
 					if (bodyBs != null) {
-						try {
-							String text = new String(bodyBs, handshakeRequest.getCharset());
-							websocketPacket.setWsBodyText(text);
-						} catch (UnsupportedEncodingException e) {
-							log.error(e.getMessage(), e);
-						}
+						String text = new String(bodyBs, handshakeRequest.getCharset());
+						websocketPacket.setWsBodyText(text);
 					}
 				}
 			}
@@ -481,12 +477,7 @@ public class WsTioServerHandler implements TioServerHandler {
 		Map<String, String> headers = request.getHeaders();
 		String secWebSocketKey = headers.get(HttpConst.RequestHeaderKey.Sec_WebSocket_Key);
 		if (StrUtil.isNotBlank(secWebSocketKey)) {
-			byte[] secWebSocketKeyBytes;
-			try {
-				secWebSocketKeyBytes = secWebSocketKey.getBytes(request.getCharset());
-			} catch (UnsupportedEncodingException e) {
-				throw ExceptionUtils.unchecked(e);
-			}
+			byte[] secWebSocketKeyBytes = secWebSocketKey.getBytes(request.getCharset());
 			byte[] allBs = new byte[secWebSocketKeyBytes.length + SEC_WEBSOCKET_KEY_SUFFIX_BYTES.length];
 			System.arraycopy(secWebSocketKeyBytes, 0, allBs, 0, secWebSocketKeyBytes.length);
 			System.arraycopy(SEC_WEBSOCKET_KEY_SUFFIX_BYTES, 0, allBs, secWebSocketKeyBytes.length, SEC_WEBSOCKET_KEY_SUFFIX_BYTES.length);

@@ -1,6 +1,5 @@
 package org.tio.core.tcp;
 
-import org.tio.core.TcpConst;
 import org.tio.server.DefaultTioServerListener;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
@@ -13,7 +12,6 @@ public class TcpServerTest {
 	public static void main(String[] args) throws IOException {
 		TioServerHandler serverHandler = new TestTioServerHandler();
 		TioServerConfig config = new TioServerConfig(serverHandler, new DefaultTioServerListener());
-		config.setReadBufferSize(TcpConst.MAX_DATA_LENGTH);
 		TioServer tioServer = new TioServer(config);
 		tioServer.start("0.0.0.0", 502);
 	}
