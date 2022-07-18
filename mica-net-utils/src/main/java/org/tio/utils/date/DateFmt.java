@@ -258,13 +258,7 @@ public class DateFmt {
 	 * @return DateTimeFormatter
 	 */
 	public static DateTimeFormatter of(String pattern, Locale locale) {
-		DateTimeFormatter ret = map.get(pattern);
-		if (ret != null) {
-			return ret;
-		}
-		ret = DateTimeFormatter.ofPattern(pattern, locale);
-		map.put(pattern, ret);
-		return ret;
+		return DateTimeFormatter.ofPattern(pattern, locale);
 	}
 
 }
