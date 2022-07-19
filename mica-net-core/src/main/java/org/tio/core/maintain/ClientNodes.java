@@ -200,7 +200,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * 一对一  (ip:port <--> ChannelContext)<br>
+ * 一对一  (client Node <--> ChannelContext)<br>
  *
  * @author tanyaowu
  * 2017年4月1日 上午9:35:20
@@ -208,41 +208,9 @@ import java.util.concurrent.ConcurrentMap;
 public class ClientNodes {
 
 	/**
-	 * remoteAndChannelContext key: "ip:port" value: ChannelContext.
+	 * remoteAndChannelContext key: client Node value: ChannelContext.
 	 */
-	private final ConcurrentMap<String, ChannelContext> map = new ConcurrentHashMap<>();
-
-	/**
-	 * @param channelContext ChannelContext
-	 * @return key
-	 * @author tanyaowu
-	 */
-	public static String getKey(ChannelContext channelContext) {
-		Node clientNode = channelContext.getClientNode();
-		if (clientNode == null) {
-			throw new IllegalArgumentException("client node is null");
-		}
-		return getKey(clientNode.getIp(), clientNode.getPort());
-	}
-
-	/**
-	 * @param ip   ip
-	 * @param port port
-	 * @return key
-	 * @author tanyaowu
-	 */
-	public static String getKey(String ip, int port) {
-		return ip + ':' + port;
-	}
-
-	/**
-	 * @param key key
-	 * @return ChannelContext
-	 * @author tanyaowu
-	 */
-	public ChannelContext find(String key) {
-		return map.get(key);
-	}
+	private final ConcurrentMap<Node, ChannelContext> map = new ConcurrentHashMap<>();
 
 	/**
 	 * @param ip   ip
@@ -251,7 +219,16 @@ public class ClientNodes {
 	 * @author tanyaowu
 	 */
 	public ChannelContext find(String ip, int port) {
-		return find(getKey(ip, port));
+		return find(new Node(ip, port));
+	}
+
+	/**
+	 * @param node Node
+	 * @return ChannelContext
+	 * @author tanyaowu
+	 */
+	public ChannelContext find(Node node) {
+		return map.get(node);
 	}
 
 	/**
@@ -272,8 +249,7 @@ public class ClientNodes {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-		String key = getKey(channelContext);
-		map.put(key, channelContext);
+		map.put(channelContext.getClientNode(), channelContext);
 	}
 
 	/**
@@ -286,7 +262,6 @@ public class ClientNodes {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-		String key = getKey(channelContext);
-		map.remove(key);
+		map.remove(channelContext.getClientNode());
 	}
 }
