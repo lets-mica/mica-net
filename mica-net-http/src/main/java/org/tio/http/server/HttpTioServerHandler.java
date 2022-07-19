@@ -257,16 +257,6 @@ public class HttpTioServerHandler implements TioServerHandler {
 	@Override
 	public void handler(Packet packet, ChannelContext channelContext) throws Exception {
 		HttpRequest request = (HttpRequest) packet;
-		String ip = request.getClientIp();
-		if (channelContext.tioConfig.ipBlacklist.isInBlacklist(ip)) {
-			HttpResponse httpResponse = request.httpConfig.getRespForBlackIp();
-			if (httpResponse != null) {
-				Tio.send(channelContext, httpResponse);
-			} else {
-				Tio.remove(channelContext, ip + "在黑名单中");
-			}
-			return;
-		}
 		HttpResponse httpResponse = requestHandler.handler(request);
 		if (httpResponse != null) {
 			Tio.send(channelContext, httpResponse);

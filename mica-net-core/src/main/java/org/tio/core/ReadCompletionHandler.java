@@ -196,7 +196,6 @@ package org.tio.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext.CloseCode;
-import org.tio.core.stat.IpStat;
 import org.tio.core.utils.ByteBufferUtils;
 import org.tio.core.utils.TioUtils;
 import org.tio.utils.SystemTimerClock;
@@ -235,19 +234,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			}
 
 			channelContext.stat.latestTimeOfReceivedByte = SystemTimerClock.currTime;
-
-			if (tioConfig.isIpStatEnable()) {
-				try {
-					for (Long v : tioConfig.ipStats.durationList) {
-						IpStat ipStat = tioConfig.ipStats.get(v, channelContext);
-						ipStat.getReceivedBytes().add(result);
-						ipStat.getReceivedTcps().increment();
-						tioConfig.getIpStatListener().onAfterReceivedBytes(channelContext, result, ipStat);
-					}
-				} catch (Exception e1) {
-					log.error(channelContext.toString(), e1);
-				}
-			}
 
 			if (tioConfig.getTioListener() != null) {
 				try {

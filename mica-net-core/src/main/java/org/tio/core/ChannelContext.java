@@ -199,7 +199,6 @@ import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.stat.ChannelStat;
-import org.tio.core.stat.IpStat;
 import org.tio.core.task.DecodeRunnable;
 import org.tio.core.task.HandlerRunnable;
 import org.tio.core.task.SendRunnable;
@@ -318,28 +317,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 			this.id = tioConfig.getTioUuid().uuid();
 		}
 		initOther();
-	}
-
-	private static void switchIpStat(IpStat oldIpStat, IpStat newIpStat, ChannelStat myStat) {
-		oldIpStat.getHandledBytes().add(-myStat.getHandledBytes().sum());
-		oldIpStat.getHandledPacketCosts().add(-myStat.getHandledPacketCosts().sum());
-		oldIpStat.getHandledPackets().add(-myStat.getHandledPackets().sum());
-		oldIpStat.getReceivedBytes().add(-myStat.getReceivedBytes().sum());
-		oldIpStat.getReceivedPackets().add(-myStat.getReceivedPackets().sum());
-		oldIpStat.getReceivedTcps().add(-myStat.getReceivedTcps().sum());
-		oldIpStat.getRequestCount().addAndGet(-1);
-		oldIpStat.getSentBytes().add(-myStat.getSentBytes().sum());
-		oldIpStat.getSentPackets().add(-myStat.getSentPackets().sum());
-
-		newIpStat.getHandledBytes().add(myStat.getHandledBytes().sum());
-		newIpStat.getHandledPacketCosts().add(myStat.getHandledPacketCosts().sum());
-		newIpStat.getHandledPackets().add(myStat.getHandledPackets().sum());
-		newIpStat.getReceivedBytes().add(myStat.getReceivedBytes().sum());
-		newIpStat.getReceivedPackets().add(myStat.getReceivedPackets().sum());
-		newIpStat.getReceivedTcps().add(myStat.getReceivedTcps().sum());
-		newIpStat.getRequestCount().addAndGet(1);
-		newIpStat.getSentBytes().add(myStat.getSentBytes().sum());
-		newIpStat.getSentPackets().add(myStat.getSentPackets().sum());
 	}
 
 	private void assignAnUnknownClientNode() {
@@ -546,22 +523,9 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 						log.error(e.getMessage(), e);
 					}
 				}
-
 				if (tioConfig.statOn) {
 					tioConfig.groupStat.sentPackets.increment();
 					stat.sentPackets.increment();
-				}
-
-				if (tioConfig.isIpStatEnable()) {
-					try {
-						for (Long v : tioConfig.ipStats.durationList) {
-							IpStat ipStat = tioConfig.ipStats.get(v, this);
-							ipStat.getSentPackets().increment();
-							tioConfig.getIpStatListener().onAfterSent(this, packet, isSentSuccess, ipStat);
-						}
-					} catch (Exception e) {
-						log.error(e.getMessage(), e);
-					}
 				}
 			}
 		} catch (Throwable e) {
@@ -745,22 +709,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	 */
 	public void setProxyClientNode(Node proxyClientNode) {
 		this.proxyClientNode = proxyClientNode;
-		if (proxyClientNode != null) {
-			//将性能数据进行转移
-			if (!Objects.equals(proxyClientNode.getIp(), clientNode.getIp())) {
-				if (tioConfig.isIpStatEnable()) {
-					try {
-						for (Long v : tioConfig.ipStats.durationList) {
-							IpStat oldIpStat = tioConfig.ipStats._get(v, this, true, false);
-							IpStat newIpStat = tioConfig.ipStats.get(v, this);
-							switchIpStat(oldIpStat, newIpStat, this.stat);
-						}
-					} catch (Exception e) {
-						log.error(e.getMessage(), e);
-					}
-				}
-			}
-		}
 	}
 
 	public CloseCode getCloseCode() {

@@ -203,7 +203,6 @@ import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.ssl.SslUtils;
-import org.tio.core.stat.IpStat;
 import org.tio.utils.SystemTimerClock;
 
 import java.nio.ByteBuffer;
@@ -331,19 +330,6 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 					} else {
 						if (tioClientListener != null) {
 							tioClientListener.onAfterConnected(channelContext, isConnected, isReconnect);
-						}
-					}
-
-					TioConfig tioConfig = channelContext.tioConfig;
-					if (tioConfig.isIpStatEnable()) {
-						try {
-							for (Long v : tioConfig.ipStats.durationList) {
-								IpStat ipStat = tioConfig.ipStats.get(v, channelContext);
-								ipStat.getRequestCount().incrementAndGet();
-								tioConfig.getIpStatListener().onAfterConnected(channelContext, isConnected, isReconnect, ipStat);
-							}
-						} catch (Exception e) {
-							log.error(e.getMessage(), e);
 						}
 					}
 				}

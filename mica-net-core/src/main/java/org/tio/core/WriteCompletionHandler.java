@@ -199,7 +199,6 @@ import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
-import org.tio.core.stat.IpStat;
 import org.tio.utils.SystemTimerClock;
 
 import java.nio.ByteBuffer;
@@ -263,23 +262,11 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 					tioConfig.groupStat.sentBytes.add(bytesWritten);
 					channelContext.stat.sentBytes.add(bytesWritten);
 				}
-				if (tioConfig.isIpStatEnable()) {
-					for (Long v : tioConfig.ipStats.durationList) {
-						IpStat ipStat = channelContext.tioConfig.ipStats.get(v, channelContext);
-						ipStat.getSentBytes().add(bytesWritten);
-					}
-				}
 			}
 
 			try {
 				boolean isPacket = attachment instanceof Packet;
 				if (isPacket) {
-					if (isSentSuccess && tioConfig.isIpStatEnable()) {
-						for (Long v : tioConfig.ipStats.durationList) {
-							IpStat ipStat = channelContext.tioConfig.ipStats.get(v, channelContext);
-							ipStat.getSentPackets().increment();
-						}
-					}
 					handleOne(bytesWritten, throwable, (Packet) attachment, isSentSuccess);
 				} else {
 					List<?> ps = (List<?>) attachment;

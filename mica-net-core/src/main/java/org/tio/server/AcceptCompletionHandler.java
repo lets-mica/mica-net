@@ -197,10 +197,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ReadCompletionHandler;
 import org.tio.core.ssl.SslUtils;
-import org.tio.core.stat.IpStat;
 import org.tio.utils.SystemTimerClock;
 
-import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
@@ -226,14 +224,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	public void completed(AsynchronousSocketChannel asynchronousSocketChannel, TioServer tioServer) {
 		try {
 			TioServerConfig tioServerConfig = tioServer.getTioServerConfig();
-			InetSocketAddress inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getRemoteAddress();
-			String clientIp = inetSocketAddress.getHostString();
-			if (org.tio.core.Tio.IpBlacklist.isInBlacklist(tioServerConfig, clientIp)) {
-				log.info("{}在黑名单中, {}", clientIp, tioServerConfig.getName());
-				asynchronousSocketChannel.close();
-				return;
-			}
-
 			if (tioServerConfig.statOn) {
 				((ServerGroupStat) tioServerConfig.groupStat).accepted.increment();
 			}
@@ -246,8 +236,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			channelContext.setClosed(false);
 			channelContext.stat.setTimeFirstConnected(SystemTimerClock.currTime);
 			channelContext.setServerNode(tioServer.getServerNode());
-			tioServerConfig.ips.bind(channelContext);
-
 			boolean isConnected = true;
 			boolean isReconnect = false;
 			if (tioServerConfig.getTioServerListener() != null) {
@@ -255,23 +243,10 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 					try {
 						tioServerConfig.getTioServerListener().onAfterConnected(channelContext, isConnected, isReconnect);
 					} catch (Throwable e) {
-						log.error(e.toString(), e);
+						log.error(e.getMessage(), e);
 					}
 				}
 			}
-
-			if (tioServerConfig.isIpStatEnable()) {
-				try {
-					for (Long v : tioServerConfig.ipStats.durationList) {
-						IpStat ipStat = tioServerConfig.ipStats.get(v, channelContext);
-						ipStat.getRequestCount().incrementAndGet();
-						tioServerConfig.getIpStatListener().onAfterConnected(channelContext, isConnected, isReconnect, ipStat);
-					}
-				} catch (Exception e) {
-					log.error(e.toString(), e);
-				}
-			}
-
 			if (!tioServer.isWaitingStop()) {
 				ReadCompletionHandler readCompletionHandler = channelContext.getReadCompletionHandler();
 				ByteBuffer readByteBuffer = readCompletionHandler.getReadByteBuffer();
@@ -300,9 +275,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	public void failed(Throwable exc, TioServer tioServer) {
 		AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
 		serverSocketChannel.accept(tioServer, this);
-
-		log.error("[" + tioServer.getServerNode() + "]监听出现异常", exc);
-
+		log.error("[{}]监听出现异常", tioServer.getServerNode(), exc);
 	}
 
 }

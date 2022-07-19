@@ -319,9 +319,6 @@ public class HttpRequestDecoder {
 		//		httpRequest.setHttpConfig((HttpConfig) channelContext.tioConfig.getAttribute(TioConfigKey.HTTP_SERVER_CONFIG));
 
 		String realIp = IpUtils.getRealIp(channelContext, httpConfig, headers);
-		if (Tio.IpBlacklist.isInBlacklist(channelContext.tioConfig, realIp)) {
-			throw new TioDecodeException("[" + realIp + "] in black list");
-		}
 		if (httpConfig.checkHost) {
 			if (!headers.containsKey(HttpConst.RequestHeaderKey.Host)) {
 				throw new TioDecodeException("there is no host header");

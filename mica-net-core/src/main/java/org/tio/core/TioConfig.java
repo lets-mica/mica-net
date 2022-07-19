@@ -199,14 +199,11 @@ import org.tio.client.TioClientConfig;
 import org.tio.core.intf.*;
 import org.tio.core.maintain.*;
 import org.tio.core.ssl.SslConfig;
-import org.tio.core.stat.DefaultIpStatListener;
 import org.tio.core.stat.GroupStat;
-import org.tio.core.stat.IpStatListener;
 import org.tio.core.task.CloseRunnable;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.SystemTimerClock;
 import org.tio.utils.Threads;
-import org.tio.utils.hutool.CollUtil;
 import org.tio.utils.prop.MapWithLockPropSupport;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
@@ -280,16 +277,10 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	public Tokens tokens = new Tokens();
 	public Ids ids = new Ids();
 	public BsIds bsIds = new BsIds();
-	public Ips ips = new Ips();
-	public IpStats ipStats = null;
 	/**
 	 * 解码失败多少次抛出异常
 	 */
 	public int maxDecodeFailCount = 10;
-	/**
-	 * ip黑名单
-	 */
-	public IpBlacklist ipBlacklist = null;
 	public ConcurrentMap<Integer, Packet> waitingResps = new ConcurrentHashMap<>();
 	protected String name = "未命名";
 	private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
@@ -299,7 +290,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	private int readBufferSize = READ_BUFFER_SIZE;
 	private GroupListener groupListener = null;
 	private TioUuid tioUuid = new DefaultTioUuid();
-	private IpStatListener ipStatListener = DefaultIpStatListener.me;
 	private boolean isStopped = false;
 
 	public TioConfig() {
@@ -454,18 +444,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
 	public void setSslConfig(SslConfig sslConfig) {
 		this.sslConfig = sslConfig;
-	}
-
-	public boolean isIpStatEnable() {
-		return this.ipStats != null && CollUtil.isNotEmpty(this.ipStats.durationList);
-	}
-
-	public IpStatListener getIpStatListener() {
-		return ipStatListener;
-	}
-
-	public void setIpStatListener(IpStatListener ipStatListener) {
-		this.ipStatListener = ipStatListener;
 	}
 
 	public GroupStat getGroupStat() {

@@ -202,7 +202,6 @@ import org.tio.core.TioConfig;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 import org.tio.core.stat.ChannelStat;
-import org.tio.core.stat.IpStat;
 import org.tio.core.utils.ByteBufferUtils;
 import org.tio.utils.SystemTimerClock;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
@@ -359,18 +358,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						channelContext.stat.receivedPackets.increment();
 					}
 
-					if (tioConfig.isIpStatEnable()) {
-						try {
-							for (Long v : tioConfig.ipStats.durationList) {
-								IpStat ipStat = tioConfig.ipStats.get(v, channelContext);
-								ipStat.getReceivedPackets().increment();
-								tioConfig.getIpStatListener().onAfterDecoded(channelContext, packet, packetSize, ipStat);
-							}
-						} catch (Exception e1) {
-							log.error(packet.logstr(), e1);
-						}
-					}
-
 					if (tioConfig.getTioListener() != null) {
 						try {
 							tioConfig.getTioListener().onAfterDecoded(channelContext, packet, packetSize);
@@ -405,19 +392,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 				}
 
 				channelContext.setPacketNeededLength(null);
-
-				if (e instanceof TioDecodeException && tioConfig.isIpStatEnable()) {
-					try {
-						for (Long v : tioConfig.ipStats.durationList) {
-							IpStat ipStat = tioConfig.ipStats.get(v, channelContext);
-							ipStat.getDecodeErrorCount().incrementAndGet();
-							tioConfig.getIpStatListener().onDecodeError(channelContext, ipStat);
-						}
-					} catch (Exception e1) {
-						log.error(e1.getMessage(), e1);
-					}
-				}
-
 				Tio.close(channelContext, e, "解码异常:" + e.getMessage(), CloseCode.DECODE_ERROR);
 				return;
 			}
@@ -425,7 +399,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	}
 
 	/**
-	 * @param newReceivedByteBuffer
+	 * @param newReceivedByteBuffer ByteBuffer
 	 */
 	public void setNewReceivedByteBuffer(ByteBuffer newReceivedByteBuffer) {
 		this.newReceivedByteBuffer = newReceivedByteBuffer;

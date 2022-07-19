@@ -376,32 +376,6 @@ public class Tio {
 	}
 
 	/**
-	 * 阻塞发送到指定ip对应的集合
-	 *
-	 * @param tioConfig
-	 * @param ip
-	 * @param packet
-	 * @author: tanyaowu
-	 */
-	public static boolean bSendToIp(TioConfig tioConfig, String ip, Packet packet) {
-		return bSendToIp(tioConfig, ip, packet, null);
-	}
-
-	/**
-	 * 阻塞发送到指定ip对应的集合
-	 *
-	 * @param tioConfig
-	 * @param ip
-	 * @param packet
-	 * @param channelContextFilter
-	 * @return
-	 * @author: tanyaowu
-	 */
-	public static boolean bSendToIp(TioConfig tioConfig, String ip, Packet packet, ChannelContextFilter channelContextFilter) {
-		return sendToIp(tioConfig, ip, packet, channelContextFilter, true);
-	}
-
-	/**
 	 * 发消息到指定集合
 	 *
 	 * @param tioConfig
@@ -586,31 +560,6 @@ public class Tio {
 	 * 关闭某群所有连接
 	 *
 	 * @param tioConfig
-	 * @param ip
-	 * @param remark
-	 * @return
-	 */
-	public static void closeIp(TioConfig tioConfig, String ip, String remark) {
-		closeIp(tioConfig, ip, remark, null);
-	}
-
-	/**
-	 * 关闭某群所有连接
-	 *
-	 * @param tioConfig
-	 * @param ip
-	 * @param remark
-	 * @param closeCode
-	 */
-	public static void closeIp(TioConfig tioConfig, String ip, String remark, CloseCode closeCode) {
-		Set<ChannelContext> setWithLock = Tio.getByIp(tioConfig, ip);
-		closeSet(tioConfig, setWithLock, remark, closeCode);
-	}
-
-	/**
-	 * 关闭某群所有连接
-	 *
-	 * @param tioConfig
 	 * @param group
 	 * @param remark
 	 * @return
@@ -680,31 +629,6 @@ public class Tio {
 	public static void closeToken(TioConfig tioConfig, String token, String remark, CloseCode closeCode) {
 		Set<ChannelContext> setWithLock = Tio.getByToken(tioConfig, token);
 		closeSet(tioConfig, setWithLock, remark, closeCode);
-	}
-
-	/**
-	 * 关闭某群所有连接
-	 *
-	 * @param tioConfig
-	 * @param ip
-	 * @param remark
-	 * @return
-	 */
-	public static void removeIp(TioConfig tioConfig, String ip, String remark) {
-		removeIp(tioConfig, ip, remark, null);
-	}
-
-	/**
-	 * 关闭某群所有连接
-	 *
-	 * @param tioConfig
-	 * @param ip
-	 * @param remark
-	 * @param removeCode
-	 */
-	public static void removeIp(TioConfig tioConfig, String ip, String remark, CloseCode removeCode) {
-		Set<ChannelContext> setWithLock = Tio.getByIp(tioConfig, ip);
-		removeSet(tioConfig, setWithLock, remark, removeCode);
 	}
 
 	/**
@@ -925,18 +849,6 @@ public class Tio {
 	}
 
 	/**
-	 * 根据客户端ip获取SetWithLock<ChannelContext>
-	 *
-	 * @param tioConfig
-	 * @param ip
-	 * @return
-	 * @author tanyaowu
-	 */
-	public static Set<ChannelContext> getByIp(TioConfig tioConfig, String ip) {
-		return tioConfig.ips.clients(tioConfig, ip);
-	}
-
-	/**
 	 * 根据token获取SetWithLock<ChannelContext>
 	 *
 	 * @param tioConfig
@@ -1152,35 +1064,6 @@ public class Tio {
 	}
 
 	/**
-	 * 删除clientip为指定值的所有连接
-	 *
-	 * @param tioServerConfig
-	 * @param ip
-	 * @param remark
-	 */
-	public static void remove(TioServerConfig tioServerConfig, String ip, String remark) {
-		remove(tioServerConfig, ip, remark, (CloseCode) null);
-	}
-
-	/**
-	 * 删除clientip为指定值的所有连接
-	 *
-	 * @param tioServerConfig
-	 * @param ip
-	 * @param remark
-	 * @param closeCode
-	 */
-	public static void remove(TioServerConfig tioServerConfig, String ip, String remark, CloseCode closeCode) {
-		Set<ChannelContext> contextSet = tioServerConfig.ips.clients(tioServerConfig, ip);
-		if (contextSet == null) {
-			return;
-		}
-		for (ChannelContext channelContext : contextSet) {
-			Tio.remove(channelContext, remark, closeCode);
-		}
-	}
-
-	/**
 	 * 发送消息到指定ChannelContext
 	 *
 	 * @param channelContext
@@ -1199,7 +1082,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	private static Boolean send(final ChannelContext channelContext, Packet packet, CountDownLatch countDownLatch, PacketSendMode packetSendMode) {
+	private static boolean send(final ChannelContext channelContext, Packet packet, CountDownLatch countDownLatch, PacketSendMode packetSendMode) {
 		try {
 			if (packet == null || channelContext == null) {
 				if (countDownLatch != null) {
@@ -1207,7 +1090,6 @@ public class Tio {
 				}
 				return false;
 			}
-
 			if (channelContext.isVirtual) {
 				if (countDownLatch != null) {
 					countDownLatch.countDown();
@@ -1229,7 +1111,7 @@ public class Tio {
 				Packet packet1 = channelContext.tioConfig.packetConverter.convert(packet, channelContext);
 				if (packet1 == null) {
 					if (log.isInfoEnabled()) {
-						log.info("convert后为null，表示不需要发送", channelContext, packet.logstr());
+						log.info("channelContext:{} packet:{} convert后为null，表示不需要发送", channelContext, packet.logstr());
 					}
 					return true;
 				}
@@ -1238,7 +1120,7 @@ public class Tio {
 
 			boolean isSingleBlock = countDownLatch != null && packetSendMode == PacketSendMode.SINGLE_BLOCK;
 
-			boolean isAdded = false;
+			boolean isAdded;
 			if (countDownLatch != null) {
 				Meta meta = new Meta();
 				meta.setCountDownLatch(countDownLatch);
@@ -1264,24 +1146,21 @@ public class Tio {
 			if (isSingleBlock) {
 				long timeout = 10;
 				try {
-					Boolean awaitFlag = countDownLatch.await(timeout, TimeUnit.SECONDS);
+					boolean awaitFlag = countDownLatch.await(timeout, TimeUnit.SECONDS);
 					if (!awaitFlag) {
 						log.error("{}, 阻塞发送超时, timeout:{}s, packet:{}", channelContext, timeout, packet.logstr());
 					}
 				} catch (InterruptedException e) {
-					log.error(e.toString(), e);
+					log.error(e.getMessage(), e);
 				}
-
-				Boolean isSentSuccess = packet.getMeta().getIsSentSuccess();
-				return isSentSuccess;
+				return packet.getMeta().getIsSentSuccess();
 			} else {
 				return true;
 			}
 		} catch (Throwable e) {
-			log.error(channelContext + ", " + e.toString(), e);
+			log.error("channelContext:{}, error:", channelContext, e);
 			return false;
 		}
-
 	}
 
 	/**
@@ -1293,7 +1172,7 @@ public class Tio {
 	 * @param packet
 	 * @author tanyaowu
 	 */
-	public static Boolean send(TioConfig tioConfig, String ip, int port, Packet packet) {
+	public static boolean send(TioConfig tioConfig, String ip, int port, Packet packet) {
 		return send(tioConfig, ip, port, packet, false);
 	}
 
@@ -1308,7 +1187,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	private static Boolean send(TioConfig tioConfig, String ip, int port, Packet packet, boolean isBlock) {
+	private static boolean send(TioConfig tioConfig, String ip, int port, Packet packet, boolean isBlock) {
 		ChannelContext channelContext = tioConfig.clientNodes.find(ip, port);
 		if (channelContext != null) {
 			if (isBlock) {
@@ -1345,7 +1224,7 @@ public class Tio {
 	 * @param isBlock
 	 * @author tanyaowu
 	 */
-	private static Boolean sendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
+	private static boolean sendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
 		return sendToSet(tioConfig, tioConfig.connections, packet, channelContextFilter, isBlock);
 	}
 
@@ -1358,7 +1237,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static Boolean sendToBsId(TioConfig tioConfig, String bsId, Packet packet) {
+	public static boolean sendToBsId(TioConfig tioConfig, String bsId, Packet packet) {
 		return sendToBsId(tioConfig, bsId, packet, false);
 	}
 
@@ -1372,7 +1251,7 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	private static Boolean sendToBsId(TioConfig tioConfig, String bsId, Packet packet, boolean isBlock) {
+	private static boolean sendToBsId(TioConfig tioConfig, String bsId, Packet packet, boolean isBlock) {
 		ChannelContext channelContext = Tio.getByBsId(tioConfig, bsId);
 		if (channelContext == null) {
 			return false;
@@ -1435,7 +1314,7 @@ public class Tio {
 	 * @param packet
 	 * @author tanyaowu
 	 */
-	public static Boolean sendToId(TioConfig tioConfig, String channelContextId, Packet packet) {
+	public static boolean sendToId(TioConfig tioConfig, String channelContextId, Packet packet) {
 		return sendToId(tioConfig, channelContextId, packet, false);
 	}
 
@@ -1458,51 +1337,6 @@ public class Tio {
 		} else {
 			return send(channelContext, packet);
 		}
-	}
-
-	/**
-	 * 发送到指定ip对应的集合
-	 *
-	 * @param tioConfig
-	 * @param ip
-	 * @param packet
-	 * @author: tanyaowu
-	 */
-	public static void sendToIp(TioConfig tioConfig, String ip, Packet packet) {
-		sendToIp(tioConfig, ip, packet, null);
-	}
-
-	/**
-	 * 发送到指定ip对应的集合
-	 *
-	 * @param tioConfig
-	 * @param ip
-	 * @param packet
-	 * @param channelContextFilter
-	 * @author: tanyaowu
-	 */
-	public static void sendToIp(TioConfig tioConfig, String ip, Packet packet, ChannelContextFilter channelContextFilter) {
-		sendToIp(tioConfig, ip, packet, channelContextFilter, false);
-	}
-
-	/**
-	 * 发送到指定ip对应的集合
-	 *
-	 * @param tioConfig
-	 * @param ip
-	 * @param packet
-	 * @param channelContextFilter
-	 * @param isBlock
-	 * @return
-	 * @author: tanyaowu
-	 */
-	private static boolean sendToIp(TioConfig tioConfig, String ip, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
-		Set<ChannelContext> contextSet = tioConfig.ips.clients(tioConfig, ip);
-		if (contextSet == null) {
-			log.info("{}, 没有ip为[{}]的对端", tioConfig.getName(), ip);
-			return false;
-		}
-		return sendToSet(tioConfig, contextSet, packet, channelContextFilter, isBlock);
 	}
 
 	/**
@@ -1764,103 +1598,6 @@ public class Tio {
 	 */
 	public static void unbindUser(TioConfig tioConfig, String userid) {
 		tioConfig.users.unbind(tioConfig, userid);
-	}
-
-	public static class IpBlacklist {
-		/**
-		 * 把ip添加到黑名单，此黑名单只针对tioConfig有效，其它tioConfig不会把这个ip视为黑名单
-		 *
-		 * @param tioConfig
-		 * @param ip
-		 * @author tanyaowu
-		 */
-		public static boolean add(TioConfig tioConfig, String ip) {
-			return tioConfig.ipBlacklist.add(ip);
-		}
-
-		/**
-		 * 添加全局ip黑名单
-		 *
-		 * @param ip
-		 * @return
-		 * @author tanyaowu
-		 */
-		public static boolean add(String ip) {
-			return org.tio.core.maintain.IpBlacklist.GLOBAL.add(ip);
-		}
-
-		/**
-		 * 清空黑名单，只针对tioConfig有效
-		 *
-		 * @param tioConfig
-		 * @author tanyaowu
-		 */
-		public static void clear(TioConfig tioConfig) {
-			tioConfig.ipBlacklist.clear();
-		}
-
-		/**
-		 * 清空全局黑名单
-		 *
-		 * @author tanyaowu
-		 */
-		public static void clear() {
-			org.tio.core.maintain.IpBlacklist.GLOBAL.clear();
-		}
-
-		/**
-		 * 获取ip黑名单列表
-		 *
-		 * @param tioConfig
-		 * @return
-		 * @author tanyaowu
-		 */
-		public static Collection<String> getAll(TioConfig tioConfig) {
-			return tioConfig.ipBlacklist.getAll();
-		}
-
-		/**
-		 * 获取全局黑名单
-		 *
-		 * @return
-		 * @author tanyaowu
-		 */
-		public static Collection<String> getAll() {
-			return org.tio.core.maintain.IpBlacklist.GLOBAL.getAll();
-		}
-
-		/**
-		 * 是否在黑名单中
-		 *
-		 * @param tioConfig tioConfig
-		 * @param ip        ip
-		 * @return
-		 * @author tanyaowu
-		 */
-		public static boolean isInBlacklist(TioConfig tioConfig, String ip) {
-			return tioConfig.ipBlacklist.isInBlacklist(ip) || org.tio.core.maintain.IpBlacklist.GLOBAL.isInBlacklist(ip);
-		}
-
-		/**
-		 * 把ip从黑名单中删除
-		 *
-		 * @param tioConfig tioConfig
-		 * @param ip        ip
-		 * @author tanyaowu
-		 */
-		public static void remove(TioConfig tioConfig, String ip) {
-			tioConfig.ipBlacklist.remove(ip);
-		}
-
-		/**
-		 * 删除全局黑名单
-		 *
-		 * @param ip ip
-		 * @author tanyaowu
-		 */
-		public static void remove(String ip) {
-			org.tio.core.maintain.IpBlacklist.GLOBAL.remove(ip);
-		}
 	}
 
 }

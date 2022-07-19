@@ -201,8 +201,6 @@ import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
-import org.tio.core.maintain.IpBlacklist;
-import org.tio.core.maintain.IpStats;
 import org.tio.core.ssl.SslConfig;
 import org.tio.server.intf.TioServerHandler;
 import org.tio.server.intf.TioServerListener;
@@ -270,7 +268,6 @@ public class TioServerConfig extends TioConfig {
 	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener, SynThreadPoolExecutor tioExecutor,
 						   ThreadPoolExecutor groupExecutor) {
 		super(tioExecutor, groupExecutor);
-		this.ipBlacklist = new IpBlacklist(this);
 		init(name, tioServerHandler, tioServerListener);
 	}
 
@@ -339,7 +336,6 @@ public class TioServerConfig extends TioConfig {
 								builder.append("\r\n ├ 连接统计");
 								builder.append("\r\n │ \t ├ 共接受过连接数  :").append(((ServerGroupStat) groupStat).accepted.sum());
 								builder.append("\r\n │ \t ├ 当前连接数            :").append(contextSet.size());
-								builder.append("\r\n │ \t ├ 异IP连接数           :").append(TioServerConfig.this.ips.getIpMap().size());
 								builder.append("\r\n │ \t └ 关闭过的连接数  :").append(groupStat.closed.sum());
 								builder.append("\r\n ├ 消息统计");
 								builder.append("\r\n │ \t ├ 已处理消息  :").append(groupStat.handledPackets.sum());
@@ -347,22 +343,14 @@ public class TioServerConfig extends TioConfig {
 								builder.append("\r\n │ \t ├ 已发送消息(packet/byte):").append(groupStat.sentPackets.sum()).append('/').append(groupStat.sentBytes.sum()).append('b');
 								builder.append("\r\n │ \t ├ 平均每次TCP包接收的字节数  :").append(groupStat.getBytesPerTcpReceive());
 								builder.append("\r\n │ \t └ 平均每次TCP包接收的业务包  :").append(groupStat.getPacketsPerTcpReceive());
-								builder.append("\r\n └ IP统计时段 ");
-								if (TioServerConfig.this.isIpStatEnable()) {
-									builder.append("\r\n   \t └ ").append(StrUtil.join(TioServerConfig.this.ipStats.durationList));
-								} else {
-									builder.append("\r\n   \t └ ").append("没有设置ip统计时间");
-								}
 								builder.append("\r\n ├ 节点统计");
 								builder.append("\r\n │ \t ├ clientNodes :").append(TioServerConfig.this.clientNodes.size());
 								builder.append("\r\n │ \t ├ 所有连接               :").append(TioServerConfig.this.connections.size());
 								builder.append("\r\n │ \t ├ 绑定user数         :").append(TioServerConfig.this.users.size());
 								builder.append("\r\n │ \t ├ 绑定token数       :").append(TioServerConfig.this.tokens.size());
 								builder.append("\r\n │ \t └ 等待同步消息响应 :").append(TioServerConfig.this.waitingResps.size());
-								builder.append("\r\n ├ 群组");
-								builder.append("\r\n │ \t └ groupmap:").append(TioServerConfig.this.groups.size());
-								builder.append("\r\n └ 拉黑IP ");
-								builder.append("\r\n   \t └ ").append(StrUtil.join(TioServerConfig.this.ipBlacklist.getAll()));
+								builder.append("\r\n └ 群组");
+								builder.append("\r\n   \t └ groupmap:").append(TioServerConfig.this.groups.size());
 								log.warn(builder.toString());
 								long end = SystemTimerClock.currTime;
 								long iv1 = start1 - start;
@@ -404,28 +392,6 @@ public class TioServerConfig extends TioConfig {
 	public void useSsl(InputStream keyStoreInputStream, InputStream trustStoreInputStream, String passwd) throws Exception {
 		SslConfig sslConfig = SslConfig.forServer(keyStoreInputStream, trustStoreInputStream, passwd);
 		this.setSslConfig(sslConfig);
-	}
-
-	/**
-	 * 开启 ipStat
-	 *
-	 * @param durations 时间段
-	 */
-	public void enableIpStat(Long[] durations) {
-		this.ipStats = new IpStats(this, durations);
-	}
-
-	/**
-	 * 开启 ipStat
-	 *
-	 * @param durations 时间段
-	 */
-	public void addIpStat(Long[] durations) {
-		if (this.ipStats == null) {
-			this.enableIpStat(durations);
-		} else {
-			this.ipStats.addDurations(durations);
-		}
 	}
 
 	/**
@@ -502,10 +468,6 @@ public class TioServerConfig extends TioConfig {
 			this.tokens = tioConfig.tokens;
 			this.ids = tioConfig.ids;
 			this.bsIds = tioConfig.bsIds;
-			// 先清理缓存
-			this.ipBlacklist.clear();
-			this.ipBlacklist = tioConfig.ipBlacklist;
-			this.ips = tioConfig.ips;
 			if (!tioConfig.isShared && !this.isShared) {
 				this.needCheckHeartbeat = false;
 			}

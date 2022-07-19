@@ -202,7 +202,6 @@ import org.tio.core.ChannelContext;
 import org.tio.core.PacketHandlerMode;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.Packet;
-import org.tio.core.stat.IpStat;
 import org.tio.utils.SystemTimerClock;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
@@ -272,20 +271,6 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 				tioConfig.groupStat.handledPackets.increment();
 				tioConfig.groupStat.handledBytes.add(packet.getByteCount());
 				tioConfig.groupStat.handledPacketCosts.add(iv);
-			}
-
-			if (tioConfig.isIpStatEnable()) {
-				try {
-					for (Long v : tioConfig.ipStats.durationList) {
-						IpStat ipStat = tioConfig.ipStats.get(v, channelContext);
-						ipStat.getHandledPackets().increment();
-						ipStat.getHandledBytes().add(packet.getByteCount());
-						ipStat.getHandledPacketCosts().add(iv);
-						tioConfig.getIpStatListener().onAfterHandled(channelContext, packet, ipStat, iv);
-					}
-				} catch (Exception e1) {
-					log.error(e1.getMessage(), e1);
-				}
 			}
 
 			if (tioConfig.getTioListener() != null) {
