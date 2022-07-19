@@ -11,6 +11,7 @@ public class TcpClientTest {
 	public static void main(String[] args) throws Exception {
 		TioClientHandler tioHandler = new TestTioClientHandler();
 		TioClientConfig config = new TioClientConfig(tioHandler, new DefaultTioClientListener());
+		config.setReadBufferSize(260);
 		TioClient tioClient = new TioClient(config);
 		tioClient.connect(new Node("127.0.0.1", 502));
 	}
