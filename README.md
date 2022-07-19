@@ -8,9 +8,10 @@
 
 1. 使用 java8 作为最低编译版本。
 2. 去除了一些使用不到的模块和代码。
-3. 使用并发集合替换锁。
+3. 使用并发集合替换锁，优化代码降低内存使用量。
 4. stat 的 AtomicInteger 替换成 LongAdder。
 5. 添加 mica 中的 HexUtils、DigestUtils、ExceptionUtils。
-6. 降级到 caffeine 2.9.3。
-7. 不依赖 fastjson。
-8. 代码优化，更加符合规范。
+6. mica-mqtt 部分工具包下沉。
+7. 去除 ips 和 ip 黑名单, 不再依赖 caffeine 2.9.3。
+8. 不依赖 fastjson。
+9. 代码优化，更加符合规范。
