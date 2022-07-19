@@ -252,7 +252,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 	public boolean isClosed = true;
 	public boolean isRemoved = false;
 	public boolean isVirtual = false;
-	public boolean hasTempDir = false;
 	/**
 	 * The asynchronous socket channel.
 	 */
