@@ -685,14 +685,14 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 		this.heartbeatTimeout = heartbeatTimeout;
 	}
 
-	public Integer getReadBufferSize() {
+	public int getReadBufferSize() {
 		if (readBufferSize != null && readBufferSize > 0) {
 			return readBufferSize;
 		}
 		return this.tioConfig.getReadBufferSize();
 	}
 
-	public void setReadBufferSize(Integer readBufferSize) {
+	public void setReadBufferSize(int readBufferSize) {
 		this.readBufferSize = Math.min(readBufferSize, TcpConst.MAX_DATA_LENGTH);
 	}
 
