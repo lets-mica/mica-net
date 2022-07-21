@@ -371,7 +371,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 				channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
 				allByteBuffer = sslVo.getByteBuffer();
 			} catch (SSLException e) {
-				log.error(channelContext.toString() + ", 进行SSL加密时发生了异常", e);
+				log.error("{}, 进行SSL加密时发生了异常", channelContext, e);
 				Tio.close(channelContext, "进行SSL加密时发生了异常", CloseCode.SSL_ENCRYPTION_ERROR);
 				return;
 			}
