@@ -202,6 +202,7 @@ import java.util.List;
  * @author tanyaowu
  */
 public class WsSessionContext {
+	public static final String WS_SESSION_CONTEXT_KEY = "TIO_W_S_C";
 
 	/**
 	 * 是否已经握过手

@@ -222,7 +222,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	public static final String UNKNOWN_ADDRESS_IP = "$UNKNOWN";
 	public static final AtomicInteger UNKNOWN_ADDRESS_PORT_SEQ = new AtomicInteger();
 	private static final Logger log = LoggerFactory.getLogger(ChannelContext.class);
-	private static final String DEFAULT_ATTUBITE_KEY = "t-io-d-a-k";
 	public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
 	public final ChannelStat stat = new ChannelStat();
 	public final CloseMeta closeMeta = new CloseMeta();
@@ -356,40 +355,6 @@ public abstract class ChannelContext extends MapPropSupport {
 			return false;
 		}
 		return true;
-	}
-
-	/**
-	 * 等价于：getAttribute(DEFAULT_ATTUBITE_KEY)
-	 *
-	 * @return
-	 * @deprecated 建议使用get()
-	 */
-	@Deprecated
-	public Object getAttribute() {
-		return get();
-	}
-
-	/**
-	 * 等价于：setAttribute(DEFAULT_ATTUBITE_KEY, value)<br>
-	 * 仅仅是为了内部方便，不建议大家使用<br>
-	 *
-	 * @param value
-	 * @author tanyaowu
-	 * @deprecated 不建议各位同学使用这个方法，建议使用set("name1", object1)
-	 */
-	@Deprecated
-	public void setAttribute(Object value) {
-		set(value);
-	}
-
-	/**
-	 * 等价于：getAttribute(DEFAULT_ATTUBITE_KEY)<br>
-	 * 等价于：getAttribute()<br>
-	 *
-	 * @return
-	 */
-	public Object get() {
-		return get(DEFAULT_ATTUBITE_KEY);
 	}
 
 	/**
@@ -556,18 +521,6 @@ public abstract class ChannelContext extends MapPropSupport {
 		} else {
 			assignAnUnknownClientNode();
 		}
-	}
-
-	/**
-	 * 等价于：set(DEFAULT_ATTUBITE_KEY, value)<br>
-	 * 等价于：setAttribute(Object value)<br>
-	 *
-	 * @param value
-	 * @deprecated 不建议各位同学使用这个方法，建议使用set("name1", object1)
-	 */
-	@Deprecated
-	public void set(Object value) {
-		set(DEFAULT_ATTUBITE_KEY, value);
 	}
 
 	/**

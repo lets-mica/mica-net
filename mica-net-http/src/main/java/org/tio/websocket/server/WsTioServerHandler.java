@@ -220,7 +220,6 @@ public class WsTioServerHandler implements TioServerHandler {
 	 * value: List<WsRequest>
 	 */
 	private static final String NOT_FINAL_WEBSOCKET_PACKET_PARTS = "TIO_N_F_W_P_P";
-
 	/**
 	 * SEC_WEBSOCKET_KEY后缀
 	 */
@@ -261,7 +260,7 @@ public class WsTioServerHandler implements TioServerHandler {
 
 	@Override
 	public WsRequest decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException {
-		WsSessionContext wsSessionContext = (WsSessionContext) channelContext.get();
+		WsSessionContext wsSessionContext = channelContext.get(WsSessionContext.WS_SESSION_CONTEXT_KEY);
 		// 尚未握手
 		if (!wsSessionContext.isHandshaked()) {
 			HttpRequest request = HttpRequestDecoder.decode(buffer, limit, position, readableLength, channelContext, wsServerConfig);
@@ -342,7 +341,7 @@ public class WsTioServerHandler implements TioServerHandler {
 
 		// 握手包
 		if (wsResponse.isHandShake()) {
-			WsSessionContext imSessionContext = (WsSessionContext) channelContext.get();
+			WsSessionContext imSessionContext = channelContext.get(WsSessionContext.WS_SESSION_CONTEXT_KEY);
 			HttpResponse handshakeResponse = imSessionContext.getHandshakeResponse();
 			try {
 				return HttpResponseEncoder.encode(handshakeResponse, tioConfig, channelContext);
@@ -402,7 +401,7 @@ public class WsTioServerHandler implements TioServerHandler {
 		WsRequest wsRequest = (WsRequest) packet;
 		// 是握手包
 		if (wsRequest.isHandShake()) {
-			WsSessionContext wsSessionContext = (WsSessionContext) channelContext.get();
+			WsSessionContext wsSessionContext = channelContext.get(WsSessionContext.WS_SESSION_CONTEXT_KEY);
 			HttpRequest request = wsSessionContext.getHandshakeRequest();
 			HttpResponse httpResponse = wsSessionContext.getHandshakeResponse();
 			HttpResponse r = wsMsgHandler.handshake(request, httpResponse, channelContext);
