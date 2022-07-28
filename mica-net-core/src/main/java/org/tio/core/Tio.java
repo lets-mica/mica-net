@@ -201,11 +201,9 @@ import org.tio.client.TioClientConfig;
 import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
-import org.tio.server.TioServerConfig;
 import org.tio.utils.page.Page;
 import org.tio.utils.page.PageUtils;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

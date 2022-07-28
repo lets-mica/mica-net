@@ -200,7 +200,6 @@ import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.Node;
 import org.tio.core.ReadCompletionHandler;
 import org.tio.core.Tio;
-import org.tio.core.TioConfig;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.ssl.SslUtils;
 import org.tio.utils.SystemTimerClock;

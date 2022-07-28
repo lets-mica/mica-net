@@ -193,8 +193,6 @@
 */
 package org.tio.websocket.common;
 
-import org.tio.core.ChannelContext;
-import org.tio.core.TioConfig;
 import org.tio.core.utils.ByteBufferUtils;
 
 import java.nio.ByteBuffer;
