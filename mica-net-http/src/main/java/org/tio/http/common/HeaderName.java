@@ -193,8 +193,10 @@
 */
 package org.tio.http.common;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.tio.utils.hutool.CollUtil;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author tanyaowu
@@ -204,35 +206,35 @@ public class HeaderName {
 	/**
 	 * 缓存
 	 */
-	private static final Map<String, HeaderName> map = new HashMap<>();
+	private static final ConcurrentMap<String, HeaderName> map = new ConcurrentHashMap<>();
 
-	public static final HeaderName SET_COOKIE = new HeaderName(HttpConst.ResponseHeaderKey.Set_Cookie);
-	public static final HeaderName CONTENT_TYPE = new HeaderName(HttpConst.ResponseHeaderKey.Content_Type);
-	public static final HeaderName CACHE_CONTROL = new HeaderName(HttpConst.ResponseHeaderKey.Cache_Control);
-	public static final HeaderName LOCATION = new HeaderName(HttpConst.ResponseHeaderKey.Location);
-	public static final HeaderName Connection = new HeaderName(HttpConst.ResponseHeaderKey.Connection);
-	public static final HeaderName Keep_Alive = new HeaderName(HttpConst.ResponseHeaderKey.Keep_Alive);
-	public static final HeaderName Content_Length = new HeaderName(HttpConst.ResponseHeaderKey.Content_Length);
-	public static final HeaderName Access_Control_Allow_Origin = new HeaderName(HttpConst.ResponseHeaderKey.Access_Control_Allow_Origin);
-	public static final HeaderName Access_Control_Allow_Headers = new HeaderName(HttpConst.ResponseHeaderKey.Access_Control_Allow_Headers);
-	public static final HeaderName Access_Control_Allow_Methods = new HeaderName(HttpConst.ResponseHeaderKey.Access_Control_Allow_Methods);
-	public static final HeaderName Access_Control_Max_Age = new HeaderName(HttpConst.ResponseHeaderKey.Access_Control_Max_Age);
-	public static final HeaderName Content_Disposition = new HeaderName(HttpConst.ResponseHeaderKey.Content_Disposition);
-	public static final HeaderName Content_Encoding = new HeaderName(HttpConst.ResponseHeaderKey.Content_Encoding);
-	public static final HeaderName Date = new HeaderName(HttpConst.ResponseHeaderKey.Date);
-	public static final HeaderName Expires = new HeaderName(HttpConst.ResponseHeaderKey.Expires);
-	public static final HeaderName Last_Modified = new HeaderName(HttpConst.ResponseHeaderKey.Last_Modified);
-	public static final HeaderName Refresh = new HeaderName(HttpConst.ResponseHeaderKey.Refresh);
-	public static final HeaderName Sec_WebSocket_Accept = new HeaderName(HttpConst.ResponseHeaderKey.Sec_WebSocket_Accept);
-	public static final HeaderName Server = new HeaderName(HttpConst.ResponseHeaderKey.Server);
-	public static final HeaderName Upgrade = new HeaderName(HttpConst.ResponseHeaderKey.Upgrade);
-	public static final HeaderName Content_Type = new HeaderName(HttpConst.ResponseHeaderKey.Content_Type);
-	public static final HeaderName Location = new HeaderName(HttpConst.ResponseHeaderKey.Location);
-	public static final HeaderName Cache_Control = new HeaderName(HttpConst.ResponseHeaderKey.Cache_Control);
-	public static final HeaderName tio_from_cache = new HeaderName(HttpConst.ResponseHeaderKey.tio_from_cache);
-	public static final HeaderName tio_webpack_used_cache = new HeaderName(HttpConst.ResponseHeaderKey.tio_webpack_used_cache);
-	public static final HeaderName Access_Control_Allow_Credentials = new HeaderName(HttpConst.ResponseHeaderKey.Access_Control_Allow_Credentials);
-	public static final HeaderName Sec_Websocket_Protocol = new HeaderName(HttpConst.RequestHeaderKey.Sec_Websocket_Protocol);
+	public static final HeaderName SET_COOKIE = HeaderName.from(HttpConst.ResponseHeaderKey.Set_Cookie);
+	public static final HeaderName CONTENT_TYPE = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Type);
+	public static final HeaderName CACHE_CONTROL = HeaderName.from(HttpConst.ResponseHeaderKey.Cache_Control);
+	public static final HeaderName LOCATION = HeaderName.from(HttpConst.ResponseHeaderKey.Location);
+	public static final HeaderName Connection = HeaderName.from(HttpConst.ResponseHeaderKey.Connection);
+	public static final HeaderName Keep_Alive = HeaderName.from(HttpConst.ResponseHeaderKey.Keep_Alive);
+	public static final HeaderName Content_Length = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Length);
+	public static final HeaderName Access_Control_Allow_Origin = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Origin);
+	public static final HeaderName Access_Control_Allow_Headers = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Headers);
+	public static final HeaderName Access_Control_Allow_Methods = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Methods);
+	public static final HeaderName Access_Control_Max_Age = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Max_Age);
+	public static final HeaderName Content_Disposition = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Disposition);
+	public static final HeaderName Content_Encoding = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Encoding);
+	public static final HeaderName Date = HeaderName.from(HttpConst.ResponseHeaderKey.Date);
+	public static final HeaderName Expires = HeaderName.from(HttpConst.ResponseHeaderKey.Expires);
+	public static final HeaderName Last_Modified = HeaderName.from(HttpConst.ResponseHeaderKey.Last_Modified);
+	public static final HeaderName Refresh = HeaderName.from(HttpConst.ResponseHeaderKey.Refresh);
+	public static final HeaderName Sec_WebSocket_Accept = HeaderName.from(HttpConst.ResponseHeaderKey.Sec_WebSocket_Accept);
+	public static final HeaderName Server = HeaderName.from(HttpConst.ResponseHeaderKey.Server);
+	public static final HeaderName Upgrade = HeaderName.from(HttpConst.ResponseHeaderKey.Upgrade);
+	public static final HeaderName Content_Type = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Type);
+	public static final HeaderName Location = HeaderName.from(HttpConst.ResponseHeaderKey.Location);
+	public static final HeaderName Cache_Control = HeaderName.from(HttpConst.ResponseHeaderKey.Cache_Control);
+	public static final HeaderName tio_from_cache = HeaderName.from(HttpConst.ResponseHeaderKey.tio_from_cache);
+	public static final HeaderName tio_webpack_used_cache = HeaderName.from(HttpConst.ResponseHeaderKey.tio_webpack_used_cache);
+	public static final HeaderName Access_Control_Allow_Credentials = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Credentials);
+	public static final HeaderName Sec_Websocket_Protocol = HeaderName.from(HttpConst.RequestHeaderKey.Sec_Websocket_Protocol);
 
 	public final String name;
 	public final byte[] bytes;
@@ -240,20 +242,10 @@ public class HeaderName {
 	private HeaderName(String name) {
 		this.name = name;
 		this.bytes = name.getBytes();
-		map.put(name, this);
 	}
 
 	public static HeaderName from(String name) {
-		HeaderName ret = map.get(name);
-		if (ret == null) {
-			synchronized (map) {
-				ret = map.get(name);
-				if (ret == null) {
-					ret = new HeaderName(name);
-				}
-			}
-		}
-		return ret;
+		return CollUtil.computeIfAbsent(map, name, HeaderName::new);
 	}
 
 	@Override
@@ -274,11 +266,10 @@ public class HeaderName {
 			return false;
 		HeaderName other = (HeaderName) obj;
 		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
+			return other.name == null;
+		} else {
+			return name.equals(other.name);
+		}
 	}
 
 	@Override

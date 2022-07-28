@@ -196,7 +196,6 @@ package org.tio.http.common;
 import org.tio.utils.SysConst;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author tanyaowu

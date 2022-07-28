@@ -193,11 +193,12 @@
 */
 package org.tio.http.common;
 
+import org.tio.utils.hutool.CollUtil;
 import org.tio.utils.hutool.StrUtil;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author tanyaowu
@@ -205,8 +206,6 @@ import java.util.Map;
  */
 public class HeaderValue {
 
-	public static final HeaderValue TRUE = HeaderValue.from("true");
-	public static final HeaderValue FALSE = HeaderValue.from("false");
 	public final String value;
 	public final byte[] bytes;
 
@@ -251,33 +250,21 @@ public class HeaderValue {
 			return false;
 		HeaderValue other = (HeaderValue) obj;
 		if (value == null) {
-			if (other.value != null)
-				return false;
-		} else if (!value.equals(other.value))
-			return false;
-		return true;
+			return other.value == null;
+		} else {
+			return value.equals(other.value);
+		}
 	}
 
 	public static class EnumerableValue {
-		private static final Map<String, HeaderValue> map = new HashMap<>();
+		private static final ConcurrentMap<String, HeaderValue> map = new ConcurrentHashMap<>();
 
 		public static HeaderValue from(String value) {
 			if (StrUtil.isBlank(value)) {
 				return null;
 			}
-			HeaderValue ret = map.get(value);
-			if (ret == null) {
-				synchronized (map) {
-					ret = map.get(value);
-					if (ret == null) {
-						ret = HeaderValue.from(value);
-						map.put(value, ret);
-					}
-				}
-			}
-			return ret;
+			return CollUtil.computeIfAbsent(map, value, HeaderValue::from);
 		}
-
 	}
 
 	public static class Connection extends EnumerableValue {
@@ -316,11 +303,11 @@ public class HeaderValue {
 	}
 
 	public static class Content_Type extends EnumerableValue {
-		public static final HeaderValue TEXT_PLAIN_TXT = Content_Type.from(MimeType.TEXT_PLAIN_TXT.getType());
-		public static final HeaderValue TEXT_PLAIN_JSON = Content_Type.from(MimeType.TEXT_PLAIN_JSON.getType());
-		public static final HeaderValue TEXT_HTML_HTML = Content_Type.from(MimeType.TEXT_HTML_HTML.getType());
-		public static final HeaderValue APPLICATION_ACAD_DWG = Content_Type.from(MimeType.APPLICATION_ACAD_DWG.getType());
-		public static final HeaderValue DEFAULT_TYPE = Content_Type.from("application/octet-stream");
+		public static final HeaderValue TEXT_PLAIN_TXT = EnumerableValue.from(MimeType.TEXT_PLAIN_TXT.getType());
+		public static final HeaderValue TEXT_PLAIN_JSON = EnumerableValue.from(MimeType.TEXT_PLAIN_JSON.getType());
+		public static final HeaderValue TEXT_HTML_HTML = EnumerableValue.from(MimeType.TEXT_HTML_HTML.getType());
+		public static final HeaderValue APPLICATION_ACAD_DWG = EnumerableValue.from(MimeType.APPLICATION_ACAD_DWG.getType());
+		public static final HeaderValue DEFAULT_TYPE = EnumerableValue.from("application/octet-stream");
 	}
 
 	public static class Access_Control_Allow_Origin extends EnumerableValue {
