@@ -204,12 +204,13 @@ import org.tio.core.task.CloseRunnable;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.SystemTimerClock;
 import org.tio.utils.Threads;
-import org.tio.utils.prop.MapWithLockPropSupport;
+import org.tio.utils.prop.MapPropSupport;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 import java.nio.ByteOrder;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -220,7 +221,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author tanyaowu
  * 2016年10月10日 下午5:25:43
  */
-public abstract class TioConfig extends MapWithLockPropSupport {
+public abstract class TioConfig extends MapPropSupport {
 	/**
 	 * 默认的接收数据的buffer size
 	 */
@@ -261,7 +262,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	/**
 	 * 心跳超时时间(单位: 毫秒)，如果用户不希望框架层面做心跳相关工作，请把此值设为0或负数
 	 */
-	public long heartbeatTimeout = 1000 * 120;
+	public long heartbeatTimeout = 1000L * 120;
 	/**
 	 * 解码出现异常时，是否打印异常日志
 	 */
@@ -492,4 +493,22 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 	public boolean isSsl() {
 		return sslConfig != null;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		TioConfig tioConfig = (TioConfig) o;
+		return Objects.equals(id, tioConfig.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
+
 }

@@ -204,7 +204,6 @@ import org.tio.http.common.*;
 import org.tio.server.intf.TioServerHandler;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.mica.DigestUtils;
-import org.tio.utils.mica.ExceptionUtils;
 import org.tio.websocket.common.*;
 import org.tio.websocket.server.handler.IWsMsgHandler;
 
@@ -260,7 +259,6 @@ public class WsTioServerHandler implements TioServerHandler {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public WsRequest decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException {
 		WsSessionContext wsSessionContext = (WsSessionContext) channelContext.get();
@@ -289,17 +287,16 @@ public class WsTioServerHandler implements TioServerHandler {
 		if (websocketPacket != null) {
 			// 数据包尚未完成
 			if (!websocketPacket.isWsEof()) {
-				List<WsRequest> parts = (List<WsRequest>) channelContext.getAttribute(NOT_FINAL_WEBSOCKET_PACKET_PARTS);
+				List<WsRequest> parts = channelContext.get(NOT_FINAL_WEBSOCKET_PACKET_PARTS);
 				if (parts == null) {
 					parts = new ArrayList<>();
-					channelContext.setAttribute(NOT_FINAL_WEBSOCKET_PACKET_PARTS, parts);
+					channelContext.set(NOT_FINAL_WEBSOCKET_PACKET_PARTS, parts);
 				}
 				parts.add(websocketPacket);
 			} else {
-				List<WsRequest> parts = (List<WsRequest>) channelContext.getAttribute(NOT_FINAL_WEBSOCKET_PACKET_PARTS);
+				List<WsRequest> parts = channelContext.get(NOT_FINAL_WEBSOCKET_PACKET_PARTS);
 				if (parts != null) {
-					channelContext.setAttribute(NOT_FINAL_WEBSOCKET_PACKET_PARTS, null);
-
+					channelContext.set(NOT_FINAL_WEBSOCKET_PACKET_PARTS, null);
 					parts.add(websocketPacket);
 					WsRequest first = parts.get(0);
 					websocketPacket.setWsOpcode(first.getWsOpcode());
@@ -460,11 +457,11 @@ public class WsTioServerHandler implements TioServerHandler {
 	}
 
 	/**
-	 * 本方法改编自baseio: https://gitee.com/generallycloud/baseio<br>
+	 * 本方法改编自baseio: <a href="https://gitee.com/generallycloud/baseio">baseio</a><br>
 	 * 感谢开源作者的付出
 	 *
-	 * @param request
-	 * @return
+	 * @param request HttpRequest
+	 * @return HttpResponse
 	 * @author tanyaowu
 	 */
 	public HttpResponse updateWebSocketProtocol(HttpRequest request) {

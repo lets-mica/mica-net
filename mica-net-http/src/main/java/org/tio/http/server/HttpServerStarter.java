@@ -299,7 +299,7 @@ public class HttpServerStarter {
 		tioServerConfig.setHeartbeatTimeout(1000 * 20L);
 		tioServerConfig.setShortConnection(true);
 		tioServerConfig.setReadBufferSize(TcpConst.MAX_DATA_LENGTH);
-		tioServerConfig.setAttribute(TioConfigKey.HTTP_REQ_HANDLER, this.httpRequestHandler);
+		tioServerConfig.set(TioConfigKey.HTTP_REQ_HANDLER, this.httpRequestHandler);
 
 		tioServer = new TioServer(tioServerConfig);
 		HttpUuid imTioUuid = new HttpUuid();

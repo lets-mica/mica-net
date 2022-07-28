@@ -200,81 +200,26 @@ import java.util.concurrent.ConcurrentMap;
  * @author tanyaowu
  * 2017年8月18日 下午5:36:02
  */
-public class MapWithLockPropSupport implements IPropSupport {
+public class MapPropSupport implements IPropSupport {
 	private final ConcurrentMap<String, Object> props = new ConcurrentHashMap<>(8);
 
-	/**
-	 * @author tanyaowu
-	 */
-	public MapWithLockPropSupport() {
-	}
-
 	@Override
-	public void clearAttribute() {
+	public void clear() {
 		props.clear();
 	}
 
-	/**
-	 * 同：clearAttribute()
-	 */
-	public void clear() {
-		clearAttribute();
-	}
-
-	/**
-	 * @param key
-	 * @return
-	 * @author tanyaowu
-	 */
 	@Override
-	public Object getAttribute(String key) {
-		return get(key);
+	@SuppressWarnings("unchecked")
+	public <T> T get(String key) {
+		return (T) props.get(key);
 	}
 
-	/**
-	 * 同：getAttribute(String key)
-	 *
-	 * @param key
-	 * @return
-	 */
-	public Object get(String key) {
-		return props.get(key);
-	}
-
-	/**
-	 * @param key
-	 * @author tanyaowu
-	 */
 	@Override
-	public void removeAttribute(String key) {
-		remove(key);
-	}
-
-	/**
-	 * 同：removeAttribute(String key)
-	 *
-	 * @param key
-	 */
 	public void remove(String key) {
 		props.remove(key);
 	}
 
-	/**
-	 * @param key
-	 * @param value
-	 * @author tanyaowu
-	 */
 	@Override
-	public void setAttribute(String key, Object value) {
-		set(key, value);
-	}
-
-	/**
-	 * 同：setAttribute(String key, Object value)
-	 *
-	 * @param key
-	 * @param value
-	 */
 	public void set(String key, Object value) {
 		props.put(key, value);
 	}

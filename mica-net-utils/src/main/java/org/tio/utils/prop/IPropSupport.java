@@ -205,31 +205,32 @@ public interface IPropSupport {
 	 *
 	 * @author: tanyaowu
 	 */
-	void clearAttribute();
+	void clear();
 
 	/**
 	 * 获取属性
 	 *
-	 * @param key
-	 * @return
+	 * @param key key
+	 * @param <T> 泛型
+	 * @return T
 	 * @author: tanyaowu
 	 */
-	Object getAttribute(String key);
+	<T> T get(String key);
 
 	/**
 	 * 删除属性
 	 *
-	 * @param key
+	 * @param key key
 	 * @author: tanyaowu
 	 */
-	void removeAttribute(String key);
+	void remove(String key);
 
 	/**
 	 * 设置属性
 	 *
-	 * @param key
-	 * @param value
+	 * @param key   key
+	 * @param value value
 	 * @author: tanyaowu
 	 */
-	void setAttribute(String key, Object value);
+	void set(String key, Object value);
 }

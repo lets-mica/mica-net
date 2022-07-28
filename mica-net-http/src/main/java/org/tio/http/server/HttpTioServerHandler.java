@@ -229,7 +229,7 @@ public class HttpTioServerHandler implements TioServerHandler {
 	public HttpRequest decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException {
 		HttpRequest request = HttpRequestDecoder.decode(buffer, limit, position, readableLength, channelContext, httpConfig);
 		if (request != null) {
-			channelContext.setAttribute(REQUEST_KEY, request);
+			channelContext.set(REQUEST_KEY, request);
 		}
 		return request;
 	}
