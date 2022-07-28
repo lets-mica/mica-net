@@ -202,12 +202,11 @@ import java.util.concurrent.*;
 public class SynThreadPoolExecutor extends ThreadPoolExecutor {
 
 	/**
-	 * @param corePoolSize
-	 * @param maximumPoolSize
+	 * @param corePoolSize    corePoolSize
+	 * @param maximumPoolSize maximumPoolSize
 	 * @param keepAliveTime   单位: 秒
-	 * @param runnableQueue
-	 * @param threadFactory
-	 * @param name
+	 * @param runnableQueue   runnableQueue
+	 * @param threadFactory   threadFactory
 	 * @author tanyaowu
 	 */
 	public SynThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, BlockingQueue<Runnable> runnableQueue, ThreadFactory threadFactory) {
@@ -215,21 +214,20 @@ public class SynThreadPoolExecutor extends ThreadPoolExecutor {
 	}
 
 	/**
-	 * @param corePoolSize
-	 * @param maximumPoolSize
-	 * @param keepAliveTime
-	 * @param runnableQueue
-	 * @param threadFactory
-	 * @param name
-	 * @param rejectedExecutionHandler
+	 * @param corePoolSize             corePoolSize
+	 * @param maximumPoolSize          maximumPoolSize
+	 * @param keepAliveTime            keepAliveTime
+	 * @param runnableQueue            runnableQueue
+	 * @param threadFactory            threadFactory
+	 * @param rejectedExecutionHandler rejectedExecutionHandler
 	 */
 	public SynThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, BlockingQueue<Runnable> runnableQueue, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, runnableQueue, threadFactory, rejectedExecutionHandler);
 	}
 
 	/**
-	 * @param runnable
-	 * @return
+	 * @param runnable Runnable
+	 * @return boolean
 	 * @author tanyaowu
 	 */
 	private boolean checkBeforeExecute(Runnable runnable) {

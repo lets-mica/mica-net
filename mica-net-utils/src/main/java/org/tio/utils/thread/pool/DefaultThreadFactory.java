@@ -193,6 +193,8 @@
 */
 package org.tio.utils.thread.pool;
 
+import org.tio.utils.hutool.CollUtil;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
@@ -241,18 +243,15 @@ public class DefaultThreadFactory implements ThreadFactory {
 	 * @return single INSTANCE of DefaultThreadFactory
 	 */
 	public static DefaultThreadFactory getInstance(String threadName, Integer priority) {
-		DefaultThreadFactory defaultThreadFactory = mapOfNameAndThreadFactory.get(threadName);
-		if (defaultThreadFactory == null) {
-			defaultThreadFactory = new DefaultThreadFactory();
+		return CollUtil.computeIfAbsent(mapOfNameAndThreadFactory, threadName, key -> {
+			DefaultThreadFactory defaultThreadFactory = new DefaultThreadFactory();
 			if (priority != null) {
 				defaultThreadFactory.priority = priority;
 			}
-
-			defaultThreadFactory.setThreadName(threadName);
-			mapOfNameAndThreadFactory.put(threadName, defaultThreadFactory);
-			mapOfNameAndAtomicInteger.put(threadName, new AtomicInteger());
-		}
-		return defaultThreadFactory;
+			defaultThreadFactory.setThreadName(key);
+			mapOfNameAndAtomicInteger.put(key, new AtomicInteger());
+			return defaultThreadFactory;
+		});
 	}
 
 	/**
