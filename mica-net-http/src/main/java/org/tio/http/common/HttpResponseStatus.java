@@ -355,7 +355,7 @@ public enum HttpResponseStatus {
 	public final int status;
 	public final String description;
 	public final String headerText;
-	public final byte[] headerBinary;
+	private final byte[] headerBinary;
 	public final String responseLine;
 	public byte[] responseLineBinary;
 

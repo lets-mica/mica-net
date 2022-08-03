@@ -215,7 +215,6 @@ import java.util.Set;
  * 2017年8月4日 上午9:41:12
  */
 public class HttpResponseEncoder {
-	public static final int MAX_HEADER_LENGTH = 20480;
 	public static final int HEADER_SERVER_LENGTH = HeaderName.Server.bytes.length + HeaderValue.Server.TIO.bytes.length + 3;
 	public static final int HEADER_DATE_LENGTH_1 = HeaderName.Date.bytes.length + 3;
 	public static final int HEADER_FIXED_LENGTH = HEADER_SERVER_LENGTH + HEADER_DATE_LENGTH_1;
@@ -235,7 +234,7 @@ public class HttpResponseEncoder {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static ByteBuffer encode(HttpResponse httpResponse, TioConfig tioConfig, ChannelContext channelContext) throws UnsupportedEncodingException {
+	public static ByteBuffer encode(HttpResponse httpResponse, TioConfig tioConfig, ChannelContext channelContext) {
 		int bodyLength = 0;
 		byte[] body = httpResponse.body;
 

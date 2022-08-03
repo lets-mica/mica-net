@@ -213,10 +213,6 @@ public class WsTioUuid implements TioUuid {
 		snowflake = new Snowflake(workerId, datacenterId);
 	}
 
-	/**
-	 * @return
-	 * @author tanyaowu
-	 */
 	@Override
 	public String uuid() {
 		return Long.toString(snowflake.nextId());

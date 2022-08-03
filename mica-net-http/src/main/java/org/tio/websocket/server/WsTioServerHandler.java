@@ -338,17 +338,11 @@ public class WsTioServerHandler implements TioServerHandler {
 			wsResponse = wsMsgHandler.encodeSubProtocol(packet, tioConfig, channelContext);
 			Objects.requireNonNull(wsResponse, "IWsMsgHandler encodeSubProtocol WsResponse is null.");
 		}
-
 		// 握手包
 		if (wsResponse.isHandShake()) {
 			WsSessionContext imSessionContext = channelContext.get(WsSessionContext.WS_SESSION_CONTEXT_KEY);
 			HttpResponse handshakeResponse = imSessionContext.getHandshakeResponse();
-			try {
-				return HttpResponseEncoder.encode(handshakeResponse, tioConfig, channelContext);
-			} catch (UnsupportedEncodingException e) {
-				log.error(e.toString(), e);
-				return null;
-			}
+			return HttpResponseEncoder.encode(handshakeResponse, tioConfig, channelContext);
 		}
 		return WsServerEncoder.encode(wsResponse);
 	}

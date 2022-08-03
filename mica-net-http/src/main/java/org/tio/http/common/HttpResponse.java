@@ -197,6 +197,7 @@ import org.tio.http.common.utils.HttpGzipUtils;
 import org.tio.utils.SysConst;
 import org.tio.utils.hutool.StrUtil;
 
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -223,7 +224,7 @@ public class HttpResponse extends HttpPacket {
 	 * 是否已经被gzip压缩过了，防止重复压缩
 	 */
 	private boolean hasGzipped = false;
-	private String charset = HttpConst.CHARSET_NAME;
+	private Charset charset = HttpConst.CHARSET;
 	/**
 	 * 忽略ip访问统计
 	 */
@@ -351,14 +352,14 @@ public class HttpResponse extends HttpPacket {
 	/**
 	 * @return the charset
 	 */
-	public String getCharset() {
+	public Charset getCharset() {
 		return charset;
 	}
 
 	/**
 	 * @param charset the charset to set
 	 */
-	public void setCharset(String charset) {
+	public void setCharset(Charset charset) {
 		this.charset = charset;
 	}
 
