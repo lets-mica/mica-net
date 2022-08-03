@@ -200,11 +200,12 @@ import org.tio.core.ChannelContext;
  * 2017年5月8日 下午1:14:08
  */
 public interface PacketListener {
+
 	/**
-	 * @param channelContext
-	 * @param packet
-	 * @param isSentSuccess
-	 * @throws Exception
+	 * @param channelContext ChannelContext
+	 * @param packet         Packet
+	 * @param isSentSuccess  isSentSuccess
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	void onAfterSent(ChannelContext channelContext, Packet packet, boolean isSentSuccess) throws Exception;

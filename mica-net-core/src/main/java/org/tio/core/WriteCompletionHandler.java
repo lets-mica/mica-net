@@ -286,23 +286,22 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 	}
 
 	/**
-	 * @param result
-	 * @param throwable
-	 * @param packet
-	 * @param isSentSuccess
+	 * @param result        result
+	 * @param throwable     throwable
+	 * @param packet        packet
+	 * @param isSentSuccess isSentSuccess
 	 * @author tanyaowu
 	 */
-	public void handleOne(Integer result, Throwable throwable, Packet packet, Boolean isSentSuccess) {
+	public void handleOne(Integer result, Throwable throwable, Packet packet, boolean isSentSuccess) {
 		Meta meta = packet.getMeta();
 		if (meta != null) {
-			meta.setIsSentSuccess(isSentSuccess);
+			meta.setSentSuccess(isSentSuccess);
 		}
 		try {
 			channelContext.processAfterSent(packet, isSentSuccess);
 		} catch (Throwable e) {
 			log.error(e.getMessage(), e);
 		}
-
 	}
 
 	public static class WriteCompletionVo {

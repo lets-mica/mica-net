@@ -1151,7 +1151,7 @@ public class Tio {
 				} catch (InterruptedException e) {
 					log.error(e.getMessage(), e);
 				}
-				return packet.getMeta().getIsSentSuccess();
+				return packet.getMeta().isSentSuccess();
 			} else {
 				return true;
 			}

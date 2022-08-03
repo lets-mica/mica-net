@@ -202,11 +202,13 @@ import org.tio.core.intf.TioHandler;
  * 2017年4月1日 上午9:14:24
  */
 public interface TioClientHandler extends TioHandler {
+
 	/**
 	 * 创建心跳包
 	 *
-	 * @return
+	 * @return Packet
 	 * @author tanyaowu
 	 */
 	Packet heartbeatPacket(ChannelContext channelContext);
+
 }

@@ -216,8 +216,8 @@ public class ClientChannelContext extends ChannelContext {
 	private ReconnRunnable reconnRunnable;
 
 	/**
-	 * @param tioConfig
-	 * @param asynchronousSocketChannel
+	 * @param tioConfig                 TioConfig
+	 * @param asynchronousSocketChannel AsynchronousSocketChannel
 	 * @author tanyaowu
 	 */
 	public ClientChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
@@ -227,16 +227,16 @@ public class ClientChannelContext extends ChannelContext {
 	/**
 	 * 创建一个虚拟ChannelContext，主要用来模拟一些操作，真实场景中用得少
 	 *
-	 * @param tioConfig
+	 * @param tioConfig TioConfig
 	 */
 	public ClientChannelContext(TioConfig tioConfig) {
 		super(tioConfig);
 	}
 
 	/**
-	 * @param asynchronousSocketChannel
-	 * @return
-	 * @throws IOException
+	 * @param asynchronousSocketChannel AsynchronousSocketChannel
+	 * @return Node
+	 * @throws IOException IOException
 	 * @author tanyaowu
 	 * 2016年12月6日 下午12:18:08
 	 * @see org.tio.core.ChannelContext#createClientNode(java.nio.channels.AsynchronousSocketChannel)
@@ -276,7 +276,7 @@ public class ClientChannelContext extends ChannelContext {
 	}
 
 	/**
-	 * @return
+	 * @return boolean
 	 * @author tanyaowu
 	 */
 	@Override

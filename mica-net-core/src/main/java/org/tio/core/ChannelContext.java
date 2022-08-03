@@ -246,7 +246,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	public SendRunnable sendRunnable = null;
 	public WriteCompletionHandler writeCompletionHandler = null;
 	public SslFacadeContext sslFacadeContext;
-	public String userId;
 	public boolean isWaitingClose = false;
 	public boolean isClosed = true;
 	public boolean isRemoved = false;
@@ -256,6 +255,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	 */
 	public AsynchronousSocketChannel asynchronousSocketChannel;
 	private ReadCompletionHandler readCompletionHandler = null;
+	public String userId;
 	private String token;
 	private String bsId;
 	private String id = null;
@@ -461,18 +461,16 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	/**
-	 * @param packet
-	 * @param isSentSuccess
+	 * @param packet Packet
+	 * @param isSentSuccess isSentSuccess
 	 * @author tanyaowu
 	 */
-	public void processAfterSent(Packet packet, Boolean isSentSuccess) {
-		isSentSuccess = isSentSuccess != null && isSentSuccess;
+	public void processAfterSent(Packet packet, boolean isSentSuccess) {
 		Meta meta = packet.getMeta();
 		if (meta != null) {
 			CountDownLatch countDownLatch = meta.getCountDownLatch();
 			countDownLatch.countDown();
 		}
-
 		try {
 			if (log.isDebugEnabled()) {
 				log.debug("{} 已经发送 {}", this, packet.logstr());

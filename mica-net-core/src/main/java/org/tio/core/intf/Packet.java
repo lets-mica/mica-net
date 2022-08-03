@@ -376,15 +376,15 @@ public class Packet implements java.io.Serializable, Cloneable {
 
 	public static class Meta implements java.io.Serializable {
 		private static final long serialVersionUID = 6209036094326369490L;
-		private Boolean isSentSuccess = false;
+		private boolean sentSuccess = false;
 		private CountDownLatch countDownLatch = null;
 
-		public Boolean getIsSentSuccess() {
-			return isSentSuccess;
+		public boolean isSentSuccess() {
+			return sentSuccess;
 		}
 
-		public void setIsSentSuccess(Boolean isSentSuccess) {
-			this.isSentSuccess = isSentSuccess;
+		public void setSentSuccess(boolean sentSuccess) {
+			this.sentSuccess = sentSuccess;
 		}
 
 		public CountDownLatch getCountDownLatch() {
