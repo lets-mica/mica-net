@@ -218,6 +218,14 @@ public interface IPropSupport {
 	<T> T get(String key);
 
 	/**
+	 * 是否存在 key
+	 *
+	 * @param key key
+	 * @return boolean
+	 */
+	boolean containsKey(String key);
+
+	/**
 	 * 删除属性
 	 *
 	 * @param key key

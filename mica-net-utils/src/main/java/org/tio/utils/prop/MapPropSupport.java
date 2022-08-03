@@ -215,6 +215,11 @@ public class MapPropSupport implements IPropSupport {
 	}
 
 	@Override
+	public boolean containsKey(String key) {
+		return props.containsKey(key);
+	}
+
+	@Override
 	public void remove(String key) {
 		props.remove(key);
 	}
