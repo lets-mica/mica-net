@@ -193,9 +193,6 @@
 */
 package org.tio.websocket.common;
 
-import org.tio.utils.collection.ByteObjectHashMap;
-import org.tio.utils.collection.ByteObjectMap;
-
 /**
  * @author tanyaowu
  * 2017年6月30日 下午5:06:09
@@ -207,11 +204,12 @@ public enum Opcode {
 	 */
 	NOT_FIN((byte) 0), TEXT((byte) 1), BINARY((byte) 2), CLOSE((byte) 8), PING((byte) 9), PONG((byte) 10);
 
-	private static final ByteObjectMap<Opcode> MAP = new ByteObjectHashMap<>();
+	private static final Opcode[] VALUES = new Opcode[11];
 
 	static {
-		for (Opcode command : values()) {
-			MAP.put(command.getCode(), command);
+		final Opcode[] values = values();
+		for (Opcode opcode : values) {
+			VALUES[opcode.code] = opcode;
 		}
 	}
 
@@ -222,7 +220,7 @@ public enum Opcode {
 	}
 
 	public static Opcode valueOf(byte code) {
-		return MAP.get(code);
+		return VALUES[code];
 	}
 
 	public byte getCode() {
