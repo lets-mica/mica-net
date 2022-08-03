@@ -286,7 +286,7 @@ public class HeaderValue {
 	}
 
 	public static class Server {
-		public static final HeaderValue TIO = HeaderValue.from(HttpConst.SERVER_INFO);
+		public static final HeaderValue SERVER_INFO = HeaderValue.from(HttpConst.SERVER_INFO);
 	}
 
 	public static class Content_Encoding extends EnumerableValue {
