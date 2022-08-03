@@ -199,6 +199,7 @@ import org.slf4j.LoggerFactory;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -212,6 +213,7 @@ import java.util.regex.Pattern;
  */
 public class Cookie {
 	private static final Logger log = LoggerFactory.getLogger(Cookie.class);
+	private static final Pattern COOKIE_PATTERN = Pattern.compile("([^ ;,]+=[^ ;,]+)");
 	private String domain = null;
 	private String path = null;
 	private Long maxAge = null;
@@ -277,7 +279,7 @@ public class Cookie {
 				default:
 					cookie.setName(cookieMapItem.getKey());
 					try {
-						cookie.setValue(URLDecoder.decode(cookieMapItem.getValue(), httpConfig.getCharset()));
+						cookie.setValue(URLDecoder.decode(cookieMapItem.getValue(), httpConfig.getCharset().name()));
 					} catch (Exception e) {
 						log.error("cookie值解码时异常：" + cookieMapItem.getValue(), e);
 					}
@@ -287,43 +289,31 @@ public class Cookie {
 		return cookie;
 	}
 
-	public static Map<String, String> getEqualMap(String cookieline) {
+	public static Map<String, String> getEqualMap(String cookieLine) {
 		Map<String, String> equalMap = new HashMap<>();
-		String[] searchedStrings = searchByRegex(cookieline, "([^ ;,]+=[^ ;,]+)");
+		String[] searchedStrings = searchByRegex(cookieLine, COOKIE_PATTERN);
 		for (String groupString : searchedStrings) {
 			//这里不用 split 的原因是有可能等号后的值字符串中出现等号
 			String[] equalStrings = new String[2];
 			int equalCharIndex = groupString.indexOf("=");
 			equalStrings[0] = groupString.substring(0, equalCharIndex);
 			equalStrings[1] = groupString.substring(equalCharIndex + 1);
-			if (equalStrings.length == 2) {
-				String key = equalStrings[0];
-				String value = equalStrings[1];
-				if (value.startsWith("\"") && value.endsWith("\"")) {
-					value = value.substring(1, value.length() - 1);
-				}
-				equalMap.put(key, value);
+			String key = equalStrings[0];
+			String value = equalStrings[1];
+			if (value.startsWith("\"") && value.endsWith("\"")) {
+				value = value.substring(1, value.length() - 1);
 			}
+			equalMap.put(key, value);
 		}
 		return equalMap;
 	}
 
-	public static String[] searchByRegex(String source, String regex) {
+	public static String[] searchByRegex(String source, Pattern pattern) {
 		if (source == null) {
 			return null;
 		}
-
-		Map<Integer, Pattern> regexPattern = new HashMap<>();
-
-		Pattern pattern = null;
-		if (regexPattern.containsKey(regex.hashCode())) {
-			pattern = regexPattern.get(regex.hashCode());
-		} else {
-			pattern = Pattern.compile(regex);
-			regexPattern.put(regex.hashCode(), pattern);
-		}
 		Matcher matcher = pattern.matcher(source);
-		ArrayList<String> result = new ArrayList<>();
+		List<String> result = new ArrayList<>();
 		while (matcher.find()) {
 			result.add(matcher.group());
 		}
@@ -396,8 +386,11 @@ public class Cookie {
 
 	@Override
 	public String toString() {
-		return (this.name != null || this.value != null ? this.name + "=" + this.value : "") + (this.domain != null ? "; Domain=" + this.domain : "")
-			+ (this.maxAge != null ? "; Max-Age=" + this.maxAge : "") + (this.path != null ? "; Path=" + this.path : " ") + (this.httpOnly ? "; httponly; " : "")
+		return (this.name != null || this.value != null ? this.name + '=' + this.value : "")
+			+ (this.domain != null ? "; Domain=" + this.domain : "")
+			+ (this.maxAge != null ? "; Max-Age=" + this.maxAge : "")
+			+ (this.path != null ? "; Path=" + this.path : ' ')
+			+ (this.httpOnly ? "; httponly; " : "")
 			+ (this.secure ? "; Secure" : "");
 	}
 

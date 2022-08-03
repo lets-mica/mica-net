@@ -195,6 +195,8 @@ package org.tio.http.common;
 
 import org.tio.http.common.handler.HttpRequestHandler;
 
+import java.nio.charset.Charset;
+
 /**
  * @author tanyaowu
  * 2017年8月15日 下午1:21:14
@@ -255,7 +257,7 @@ public class HttpConfig {
 	 */
 	private String bindIp = null;
 	private String serverInfo = HttpConst.SERVER_INFO;
-	private String charset = HttpConst.CHARSET_NAME;
+	private Charset charset = HttpConst.CHARSET;
 	private HttpRequestHandler httpRequestHandler;
 	/**
 	 * ip被拉黑时，服务器给的响应，如果是null，服务器会直接断开连接
@@ -311,14 +313,14 @@ public class HttpConfig {
 	/**
 	 * @return the charset
 	 */
-	public String getCharset() {
+	public Charset getCharset() {
 		return charset;
 	}
 
 	/**
 	 * @param charset the charset to set
 	 */
-	public void setCharset(String charset) {
+	public void setCharset(Charset charset) {
 		this.charset = charset;
 	}
 
