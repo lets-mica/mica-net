@@ -202,39 +202,20 @@ import org.tio.server.intf.TioServerListener;
  */
 public interface DefaultTioListener extends TioClientListener, TioServerListener {
 
-	/**
-	 * @param channelContext
-	 * @param isConnected
-	 * @param isReconnect
-	 * @author tanyaowu
-	 */
 	@Override
-	default void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) {
+	default void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) throws Exception {
 	}
 
-	/**
-	 * @param channelContext
-	 * @param packet
-	 * @param packetSize
-	 * @author tanyaowu
-	 */
 	@Override
-	default void onAfterDecoded(ChannelContext channelContext, Packet packet, int packetSize) {
+	default void onAfterDecoded(ChannelContext channelContext, Packet packet, int packetSize) throws Exception {
 	}
 
-	/**
-	 * @param channelContext
-	 * @param packet
-	 * @param isSentSuccess
-	 * @throws Exception
-	 * @author tanyaowu
-	 */
 	@Override
 	default void onAfterSent(ChannelContext channelContext, Packet packet, boolean isSentSuccess) throws Exception {
 	}
 
 	@Override
-	default void onBeforeClose(ChannelContext channelContext, Throwable throwable, String remark, boolean isRemove) {
+	default void onBeforeClose(ChannelContext channelContext, Throwable throwable, String remark, boolean isRemove) throws Exception {
 	}
 
 	@Override
@@ -243,7 +224,6 @@ public interface DefaultTioListener extends TioClientListener, TioServerListener
 
 	@Override
 	default void onAfterReceivedBytes(ChannelContext channelContext, int receivedBytes) throws Exception {
-
 	}
 
 	@Override
