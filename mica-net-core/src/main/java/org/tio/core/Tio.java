@@ -1018,7 +1018,7 @@ public class Tio {
 	 * @param remark
 	 */
 	public static void remove(ChannelContext channelContext, Throwable throwable, String remark) {
-		remove(channelContext, throwable, remark, (CloseCode) null);
+		remove(channelContext, throwable, remark, null);
 	}
 
 	/**
@@ -1043,7 +1043,7 @@ public class Tio {
 	 * @param remark
 	 */
 	public static void remove(TioConfig tioConfig, String clientIp, Integer clientPort, Throwable throwable, String remark) {
-		remove(tioConfig, clientIp, clientPort, throwable, remark, (CloseCode) null);
+		remove(tioConfig, clientIp, clientPort, throwable, remark, null);
 	}
 
 	/**
