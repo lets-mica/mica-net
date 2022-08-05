@@ -290,7 +290,7 @@ public interface HttpConst {
 		}
 
 		//application/x-www-form-urlencoded、multipart/form-data、text/plain
-		public interface Content_Type {
+		interface Content_Type {
 			/**
 			 * 普通文本，一般会是json或是xml
 			 */

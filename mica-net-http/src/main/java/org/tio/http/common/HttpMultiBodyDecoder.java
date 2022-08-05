@@ -203,7 +203,6 @@ import org.tio.http.common.utils.HttpParseUtils;
 import org.tio.utils.SystemTimerClock;
 import org.tio.utils.hutool.StrUtil;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -281,9 +280,7 @@ public class HttpMultiBodyDecoder {
 				}
 
 				if (step == Step.BODY) {
-					Step newParseStep = parseBody(multiBodyHeader, request, buffer, boundary, endBoundary, channelContext, httpConfig);
-					step = newParseStep;
-
+					step = parseBody(multiBodyHeader, request, buffer, boundary, endBoundary, channelContext, httpConfig);
 					if (step == Step.END) {
 						break label1;
 					}
@@ -292,8 +289,6 @@ public class HttpMultiBodyDecoder {
 			}
 		} catch (LengthOverflowException loe) {
 			throw new TioDecodeException(loe);
-		} catch (UnsupportedEncodingException e) {
-			log.error(channelContext.toString(), e);
 		} finally {
 			long end = SystemTimerClock.currTime;
 			long iv = end - start;
@@ -311,12 +306,11 @@ public class HttpMultiBodyDecoder {
 	 * @param channelContext
 	 * @param httpConfig
 	 * @return
-	 * @throws UnsupportedEncodingException
 	 * @throws LengthOverflowException
 	 * @author tanyaowu
 	 */
 	public static Step parseBody(Header header, HttpRequest request, ByteBuffer buffer, String boundary, String endBoundary, ChannelContext channelContext, HttpConfig httpConfig)
-		throws UnsupportedEncodingException, LengthOverflowException, TioDecodeException {
+		throws LengthOverflowException, TioDecodeException {
 		int initPosition = buffer.position();
 
 		while (buffer.hasRemaining()) {

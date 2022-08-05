@@ -213,11 +213,13 @@ import java.util.regex.Pattern;
  * 2017年8月10日 下午5:05:49
  */
 public class IpUtils {
+	private static final Logger log = LoggerFactory.getLogger(IpUtils.class);
+
 	/**
 	 * 如果是被代理了，获取客户端ip时，依次从下面这些头部中获取
 	 */
 	private static final String[] HEADER_NAMES_FOR_REALIP = new String[]{"x-forwarded-for", "proxy-client-ip", "wl-proxy-client-ip", "x-real-ip"};
-	private static final Logger log = LoggerFactory.getLogger(IpUtils.class);
+	private static final Pattern IP_PATTERN = Pattern.compile("([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}");
 
 	/**
 	 * 获取本机 ip
@@ -254,15 +256,14 @@ public class IpUtils {
 	}
 
 	/**
-	 * @param request
-	 * @return
+	 * @param request HttpRequest
+	 * @return ip
 	 * @author tanyaowu
 	 */
 	public static String getRealIp(HttpRequest request) {
 		if (request.httpConfig == null) {
 			return request.getRemote().getIp();
 		}
-
 		if (request.httpConfig.isProxied()) {
 			String headerName = null;
 			String ip = null;
@@ -307,21 +308,17 @@ public class IpUtils {
 			for (String name : HEADER_NAMES_FOR_REALIP) {
 				headerName = name;
 				ip = httpHeaders.get(headerName);
-
 				if (StrUtil.isNotBlank(ip) && !"unknown".equalsIgnoreCase(ip)) {
 					break;
 				}
 			}
-
 			if (StrUtil.isBlank(ip) || "unknown".equalsIgnoreCase(ip)) {
 				headerName = null;
 				ip = channelContext.getClientNode().getIp();
 			}
-
 			if (ip.contains(",")) {
 				if (log.isInfoEnabled()) {
 					log.info("ip[{}], header name:{}", ip, headerName);
-
 				}
 				ip = ip.split(",")[0].trim();
 			}
@@ -332,19 +329,15 @@ public class IpUtils {
 	}
 
 	/**
-	 * @param str
-	 * @return
+	 * @param str str
+	 * @return 是否 ip
 	 */
 	public static boolean isIp(String str) {
-		if (str.length() < 7 || str.length() > 15 || "".equals(str)) {
+		if (str == null || str.length() < 7 || str.length() > 15) {
 			return false;
 		}
-		/**
-		 * 判断IP格式和范围
-		 */
-		String rexp = "([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}";
-		Pattern pat = Pattern.compile(rexp);
-		Matcher mat = pat.matcher(str);
+		// 判断IP格式和范围
+		Matcher mat = IP_PATTERN.matcher(str);
 		return mat.find();
 	}
 

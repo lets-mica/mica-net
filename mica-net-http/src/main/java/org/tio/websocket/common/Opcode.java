@@ -204,15 +204,6 @@ public enum Opcode {
 	 */
 	NOT_FIN((byte) 0), TEXT((byte) 1), BINARY((byte) 2), CLOSE((byte) 8), PING((byte) 9), PONG((byte) 10);
 
-	private static final Opcode[] VALUES = new Opcode[11];
-
-	static {
-		final Opcode[] values = values();
-		for (Opcode opcode : values) {
-			VALUES[opcode.code] = opcode;
-		}
-	}
-
 	private final byte code;
 
 	Opcode(byte code) {
@@ -220,7 +211,22 @@ public enum Opcode {
 	}
 
 	public static Opcode valueOf(byte code) {
-		return VALUES[code];
+		switch (code) {
+			case 0:
+				return NOT_FIN;
+			case 1:
+				return TEXT;
+			case 2:
+				return BINARY;
+			case 8:
+				return CLOSE;
+			case 9:
+				return PING;
+			case 10:
+				return PONG;
+			default:
+				throw new IllegalArgumentException("Invalid input: " + code);
+		}
 	}
 
 	public byte getCode() {
