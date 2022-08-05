@@ -936,11 +936,11 @@ public class Tio {
 	}
 
 	/**
-	 * @param tioConfig
-	 * @param group
-	 * @param pageIndex
-	 * @param pageSize
-	 * @return
+	 * @param tioConfig TioConfig
+	 * @param group group
+	 * @param pageIndex pageIndex
+	 * @param pageSize pageSize
+	 * @return 分页
 	 * @author tanyaowu
 	 */
 	public static Page<ChannelContext> getPageOfGroup(TioConfig tioConfig, String group, Integer pageIndex, Integer pageSize) {
