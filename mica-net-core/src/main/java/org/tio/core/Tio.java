@@ -948,12 +948,12 @@ public class Tio {
 	}
 
 	/**
-	 * @param tioConfig
-	 * @param group
-	 * @param pageIndex
-	 * @param pageSize
-	 * @param converter
-	 * @return
+	 * @param tioConfig TioConfig
+	 * @param group     group
+	 * @param pageIndex pageIndex
+	 * @param pageSize  pageSize
+	 * @param converter converter
+	 * @return 分页
 	 */
 	public static <T> Page<T> getPageOfGroup(TioConfig tioConfig, String group, Integer pageIndex, Integer pageSize, Function<Object, T> converter) {
 		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
@@ -963,9 +963,9 @@ public class Tio {
 	/**
 	 * 群组有多少个连接
 	 *
-	 * @param tioConfig
-	 * @param group
-	 * @return
+	 * @param tioConfig TioConfig
+	 * @param group     group
+	 * @return size
 	 */
 	public static int groupCount(TioConfig tioConfig, String group) {
 		Set<ChannelContext> contextSet = tioConfig.groups.clients(tioConfig, group);
@@ -978,8 +978,8 @@ public class Tio {
 	/**
 	 * 某通道是否在某群组中
 	 *
-	 * @param group
-	 * @param channelContext
+	 * @param group          group
+	 * @param channelContext channelContext
 	 * @return true：在该群组
 	 * @author: tanyaowu
 	 */
@@ -992,8 +992,10 @@ public class Tio {
 	}
 
 	/**
-	 * @param channelContext
-	 * @param remark
+	 * 和close方法对应，只不过不再进行重连等维护性的操作
+	 *
+	 * @param channelContext ChannelContext
+	 * @param remark         remark
 	 */
 	public static void remove(ChannelContext channelContext, String remark) {
 		remove(channelContext, remark, null);
@@ -1002,9 +1004,9 @@ public class Tio {
 	/**
 	 * 和close方法对应，只不过不再进行重连等维护性的操作
 	 *
-	 * @param channelContext
-	 * @param remark
-	 * @param closeCode
+	 * @param channelContext ChannelContext
+	 * @param remark         remark
+	 * @param closeCode      closeCode
 	 */
 	public static void remove(ChannelContext channelContext, String remark, CloseCode closeCode) {
 		remove(channelContext, null, remark, closeCode);
@@ -1013,9 +1015,9 @@ public class Tio {
 	/**
 	 * 和close方法对应，只不过不再进行重连等维护性的操作
 	 *
-	 * @param channelContext
-	 * @param throwable
-	 * @param remark
+	 * @param channelContext ChannelContext
+	 * @param throwable      Throwable
+	 * @param remark         remark
 	 */
 	public static void remove(ChannelContext channelContext, Throwable throwable, String remark) {
 		remove(channelContext, throwable, remark, null);
@@ -1024,10 +1026,10 @@ public class Tio {
 	/**
 	 * 和close方法对应，只不过不再进行重连等维护性的操作
 	 *
-	 * @param channelContext
-	 * @param throwable
-	 * @param remark
-	 * @param closeCode
+	 * @param channelContext ChannelContext
+	 * @param throwable      Throwable
+	 * @param remark         remark
+	 * @param closeCode      closeCode
 	 */
 	public static void remove(ChannelContext channelContext, Throwable throwable, String remark, CloseCode closeCode) {
 		close(channelContext, throwable, remark, true, closeCode);
@@ -1064,20 +1066,20 @@ public class Tio {
 	/**
 	 * 发送消息到指定ChannelContext
 	 *
-	 * @param channelContext
-	 * @param packet
+	 * @param channelContext channelContext
+	 * @param packet         packet
 	 * @author tanyaowu
 	 */
-	public static Boolean send(ChannelContext channelContext, Packet packet) {
+	public static boolean send(ChannelContext channelContext, Packet packet) {
 		return send(channelContext, packet, null, null);
 	}
 
 	/**
-	 * @param channelContext
-	 * @param packet
-	 * @param countDownLatch
-	 * @param packetSendMode
-	 * @return
+	 * @param channelContext channelContext
+	 * @param packet         Packet
+	 * @param countDownLatch CountDownLatch
+	 * @param packetSendMode PacketSendMode
+	 * @return boolean
 	 * @author tanyaowu
 	 */
 	private static boolean send(final ChannelContext channelContext, Packet packet, CountDownLatch countDownLatch, PacketSendMode packetSendMode) {
