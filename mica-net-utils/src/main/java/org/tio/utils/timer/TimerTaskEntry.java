@@ -28,9 +28,9 @@ import java.util.Objects;
 public class TimerTaskEntry implements Comparable<TimerTaskEntry> {
 	private volatile TimerTaskList list;
 
-	public TimerTaskEntry next;
+	protected TimerTaskEntry next;
 
-	public TimerTaskEntry prev;
+	protected TimerTaskEntry prev;
 
 	private final TimerTask timerTask;
 
@@ -67,7 +67,8 @@ public class TimerTaskEntry implements Comparable<TimerTaskEntry> {
 
 	@Override
 	public int compareTo(TimerTaskEntry that) {
-		return Long.compare(this.expirationMs, Objects.requireNonNull(that, "Args that TimerTaskEntry is null").expirationMs);
+		long thatExpirationMs = Objects.requireNonNull(that, "Args that TimerTaskEntry is null").expirationMs;
+		return Long.compare(this.expirationMs, thatExpirationMs);
 	}
 
 	public long getExpirationMs() {
