@@ -18,6 +18,8 @@
 package org.tio.utils.timer;
 
 
+import java.util.Objects;
+
 /**
  * 封装定时任务
  *
@@ -65,12 +67,8 @@ public class TimerTaskEntry implements Comparable<TimerTaskEntry> {
 
 	@Override
 	public int compareTo(TimerTaskEntry that) {
-		if (that == null) {
-			throw new NullPointerException("TimerTaskEntry is null");
-		}
-		return Long.compare(this.expirationMs, that.expirationMs);
+		return Long.compare(this.expirationMs, Objects.requireNonNull(that, "Args that TimerTaskEntry is null").expirationMs);
 	}
-
 
 	public long getExpirationMs() {
 		return expirationMs;
