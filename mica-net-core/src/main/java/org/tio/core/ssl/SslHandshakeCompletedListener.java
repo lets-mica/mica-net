@@ -203,7 +203,6 @@ import org.tio.core.intf.Packet;
 import org.tio.core.ssl.facade.IHandshakeCompletedListener;
 
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author tanyaowu

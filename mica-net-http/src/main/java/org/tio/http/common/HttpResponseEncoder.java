@@ -202,7 +202,6 @@ import org.tio.http.common.utils.HttpGzipUtils;
 import org.tio.utils.SysConst;
 import org.tio.utils.hutool.StrUtil;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Map.Entry;

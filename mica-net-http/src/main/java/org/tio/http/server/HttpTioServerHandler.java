@@ -204,7 +204,6 @@ import org.tio.http.common.*;
 import org.tio.http.common.handler.HttpRequestHandler;
 import org.tio.server.intf.TioServerHandler;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 /**

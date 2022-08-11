@@ -207,7 +207,6 @@ import org.tio.utils.mica.DigestUtils;
 import org.tio.websocket.common.*;
 import org.tio.websocket.server.handler.IWsMsgHandler;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
