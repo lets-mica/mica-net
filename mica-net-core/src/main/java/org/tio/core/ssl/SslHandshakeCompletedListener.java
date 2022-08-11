@@ -202,6 +202,7 @@ import org.tio.core.ChannelContext;
 import org.tio.core.intf.Packet;
 import org.tio.core.ssl.facade.IHandshakeCompletedListener;
 
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -231,8 +232,8 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 			}
 		}
 
-		ConcurrentLinkedQueue<Packet> forSendAfterSslHandshakeCompleted = channelContext.sendRunnable.getForSendAfterSslHandshakeCompleted(false);
-		if (forSendAfterSslHandshakeCompleted == null || forSendAfterSslHandshakeCompleted.size() == 0) {
+		Queue<Packet> forSendAfterSslHandshakeCompleted = channelContext.sendRunnable.getForSendAfterSslHandshakeCompleted(false);
+		if (forSendAfterSslHandshakeCompleted == null || forSendAfterSslHandshakeCompleted.isEmpty()) {
 			return;
 		}
 

@@ -240,8 +240,8 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	private ConcurrentLinkedQueue<Packet> forSendAfterSslHandshakeCompleted = null;
 
 	/**
-	 * @param channelContext
-	 * @param executor
+	 * @param channelContext ChannelContext
+	 * @param executor Executor
 	 * @author tanyaowu
 	 */
 	public SendRunnable(ChannelContext channelContext, Executor executor) {
@@ -253,7 +253,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		this.msgQueue = new ConcurrentLinkedQueue<>();
 	}
 
-	public ConcurrentLinkedQueue<Packet> getForSendAfterSslHandshakeCompleted(boolean forceCreate) {
+	public Queue<Packet> getForSendAfterSslHandshakeCompleted(boolean forceCreate) {
 		if (forSendAfterSslHandshakeCompleted == null && forceCreate) {
 			synchronized (this) {
 				if (forSendAfterSslHandshakeCompleted == null) {

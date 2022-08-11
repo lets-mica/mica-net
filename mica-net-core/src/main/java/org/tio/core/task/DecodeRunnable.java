@@ -243,8 +243,10 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	}
 
 	/**
-	 * @param packet
-	 * @param byteCount
+	 * 消息处理
+	 *
+	 * @param packet Packet
+	 * @param byteCount byteCount
 	 * @author tanyaowu
 	 */
 	public void handler(Packet packet, int byteCount) {

@@ -206,12 +206,15 @@ import java.util.concurrent.Executor;
 public abstract class AbstractQueueRunnable<T> extends AbstractSynRunnable {
 	private static final Logger log = LoggerFactory.getLogger(AbstractQueueRunnable.class);
 
-	public AbstractQueueRunnable(Executor executor) {
+	protected AbstractQueueRunnable(Executor executor) {
 		super(executor);
 	}
 
 	/**
-	 * @return
+	 * addMsg
+	 *
+	 * @param t message
+	 * @return 是否成功
 	 */
 	public boolean addMsg(T t) {
 		if (this.isCanceled()) {
@@ -238,7 +241,7 @@ public abstract class AbstractQueueRunnable<T> extends AbstractSynRunnable {
 	/**
 	 * 获取消息队列
 	 *
-	 * @return
+	 * @return Queue
 	 */
 	public abstract Queue<T> getMsgQueue();
 }

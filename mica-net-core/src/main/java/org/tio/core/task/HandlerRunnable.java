@@ -236,8 +236,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	/**
 	 * 处理packet
 	 *
-	 * @param packet
-	 * @return
+	 * @param packet Packet
 	 * @author tanyaowu
 	 */
 	public void handler(Packet packet) {
