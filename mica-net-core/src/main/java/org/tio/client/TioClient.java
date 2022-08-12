@@ -420,52 +420,55 @@ public class TioClient {
 	 * @author tanyaowu
 	 */
 	private void startHeartbeatTask() {
+		// 先判断是否取消默认的心跳机制
+		if (tioClientConfig.heartbeatTimeout <= 0) {
+			log.warn("用户取消了 mica-net 的心跳定时发送功能，请用户自己去完成心跳机制");
+			return;
+		}
 		final ClientGroupStat clientGroupStat = (ClientGroupStat) tioClientConfig.groupStat;
 		final TioClientHandler tioHandler = tioClientConfig.getTioClientHandler();
 		final String id = tioClientConfig.getId();
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (!tioClientConfig.isStopped()) {
-					if (tioClientConfig.heartbeatTimeout <= 0) {
-						log.warn("用户取消了框架层面的心跳定时发送功能，请用户自己去完成心跳机制");
-						break;
-					}
-					Set<ChannelContext> set = tioClientConfig.connecteds;
-					try {
-						long currTime = SystemTimerClock.currTime;
-						for (ChannelContext entry : set) {
-							ClientChannelContext channelContext = (ClientChannelContext) entry;
-							if (channelContext.isClosed || channelContext.isRemoved) {
-								continue;
-							}
-							ChannelStat stat = channelContext.stat;
-							long compareTime = Math.max(stat.latestTimeOfReceivedByte, stat.latestTimeOfSentPacket);
-							long interval = currTime - compareTime;
-							if (interval >= tioClientConfig.heartbeatTimeout / 2) {
-								Packet packet = tioHandler.heartbeatPacket(channelContext);
-								if (packet != null) {
-									if (log.isInfoEnabled()) {
-										log.info("{}发送心跳包", channelContext);
-									}
-									Tio.send(channelContext, packet);
+		new Thread(() -> {
+			while (!tioClientConfig.isStopped()) {
+				Set<ChannelContext> set = tioClientConfig.connecteds;
+				long currTime = SystemTimerClock.currTime;
+				try {
+					for (ChannelContext entry : set) {
+						ClientChannelContext channelContext = (ClientChannelContext) entry;
+						if (channelContext.isClosed || channelContext.isRemoved) {
+							continue;
+						}
+						ChannelStat stat = channelContext.stat;
+						long compareTime = Math.max(stat.latestTimeOfReceivedByte, stat.latestTimeOfSentPacket);
+						long interval = currTime - compareTime;
+						if (interval >= tioClientConfig.heartbeatTimeout / 2) {
+							Packet packet = tioHandler.heartbeatPacket(channelContext);
+							if (packet != null) {
+								boolean result = Tio.send(channelContext, packet);
+								if (log.isInfoEnabled()) {
+									log.info("{} 发送心跳包 result:{}", channelContext, result);
 								}
 							}
 						}
-						if (log.isInfoEnabled()) {
+					}
+					// 打印连接信息
+					if (tioClientConfig.debug && log.isInfoEnabled()) {
+						if (tioClientConfig.statOn) {
 							log.info("[{}]: curr:{}, closed:{}, received:({}p)({}b), handled:{}, sent:({}p)({}b)", id, set.size(), clientGroupStat.closed.sum(),
 								clientGroupStat.receivedPackets.sum(), clientGroupStat.receivedBytes.sum(), clientGroupStat.handledPackets.sum(),
 								clientGroupStat.sentPackets.sum(), clientGroupStat.sentBytes.sum());
+						} else {
+							log.info("[{}]: curr:{}, closed:{}", id, set.size(), clientGroupStat.closed.sum());
 						}
-					} catch (Throwable e) {
-						log.error("", e);
-					} finally {
-						try {
-							Thread.sleep(tioClientConfig.heartbeatTimeout / 4);
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-							log.error(e.getMessage(), e);
-						}
+					}
+				} catch (Throwable e) {
+					log.error("", e);
+				} finally {
+					try {
+						Thread.sleep(tioClientConfig.heartbeatTimeout / 4);
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						log.error(e.getMessage(), e);
 					}
 				}
 			}
