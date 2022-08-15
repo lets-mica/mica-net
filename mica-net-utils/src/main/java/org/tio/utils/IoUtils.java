@@ -209,7 +209,8 @@
  */
 package org.tio.utils;
 
-import java.io.ByteArrayOutputStream;
+import org.tio.utils.hutool.FastByteArrayOutputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -232,7 +233,7 @@ public class IoUtils {
 	}
 
 	public static byte[] toByteArray(final InputStream input) throws IOException {
-		try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+		try (final FastByteArrayOutputStream output = new FastByteArrayOutputStream()) {
 			copy(input, output);
 			return output.toByteArray();
 		}
@@ -255,14 +256,13 @@ public class IoUtils {
 	}
 
 	public static String streamToString(InputStream inputStream) {
-		try {
-			ByteArrayOutputStream result = new ByteArrayOutputStream();
+		try (FastByteArrayOutputStream result = new FastByteArrayOutputStream()) {
 			byte[] buffer = new byte[1024];
 			int length;
 			while ((length = inputStream.read(buffer)) != -1) {
 				result.write(buffer, 0, length);
 			}
-			return result.toString(org.tio.utils.SysConst.DEFAULT_ENCODING);
+			return result.toString(org.tio.utils.SysConst.DEFAULT_CHARSET);
 		} catch (Exception e) {
 			return null;
 		}
