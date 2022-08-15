@@ -28,7 +28,11 @@ public class DefaultTimerTaskService implements TimerTaskService {
 	private final TimingWheelThread timingWheelThread;
 
 	public DefaultTimerTaskService() {
-		this(new SystemTimer(1000L, 60, "DefaultTimerTaskService"));
+		this(1000L, 60);
+	}
+
+	public DefaultTimerTaskService(long tickMs, int wheelSize) {
+		this(new SystemTimer(tickMs, wheelSize, "DefaultTimerTaskService"));
 	}
 
 	public DefaultTimerTaskService(SystemTimer systemTimer) {
