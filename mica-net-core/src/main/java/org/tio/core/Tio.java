@@ -481,10 +481,9 @@ public class Tio {
 		channelContext.handlerRunnable.setCanceled(true);
 		channelContext.sendRunnable.setCanceled(true);
 
-		WriteLock writeLock = null;
+		WriteLock writeLock;
 		if (needCloseLock) {
 			writeLock = channelContext.closeLock.writeLock();
-
 			boolean tryLock = writeLock.tryLock();
 			if (!tryLock) {
 				return;
