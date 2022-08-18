@@ -207,14 +207,14 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Packet implements java.io.Serializable, Cloneable {
 	private static final Logger log = LoggerFactory.getLogger(Packet.class);
 	private static final long serialVersionUID = 5275372187150637318L;
-	private static final AtomicLong ID_ATOMICLONG = new AtomicLong();
-	private Long id = ID_ATOMICLONG.incrementAndGet();
+	private static final AtomicLong ID_GEN = new AtomicLong();
+	private Long id = ID_GEN.incrementAndGet();
 	/**
 	 * 本packet在解码时，消耗的字节数
 	 */
 	private int byteCount = 0;
 	private Long respId = null;
-	private PacketListener packetListener;
+	private transient PacketListener packetListener;
 	private boolean isBlockSend = false;
 	private Meta meta = null;
 	/**
@@ -229,7 +229,7 @@ public class Packet implements java.io.Serializable, Cloneable {
 	/**
 	 * 预编码过的bytebuffer，如果此值不为null，框架则会忽略原来的encode()而直接用此值
 	 */
-	private ByteBuffer preEncodedByteBuffer = null;
+	private transient ByteBuffer preEncodedByteBuffer = null;
 	/**
 	 * 是否已经进行ssl加密过
 	 */
@@ -376,8 +376,17 @@ public class Packet implements java.io.Serializable, Cloneable {
 
 	public static class Meta implements java.io.Serializable {
 		private static final long serialVersionUID = 6209036094326369490L;
+
+		private final transient CountDownLatch countDownLatch;
 		private boolean sentSuccess = false;
-		private CountDownLatch countDownLatch = null;
+
+		public Meta(CountDownLatch countDownLatch) {
+			this.countDownLatch = countDownLatch;
+		}
+
+		public CountDownLatch getCountDownLatch() {
+			return countDownLatch;
+		}
 
 		public boolean isSentSuccess() {
 			return sentSuccess;
@@ -385,14 +394,6 @@ public class Packet implements java.io.Serializable, Cloneable {
 
 		public void setSentSuccess(boolean sentSuccess) {
 			this.sentSuccess = sentSuccess;
-		}
-
-		public CountDownLatch getCountDownLatch() {
-			return countDownLatch;
-		}
-
-		public void setCountDownLatch(CountDownLatch countDownLatch) {
-			this.countDownLatch = countDownLatch;
 		}
 
 	}

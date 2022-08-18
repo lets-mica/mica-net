@@ -1122,8 +1122,7 @@ public class Tio {
 
 			boolean isAdded;
 			if (countDownLatch != null) {
-				Meta meta = new Meta();
-				meta.setCountDownLatch(countDownLatch);
+				Meta meta = new Meta(countDownLatch);
 				packet.setMeta(meta);
 			}
 
