@@ -53,7 +53,9 @@ public class DefaultTimerTaskService implements TimerTaskService {
 
 	@Override
 	public void start() {
-		timingWheelThread.start();
+		if (!timingWheelThread.isStarted()) {
+			timingWheelThread.start();
+		}
 	}
 
 	@Override
