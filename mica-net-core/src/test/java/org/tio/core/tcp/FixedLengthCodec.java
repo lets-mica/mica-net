@@ -4,7 +4,6 @@ import org.tio.core.intf.EncodedPacket;
 import org.tio.core.intf.Packet;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 
 /**
  * 示例：长度固定的解码器
@@ -12,10 +11,6 @@ import java.nio.charset.StandardCharsets;
  * @author L.cm
  */
 public class FixedLengthCodec {
-	/**
-	 * 示例：默认的消息长度
-	 */
-	public static FixedLengthCodec INSTANCE = new FixedLengthCodec("mica:166130695837".getBytes(StandardCharsets.UTF_8).length);
 
 	private final int length;
 
@@ -29,10 +24,12 @@ public class FixedLengthCodec {
 		}
 		byte[] bytes = new byte[length];
 		buffer.get(bytes);
+		// 偷懒使用的 EncodedPacket，直接处理的 byte 数据，大家可以自定义编解码
 		return new EncodedPacket(bytes);
 	}
 
 	public ByteBuffer encode(Packet packet) {
+		// 偷懒使用的 EncodedPacket，直接处理的 byte 数据，大家可以自定义编解码
 		if (packet instanceof EncodedPacket) {
 			return ByteBuffer.wrap(((EncodedPacket) packet).getBytes());
 		}

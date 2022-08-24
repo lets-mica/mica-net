@@ -11,19 +11,26 @@ import org.tio.utils.buffer.ByteBufferUtil;
 import java.nio.ByteBuffer;
 
 public class TestTioClientHandler implements TioClientHandler {
+	private final FixedLengthCodec codec;
+
+	public TestTioClientHandler(FixedLengthCodec codec) {
+		this.codec = codec;
+	}
+
 	@Override
 	public Packet heartbeatPacket(ChannelContext channelContext) {
+		// 自定义心跳包
 		return null;
 	}
 
 	@Override
 	public Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException {
-		return FixedLengthCodec.INSTANCE.decode(buffer, readableLength);
+		return codec.decode(buffer, readableLength);
 	}
 
 	@Override
 	public ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext channelContext) {
-		return FixedLengthCodec.INSTANCE.encode(packet);
+		return codec.encode(packet);
 	}
 
 	@Override
