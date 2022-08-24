@@ -204,10 +204,10 @@ import java.io.InputStream;
  *
  * @author looly
  */
-public class ResourceUtilTest {
+class ResourceUtilTest {
 
 	@Test
-	public void getResourceAsStreamTest() {
+	void getResourceAsStreamTest() {
 		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
 		Assertions.assertNotNull(resourceAsStream);
 		try {
