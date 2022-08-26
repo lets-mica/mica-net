@@ -203,7 +203,7 @@ import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 import org.tio.core.stat.ChannelStat;
 import org.tio.core.utils.ByteBufferUtils;
-import org.tio.utils.SystemTimerClock;
+import org.tio.utils.SystemClock;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.nio.BufferUnderflowException;
@@ -349,7 +349,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 				} else //解码成功
 				{
 					channelContext.setPacketNeededLength(null);
-					channelContext.stat.latestTimeOfReceivedPacket = SystemTimerClock.currTime;
+					channelContext.stat.latestTimeOfReceivedPacket = SystemClock.now();;
 					channelContext.stat.decodeFailCount = 0;
 
 					int packetSize = byteBuffer.position() - initPosition;

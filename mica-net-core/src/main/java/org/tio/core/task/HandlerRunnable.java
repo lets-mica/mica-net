@@ -202,7 +202,7 @@ import org.tio.core.ChannelContext;
 import org.tio.core.PacketHandlerMode;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.Packet;
-import org.tio.utils.SystemTimerClock;
+import org.tio.utils.SystemClock;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.util.Map;
@@ -240,7 +240,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	 * @author tanyaowu
 	 */
 	public void handler(Packet packet) {
-		long start = SystemTimerClock.currTime;
+		long start = SystemClock.now();
 		try {
 			Integer synSeq = packet.getSynSeq();
 			if (synSeq != null && synSeq > 0) {
@@ -260,7 +260,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 		} catch (Throwable e) {
 			log.error(packet.logstr(), e);
 		} finally {
-			long end = SystemTimerClock.currTime;
+			long end = SystemClock.now();
 			long iv = end - start;
 			if (tioConfig.statOn) {
 				channelContext.stat.handledPackets.increment();

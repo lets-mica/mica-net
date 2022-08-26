@@ -202,7 +202,7 @@ import org.tio.core.ReadCompletionHandler;
 import org.tio.core.Tio;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.ssl.SslUtils;
-import org.tio.utils.SystemTimerClock;
+import org.tio.utils.SystemClock;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -282,7 +282,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 				asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
 				log.info("connected to {}", serverNode);
 				if (isConnected && !isReconnect) {
-					channelContext.stat.setTimeFirstConnected(SystemTimerClock.currTime);
+					channelContext.stat.setTimeFirstConnected(SystemClock.now());
 				}
 			} else {
 				log.error(throwable.getMessage(), throwable);

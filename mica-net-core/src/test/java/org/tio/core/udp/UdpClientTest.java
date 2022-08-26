@@ -1,7 +1,5 @@
 package org.tio.core.udp;
 
-import org.tio.utils.SystemTimerClock;
-
 public class UdpClientTest {
 
 	public static void main(String[] args) {

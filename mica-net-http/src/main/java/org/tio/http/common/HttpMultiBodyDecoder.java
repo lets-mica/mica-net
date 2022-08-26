@@ -200,7 +200,7 @@ import org.tio.core.exception.LengthOverflowException;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.utils.ByteBufferUtils;
 import org.tio.http.common.utils.HttpParseUtils;
-import org.tio.utils.SystemTimerClock;
+import org.tio.utils.SystemClock;
 import org.tio.utils.hutool.StrUtil;
 
 import java.nio.ByteBuffer;
@@ -239,7 +239,7 @@ public class HttpMultiBodyDecoder {
 			throw new TioDecodeException("boundary is null");
 		}
 
-		long start = SystemTimerClock.currTime;
+		long start = SystemClock.now();
 
 		ByteBuffer buffer = ByteBuffer.wrap(bodyBytes);
 		buffer.position(0);
@@ -290,7 +290,7 @@ public class HttpMultiBodyDecoder {
 		} catch (LengthOverflowException loe) {
 			throw new TioDecodeException(loe);
 		} finally {
-			long end = SystemTimerClock.currTime;
+			long end = SystemClock.now();
 			long iv = end - start;
 			log.info("解析耗时:{}ms", iv);
 		}

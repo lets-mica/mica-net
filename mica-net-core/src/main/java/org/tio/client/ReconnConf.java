@@ -196,7 +196,7 @@ package org.tio.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
-import org.tio.utils.SystemTimerClock;
+import org.tio.utils.SystemClock;
 import org.tio.utils.thread.pool.DefaultThreadFactory;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
@@ -279,7 +279,7 @@ public class ReconnConf {
 				if (putIfNeedConn) {
 					TioClientConfig tioClientConfig = (TioClientConfig) clientChannelContext.tioConfig;
 					tioClientConfig.closeds.add(clientChannelContext);
-					clientChannelContext.stat.timeInReconnQueue = SystemTimerClock.currTime;
+					clientChannelContext.stat.timeInReconnQueue = SystemClock.now();
 					reconnConf.getQueue().add(clientChannelContext);
 				}
 				return true;
