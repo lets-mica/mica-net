@@ -197,9 +197,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
-import org.tio.http.common.utils.HttpDateTimer;
 import org.tio.http.common.utils.HttpGzipUtils;
 import org.tio.utils.SysConst;
+import org.tio.utils.hutool.DateUtil;
 import org.tio.utils.hutool.StrUtil;
 
 import java.nio.ByteBuffer;
@@ -298,7 +298,8 @@ public class HttpResponseEncoder {
 			headerLength += httpResponse.getCookies().size() * 3; //冒号和\r\n
 		}
 
-		HeaderValue httpDateValue = HttpDateTimer.httpDateValue;
+		// 时间
+		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
 
 		headerLength += HEADER_FIXED_LENGTH + httpDateValue.bytes.length;
 
