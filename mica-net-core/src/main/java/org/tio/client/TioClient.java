@@ -210,6 +210,8 @@ import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.UnresolvedAddressException;
+import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -353,25 +355,32 @@ public class TioClient {
 
 		InetSocketAddress inetSocketAddress = new InetSocketAddress(serverNode.getIp(), serverNode.getPort());
 		ConnectionCompletionVo attachment = new ConnectionCompletionVo(initClientChannelContext, this, isReconnect, asynchronousSocketChannel, serverNode, bindIp, bindPort);
-
+		ConnectionCompletionHandler connectionCompletionHandler = tioClientConfig.getConnectionCompletionHandler();
 		if (isSyn) {
 			Integer realTimeout = timeout;
 			if (realTimeout == null) {
 				realTimeout = 5;
 			}
-
 			CountDownLatch countDownLatch = new CountDownLatch(1);
 			attachment.setCountDownLatch(countDownLatch);
-			asynchronousSocketChannel.connect(inetSocketAddress, attachment, tioClientConfig.getConnectionCompletionHandler());
-			boolean f = countDownLatch.await(realTimeout, TimeUnit.SECONDS);
-			if (f) {
-				return attachment.getChannelContext();
-			} else {
-				log.error("countDownLatch.await(realTimeout, TimeUnit.SECONDS) 返回 false");
-				return attachment.getChannelContext();
+			try {
+				asynchronousSocketChannel.connect(inetSocketAddress, attachment, connectionCompletionHandler);
+			} catch (UnresolvedAddressException | UnsupportedAddressTypeException e) {
+				// 处理断网后域名解析出错
+				connectionCompletionHandler.failed(e, attachment);
 			}
+			boolean result = countDownLatch.await(realTimeout, TimeUnit.SECONDS);
+			if (!result) {
+				log.error("connect countDownLatch.await(realTimeout, TimeUnit.SECONDS) 返回 false");
+			}
+			return attachment.getChannelContext();
 		} else {
-			asynchronousSocketChannel.connect(inetSocketAddress, attachment, tioClientConfig.getConnectionCompletionHandler());
+			try {
+				asynchronousSocketChannel.connect(inetSocketAddress, attachment, tioClientConfig.getConnectionCompletionHandler());
+			} catch (UnresolvedAddressException | UnsupportedAddressTypeException e) {
+				// 处理断网后域名解析出错
+				connectionCompletionHandler.failed(e, attachment);
+			}
 			return null;
 		}
 	}

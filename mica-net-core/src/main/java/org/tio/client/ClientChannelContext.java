@@ -244,7 +244,8 @@ public class ClientChannelContext extends ChannelContext {
 	@Override
 	public Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException {
 		InetSocketAddress inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getLocalAddress();
-		return new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort());
+		// 一开始没网，没连接上时会返回 null
+		return inetSocketAddress == null ? null : new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort());
 	}
 
 	/**
