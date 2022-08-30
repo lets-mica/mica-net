@@ -499,7 +499,7 @@ public class TioClient {
 			@Override
 			public void run() {
 				while (!tioClientConfig.isStopped()) {
-					log.error("closeds:{}, connections:{}", tioClientConfig.closeds.size(), tioClientConfig.connections.size());
+					log.error("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), tioClientConfig.connections.size());
 					LinkedBlockingQueue<ChannelContext> queue = reconnConf.getQueue();
 					ClientChannelContext channelContext = null;
 					try {
