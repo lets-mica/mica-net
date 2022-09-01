@@ -365,8 +365,8 @@ public class TioClient {
 			attachment.setCountDownLatch(countDownLatch);
 			try {
 				asynchronousSocketChannel.connect(inetSocketAddress, attachment, connectionCompletionHandler);
-			} catch (UnresolvedAddressException | UnsupportedAddressTypeException e) {
-				// 处理断网后域名解析出错
+			} catch (Exception e) {
+				// connect 连接事会抛出域名解析等异常
 				connectionCompletionHandler.failed(e, attachment);
 			}
 			boolean result = countDownLatch.await(realTimeout, TimeUnit.SECONDS);
@@ -376,9 +376,9 @@ public class TioClient {
 			return attachment.getChannelContext();
 		} else {
 			try {
-				asynchronousSocketChannel.connect(inetSocketAddress, attachment, tioClientConfig.getConnectionCompletionHandler());
-			} catch (UnresolvedAddressException | UnsupportedAddressTypeException e) {
-				// 处理断网后域名解析出错
+				asynchronousSocketChannel.connect(inetSocketAddress, attachment, connectionCompletionHandler);
+			} catch (Exception e) {
+				// connect 连接事会抛出域名解析等异常
 				connectionCompletionHandler.failed(e, attachment);
 			}
 			return null;
