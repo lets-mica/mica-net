@@ -2,6 +2,7 @@ package org.tio.core.tcp;
 
 import org.tio.core.intf.EncodedPacket;
 import org.tio.core.intf.Packet;
+import org.tio.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
 
@@ -24,6 +25,8 @@ public class FixedLengthCodec {
 		}
 		byte[] bytes = new byte[length];
 		buffer.get(bytes);
+		// 方便 debug 调试
+		System.out.println(ByteBufferUtil.toHexString(bytes));
 		// 偷懒使用的 EncodedPacket，直接处理的 byte 数据，大家可以自定义编解码
 		return new EncodedPacket(bytes);
 	}
