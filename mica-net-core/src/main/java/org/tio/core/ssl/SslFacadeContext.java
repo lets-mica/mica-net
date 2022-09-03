@@ -221,23 +221,18 @@ public class SslFacadeContext {
 
 	/**
 	 * @param channelContext
-	 * @throws Exception
 	 */
-	public SslFacadeContext(ChannelContext channelContext) throws Exception {
+	public SslFacadeContext(ChannelContext channelContext) {
 		this.channelContext = channelContext;
 		this.channelContext.setSslFacadeContext(this);
-
 		this.isHandshakeCompleted = false;
-
-		sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(channelContext.tioConfig.sslConfig.getKeyManagerFactory().getKeyManagers(),
-			channelContext.tioConfig.sslConfig.getTrustManagerFactory().getTrustManagers(), null);
-
+		// sslContext
+		this.sslContext = channelContext.tioConfig.sslConfig.getSslContext();
 		DefaultTaskHandler taskHandler = new DefaultTaskHandler();
 		// 是否客户端模式
 		boolean isClient = !this.channelContext.isServer();
-
-		sslFacade = new SSLFacade(this.channelContext, sslContext, isClient, false, taskHandler);
+		// SSLFacade
+		sslFacade = new SSLFacade(this.channelContext, this.sslContext, isClient, false, taskHandler);
 		sslFacade.setHandshakeCompletedListener(new SslHandshakeCompletedListener(this.channelContext));
 		sslFacade.setSSLListener(new SslListener(this.channelContext));
 		sslFacade.setCloseListener(new SslSessionClosedListener(this.channelContext));

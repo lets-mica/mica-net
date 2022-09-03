@@ -191,28 +191,30 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-/**
- *
- */
 package org.tio.core.ssl;
 
 import org.tio.utils.hutool.ResourceUtil;
 import org.tio.utils.hutool.StrUtil;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.*;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 /**
  * @author tanyaowu
  */
 public class SslConfig {
-	private final KeyManagerFactory keyManagerFactory;
-	private final TrustManagerFactory trustManagerFactory;
+	private static final String ALGORITHM = "SunX509";
+	private final SSLContext sslContext;
 
 	/**
 	 * 初始化证书配置
@@ -223,8 +225,18 @@ public class SslConfig {
 	 * @throws Exception Exception
 	 */
 	private SslConfig(InputStream keyStoreInputStream, InputStream trustStoreInputStream, char[] passChars) throws Exception {
-		this.keyManagerFactory = getKeyManagerFactory(keyStoreInputStream, passChars);
-		this.trustManagerFactory = getTrustManagerFactory(trustStoreInputStream, passChars);
+		this.sslContext = getSslContextByManagerFactory(getKeyManagerFactory(keyStoreInputStream, passChars), getTrustManagerFactory(trustStoreInputStream, passChars));
+	}
+
+	/**
+	 * 初始化证书配置
+	 *
+	 * @param trustStoreInputStream InputStream
+	 * @param trustPassword         trustPassword
+	 * @throws Exception Exception
+	 */
+	private SslConfig(InputStream trustStoreInputStream, char[] trustPassword) throws Exception {
+		this.sslContext = getSslContextByManagers(null, getTrustManagers(trustStoreInputStream, trustPassword));
 	}
 
 	/**
@@ -269,19 +281,70 @@ public class SslConfig {
 	 * @throws Exception Exception
 	 */
 	public static SslConfig forClient() throws Exception {
-		return new SslConfig(null, null, null);
+		return new SslConfig(null, null);
+	}
+
+	/**
+	 * 给客户端用的
+	 *
+	 * @return SslConfig
+	 * @throws Exception Exception
+	 */
+	public static SslConfig forClient(String trustStoreFile, String trustPassword) throws Exception {
+		InputStream trustStoreInputStream;
+		if (StrUtil.startWithIgnoreCase(trustStoreFile, "classpath:")) {
+			trustStoreInputStream = ResourceUtil.getResourceAsStream(trustStoreFile);
+		} else {
+			trustStoreInputStream = Files.newInputStream(Paths.get(trustStoreFile));
+		}
+		return new SslConfig(trustStoreInputStream, getPassChars(trustPassword));
+	}
+
+	/**
+	 * 给客户端用的
+	 *
+	 * @return SslConfig
+	 * @throws Exception Exception
+	 */
+	public static SslConfig forClient(InputStream trustStoreInputStream, String trustPassword) throws Exception {
+		return new SslConfig(trustStoreInputStream, getPassChars(trustPassword));
 	}
 
 	private static KeyManagerFactory getKeyManagerFactory(InputStream keyStoreInputStream, char[] passChars) throws Exception {
-		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(ALGORITHM);
 		keyManagerFactory.init(getKeyStore(keyStoreInputStream, passChars), passChars);
 		return keyManagerFactory;
 	}
 
 	private static TrustManagerFactory getTrustManagerFactory(InputStream trustStoreInputStream, char[] passChars) throws Exception {
-		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(ALGORITHM);
 		trustManagerFactory.init(getKeyStore(trustStoreInputStream, passChars));
 		return trustManagerFactory;
+	}
+
+	private static TrustManager[] getTrustManagers(InputStream trustInputStream, char[] trustPassword) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+		if (trustInputStream == null) {
+			return new TrustManager[]{new X509TrustManager() {
+				@Override
+				public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
+				}
+
+				@Override
+				public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
+				}
+
+				@Override
+				public X509Certificate[] getAcceptedIssuers() {
+					return new X509Certificate[0];
+				}
+			}};
+		} else {
+			KeyStore ts = KeyStore.getInstance("JKS");
+			ts.load(trustInputStream, trustPassword);
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(ALGORITHM);
+			tmf.init(ts);
+			return tmf.getTrustManagers();
+		}
 	}
 
 	private static KeyStore getKeyStore(InputStream stream, char[] passChars) throws Exception {
@@ -300,12 +363,22 @@ public class SslConfig {
 		return passwd.toCharArray();
 	}
 
-	public KeyManagerFactory getKeyManagerFactory() {
-		return keyManagerFactory;
+	private static SSLContext getSslContextByManagerFactory(KeyManagerFactory keyManagerFactory,
+															TrustManagerFactory trustManagerFactory)
+		throws NoSuchAlgorithmException, KeyManagementException {
+		return getSslContextByManagers(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers());
 	}
 
-	public TrustManagerFactory getTrustManagerFactory() {
-		return trustManagerFactory;
+	private static SSLContext getSslContextByManagers(KeyManager[] keyManagers,
+													  TrustManager[] trustManagers)
+		throws NoSuchAlgorithmException, KeyManagementException {
+		SSLContext sslContext = SSLContext.getInstance("TLS");
+		sslContext.init(keyManagers, trustManagers, null);
+		return sslContext;
+	}
+
+	public SSLContext getSslContext() {
+		return sslContext;
 	}
 
 }
