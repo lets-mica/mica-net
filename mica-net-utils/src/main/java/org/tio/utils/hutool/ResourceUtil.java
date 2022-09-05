@@ -193,9 +193,12 @@
 */
 package org.tio.utils.hutool;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * 资源工具类
@@ -239,6 +242,20 @@ public class ResourceUtil {
 			path = path.substring(CLASSPATH_PRE.length());
 		}
 		return getClassLoader().getResourceAsStream(path);
+	}
+
+	/**
+	 * 获取 file 下的资源做为流
+	 *
+	 * @param file 文件
+	 * @return {@link InputStream}资源
+	 */
+	public static InputStream getFileResource(String file) {
+		try {
+			return Files.newInputStream(Paths.get(file));
+		} catch (IOException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
 	/**
