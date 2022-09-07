@@ -220,7 +220,6 @@ public interface HttpRequestHandler {
 	 *
 	 * @param request
 	 * @param requestLine
-	 * @param channelContext
 	 * @return
 	 * @throws Exception
 	 * @author tanyaowu
@@ -248,7 +247,6 @@ public interface HttpRequestHandler {
 	/**
 	 * 清空静态资源缓存，如果没有缓存，可以不处理
 	 *
-	 * @param request
 	 * @author: tanyaowu
 	 */
 	void clearStaticResCache();

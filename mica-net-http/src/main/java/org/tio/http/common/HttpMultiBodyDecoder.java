@@ -328,7 +328,7 @@ public class HttpMultiBodyDecoder {
 				if (filename != null) {
 					if (StrUtil.isNotBlank(filename)) { //
 						UploadFile uploadFile = new UploadFile();
-						uploadFile.setName(filename.replaceAll("%", ""));
+						uploadFile.setName(filename.replace("%", ""));
 						uploadFile.setData(dst);
 						uploadFile.setSize(dst.length);
 						request.addParam(header.getName(), uploadFile);
@@ -362,7 +362,7 @@ public class HttpMultiBodyDecoder {
 	 * @author tanyaowu
 	 */
 	public static void parseHeader(List<String> lines, Header header, ChannelContext channelContext) throws TioDecodeException {
-		if (lines == null || lines.size() == 0) {
+		if (lines == null || lines.isEmpty()) {
 			throw new TioDecodeException("multipart_form_data 格式不对，没有头部信息");
 		}
 		try {

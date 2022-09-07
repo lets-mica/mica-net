@@ -295,7 +295,7 @@ public class Cookie {
 		for (String groupString : searchedStrings) {
 			//这里不用 split 的原因是有可能等号后的值字符串中出现等号
 			String[] equalStrings = new String[2];
-			int equalCharIndex = groupString.indexOf("=");
+			int equalCharIndex = groupString.indexOf('=');
 			equalStrings[0] = groupString.substring(0, equalCharIndex);
 			equalStrings[1] = groupString.substring(equalCharIndex + 1);
 			String key = equalStrings[0];

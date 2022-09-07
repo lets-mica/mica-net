@@ -302,7 +302,7 @@ public class HttpRequest extends HttpPacket {
 	 * @return
 	 * @throws Exception
 	 */
-	public HttpResponse forward(String newPath) throws Exception {
+	public HttpResponse forward(String newPath) {
 		if (StrUtil.contains(newPath, '?')) {
 			requestLine.path = StrUtil.subBefore(newPath, "?", false);
 			requestLine.queryString = StrUtil.subAfter(newPath, "?", false);
@@ -540,12 +540,8 @@ public class HttpRequest extends HttpPacket {
 	 */
 	public Boolean getIsAjax() {
 		if (isAjax == null) {
-			String X_Requested_With = this.getHeader(HttpConst.RequestHeaderKey.X_Requested_With);
-			if (X_Requested_With != null && "XMLHttpRequest".equalsIgnoreCase(X_Requested_With)) {
-				isAjax = true;
-			} else {
-				isAjax = false;
-			}
+			String xRequestedWith = this.getHeader(HttpConst.RequestHeaderKey.X_Requested_With);
+			isAjax = "XMLHttpRequest".equalsIgnoreCase(xRequestedWith);
 		}
 		return isAjax;
 	}
@@ -605,24 +601,23 @@ public class HttpRequest extends HttpPacket {
 	 * @return
 	 */
 	public Map<String, Object> getParam() {
-		Map<String, Object> params = new HashMap<>();
+		Map<String, Object> paramMap = new HashMap<>();
 		if (getParams() != null) {
 			for (Entry<String, Object[]> entry : this.params.entrySet()) {
 				Object[] param = entry.getValue();
-				if (param != null && param.length >= 1) {
+				if (param != null && param.length > 0) {
 					String key = entry.getKey();
-					params.put(key, param[0]);
+					paramMap.put(key, param[0]);
 				}
 			}
 		}
-		return params;
+		return paramMap;
 	}
 
 	public Object getObject(String name) {
 		if (StrUtil.isBlank(name)) {
 			return null;
 		}
-
 		Object[] values = params.get(name);
 		if (values != null && values.length > 0) {
 			return values[0];
@@ -674,7 +669,6 @@ public class HttpRequest extends HttpPacket {
 		if (StrUtil.isBlank(value)) {
 			return null;
 		}
-
 		return Integer.parseInt(value);
 	}
 
@@ -683,7 +677,6 @@ public class HttpRequest extends HttpPacket {
 		if (StrUtil.isBlank(value)) {
 			return null;
 		}
-
 		return Short.parseShort(value);
 	}
 
@@ -692,7 +685,6 @@ public class HttpRequest extends HttpPacket {
 		if (StrUtil.isBlank(value)) {
 			return null;
 		}
-
 		return Byte.parseByte(value);
 	}
 
@@ -701,7 +693,6 @@ public class HttpRequest extends HttpPacket {
 		if (StrUtil.isBlank(value)) {
 			return null;
 		}
-
 		return Long.parseLong(value);
 	}
 
@@ -710,7 +701,6 @@ public class HttpRequest extends HttpPacket {
 		if (StrUtil.isBlank(value)) {
 			return null;
 		}
-
 		return Double.parseDouble(value);
 	}
 
@@ -719,7 +709,6 @@ public class HttpRequest extends HttpPacket {
 		if (StrUtil.isBlank(value)) {
 			return null;
 		}
-
 		return Float.parseFloat(value);
 	}
 
@@ -768,17 +757,15 @@ public class HttpRequest extends HttpPacket {
 	}
 
 	public void parseCookie(HttpConfig httpConfig) {
-		String cookieline = headers.get(HttpConst.RequestHeaderKey.Cookie);
-		if (StrUtil.isNotBlank(cookieline)) {
+		String cookieLine = headers.get(HttpConst.RequestHeaderKey.Cookie);
+		if (StrUtil.isNotBlank(cookieLine)) {
 			cookies = new ArrayList<>();
 			cookieMap = new HashMap<>();
-			Map<String, String> _cookiemap = Cookie.getEqualMap(cookieline);
-			Set<Entry<String, String>> set = _cookiemap.entrySet();
-			List<Map<String, String>> cookieListMap = new ArrayList<>();
+			Map<String, String> cookieLineMap = Cookie.getEqualMap(cookieLine);
+			Set<Entry<String, String>> set = cookieLineMap.entrySet();
 			for (Entry<String, String> cookieMapEntry : set) {
 				HashMap<String, String> cookieOneMap = new HashMap<>();
 				cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
-				cookieListMap.add(cookieOneMap);
 				Cookie cookie = Cookie.buildCookie(cookieOneMap, httpConfig);
 				cookies.add(cookie);
 				cookieMap.put(cookie.getName(), cookie);
