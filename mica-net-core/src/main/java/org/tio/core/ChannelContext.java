@@ -317,8 +317,12 @@ public abstract class ChannelContext extends MapPropSupport {
 		initOther();
 	}
 
-	private void assignAnUnknownClientNode() {
-		setClientNode(new Node(UNKNOWN_ADDRESS_IP, UNKNOWN_ADDRESS_PORT_SEQ.incrementAndGet()));
+	protected void assignAnUnknownClientNode() {
+		setClientNode(createUnknownNode());
+	}
+
+	public static Node createUnknownNode() {
+		return new Node(UNKNOWN_ADDRESS_IP, UNKNOWN_ADDRESS_PORT_SEQ.incrementAndGet());
 	}
 
 	/**
