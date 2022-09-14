@@ -216,8 +216,8 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	}
 
 	/**
-	 * @param asynchronousSocketChannel
-	 * @param tioServer
+	 * @param asynchronousSocketChannel AsynchronousSocketChannel
+	 * @param tioServer                 TioServer
 	 * @author tanyaowu
 	 */
 	@Override
@@ -267,14 +267,12 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	}
 
 	/**
-	 * @param exc
-	 * @param tioServer
+	 * @param exc       Throwable
+	 * @param tioServer TioServer
 	 * @author tanyaowu
 	 */
 	@Override
 	public void failed(Throwable exc, TioServer tioServer) {
-		AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
-		serverSocketChannel.accept(tioServer, this);
 		log.error("[{}]监听出现异常", tioServer.getServerNode(), exc);
 	}
 
