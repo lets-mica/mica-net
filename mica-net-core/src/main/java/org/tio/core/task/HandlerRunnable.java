@@ -266,12 +266,11 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 				channelContext.stat.handledPackets.increment();
 				channelContext.stat.handledBytes.add(packet.getByteCount());
 				channelContext.stat.handledPacketCosts.add(iv);
-
+				// groupStat
 				tioConfig.groupStat.handledPackets.increment();
 				tioConfig.groupStat.handledBytes.add(packet.getByteCount());
 				tioConfig.groupStat.handledPacketCosts.add(iv);
 			}
-
 			if (tioConfig.getTioListener() != null) {
 				try {
 					tioConfig.getTioListener().onAfterHandled(channelContext, packet, iv);
@@ -279,7 +278,6 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 					log.error(e.getMessage(), e);
 				}
 			}
-
 		}
 	}
 

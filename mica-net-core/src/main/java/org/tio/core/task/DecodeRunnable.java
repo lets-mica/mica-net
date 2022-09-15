@@ -250,14 +250,13 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	 * @author tanyaowu
 	 */
 	public void handler(Packet packet, int byteCount) {
+		// 包处理方式，默认单线程
 		switch (tioConfig.packetHandlerMode) {
-			case SINGLE_THREAD:
-				channelContext.handlerRunnable.handler(packet);
-				break;
 			case QUEUE:
 				channelContext.handlerRunnable.addMsg(packet);
 				channelContext.handlerRunnable.execute();
 				break;
+			case SINGLE_THREAD:
 			default:
 				channelContext.handlerRunnable.handler(packet);
 				break;
@@ -312,10 +311,8 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						//数据不够读
 					}
 				}
-
-				if (packet == null)// 数据不够，解不了码
-				{
-					//					lastByteBuffer = ByteBufferUtils.copy(byteBuffer, initPosition, limit);
+				// 数据不够，解不了码
+				if (packet == null) {
 					if (tioConfig.useQueueDecode || (byteBuffer != newReceivedByteBuffer)) {
 						byteBuffer.position(initPosition);
 						byteBuffer.limit(limit);
@@ -325,7 +322,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 					}
 					ChannelStat channelStat = channelContext.stat;
 					channelStat.decodeFailCount++;
-					//					int len = byteBuffer.limit() - initPosition;
 					if (log.isDebugEnabled()) {
 						log.debug("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount, readableLength);
 					}
@@ -337,7 +333,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						}
 						// 检查慢包攻击
 						if (channelStat.decodeFailCount > tioConfig.maxDecodeFailCount) {
-							//							int capacity = lastByteBuffer.capacity();
 							int per = readableLength / channelStat.decodeFailCount;
 							if (per < Math.min(channelContext.getReadBufferSize() / 2, 256)) {
 								String str = "连续解码" + channelStat.decodeFailCount + "次都不成功，并且平均每次接收到的数据为" + per + "字节，有慢攻击的嫌疑";
@@ -346,8 +341,8 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						}
 					}
 					return;
-				} else //解码成功
-				{
+				} else {
+					// 解码成功
 					channelContext.setPacketNeededLength(null);
 					channelContext.stat.latestTimeOfReceivedPacket = SystemClock.now();
 					channelContext.stat.decodeFailCount = 0;
@@ -374,13 +369,13 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 
 					handler(packet, packetSize);
 
-					if (byteBuffer.hasRemaining())//组包后，还剩有数据
-					{
+					// 组包后，还剩有数据
+					if (byteBuffer.hasRemaining()) {
 						if (log.isDebugEnabled()) {
 							log.debug("{},组包后，还剩有数据:{}", channelContext, byteBuffer.remaining());
 						}
-					} else//组包后，数据刚好用完
-					{
+					} else {
+						// 组包后，数据刚好用完
 						lastByteBuffer = null;
 						if (log.isDebugEnabled()) {
 							log.debug("{},组包后，数据刚好用完", channelContext);
@@ -392,7 +387,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 				if (channelContext.logWhenDecodeError) {
 					log.error("解码时遇到异常", e);
 				}
-
 				channelContext.setPacketNeededLength(null);
 				Tio.close(channelContext, e, "解码异常:" + e.getMessage(), CloseCode.DECODE_ERROR);
 				return;
