@@ -291,10 +291,9 @@ public class TioServer {
 		int xxLen = 18;
 		int aaLen = baseLen - 3;
 		List<String> infoList = new ArrayList<>();
-		infoList.add(StrUtil.fillAfter("t-io site", ' ', xxLen) + "| " + SysConst.TIO_URL_SITE);
-		infoList.add(StrUtil.fillAfter("t-io on gitee", ' ', xxLen) + "| " + SysConst.TIO_URL_GITEE);
-		infoList.add(StrUtil.fillAfter("t-io on github", ' ', xxLen) + "| " + SysConst.TIO_URL_GITHUB);
-		infoList.add(StrUtil.fillAfter("t-io version", ' ', xxLen) + "| " + SysConst.TIO_CORE_VERSION);
+		infoList.add(StrUtil.fillAfter("mica-net site", ' ', xxLen) + "| " + SysConst.TIO_URL_SITE);
+		infoList.add(StrUtil.fillAfter("mica-net on git", ' ', xxLen) + "| " + SysConst.TIO_URL_GITEE);
+		infoList.add(StrUtil.fillAfter("mica-net version", ' ', xxLen) + "| " + SysConst.TIO_CORE_VERSION);
 
 		infoList.add(StrUtil.fillAfter("-", '-', aaLen));
 
