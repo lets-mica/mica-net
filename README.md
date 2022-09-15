@@ -1,5 +1,4 @@
 # mica-net 网络编程
-[![Java CI](https://github.com/lets-mica/mica-net/actions/workflows/test-and-build.yml/badge.svg)](https://github.com/lets-mica/mica-net/actions/workflows/test-and-build.yml)
 [![Mica net Maven release](https://img.shields.io/nexus/r/https/oss.sonatype.org/net.dreamlu/mica-net-core.svg?style=flat-square)](https://mvnrepository.com/artifact/net.dreamlu/mica-net-core)
 [![Mica net Maven snapshots](https://img.shields.io/nexus/s/https/oss.sonatype.org/net.dreamlu/mica-net-core.svg?style=flat-square)](https://oss.sonatype.org/content/repositories/snapshots/net/dreamlu/mica-net-core/)
 
