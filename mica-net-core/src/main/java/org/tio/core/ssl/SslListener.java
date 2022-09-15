@@ -277,7 +277,7 @@ public class SslListener implements ISSLListener {
 			}
 		} else {
 			if (log.isDebugEnabled()) {
-				log.info("{}, 收到SSL解密后的数据，但SSL握手还没完成，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer, sslFacadeContext.isHandshakeCompleted());
+				log.debug("{}, 收到SSL解密后的数据，但SSL握手还没完成，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer, sslFacadeContext.isHandshakeCompleted());
 			}
 		}
 	}

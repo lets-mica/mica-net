@@ -296,7 +296,7 @@ class Handshaker {
 				if (_worker.pendingUnwrap()) {
 					SSLEngineResult u_result = _worker.unwrap(null);
 					if (log.isDebugEnabled()) {
-						log.debug("Unwrap result " + u_result);
+						log.debug("Unwrap result {}", u_result);
 					}
 					if (u_result.getHandshakeStatus().equals(HandshakeStatus.FINISHED)) {
 						handshakeFinished();

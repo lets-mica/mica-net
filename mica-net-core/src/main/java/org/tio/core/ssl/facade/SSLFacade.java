@@ -264,11 +264,17 @@ public class SSLFacade implements ISSLFacade {
 		ByteBuffer src = sslVo.getByteBuffer();
 		ByteBuffer[] byteBuffers = ByteBufferUtils.split(src, 2048);
 		if (byteBuffers == null) {
-			log.debug("{}, 准备, SSL加密{}, 明文:{}", channelContext, channelContext.getId() + '_' + seq, sslVo);
+			if (log.isDebugEnabled()) {
+				log.debug("{}, 准备, SSL加密{}, 明文:{}", channelContext, channelContext.getId() + '_' + seq, sslVo);
+			}
 			SSLEngineResult result = _worker.wrap(sslVo, sslVo.getByteBuffer());
-			log.debug("{}, 完成, SSL加密{}, 明文:{}, 结果:{}", channelContext, channelContext.getId() + '_' + seq, sslVo, result);
+			if (log.isDebugEnabled()) {
+				log.debug("{}, 完成, SSL加密{}, 明文:{}, 结果:{}", channelContext, channelContext.getId() + '_' + seq, sslVo, result);
+			}
 		} else {
-			log.debug("{}, 准备, SSL加密{}, 包过大，被拆成了[{}]个包进行发送, 明文:{}", channelContext, channelContext.getId() + '_' + seq, byteBuffers.length, sslVo);
+			if (log.isDebugEnabled()) {
+				log.debug("{}, 准备, SSL加密{}, 包过大，被拆成了[{}]个包进行发送, 明文:{}", channelContext, channelContext.getId() + '_' + seq, byteBuffers.length, sslVo);
+			}
 			ByteBuffer[] encryptedByteBuffers = new ByteBuffer[byteBuffers.length];
 			int allLen = 0;
 			for (int i = 0; i < byteBuffers.length; i++) {
@@ -277,7 +283,9 @@ public class SSLFacade implements ISSLFacade {
 				ByteBuffer encryptedByteBuffer = sslVo1.getByteBuffer();
 				encryptedByteBuffers[i] = encryptedByteBuffer;
 				allLen += encryptedByteBuffer.limit();
-				log.debug("{}, 完成, SSL加密{}, 明文:{}, 拆包[{}]的结果:{}", channelContext, channelContext.getId() + '_' + seq, sslVo, (i + 1), result);
+				if (log.isDebugEnabled()) {
+					log.debug("{}, 完成, SSL加密{}, 明文:{}, 拆包[{}]的结果:{}", channelContext, channelContext.getId() + '_' + seq, sslVo, (i + 1), result);
+				}
 			}
 			ByteBuffer encryptedByteBuffer = ByteBuffer.allocate(allLen);
 			for (ByteBuffer byteBuffer : encryptedByteBuffers) {
@@ -291,9 +299,13 @@ public class SSLFacade implements ISSLFacade {
 	@Override
 	public void decrypt(ByteBuffer byteBuffer) throws SSLException {
 		long seq = sslSeq.incrementAndGet();
-		log.debug("{}, 准备, SSL解密{}, 密文:{}", channelContext, channelContext.getId() + '_' + seq, byteBuffer);
+		if (log.isDebugEnabled()) {
+			log.debug("{}, 准备, SSL解密{}, 密文:{}", channelContext, channelContext.getId() + '_' + seq, byteBuffer);
+		}
 		SSLEngineResult result = _worker.unwrap(byteBuffer);
-		log.debug("{}, 完成, SSL解密{}, 密文:{}, 结果:{}", channelContext, channelContext.getId() + '_' + seq, byteBuffer, result);
+		if (log.isDebugEnabled()) {
+			log.debug("{}, 完成, SSL解密{}, 密文:{}, 结果:{}", channelContext, channelContext.getId() + '_' + seq, byteBuffer, result);
+		}
 		_handshaker.handleUnwrapResult(result);
 	}
 

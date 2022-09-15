@@ -260,7 +260,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 					channelContext.sslFacadeContext.getSslFacade().decrypt(copiedByteBuffer);
 				} catch (Exception e) {
 					log.error(channelContext + ", " + e.getMessage() + copiedByteBuffer, e);
-					Tio.close(channelContext, e, e.toString(), CloseCode.SSL_DECRYPT_ERROR);
+					Tio.close(channelContext, e, e.getMessage(), CloseCode.SSL_DECRYPT_ERROR);
 				}
 			}
 

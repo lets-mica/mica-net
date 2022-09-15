@@ -299,8 +299,8 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 				int readableLength = limit - initPosition;
 				Packet packet = null;
 				if (channelContext.packetNeededLength != null) {
-					if (log.isInfoEnabled()) {
-						log.info("{}, 解码所需长度:{}", channelContext, channelContext.packetNeededLength);
+					if (log.isDebugEnabled()) {
+						log.debug("{}, 解码所需长度:{}", channelContext, channelContext.packetNeededLength);
 					}
 					if (readableLength >= channelContext.packetNeededLength) {
 						packet = tioConfig.getTioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
@@ -326,13 +326,13 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 					ChannelStat channelStat = channelContext.stat;
 					channelStat.decodeFailCount++;
 					//					int len = byteBuffer.limit() - initPosition;
-					if (log.isInfoEnabled()) {
-						log.info("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount, readableLength);
+					if (log.isDebugEnabled()) {
+						log.debug("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount, readableLength);
 					}
 					if (channelStat.decodeFailCount > 5) {
 						if (channelContext.packetNeededLength == null) {
-							if (log.isInfoEnabled()) {
-								log.info("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount, readableLength);
+							if (log.isDebugEnabled()) {
+								log.debug("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount, readableLength);
 							}
 						}
 						// 检查慢包攻击
@@ -349,7 +349,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 				} else //解码成功
 				{
 					channelContext.setPacketNeededLength(null);
-					channelContext.stat.latestTimeOfReceivedPacket = SystemClock.now();;
+					channelContext.stat.latestTimeOfReceivedPacket = SystemClock.now();
 					channelContext.stat.decodeFailCount = 0;
 
 					int packetSize = byteBuffer.position() - initPosition;

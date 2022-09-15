@@ -235,8 +235,9 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 		if (forSendAfterSslHandshakeCompleted == null || forSendAfterSslHandshakeCompleted.isEmpty()) {
 			return;
 		}
-
-		log.info("{} 业务层在SSL握手前就有{}条数据待发送", channelContext, forSendAfterSslHandshakeCompleted.size());
+		if (log.isDebugEnabled()) {
+			log.debug("{} 业务层在SSL握手前就有{}条数据待发送", channelContext, forSendAfterSslHandshakeCompleted.size());
+		}
 		while (true) {
 			Packet packet = forSendAfterSslHandshakeCompleted.poll();
 			if (packet != null) {
