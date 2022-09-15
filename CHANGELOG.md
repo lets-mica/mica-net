@@ -2,7 +2,16 @@
 
 ## 发行版本
 
-### v0.0.2 - 2022-07-18
+### v0.0.4 - 2022-09-15
+
+- :sparkles: 优化日志，调整日志级别。
+- :sparkles: 完善和优化 ssl，提升性能。
+- :sparkles: 添加和使用 SystemClock，t-io 默认的 SystemTimerClock 误差很大。
+- :sparkles: 添加 t-io 示例
+- :bug: 修复 t-io client 重连 bug。
+- :bug: 修复 t-io server 部分情况下进入异常递归，导致服务退出。
+
+### v0.0.3 - 2022-07-18
 
 - :sparkles: udp 代码规范化。
 - :sparkles: 将 mica-mqtt 通用工具移到 mica-net-utils。
