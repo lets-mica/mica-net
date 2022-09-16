@@ -242,7 +242,6 @@ public class DateUtil {
 				return DatePattern.PURE_TIME_PATTERN;
 			}
 		}
-
 		if (length == DatePattern.NORM_DATETIME_PATTERN.length() || length == DatePattern.NORM_DATETIME_PATTERN.length() + 1) {
 			return DatePattern.NORM_DATETIME_PATTERN;
 		} else if (length == DatePattern.NORM_DATE_PATTERN.length()) {
@@ -325,7 +324,7 @@ public class DateUtil {
 		if (null == date) {
 			return null;
 		}
-		return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		return date.format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATETIME_PATTERN));
 	}
 
 	/**
