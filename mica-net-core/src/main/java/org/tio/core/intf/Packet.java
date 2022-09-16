@@ -195,6 +195,7 @@ package org.tio.core.intf;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tio.utils.SysConst;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
@@ -347,7 +348,7 @@ public class Packet implements java.io.Serializable, Cloneable {
 	}
 
 	public String logstr() {
-		return "";
+		return SysConst.BLANK;
 	}
 
 	public boolean isFromCluster() {
