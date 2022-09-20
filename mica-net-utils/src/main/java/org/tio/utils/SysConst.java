@@ -201,7 +201,7 @@ import java.nio.charset.StandardCharsets;
  * 2018年7月1日 下午10:51:59
  */
 public interface SysConst {
-	String TIO_CORE_VERSION = "0.0.4";
+	String TIO_CORE_VERSION = "0.0.5";
 	String TIO_URL_GITEE = "https://git.dreamlu.net/iot-vip/mica-net";
 	String TIO_URL_SITE = "https://www.dreamlu.net";
 	/**
