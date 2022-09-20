@@ -193,14 +193,13 @@
 */
 package org.tio.utils.hutool;
 
-import org.tio.utils.date.DateFmt;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Locale;
@@ -243,7 +242,6 @@ public class DateUtil {
 				return DatePattern.PURE_TIME_PATTERN;
 			}
 		}
-
 		if (length == DatePattern.NORM_DATETIME_PATTERN.length() || length == DatePattern.NORM_DATETIME_PATTERN.length() + 1) {
 			return DatePattern.NORM_DATETIME_PATTERN;
 		} else if (length == DatePattern.NORM_DATE_PATTERN.length()) {
@@ -308,7 +306,7 @@ public class DateUtil {
 	 * @author tanyaowu
 	 */
 	public static String httpDate(TemporalAccessor temporal) {
-		return DateFmt.of("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US).format(temporal);
+		return DateTimeFormatter.ofPattern("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US).format(temporal);
 	}
 
 	public static String httpDate(long millis) {
@@ -322,11 +320,11 @@ public class DateUtil {
 	 * @param date 被格式化的日期
 	 * @return 格式化后的日期
 	 */
-	public static String formatDateTime(Date date) {
+	public static String formatDateTime(LocalDateTime date) {
 		if (null == date) {
 			return null;
 		}
-		return DateFmt.yyyy_MM_dd_HHmmss.format(date.toInstant().atZone(ZoneId.systemDefault()));
+		return date.format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATETIME_PATTERN));
 	}
 
 	/**
