@@ -212,9 +212,6 @@ import java.nio.channels.CompletionHandler;
 public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSocketChannel, TioServer> {
 	private static final Logger log = LoggerFactory.getLogger(AcceptCompletionHandler.class);
 
-	public AcceptCompletionHandler() {
-	}
-
 	/**
 	 * @param asynchronousSocketChannel AsynchronousSocketChannel
 	 * @param tioServer                 TioServer
@@ -261,7 +258,12 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 				log.info("{}即将关闭服务器，不再接受新请求", tioServer.getServerNode());
 			} else {
 				AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
-				serverSocketChannel.accept(tioServer, this);
+				try {
+					serverSocketChannel.accept(tioServer, this);
+				} catch (Throwable e) {
+					// 避免 AsynchronousCloseException 导致服务器退出
+					failed(e, tioServer);
+				}
 			}
 		}
 	}
