@@ -210,8 +210,8 @@ import java.util.concurrent.TimeUnit;
 public class Threads {
 	public static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	public static final int CORE_POOL_SIZE = AVAILABLE_PROCESSORS;
-	public static final int MAX_POOL_SIZE_FOR_TIO = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_TIO", Math.max(CORE_POOL_SIZE * 3, 64));
-	public static final int MAX_POOL_SIZE_FOR_GROUP = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_GROUP", Math.max(CORE_POOL_SIZE * 16, 256));
+	public static final int MAX_POOL_SIZE_FOR_TIO = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_TIO", Math.max(CORE_POOL_SIZE * 2, 8));
+	public static final int MAX_POOL_SIZE_FOR_GROUP = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_GROUP", Math.max(CORE_POOL_SIZE * 4, 16));
 	public static final long KEEP_ALIVE_TIME = 0L;
 	private static ThreadPoolExecutor groupExecutor = null;
 	private static SynThreadPoolExecutor tioExecutor = null;
