@@ -193,8 +193,6 @@
 */
 package org.tio.core.stat;
 
-import org.tio.utils.SystemClock;
-
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -248,23 +246,23 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * 最近一次收到业务消息包的时间(一个完整的业务消息包，一部分消息不算)
 	 */
-	public long latestTimeOfReceivedPacket = SystemClock.now();
+	public long latestTimeOfReceivedPacket;
 	/**
 	 * 最近一次发送业务消息包的时间(一个完整的业务消息包，一部分消息不算)
 	 */
-	public long latestTimeOfSentPacket = SystemClock.now();
+	public long latestTimeOfSentPacket;
 	/**
 	 * 最近一次收到业务消息包的时间:收到字节就算
 	 */
-	public long latestTimeOfReceivedByte = SystemClock.now();
+	public long latestTimeOfReceivedByte;
 	/**
 	 * 最近一次发送业务消息包的时间：发送字节就算
 	 */
-	public long latestTimeOfSentByte = SystemClock.now();
+	public long latestTimeOfSentByte;
 	/**
 	 * ChannelContext对象创建的时间
 	 */
-	public long timeCreated = SystemClock.now();
+	public long timeCreated;
 	/**
 	 * 第一次连接成功的时间
 	 */
@@ -272,11 +270,25 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * 连接关闭的时间
 	 */
-	public long timeClosed = SystemClock.now();
+	public long timeClosed;
 	/**
 	 * 进入重连队列时间
 	 */
-	public long timeInReconnQueue = SystemClock.now();
+	public long timeInReconnQueue;
+
+	public ChannelStat() {
+		this(System.currentTimeMillis());
+	}
+
+	private ChannelStat(long now) {
+		this.latestTimeOfReceivedPacket = now;
+		this.latestTimeOfSentPacket = now;
+		this.latestTimeOfReceivedByte = now;
+		this.latestTimeOfSentByte = now;
+		this.timeCreated = now;
+		this.timeClosed = now;
+		this.timeInReconnQueue = now;
+	}
 
 	/**
 	 * 平均每次TCP接收到的字节数，这个可以用来监控慢攻击，配置PacketsPerTcpReceive定位慢攻击

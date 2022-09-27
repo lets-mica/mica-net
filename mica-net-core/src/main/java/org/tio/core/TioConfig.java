@@ -202,7 +202,6 @@ import org.tio.core.ssl.SslConfig;
 import org.tio.core.stat.GroupStat;
 import org.tio.core.task.CloseRunnable;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.SystemClock;
 import org.tio.utils.Threads;
 import org.tio.utils.prop.MapPropSupport;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
@@ -250,7 +249,7 @@ public abstract class TioConfig extends MapPropSupport {
 	/**
 	 * 启动时间
 	 */
-	public long startTime = SystemClock.now();
+	public long startTime = System.currentTimeMillis();
 	/**
 	 * 是否用队列发送
 	 */

@@ -200,7 +200,6 @@ import org.tio.client.ReconnConf;
 import org.tio.client.TioClientConfig;
 import org.tio.core.ChannelContext;
 import org.tio.core.maintain.MaintainUtils;
-import org.tio.utils.SystemClock;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.util.Queue;
@@ -236,7 +235,7 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 				String remark = channelContext.closeMeta.remark;
 				Throwable throwable = channelContext.closeMeta.throwable;
 
-				channelContext.stat.timeClosed = SystemClock.now();
+				channelContext.stat.timeClosed = System.currentTimeMillis();
 				if (channelContext.tioConfig.getTioListener() != null) {
 					try {
 						channelContext.tioConfig.getTioListener().onBeforeClose(channelContext, throwable, remark, isNeedRemove);
@@ -279,7 +278,7 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 						if (channelContext.tioConfig.statOn) {
 							channelContext.tioConfig.groupStat.closed.increment();
 						}
-						channelContext.stat.timeClosed = SystemClock.now();
+						channelContext.stat.timeClosed = System.currentTimeMillis();
 						channelContext.setClosed(true);
 					} catch (Throwable e) {
 						log.error(e.getMessage(), e);

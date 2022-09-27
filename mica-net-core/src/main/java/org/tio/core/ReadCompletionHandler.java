@@ -198,7 +198,6 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.utils.ByteBufferUtils;
 import org.tio.core.utils.TioUtils;
-import org.tio.utils.SystemClock;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
@@ -233,7 +232,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 				channelContext.stat.receivedTcps.increment();
 			}
 
-			channelContext.stat.latestTimeOfReceivedByte = SystemClock.now();
+			channelContext.stat.latestTimeOfReceivedByte = System.currentTimeMillis();
 
 			if (tioConfig.getTioListener() != null) {
 				try {

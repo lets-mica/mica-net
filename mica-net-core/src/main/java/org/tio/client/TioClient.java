@@ -202,7 +202,6 @@ import org.tio.core.Tio;
 import org.tio.core.intf.Packet;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.stat.ChannelStat;
-import org.tio.utils.SystemClock;
 import org.tio.utils.hutool.StrUtil;
 
 import java.io.IOException;
@@ -210,8 +209,6 @@ import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.UnresolvedAddressException;
-import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -329,9 +326,9 @@ public class TioClient {
 	 */
 	private ClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, ClientChannelContext initClientChannelContext, Integer timeout, boolean isSyn) throws Exception {
 		boolean isReconnect = initClientChannelContext != null;
-		long start = SystemClock.now();
+		long start = System.currentTimeMillis();
 		AsynchronousSocketChannel asynchronousSocketChannel = AsynchronousSocketChannel.open(channelGroup);
-		long end = SystemClock.now();
+		long end = System.currentTimeMillis();
 		long iv = end - start;
 		if (iv >= 100) {
 			log.error("{}, open 耗时:{} ms", serverNode, iv);
@@ -440,7 +437,7 @@ public class TioClient {
 		new Thread(() -> {
 			while (!tioClientConfig.isStopped()) {
 				Set<ChannelContext> set = tioClientConfig.connecteds;
-				long currTime = SystemClock.now();
+				long currTime = System.currentTimeMillis();
 				try {
 					for (ChannelContext entry : set) {
 						ClientChannelContext channelContext = (ClientChannelContext) entry;
@@ -516,7 +513,7 @@ public class TioClient {
 					if (sslFacadeContext != null) {
 						sslFacadeContext.setHandshakeCompleted(false);
 					}
-					long sleepTime = reconnConf.getInterval() - (SystemClock.now() - channelContext.stat.timeInReconnQueue);
+					long sleepTime = reconnConf.getInterval() - (System.currentTimeMillis() - channelContext.stat.timeInReconnQueue);
 					if (sleepTime > 0) {
 						try {
 							Thread.sleep(sleepTime);

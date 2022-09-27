@@ -199,7 +199,6 @@ import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
-import org.tio.utils.SystemClock;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
@@ -223,7 +222,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 	@Override
 	public void completed(Integer bytesWritten, WriteCompletionVo writeCompletionVo) {
 		if (bytesWritten > 0) {
-			channelContext.stat.latestTimeOfSentByte = SystemClock.now();
+			channelContext.stat.latestTimeOfSentByte = System.currentTimeMillis();
 		}
 		if (writeCompletionVo.byteBuffer.hasRemaining()) {
 			if (log.isInfoEnabled()) {
@@ -252,7 +251,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 		try {
 			channelContext.sendRunnable.canSend = true;
 			channelContext.writeCompletionHandler.condition.signal();
-			channelContext.stat.latestTimeOfSentPacket = SystemClock.now();
+			channelContext.stat.latestTimeOfSentPacket = System.currentTimeMillis();
 			Object attachment = writeCompletionVo.obj;
 			TioConfig tioConfig = channelContext.tioConfig;
 			boolean isSentSuccess = bytesWritten > 0;

@@ -200,7 +200,6 @@ import org.tio.core.Node;
 import org.tio.core.Tio;
 import org.tio.http.common.HttpConst.RequestBodyFormat;
 import org.tio.utils.SysConst;
-import org.tio.utils.SystemClock;
 import org.tio.utils.hutool.StrUtil;
 
 import java.nio.charset.Charset;
@@ -239,7 +238,7 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * 该HttpRequest对象的创建时间
 	 */
-	private long createTime = SystemClock.now();
+	private long createTime = System.currentTimeMillis();
 	private boolean closed = false;
 	private Integer forwardCount = null;
 
