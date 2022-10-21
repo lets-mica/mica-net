@@ -194,9 +194,11 @@
 package org.tio.utils.page;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * @author tanyaowu
@@ -208,86 +210,79 @@ public class PageUtils {
 		return fromList(list, pageNumber, pageSize, null);
 	}
 
-	@SuppressWarnings("unchecked")
-	public static <T> Page<T> fromList(List<?> list, int pageNumber, int pageSize, Function<Object, T> converter) {
+	public static <E, T> Page<T> fromList(List<E> list, int pageNumber, int pageSize, Function<E, T> converter) {
 		if (list == null) {
 			return null;
 		}
-		Page<Object> page = pre(list, pageNumber, pageSize);
-
-		List<Object> pageData = page.getList();
+		Page<T> page = pre(list, pageNumber, pageSize);
+		List<T> pageData = page.getList();
 		if (pageData == null) {
-			return (Page<T>) page;
+			return page;
 		}
-
 		int startIndex = Math.min((page.getPageNumber() - 1) * page.getPageSize(), list.size());
 		int endIndex = Math.min(page.getPageNumber() * page.getPageSize(), list.size());
-
 		for (int i = startIndex; i < endIndex; i++) {
 			if (converter != null) {
 				pageData.add(converter.apply(list.get(i)));
 			} else {
-				pageData.add(list.get(i));
+				pageData.add((T) list.get(i));
 			}
 		}
 		page.setList(pageData);
-		return (Page<T>) page;
+		return page;
 	}
 
 	public static <T> Page<T> fromSet(Set<T> set, int pageNumber, int pageSize) {
-		return fromSet(set, pageNumber, pageSize, null);
+		return fromSet(set, pageNumber, pageSize, null, null);
 	}
 
-	@SuppressWarnings("unchecked")
-	public static <T> Page<T> fromSet(Set<?> set, int pageNumber, int pageSize, Function<Object, T> converter) {
+	public static <E, T> Page<T> fromSet(Set<E> set, int pageNumber, int pageSize, Function<E, T> converter) {
+		return fromSet(set, pageNumber, pageSize, null, converter);
+	}
+
+	public static <E, T> Page<T> fromSet(Set<E> set, int pageNumber, int pageSize, Predicate<E> filter, Function<E, T> converter) {
 		if (set == null) {
 			return null;
 		}
-
-		Page<Object> page = pre(set, pageNumber, pageSize);
-
-		List<Object> pageData = page.getList();
+		Page<T> page = pre(set, pageNumber, pageSize);
+		List<T> pageData = page.getList();
 		if (pageData == null) {
-			return (Page<T>) page;
+			return page;
 		}
-
 		int startIndex = Math.min((page.getPageNumber() - 1) * page.getPageSize(), set.size());
 		int endIndex = Math.min(page.getPageNumber() * page.getPageSize(), set.size());
 		int i = 0;
-		for (Object t : set) {
+		for (E e : set) {
 			if (i >= endIndex) {
 				break;
 			}
-			if (i < startIndex) {
+			// 过滤
+			if (i < startIndex || !filter.test(e)) {
 				i++;
 				continue;
 			}
-
 			if (converter != null) {
-				pageData.add(converter.apply(t));
+				pageData.add(converter.apply(e));
 			} else {
-				pageData.add(t);
+				pageData.add((T) e);
 			}
 			i++;
 		}
 		page.setList(pageData);
-		return (Page<T>) page;
+		return page;
 	}
 
-	private static Page<Object> pre(java.util.Collection<?> allList, int pageNumber, int pageSize) {
+	private static <E, T> Page<T> pre(Collection<E> allList, int pageNumber, int pageSize) {
 		if (allList == null) {
 			return new Page<>(null, pageNumber, pageSize, 0);
 		}
-
 		pageSize = processPageSize(pageSize);
 		pageNumber = processPageNumber(pageNumber);
-
 		int recordCount = allList.size();
 		if (pageSize > recordCount) {
 			pageSize = recordCount;
 		}
-
-		List<Object> pageData = new ArrayList<>(pageSize);
+		List<T> pageData = new ArrayList<>(pageSize);
 		return new Page<>(pageData, pageNumber, pageSize, recordCount);
 	}
 

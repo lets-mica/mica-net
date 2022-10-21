@@ -209,6 +209,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * The Class Tio. t-io用户关心的API几乎全在这
@@ -249,9 +250,9 @@ public class Tio {
 	/**
 	 * 将用户绑定到群组
 	 *
-	 * @param tioConfig
-	 * @param userid
-	 * @param group
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param group     group
 	 */
 	public static void bindGroup(TioConfig tioConfig, String userid, String group) {
 		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
@@ -265,8 +266,8 @@ public class Tio {
 	/**
 	 * 绑定token
 	 *
-	 * @param channelContext
-	 * @param token
+	 * @param channelContext ChannelContext
+	 * @param token          token
 	 * @author tanyaowu
 	 */
 	public static void bindToken(ChannelContext channelContext, String token) {
@@ -276,8 +277,8 @@ public class Tio {
 	/**
 	 * 绑定用户
 	 *
-	 * @param channelContext
-	 * @param userid
+	 * @param channelContext channelContext
+	 * @param userid         userid
 	 * @author tanyaowu
 	 */
 	public static void bindUser(ChannelContext channelContext, String userid) {
@@ -287,9 +288,9 @@ public class Tio {
 	/**
 	 * 阻塞发送消息到指定ChannelContext
 	 *
-	 * @param channelContext
-	 * @param packet
-	 * @return
+	 * @param channelContext channelContext
+	 * @param packet         packet
+	 * @return boolean
 	 * @author tanyaowu
 	 */
 	public static boolean bSend(ChannelContext channelContext, Packet packet) {
@@ -303,10 +304,11 @@ public class Tio {
 	/**
 	 * 发送到指定的ip和port
 	 *
-	 * @param tioConfig
-	 * @param ip
-	 * @param port
-	 * @param packet
+	 * @param tioConfig tioConfig
+	 * @param ip        ip
+	 * @param port      port
+	 * @param packet    packet
+	 * @return boolean
 	 * @author tanyaowu
 	 */
 	public static boolean bSend(TioConfig tioConfig, String ip, int port, Packet packet) {
@@ -316,9 +318,10 @@ public class Tio {
 	/**
 	 * 发消息到所有连接
 	 *
-	 * @param tioConfig
-	 * @param packet
-	 * @param channelContextFilter
+	 * @param tioConfig            tioConfig
+	 * @param packet               packet
+	 * @param channelContextFilter channelContextFilter
+	 * @return boolean
 	 * @author tanyaowu
 	 */
 	public static boolean bSendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter) {
@@ -328,9 +331,10 @@ public class Tio {
 	/**
 	 * 阻塞发消息给指定业务ID
 	 *
-	 * @param tioConfig
-	 * @param bsId
-	 * @param packet
+	 * @param tioConfig tioConfig
+	 * @param bsId      bsId
+	 * @param packet    packet
+	 * @return boolean
 	 * @author tanyaowu
 	 */
 	public static boolean bSendToBsId(TioConfig tioConfig, String bsId, Packet packet) {
@@ -340,9 +344,10 @@ public class Tio {
 	/**
 	 * 发消息到组
 	 *
-	 * @param tioConfig
-	 * @param group
-	 * @param packet
+	 * @param tioConfig tioConfig
+	 * @param group     group
+	 * @param packet    packet
+	 * @return boolean
 	 * @author tanyaowu
 	 */
 	public static boolean bSendToGroup(TioConfig tioConfig, String group, Packet packet) {
@@ -352,10 +357,11 @@ public class Tio {
 	/**
 	 * 发消息到组
 	 *
-	 * @param tioConfig
-	 * @param group
-	 * @param packet
-	 * @param channelContextFilter
+	 * @param tioConfig            tioConfig
+	 * @param group                group
+	 * @param packet               packet
+	 * @param channelContextFilter channelContextFilter
+	 * @return boolean
 	 * @author tanyaowu
 	 */
 	public static boolean bSendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter) {
@@ -575,7 +581,7 @@ public class Tio {
 	 */
 	public static void closeGroup(TioConfig tioConfig, String group, String remark, CloseCode closeCode) {
 		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
-		closeSet(tioConfig, contextSet, remark, closeCode);
+		closeSet(contextSet, remark, closeCode);
 	}
 
 	/**
@@ -600,7 +606,7 @@ public class Tio {
 	 */
 	public static void closeUser(TioConfig tioConfig, String userid, String remark, CloseCode closeCode) {
 		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
-		closeSet(tioConfig, contextSet, remark, closeCode);
+		closeSet(contextSet, remark, closeCode);
 	}
 
 	/**
@@ -625,7 +631,7 @@ public class Tio {
 	 */
 	public static void closeToken(TioConfig tioConfig, String token, String remark, CloseCode closeCode) {
 		Set<ChannelContext> setWithLock = Tio.getByToken(tioConfig, token);
-		closeSet(tioConfig, setWithLock, remark, closeCode);
+		closeSet(setWithLock, remark, closeCode);
 	}
 
 	/**
@@ -650,7 +656,7 @@ public class Tio {
 	 */
 	public static void removeGroup(TioConfig tioConfig, String group, String remark, CloseCode removeCode) {
 		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
-		removeSet(tioConfig, contextSet, remark, removeCode);
+		removeSet(contextSet, remark, removeCode);
 	}
 
 	/**
@@ -675,7 +681,7 @@ public class Tio {
 	 */
 	public static void removeUser(TioConfig tioConfig, String userid, String remark, CloseCode removeCode) {
 		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
-		removeSet(tioConfig, contextSet, remark, removeCode);
+		removeSet(contextSet, remark, removeCode);
 	}
 
 	/**
@@ -700,19 +706,18 @@ public class Tio {
 	 */
 	public static void removeToken(TioConfig tioConfig, String token, String remark, CloseCode removeCode) {
 		Set<ChannelContext> contextSet = Tio.getByToken(tioConfig, token);
-		removeSet(tioConfig, contextSet, remark, removeCode);
+		removeSet(contextSet, remark, removeCode);
 	}
 
 	/**
 	 * 关闭集合
 	 *
-	 * @param tioConfig
 	 * @param set
 	 * @param remark
 	 * @param closeCode
 	 * @author tanyaowu
 	 */
-	public static void closeSet(TioConfig tioConfig, Set<ChannelContext> set, String remark, CloseCode closeCode) {
+	public static void closeSet(Set<ChannelContext> set, String remark, CloseCode closeCode) {
 		if (set != null) {
 			for (ChannelContext channelContext : set) {
 				Tio.close(channelContext, remark, closeCode);
@@ -723,13 +728,12 @@ public class Tio {
 	/**
 	 * 移除集合
 	 *
-	 * @param tioConfig
 	 * @param set
 	 * @param remark
 	 * @param closeCode
 	 * @author tanyaowu
 	 */
-	public static void removeSet(TioConfig tioConfig, Set<ChannelContext> set, String remark, CloseCode closeCode) {
+	public static void removeSet(Set<ChannelContext> set, String remark, CloseCode closeCode) {
 		if (set != null) {
 			for (ChannelContext channelContext : set) {
 				Tio.remove(channelContext, remark, closeCode);
@@ -773,19 +777,6 @@ public class Tio {
 	}
 
 	/**
-	 * 根据业务id找ChannelContext
-	 *
-	 * @param tioConfig
-	 * @param bsId
-	 * @return
-	 * @author tanyaowu
-	 * @deprecated 用getByBsId(TioConfig tioConfig, String bsId)
-	 */
-	public static ChannelContext getChannelContextByBsId(TioConfig tioConfig, String bsId) {
-		return getByBsId(tioConfig, bsId);
-	}
-
-	/**
 	 * 根据clientip和clientport获取ChannelContext
 	 *
 	 * @param tioConfig
@@ -807,18 +798,6 @@ public class Tio {
 	 */
 	public static ChannelContext getByChannelContextId(TioConfig tioConfig, String channelContextId) {
 		return tioConfig.ids.find(tioConfig, channelContextId);
-	}
-
-	/**
-	 * 根据ChannelContext.id获取ChannelContext
-	 *
-	 * @param channelContextId
-	 * @return
-	 * @author tanyaowu
-	 * @deprecated 用getByChannelContextId(tioConfig, channelContextId)
-	 */
-	public static ChannelContext getChannelContextById(TioConfig tioConfig, String channelContextId) {
-		return getByChannelContextId(tioConfig, channelContextId);
 	}
 
 	/**
@@ -846,19 +825,6 @@ public class Tio {
 	}
 
 	/**
-	 * 根据token获取SetWithLock<ChannelContext>
-	 *
-	 * @param tioConfig
-	 * @param token
-	 * @return
-	 * @author tanyaowu
-	 * @deprecated 用getByToken(tioConfig, token)
-	 */
-	public static Set<ChannelContext> getChannelContextsByToken(TioConfig tioConfig, String token) {
-		return getByToken(tioConfig, token);
-	}
-
-	/**
 	 * 根据userid获取SetWithLock<ChannelContext>
 	 *
 	 * @param tioConfig
@@ -871,19 +837,8 @@ public class Tio {
 	}
 
 	/**
-	 * 根据userid获取SetWithLock<ChannelContext>
+	 * 服务端，获取所有的连接
 	 *
-	 * @param tioConfig
-	 * @param userid
-	 * @return
-	 * @author tanyaowu
-	 * @deprecated 用getByUserid(tioConfig, userid)
-	 */
-	public static Set<ChannelContext> getChannelContextsByUserid(TioConfig tioConfig, String userid) {
-		return getByUserid(tioConfig, userid);
-	}
-
-	/**
 	 * @param tioConfig
 	 * @param pageIndex
 	 * @param pageSize
@@ -895,15 +850,31 @@ public class Tio {
 	}
 
 	/**
+	 * 服务端，获取所有的连接
+	 *
 	 * @param tioConfig
 	 * @param pageIndex
 	 * @param pageSize
 	 * @param converter
-	 * @return
+	 * @return 分页 page
 	 */
-	public static <T> Page<T> getPageOfAll(TioConfig tioConfig, Integer pageIndex, Integer pageSize, Function<Object, T> converter) {
-		Set<ChannelContext> setWithLock = Tio.getAll(tioConfig);
-		return PageUtils.fromSet(setWithLock, pageIndex, pageSize, converter);
+	public static <T> Page<T> getPageOfAll(TioConfig tioConfig, Integer pageIndex, Integer pageSize, Function<ChannelContext, T> converter) {
+		Set<ChannelContext> contextSet = Tio.getAll(tioConfig);
+		return PageUtils.fromSet(contextSet, pageIndex, pageSize, converter);
+	}
+
+	/**
+	 * 服务端，获取所有的连接
+	 *
+	 * @param tioConfig
+	 * @param pageIndex
+	 * @param pageSize
+	 * @param converter
+	 * @return 分页 page
+	 */
+	public static <T> Page<T> getPageOfAll(TioConfig tioConfig, Integer pageIndex, Integer pageSize, Predicate<ChannelContext> filter, Function<ChannelContext, T> converter) {
+		Set<ChannelContext> contextSet = Tio.getAll(tioConfig);
+		return PageUtils.fromSet(contextSet, pageIndex, pageSize, filter, converter);
 	}
 
 	/**
@@ -929,16 +900,16 @@ public class Tio {
 	 * @return
 	 * @author tanyaowu
 	 */
-	public static <T> Page<T> getPageOfConnecteds(TioClientConfig tioClientConfig, Integer pageIndex, Integer pageSize, Function<Object, T> converter) {
-		Set<ChannelContext> setWithLock = Tio.getConnecteds(tioClientConfig);
-		return PageUtils.fromSet(setWithLock, pageIndex, pageSize, converter);
+	public static <T> Page<T> getPageOfConnecteds(TioClientConfig tioClientConfig, Integer pageIndex, Integer pageSize, Function<ChannelContext, T> converter) {
+		Set<ChannelContext> contextSet = Tio.getConnecteds(tioClientConfig);
+		return PageUtils.fromSet(contextSet, pageIndex, pageSize, converter);
 	}
 
 	/**
 	 * @param tioConfig TioConfig
-	 * @param group group
+	 * @param group     group
 	 * @param pageIndex pageIndex
-	 * @param pageSize pageSize
+	 * @param pageSize  pageSize
 	 * @return 分页
 	 * @author tanyaowu
 	 */
@@ -954,7 +925,7 @@ public class Tio {
 	 * @param converter converter
 	 * @return 分页
 	 */
-	public static <T> Page<T> getPageOfGroup(TioConfig tioConfig, String group, Integer pageIndex, Integer pageSize, Function<Object, T> converter) {
+	public static <T> Page<T> getPageOfGroup(TioConfig tioConfig, String group, Integer pageIndex, Integer pageSize, Function<ChannelContext, T> converter) {
 		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
 		return PageUtils.fromSet(contextSet, pageIndex, pageSize, converter);
 	}
