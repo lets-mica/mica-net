@@ -257,7 +257,7 @@ public class PageUtils {
 				break;
 			}
 			// 过滤
-			if (i < startIndex || !filter.test(e)) {
+			if (i < startIndex || (filter != null && !filter.test(e))) {
 				i++;
 				continue;
 			}
