@@ -465,7 +465,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	/**
-	 * @param packet Packet
+	 * @param packet        Packet
 	 * @param isSentSuccess isSentSuccess
 	 * @author tanyaowu
 	 */
@@ -556,6 +556,15 @@ public abstract class ChannelContext extends MapPropSupport {
 
 	public void setSslFacadeContext(SslFacadeContext sslFacadeContext) {
 		this.sslFacadeContext = sslFacadeContext;
+	}
+
+	/**
+	 * 获取 用户 id
+	 *
+	 * @return 用户 id
+	 */
+	public String getUserId() {
+		return userId;
 	}
 
 	/**
