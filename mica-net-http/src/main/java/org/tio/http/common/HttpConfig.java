@@ -465,27 +465,24 @@ public class HttpConfig {
 		return maxLengthOfRequestLine;
 	}
 
-	public HttpConfig setMaxLengthOfRequestLine(int maxLengthOfRequestLine) {
+	public void setMaxLengthOfRequestLine(int maxLengthOfRequestLine) {
 		this.maxLengthOfRequestLine = maxLengthOfRequestLine;
-		return this;
 	}
 
 	public int getMaxLengthOfHeader() {
 		return maxLengthOfHeader;
 	}
 
-	public HttpConfig setMaxLengthOfHeader(int maxLengthOfHeader) {
+	public void setMaxLengthOfHeader(int maxLengthOfHeader) {
 		this.maxLengthOfHeader = maxLengthOfHeader;
-		return this;
 	}
 
 	public int getMaxLengthOfHeaderline() {
 		return maxLengthOfHeaderline;
 	}
 
-	public HttpConfig setMaxLengthOfHeaderline(int maxLengthOfHeaderline) {
+	public void setMaxLengthOfHeaderline(int maxLengthOfHeaderline) {
 		this.maxLengthOfHeaderline = maxLengthOfHeaderline;
-		return this;
 	}
 
 	public String getName() {
