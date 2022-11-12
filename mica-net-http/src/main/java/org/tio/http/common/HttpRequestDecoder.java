@@ -218,18 +218,6 @@ import java.util.Objects;
  * @author tanyaowu
  */
 public class HttpRequestDecoder {
-	/**
-	 * 头部，最多有多少字节
-	 */
-	public static final int MAX_LENGTH_OF_HEADER = 20480;
-	/**
-	 * 头部，每行最大的字节数
-	 */
-	public static final int MAX_LENGTH_OF_HEADERLINE = 2048;
-	/**
-	 * 请求行的最大长度
-	 */
-	public static final int MAX_LENGTH_OF_REQUESTLINE = 2048;
 	private static final Logger log = LoggerFactory.getLogger(HttpRequestDecoder.class);
 
 	/**
@@ -253,36 +241,13 @@ public class HttpRequestDecoder {
 	 */
 	public static HttpRequest decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext, HttpConfig httpConfig)
 		throws TioDecodeException {
-		//		int initPosition = position;
-		//		int count = 0;
-		//		Step step = Step.firstline;
-		//		StringBuilder currLine = new StringBuilder();
 		Map<String, String> headers = new HashMap<>();
-		int contentLength = 0;
-		byte[] bodyBytes = null;
-		//		StringBuilder headerSb = null;//new StringBuilder(512);
-		RequestLine firstLine = null;
-		//		boolean appendRequestHeaderString = httpConfig.isAppendRequestHeaderString();
-
-		//		if (httpConfig != null) {
-		//
-		//		}
-		//		if (appendRequestHeaderString) {
-		//			headerSb = new StringBuilder(512);
-		//		}
-
-		// request line start
-		firstLine = parseRequestLine(buffer, channelContext);
+		int contentLength;
+		byte[] bodyBytes;
+		RequestLine firstLine = parseRequestLine(buffer, httpConfig);
 		if (firstLine == null) {
 			return null;
 		}
-		// request line end
-
-		//		HttpRequestHandler httpRequestHandler = (HttpRequestHandler)channelContext.tioConfig.getAttribute(TioConfigKey.HTTP_REQ_HANDLER);
-		//		if (httpRequestHandler != null) {
-		//			httpRequest.setHttpConfig(httpRequestHandler.getHttpConfig(httpRequest));
-		//		}
-
 		// request header start
 		boolean headerCompleted = parseHeaderLine(buffer, headers, 0, httpConfig);
 		if (!headerCompleted) {
@@ -314,21 +279,17 @@ public class HttpRequestDecoder {
 		// request header end
 
 		// ----------------------------------------------- request body start
-
-		//		httpRequest.setHttpConfig((HttpConfig) channelContext.tioConfig.getAttribute(TioConfigKey.HTTP_SERVER_CONFIG));
-
 		String realIp = IpUtils.getRealIp(channelContext, httpConfig, headers);
-		if (httpConfig.checkHost) {
-			if (!headers.containsKey(HttpConst.RequestHeaderKey.Host)) {
-				throw new TioDecodeException("there is no host header");
-			}
+		if (httpConfig.checkHost && !headers.containsKey(HttpConst.RequestHeaderKey.Host)) {
+			throw new TioDecodeException("there is no host header");
 		}
 
 		Node realNode;
 		if (Objects.equals(realIp, channelContext.getClientNode().getIp())) {
 			realNode = channelContext.getClientNode();
 		} else {
-			realNode = new Node(realIp, channelContext.getClientNode().getPort()); //realNode
+			// realNode
+			realNode = new Node(realIp, channelContext.getClientNode().getPort());
 			channelContext.setProxyClientNode(realNode);
 		}
 
@@ -338,11 +299,6 @@ public class HttpRequestDecoder {
 		httpRequest.setHttpConfig(httpConfig);
 		httpRequest.setHeaders(headers);
 		httpRequest.setContentLength(contentLength);
-		//		if (appendRequestHeaderString) {
-		//			httpRequest.setHeaderString(headerSb.toString());
-		//		} else {
-		//			httpRequest.setHeaderString("");
-		//		}
 
 		String connection = headers.get(HttpConst.RequestHeaderKey.Connection);
 		if (connection != null) {
@@ -350,7 +306,7 @@ public class HttpRequestDecoder {
 		}
 
 		if (StrUtil.isNotBlank(firstLine.queryString)) {
-			decodeParams(httpRequest.getParams(), firstLine.queryString, httpRequest.getCharset(), channelContext);
+			decodeParams(httpRequest.getParams(), firstLine.queryString, httpRequest.getCharset());
 		}
 
 		if (contentLength > 0) {
@@ -359,32 +315,8 @@ public class HttpRequestDecoder {
 			httpRequest.setBody(bodyBytes);
 			//解析消息体
 			parseBody(httpRequest, firstLine, bodyBytes, channelContext, httpConfig);
-		} else {
-			//			if (StrUtil.isNotBlank(firstLine.getQuery())) {
-			//				decodeParams(httpRequest.getParams(), firstLine.getQuery(), httpRequest.getCharset(), channelContext);
-			//			}
 		}
 		// ----------------------------------------------- request body end
-
-		//解析User_Agent(浏览器操作系统等信息)
-		//		String User_Agent = headers.get(HttpConst.RequestHeaderKey.User_Agent);
-		//		if (StrUtil.isNotBlank(User_Agent)) {
-		//			//			long start = System.currentTimeMillis();
-		//			UserAgentAnalyzer userAgentAnalyzer = UserAgentAnalyzerFactory.getUserAgentAnalyzer();
-		//			UserAgent userAgent = userAgentAnalyzer.parse(User_Agent);
-		//			httpRequest.setUserAgent(userAgent);
-		//		}
-
-		//		StringBuilder logstr = new StringBuilder();
-		//		logstr.append("\r\n------------------ websocket header start ------------------------\r\n");
-		//		logstr.append(firstLine.getInitStr()).append(SysConst.CRLF);
-		//		Set<Entry<String, String>> entrySet = headers.entrySet();
-		//		for (Entry<String, String> entry : entrySet) {
-		//			logstr.append(StrUtil.leftPad(entry.getKey(), 30)).append(" : ").append(entry.getValue()).append(SysConst.CRLF);
-		//		}
-		//		logstr.append("------------------ websocket header start ------------------------\r\n");
-		//		log.error(logstr.toString());
-
 		return httpRequest;
 	}
 
@@ -392,11 +324,10 @@ public class HttpRequestDecoder {
 	 * @param params
 	 * @param queryString
 	 * @param charset
-	 * @param channelContext
 	 * @throws TioDecodeException
 	 * @author tanyaowu
 	 */
-	public static void decodeParams(Map<String, Object[]> params, String queryString, Charset charset, ChannelContext channelContext) throws TioDecodeException {
+	public static void decodeParams(Map<String, Object[]> params, String queryString, Charset charset) throws TioDecodeException {
 		if (StrUtil.isBlank(queryString)) {
 			return;
 		}
@@ -453,44 +384,6 @@ public class HttpRequestDecoder {
 
 		httpRequest.setBody(bodyBytes);
 
-		//		if (bodyFormat == RequestBodyFormat.MULTIPART) {
-		//			if (log.isInfoEnabled()) {
-		//				String bodyString = null;
-		//				if (bodyBytes != null && bodyBytes.length > 0) {
-		//					if (log.isDebugEnabled()) {
-		//						try {
-		//							bodyString = new String(bodyBytes, httpRequest.getCharset());
-		//							log.debug("{} multipart body value\r\n{}", channelContext, bodyString);
-		//						} catch (UnsupportedEncodingException e) {
-		//							log.error(channelContext.toString(), e);
-		//						}
-		//					}
-		//				}
-		//			}
-		//
-		//			//【multipart/form-data; boundary=----WebKitFormBoundaryuwYcfA2AIgxqIxA0】
-		//			String initboundary = HttpParseUtils.getPerprotyEqualValue(httpRequest.getHeaders(), HttpConst.RequestHeaderKey.Content_Type, "boundary");
-		//			log.debug("{}, initboundary:{}", channelContext, initboundary);
-		//			HttpMultiBodyDecoder.decode(httpRequest, firstLine, bodyBytes, initboundary, channelContext, httpConfig);
-		//		} else {
-		//			String bodyString = null;
-		//			if (bodyBytes != null && bodyBytes.length > 0) {
-		//				try {
-		//					bodyString = new String(bodyBytes, httpRequest.getCharset());
-		//					httpRequest.setBodyString(bodyString);
-		//					if (log.isInfoEnabled()) {
-		//						log.info("{} body value\r\n{}", channelContext, bodyString);
-		//					}
-		//				} catch (UnsupportedEncodingException e) {
-		//					log.error(channelContext.toString(), e);
-		//				}
-		//			}
-		//
-		//			if (bodyFormat == RequestBodyFormat.URLENCODED) {
-		//				parseUrlencoded(httpRequest, firstLine, bodyBytes, bodyString, channelContext);
-		//			}
-		//		}
-
 		switch (bodyFormat) {
 			case MULTIPART:
 				if (log.isDebugEnabled()) {
@@ -503,7 +396,7 @@ public class HttpRequestDecoder {
 
 				//【multipart/form-data; boundary=----WebKitFormBoundaryuwYcfA2AIgxqIxA0】
 				String contentType = httpRequest.getHeader(HttpConst.RequestHeaderKey.Content_Type);
-				String initboundary = HttpParseUtils.getSubAttribute(contentType, "boundary");//.getPerprotyEqualValue(httpRequest.getHeaders(), HttpConst.RequestHeaderKey.Content_Type, "boundary");
+				String initboundary = HttpParseUtils.getSubAttribute(contentType, "boundary");
 				if (log.isDebugEnabled()) {
 					log.debug("{}, initboundary:{}", channelContext, initboundary);
 				}
@@ -519,7 +412,7 @@ public class HttpRequestDecoder {
 					}
 				}
 				if (bodyFormat == RequestBodyFormat.URLENCODED) {
-					parseUrlencoded(httpRequest, firstLine, bodyBytes, bodyString, channelContext);
+					parseUrlencoded(httpRequest, bodyString);
 				}
 				break;
 		}
@@ -570,7 +463,7 @@ public class HttpRequestDecoder {
 	 * @author tanyaowu
 	 */
 	public static boolean parseHeaderLine(ByteBuffer buffer, Map<String, String> headers, int hasReceivedHeaderLength, HttpConfig httpConfig) throws TioDecodeException {
-		byte[] allbs = buffer.array();
+		byte[] allBs = buffer.array();
 		int initPosition = buffer.position();
 		int lastPosition = initPosition;
 		int remaining = buffer.remaining();
@@ -600,7 +493,7 @@ public class HttpRequestDecoder {
 			if (name == null) {
 				if (b == SysConst.COL) {
 					int len = buffer.position() - lastPosition - 1;
-					name = new String(allbs, lastPosition, len);
+					name = new String(allBs, lastPosition, len);
 					lastPosition = buffer.position();
 				} else if (b == SysConst.LF) {
 					byte lastByte = buffer.get(buffer.position() - 2);
@@ -608,13 +501,11 @@ public class HttpRequestDecoder {
 					if (lastByte == SysConst.CR) {
 						len = buffer.position() - lastPosition - 2;
 					}
-					name = new String(allbs, lastPosition, len);
-					lastPosition = buffer.position();
+					name = new String(allBs, lastPosition, len);
 					headers.put(name.toLowerCase(), "");
 					needIteration = true;
 					break;
 				}
-				continue;
 			} else if (value == null) {
 				if (b == SysConst.LF) {
 					byte lastByte = buffer.get(buffer.position() - 2);
@@ -622,8 +513,7 @@ public class HttpRequestDecoder {
 					if (lastByte == SysConst.CR) {
 						len = buffer.position() - lastPosition - 2;
 					}
-					value = new String(allbs, lastPosition, len);
-					lastPosition = buffer.position();
+					value = new String(allBs, lastPosition, len);
 
 					headers.put(name.toLowerCase(), StrUtil.trimEnd(value));
 					needIteration = true;
@@ -638,17 +528,19 @@ public class HttpRequestDecoder {
 			}
 		}
 
-		int lineLength = buffer.position() - initPosition; //这一行(header line)的字节数
-		//		log.error("lineLength:{}, headerLength:{}, headers:\r\n{}", lineLength, hasReceivedHeaderLength, Json.toFormatedJson(headers));
-		if (lineLength > MAX_LENGTH_OF_HEADERLINE) {
-			//			log.error("header line is too long, max length of header line is " + MAX_LENGTH_OF_HEADERLINE);
-			throw new TioDecodeException("header line is too long, max length of header line is " + MAX_LENGTH_OF_HEADERLINE);
+		// 这一行(header line)的字节数
+		int lineLength = buffer.position() - initPosition;
+		int maxLengthOfRequestLine = httpConfig.getMaxLengthOfRequestLine();
+		if (lineLength > maxLengthOfRequestLine) {
+			throw new TioDecodeException(name + " header line is too long, max length of header line is " + maxLengthOfRequestLine);
 		}
 
 		if (needIteration) {
-			int headerLength = lineLength + hasReceivedHeaderLength; //header占用的字节数
-			if (headerLength > MAX_LENGTH_OF_HEADER) {
-				throw new TioDecodeException("header is too long, max length of header is " + MAX_LENGTH_OF_HEADER);
+			// header占用的字节数
+			int headerLength = lineLength + hasReceivedHeaderLength;
+			int maxLengthOfHeader = httpConfig.getMaxLengthOfHeader();
+			if (headerLength > maxLengthOfHeader) {
+				throw new TioDecodeException("header is too long, max length of header is " + maxLengthOfHeader);
 			}
 			return parseHeaderLine(buffer, headers, headerLength, httpConfig);
 		}
@@ -657,176 +549,50 @@ public class HttpRequestDecoder {
 	}
 
 	/**
-	 * 解析请求头的每一行
-	 *
-	 * @param buffer
-	 * @param headers
-	 * @return 头部是否解析完成，true: 解析完成, false: 没有解析完成
-	 * @author tanyaowu
-	 */
-	@SuppressWarnings("unused")
-	private static boolean parseHeaderLine2(ByteBuffer buffer, Map<String, String> headers, int headerLength, HttpConfig httpConfig) throws TioDecodeException {
-		int initPosition = buffer.position();
-		int lastPosition = initPosition;
-		int remaining = buffer.remaining();
-		if (remaining == 0) {
-			return false;
-		} else if (remaining > 1) {
-			byte b1 = buffer.get();
-			byte b2 = buffer.get();
-			if (SysConst.CR == b1 && SysConst.LF == b2) {
-				return true;
-			} else if (SysConst.LF == b1) {
-				return true;
-			}
-		} else {
-			if (SysConst.LF == buffer.get()) {
-				return true;
-			}
-		}
-
-		String name = null;
-		String value = null;
-		boolean hasValue = false;
-
-		boolean needIteration = false;
-		while (buffer.hasRemaining()) {
-			byte b = buffer.get();
-			if (name == null) {
-				if (b == SysConst.COL) {
-					int nowPosition = buffer.position();
-					byte[] bs = new byte[nowPosition - lastPosition - 1];
-					buffer.position(lastPosition);
-					buffer.get(bs);
-					name = new String(bs);
-					lastPosition = nowPosition;
-					buffer.position(nowPosition);
-				} else if (b == SysConst.LF) {
-					int nowPosition = buffer.position();
-					byte[] bs = null;
-					byte lastByte = buffer.get(nowPosition - 2);
-
-					if (lastByte == SysConst.CR) {
-						bs = new byte[nowPosition - lastPosition - 2];
-					} else {
-						bs = new byte[nowPosition - lastPosition - 1];
-					}
-
-					buffer.position(lastPosition);
-					buffer.get(bs);
-					name = new String(bs);
-					lastPosition = nowPosition;
-					buffer.position(nowPosition);
-
-					headers.put(name.toLowerCase(), null);
-					needIteration = true;
-					break;
-				}
-				continue;
-			} else if (value == null) {
-				if (b == SysConst.LF) {
-					int nowPosition = buffer.position();
-					byte[] bs = null;
-					byte lastByte = buffer.get(nowPosition - 2);
-
-					if (lastByte == SysConst.CR) {
-						bs = new byte[nowPosition - lastPosition - 2];
-					} else {
-						bs = new byte[nowPosition - lastPosition - 1];
-					}
-
-					buffer.position(lastPosition);
-					buffer.get(bs);
-					value = new String(bs);
-					lastPosition = nowPosition;
-					buffer.position(nowPosition);
-
-					headers.put(name.toLowerCase(), StrUtil.trimEnd(value));
-					needIteration = true;
-					break;
-					//					return true;
-				} else {
-					if (!hasValue && b == SysConst.SPACE) {
-						lastPosition = buffer.position();
-					} else {
-						hasValue = true;
-					}
-				}
-			}
-		}
-
-		if (needIteration) {
-			int myHeaderLength = buffer.position() - initPosition;
-			if (myHeaderLength > MAX_LENGTH_OF_HEADER) {
-				throw new TioDecodeException("header is too long");
-			}
-			return parseHeaderLine(buffer, headers, myHeaderLength + headerLength, httpConfig);
-		}
-
-		if (remaining > MAX_LENGTH_OF_HEADERLINE) {
-			throw new TioDecodeException("header line is too long");
-		}
-		return false;
-	}
-
-	/**
 	 * parse request line(the first line)
 	 *
-	 * @param buffer           GET /tio?value=tanyaowu HTTP/1.1
-	 * @param channelContext
-	 * @return
-	 * @author tanyaowu
-	 * 2017年2月23日 下午1:37:51
+	 * @param buffer     GET /tio?value=tanyaowu HTTP/1.1
+	 * @param httpConfig HttpConfig
+	 * @return RequestLine
 	 */
-	public static RequestLine parseRequestLine(ByteBuffer buffer, ChannelContext channelContext) throws TioDecodeException {
-		//		if (!buffer.hasArray()) {
-		//			return parseRequestLine2(buffer, channelContext);
-		//		}
-
-		byte[] allbs = buffer.array();
-
+	public static RequestLine parseRequestLine(ByteBuffer buffer, HttpConfig httpConfig) throws TioDecodeException {
+		byte[] allBs = buffer.array();
 		int initPosition = buffer.position();
-
-		//		int remaining = buffer.remaining();
 		String methodStr = null;
 		String pathStr = null;
 		String queryStr = null;
 		String protocol = null;
 		String version = null;
-		int lastPosition = initPosition;//buffer.position();
+		int lastPosition = initPosition;
 		while (buffer.hasRemaining()) {
 			byte b = buffer.get();
 			if (methodStr == null) {
 				if (b == SysConst.SPACE) {
 					int len = buffer.position() - lastPosition - 1;
-					methodStr = new String(allbs, lastPosition, len);
+					methodStr = new String(allBs, lastPosition, len);
 					lastPosition = buffer.position();
 				}
-				continue;
 			} else if (pathStr == null) {
 				if (b == SysConst.SPACE || b == SysConst.ASTERISK) {
 					int len = buffer.position() - lastPosition - 1;
-					pathStr = new String(allbs, lastPosition, len);
+					pathStr = new String(allBs, lastPosition, len);
 					lastPosition = buffer.position();
 					if (b == SysConst.SPACE) {
 						queryStr = SysConst.BLANK;
 					}
 				}
-				continue;
 			} else if (queryStr == null) {
 				if (b == SysConst.SPACE) {
 					int len = buffer.position() - lastPosition - 1;
-					queryStr = new String(allbs, lastPosition, len);
+					queryStr = new String(allBs, lastPosition, len);
 					lastPosition = buffer.position();
 				}
-				continue;
 			} else if (protocol == null) {
 				if (b == SysConst.BACKSLASH) {
 					int len = buffer.position() - lastPosition - 1;
-					protocol = new String(allbs, lastPosition, len);
+					protocol = new String(allBs, lastPosition, len);
 					lastPosition = buffer.position();
 				}
-				continue;
 			} else if (version == null) {
 				if (b == SysConst.LF) {
 					byte lastByte = buffer.get(buffer.position() - 2);
@@ -834,8 +600,7 @@ public class HttpRequestDecoder {
 					if (lastByte == SysConst.CR) {
 						len = buffer.position() - lastPosition - 2;
 					}
-					version = new String(allbs, lastPosition, len);
-					lastPosition = buffer.position();
+					version = new String(allBs, lastPosition, len);
 					RequestLine requestLine = new RequestLine();
 					Method method = Method.from(methodStr);
 					requestLine.setMethod(method);
@@ -844,117 +609,13 @@ public class HttpRequestDecoder {
 					requestLine.setQueryString(queryStr);
 					requestLine.setProtocol(protocol);
 					requestLine.setVersion(version);
-
-					//					requestLine.setLine(line);
 					return requestLine;
 				}
-				continue;
 			}
 		}
-
-		if ((buffer.position() - initPosition) > MAX_LENGTH_OF_REQUESTLINE) {
-			throw new TioDecodeException("request line is too long");
-		}
-		return null;
-	}
-
-	@SuppressWarnings("unused")
-	private static RequestLine parseRequestLine2(ByteBuffer buffer, ChannelContext channelContext) throws TioDecodeException {
-		int initPosition = buffer.position();
-		//		int remaining = buffer.remaining();
-		String methodStr = null;
-		String pathStr = null;
-		String queryStr = null;
-		String protocol = null;
-		String version = null;
-		int lastPosition = initPosition;//buffer.position();
-		while (buffer.hasRemaining()) {
-			byte b = buffer.get();
-			if (methodStr == null) {
-				if (b == SysConst.SPACE) {
-					int nowPosition = buffer.position();
-					byte[] bs = new byte[nowPosition - lastPosition - 1];
-					buffer.position(lastPosition);
-					buffer.get(bs);
-					methodStr = new String(bs);
-					lastPosition = nowPosition;
-					buffer.position(nowPosition);
-				}
-				continue;
-			} else if (pathStr == null) {
-				if (b == SysConst.SPACE || b == SysConst.ASTERISK) {
-					int nowPosition = buffer.position();
-					byte[] bs = new byte[nowPosition - lastPosition - 1];
-					buffer.position(lastPosition);
-					buffer.get(bs);
-					pathStr = new String(bs);
-					lastPosition = nowPosition;
-					buffer.position(nowPosition);
-
-					if (b == SysConst.SPACE) {
-						queryStr = "";
-					}
-				}
-				continue;
-			} else if (queryStr == null) {
-				if (b == SysConst.SPACE) {
-					int nowPosition = buffer.position();
-					byte[] bs = new byte[nowPosition - lastPosition - 1];
-					buffer.position(lastPosition);
-					buffer.get(bs);
-					queryStr = new String(bs);
-					lastPosition = nowPosition;
-					buffer.position(nowPosition);
-				}
-				continue;
-			} else if (protocol == null) {
-				if (b == '/') {
-					int nowPosition = buffer.position();
-					byte[] bs = new byte[nowPosition - lastPosition - 1];
-					buffer.position(lastPosition);
-					buffer.get(bs);
-					protocol = new String(bs);
-					lastPosition = nowPosition;
-					buffer.position(nowPosition);
-				}
-				continue;
-			} else if (version == null) {
-				if (b == SysConst.LF) {
-					int nowPosition = buffer.position();
-					byte[] bs = null;
-					byte lastByte = buffer.get(nowPosition - 2);
-
-					if (lastByte == SysConst.CR) {
-						bs = new byte[nowPosition - lastPosition - 2];
-					} else {
-						bs = new byte[nowPosition - lastPosition - 1];
-					}
-
-					buffer.position(lastPosition);
-					buffer.get(bs);
-					version = new String(bs);
-					lastPosition = nowPosition;
-					buffer.position(nowPosition);
-
-					RequestLine requestLine = new RequestLine();
-					Method method = Method.from(methodStr);
-					requestLine.setMethod(method);
-					requestLine.setPath(pathStr);
-					requestLine.setInitPath(pathStr);
-					requestLine.setQueryString(queryStr);
-					requestLine.setProtocol(protocol);
-					requestLine.setVersion(version);
-
-					//					requestLine.setLine(line);
-
-					return requestLine;
-				}
-				continue;
-			}
-		}
-
-		if ((buffer.position() - initPosition) > MAX_LENGTH_OF_REQUESTLINE) {
-			throw new TioDecodeException("request line is too long");
+		int maxLengthOfRequestLine = httpConfig.getMaxLengthOfRequestLine();
+		if ((buffer.position() - initPosition) > maxLengthOfRequestLine) {
+			throw new TioDecodeException("request line is too long, max length of RequestLine is " + maxLengthOfRequestLine);
 		}
 		return null;
 	}
@@ -966,24 +627,8 @@ public class HttpRequestDecoder {
 	 * @throws TioDecodeException
 	 * @author tanyaowu
 	 */
-	private static void parseUrlencoded(HttpRequest httpRequest, RequestLine firstLine, byte[] bodyBytes, String bodyString, ChannelContext channelContext)
-		throws TioDecodeException {
-		decodeParams(httpRequest.getParams(), bodyString, httpRequest.getCharset(), channelContext);
-	}
-
-	//	/**
-	//	 * 解析查询
-	//	 * @param httpRequest
-	//	 * @param requestLine
-	//	 * @param channelContext
-	//	 */
-	//	private static void parseQueryString(HttpRequest httpRequest, RequestLine requestLine, ChannelContext channelContext) {
-	//		String queryString = requestLine.getQueryString();
-	//		decodeParams(httpRequest.getParams(), queryString, httpRequest.getCharset(), channelContext);
-	//	}
-
-	public static enum Step {
-		firstline, header, body
+	private static void parseUrlencoded(HttpRequest httpRequest, String bodyString) throws TioDecodeException {
+		decodeParams(httpRequest.getParams(), bodyString, httpRequest.getCharset());
 	}
 
 }

@@ -203,6 +203,18 @@ import java.nio.charset.Charset;
  */
 public class HttpConfig {
 	/**
+	 * 头部，最多有多少字节
+	 */
+	public static final int MAX_LENGTH_OF_HEADER = 20480;
+	/**
+	 * 头部，每行最大的字节数
+	 */
+	public static final int MAX_LENGTH_OF_HEADERLINE = 2048;
+	/**
+	 * 请求行的最大长度
+	 */
+	public static final int MAX_LENGTH_OF_REQUESTLINE = 2048;
+	/**
 	 * 文件上传时，boundary值的最大长度
 	 */
 	public static final int MAX_LENGTH_OF_BOUNDARY = 512;
@@ -219,9 +231,8 @@ public class HttpConfig {
 	 */
 	public static final int MAX_LENGTH_OF_POST_BODY = 1024 * 1024 * 2;
 	/**
-	 * jsonp时，回调参数名
+	 * 最大重定向次数
 	 */
-	public static final String JSONP_PARAM_NAME = "tio_http_jsonp";
 	public static final int MAX_FORWARD_COUNT = 10;
 	/**
 	 * 监听端口
@@ -231,6 +242,18 @@ public class HttpConfig {
 	 * 访问路径前缀，譬如"/api"
 	 */
 	private final String contextPath;
+	/**
+	 * 请求行的最大长度
+	 */
+	public int maxLengthOfRequestLine = MAX_LENGTH_OF_REQUESTLINE;
+	/**
+	 * 头部，最多有多少字节
+	 */
+	public int maxLengthOfHeader = MAX_LENGTH_OF_HEADER;
+	/**
+	 * 头部，每行最大的字节数
+	 */
+	public int maxLengthOfHeaderline = MAX_LENGTH_OF_HEADERLINE;
 	public int maxForwardCount = MAX_FORWARD_COUNT;
 	/**
 	 * 是否兼容1.0
@@ -269,10 +292,6 @@ public class HttpConfig {
 	private boolean isProxied = false;
 	private boolean pageInClasspath = false;
 	private String name = null;
-	/**
-	 * jsonp时，回调参数名
-	 */
-	private String jsonpParamName = JSONP_PARAM_NAME;
 
 	public HttpConfig(int bindPort) {
 		this(bindPort, null);
@@ -442,26 +461,39 @@ public class HttpConfig {
 		this.maxLengthOfPostBody = maxLengthOfPostBody;
 	}
 
-	/**
-	 * @return the name
-	 */
+	public int getMaxLengthOfRequestLine() {
+		return maxLengthOfRequestLine;
+	}
+
+	public HttpConfig setMaxLengthOfRequestLine(int maxLengthOfRequestLine) {
+		this.maxLengthOfRequestLine = maxLengthOfRequestLine;
+		return this;
+	}
+
+	public int getMaxLengthOfHeader() {
+		return maxLengthOfHeader;
+	}
+
+	public HttpConfig setMaxLengthOfHeader(int maxLengthOfHeader) {
+		this.maxLengthOfHeader = maxLengthOfHeader;
+		return this;
+	}
+
+	public int getMaxLengthOfHeaderline() {
+		return maxLengthOfHeaderline;
+	}
+
+	public HttpConfig setMaxLengthOfHeaderline(int maxLengthOfHeaderline) {
+		this.maxLengthOfHeaderline = maxLengthOfHeaderline;
+		return this;
+	}
+
 	public String getName() {
 		return name;
 	}
 
-	/**
-	 * @param name the name to set
-	 */
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public String getJsonpParamName() {
-		return jsonpParamName;
-	}
-
-	public void setJsonpParamName(String jsonpParamName) {
-		this.jsonpParamName = jsonpParamName;
 	}
 
 }
