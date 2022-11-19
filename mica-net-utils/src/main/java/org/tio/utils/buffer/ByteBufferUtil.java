@@ -58,6 +58,28 @@ public class ByteBufferUtil {
 	 * read unsigned byte
 	 *
 	 * @param buffer ByteBuffer
+	 * @return String
+	 */
+	public static String readString(ByteBuffer buffer, int count) {
+		return readString(buffer, count, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * read unsigned byte
+	 *
+	 * @param buffer ByteBuffer
+	 * @return String
+	 */
+	public static String readString(ByteBuffer buffer, int count, Charset charset) {
+		byte[] bytes = new byte[count];
+		buffer.get(bytes);
+		return new String(bytes, charset);
+	}
+
+	/**
+	 * read unsigned byte
+	 *
+	 * @param buffer ByteBuffer
 	 * @return short
 	 */
 	public static int readUnsignedShort(ByteBuffer buffer) {
