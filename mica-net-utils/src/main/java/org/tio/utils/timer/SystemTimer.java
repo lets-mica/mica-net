@@ -121,7 +121,11 @@ public class SystemTimer implements Timer, Function<TimerTaskEntry, Void> {
 
 	@Override
 	public void shutdown() {
-		taskExecutor.shutdown();
+		try {
+			taskExecutor.shutdown();
+		} catch (Exception e1) {
+			logger.error(e1.getMessage(), e1);
+		}
 		try {
 			taskExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
