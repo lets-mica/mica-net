@@ -205,15 +205,15 @@ public class HttpConfig {
 	/**
 	 * 头部，最多有多少字节
 	 */
-	public static final int MAX_LENGTH_OF_HEADER = 20480;
+	public static final int MAX_LENGTH_OF_HEADER = 1024 * 20;
 	/**
 	 * 头部，每行最大的字节数
 	 */
-	public static final int MAX_LENGTH_OF_HEADERLINE = 2048;
+	public static final int MAX_LENGTH_OF_HEADERLINE = 1024 * 2;
 	/**
 	 * 请求行的最大长度
 	 */
-	public static final int MAX_LENGTH_OF_REQUESTLINE = 2048;
+	public static final int MAX_LENGTH_OF_REQUESTLINE = 1024 * 2;
 	/**
 	 * 文件上传时，boundary值的最大长度
 	 */
