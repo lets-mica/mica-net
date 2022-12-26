@@ -281,6 +281,5 @@ public interface SysConst {
 	String CRLF = "\r\n";
 
 	Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-	String DEFAULT_ENCODING = DEFAULT_CHARSET.name();
 
 }

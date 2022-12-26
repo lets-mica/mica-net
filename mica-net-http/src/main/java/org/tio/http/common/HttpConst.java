@@ -210,10 +210,6 @@ public interface HttpConst {
 	 * 默认的字符集
 	 */
 	Charset CHARSET = SysConst.DEFAULT_CHARSET;
-	/**
-	 * 默认规定连接到本服务器的客户端统一用utf-8
-	 */
-	String CHARSET_NAME = SysConst.DEFAULT_ENCODING;
 
 	/**
 	 * 请求体的格式

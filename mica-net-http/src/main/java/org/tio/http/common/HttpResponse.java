@@ -296,16 +296,6 @@ public class HttpResponse extends HttpPacket {
 	}
 
 	/**
-	 * 支持跨域
-	 *
-	 * @author tanyaowu
-	 */
-	public void crossDomain() {
-		addHeader(HeaderName.Access_Control_Allow_Origin, HeaderValue.from("*"));
-		addHeader(HeaderName.Access_Control_Allow_Headers, HeaderValue.from("x-requested-with,content-type"));
-	}
-
-	/**
 	 * <span style='color:red'>
 	 * <p style='color:red;font-size:12pt;'>警告：通过本方法获得Map<HeaderName, HeaderValue>对象后，请勿调用put(key, value)。<p>
 	 * <p style='color:red;font-size:12pt;'>添加响应头只能通过HttpResponse.addHeader(HeaderName, HeaderValue)或HttpResponse.addHeaders(Map<HeaderName, HeaderValue> headers)方式添加<p>
