@@ -216,7 +216,7 @@ class Handshaker {
 	private static final Logger log = LoggerFactory.getLogger(Handshaker.class);
 
 	@SuppressWarnings("unused")
-	private final static String TAG = "Handshaker";
+	private static final String TAG = "Handshaker";
 	private final ITaskHandler _taskHandler;
 	private final Worker _worker;
 	private boolean _finished;

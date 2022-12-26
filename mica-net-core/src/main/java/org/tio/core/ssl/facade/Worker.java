@@ -211,7 +211,7 @@ class Worker {
 	/*  Uses the SSLEngine and Buffers to perform wrap/unwrap operations.
 	 Also, provides access to SSLEngine ops for handshake
 	 */
-	private final static String TAG = "Worker";
+	private static final String TAG = "Worker";
 	private final SSLEngine _engine;
 	private final Buffers _buffers;
 	private ISSLListener _sslListener;
@@ -413,7 +413,7 @@ class Worker {
 		ByteBuffer plainText = _buffers.get(BufferType.IN_PLAIN);
 		try {
 			if (log.isDebugEnabled()) {
-				log.info("{}, doUnwrap(解密): 密文buffer:{}, 明文buffer: {}", channelContext, cipherText, plainText);
+				log.debug("{}, doUnwrap(解密): 密文buffer:{}, 明文buffer: {}", channelContext, cipherText, plainText);
 			}
 			return _engine.unwrap(cipherText, plainText);
 		} catch (SSLException e) {

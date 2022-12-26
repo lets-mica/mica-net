@@ -7,13 +7,13 @@ import org.tio.core.ssl.SslConfig;
 class SslConfigTest {
 
 	@Test
-	void testClient() throws Exception {
+	void testClient() {
 		SslConfig sslConfig = SslConfig.forClient();
 		Assertions.assertNotNull(sslConfig);
 	}
 
 	@Test
-	void testServer() throws Exception {
+	void testServer() {
 		SslConfig sslConfig = SslConfig.forServer("classpath:test.jks", "classpath:test.jks", "501937");
 		Assertions.assertNotNull(sslConfig);
 	}
