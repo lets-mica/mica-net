@@ -372,17 +372,4 @@ public class WsPacket extends Packet {
 		this.bodys = bodys;
 	}
 
-	//	/**
-	//	 * @return the headers
-	//	 */
-	//	public Map<String, String> getHeaders() {
-	//		return headers;
-	//	}
-	//
-	//	/**
-	//	 * @param headers the headers to set
-	//	 */
-	//	public void setHeaders(Map<String, String> headers) {
-	//		this.headers = headers;
-	//	}
 }

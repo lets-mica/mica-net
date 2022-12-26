@@ -544,7 +544,6 @@ public class TioClient {
 		thread.setName("tio-timer-reconnect-" + id);
 		thread.setDaemon(true);
 		thread.start();
-
 	}
 
 	/**

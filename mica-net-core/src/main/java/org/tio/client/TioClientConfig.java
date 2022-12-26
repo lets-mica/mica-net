@@ -259,10 +259,9 @@ public class TioClientConfig extends TioConfig {
 	/**
 	 * 使用ssl访问
 	 *
-	 * @throws Exception
 	 * @author tanyaowu
 	 */
-	public void useSsl() throws Exception {
+	public void useSsl() {
 		SslConfig sslConfig = SslConfig.forClient();
 		setSslConfig(sslConfig);
 	}

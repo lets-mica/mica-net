@@ -204,9 +204,6 @@ import org.tio.websocket.common.WsSessionContext;
  */
 public class WsTioServerListener implements TioServerListener {
 
-	public WsTioServerListener() {
-	}
-
 	@Override
 	public void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) throws Exception {
 		WsSessionContext wsSessionContext = new WsSessionContext();

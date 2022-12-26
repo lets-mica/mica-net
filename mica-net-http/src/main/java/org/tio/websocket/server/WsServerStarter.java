@@ -197,7 +197,6 @@ import org.tio.core.intf.TioUuid;
 import org.tio.http.common.HttpConfig;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.Threads;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 import org.tio.websocket.common.WsTioUuid;
 import org.tio.websocket.server.handler.IWsMsgHandler;
@@ -234,21 +233,15 @@ public class WsServerStarter {
 	}
 
 	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, TioUuid tioUuid, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
-		if (tioExecutor == null) {
-			tioExecutor = Threads.getTioExecutor();
-		}
-		if (groupExecutor == null) {
-			groupExecutor = Threads.getGroupExecutor();
-		}
 		this.wsServerConfig = wsServerConfig;
 		this.wsMsgHandler = wsMsgHandler;
-		wsTioServerHandler = new WsTioServerHandler(wsServerConfig, wsMsgHandler);
-		wsTioServerListener = new WsTioServerListener();
-		tioServerConfig = new TioServerConfig("Tio Websocket Server", wsTioServerHandler, wsTioServerListener, tioExecutor, groupExecutor);
-		tioServerConfig.setHeartbeatTimeout(0);
-		tioServerConfig.setTioUuid(tioUuid);
-		tioServerConfig.setReadBufferSize(1024 * 30);
-		tioServer = new TioServer(tioServerConfig);
+		this.wsTioServerHandler = new WsTioServerHandler(wsServerConfig, wsMsgHandler);
+		this.wsTioServerListener = new WsTioServerListener();
+		this.tioServerConfig = new TioServerConfig("Tio Websocket Server", wsTioServerHandler, wsTioServerListener, tioExecutor, groupExecutor);
+		this.tioServerConfig.setHeartbeatTimeout(0);
+		this.tioServerConfig.setTioUuid(tioUuid);
+		this.tioServerConfig.setReadBufferSize(1024 * 30);
+		this.tioServer = new TioServer(tioServerConfig);
 	}
 
 	public TioServer getTioServer() {

@@ -193,27 +193,18 @@
 */
 package org.tio.websocket.common;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 /**
  * @author tanyaowu
  * 2017年7月30日 上午10:09:46
  */
 public class WsRequest extends WsPacket {
-	private static final Logger log = LoggerFactory.getLogger(WsRequest.class);
-
 	private static final long serialVersionUID = -3361865570708714596L;
 
-	public static WsRequest fromText(String text, String charset) {
+	public static WsRequest fromText(String text, Charset charset) {
 		WsRequest wsRequest = new WsRequest();
-		try {
-			wsRequest.setBody(text.getBytes(charset));
-		} catch (UnsupportedEncodingException e) {
-			log.error(e.toString(), e);
-		}
+		wsRequest.setBody(text.getBytes(charset));
 		wsRequest.setWsEof(true);
 		wsRequest.setWsOpcode(Opcode.TEXT);
 		return wsRequest;
