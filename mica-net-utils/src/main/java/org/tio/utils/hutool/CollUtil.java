@@ -193,8 +193,7 @@
 */
 package org.tio.utils.hutool;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -241,6 +240,88 @@ public class CollUtil {
 			return value;
 		}
 		return map.computeIfAbsent(key, mappingFunction);
+	}
+
+	/**
+	 * list 分片
+	 *
+	 * @param list List
+	 * @param size 分片大小
+	 * @param <T>  泛型
+	 * @return List 分片
+	 */
+	public static <T> List<List<T>> partition(List<T> list, int size) {
+		Objects.requireNonNull(list, "List to partition must not null.");
+		if (size < 1) {
+			throw new IllegalArgumentException("List to partition size must more then zero.");
+		}
+		return (list instanceof RandomAccess)
+			? new RandomAccessPartition<>(list, size)
+			: new Partition<>(list, size);
+	}
+
+	private static class RandomAccessPartition<T> extends Partition<T> implements RandomAccess {
+		RandomAccessPartition(List<T> list, int size) {
+			super(list, size);
+		}
+	}
+
+	private static class Partition<T> extends AbstractList<List<T>> {
+		final List<T> list;
+		final int size;
+
+		Partition(List<T> list, int size) {
+			this.list = list;
+			this.size = size;
+		}
+
+		@Override
+		public List<T> get(int index) {
+			if (index >= 0 && index < this.size()) {
+				int start = index * this.size;
+				int end = Math.min(start + this.size, this.list.size());
+				return this.list.subList(start, end);
+			}
+			throw new IndexOutOfBoundsException(String.format("index (%s) must be less than size (%s)", index, this.size()));
+		}
+
+		@Override
+		public int size() {
+			return ceilDiv(this.list.size(), this.size);
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return this.list.isEmpty();
+		}
+
+		private static int ceilDiv(int x, int y) {
+			int r = x / y;
+			if (r * y < x) {
+				r++;
+			}
+			return r;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			if (!super.equals(o)) {
+				return false;
+			}
+			Partition<?> partition = (Partition<?>) o;
+			return Objects.equals(list, partition.list);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(super.hashCode(), list);
+		}
 	}
 
 }
