@@ -208,6 +208,8 @@ public interface PacketListener {
 	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
-	void onAfterSent(ChannelContext channelContext, Packet packet, boolean isSentSuccess) throws Exception;
+	default void onAfterSent(ChannelContext channelContext, Packet packet, boolean isSentSuccess) throws Exception {
+
+	}
 
 }

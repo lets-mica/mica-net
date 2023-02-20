@@ -209,6 +209,8 @@ public interface TioServerListener extends TioListener {
 	 * @param heartbeatTimeoutCount 心跳超时次数，第一次超时此值是1，以此类推。此值被保存在：channelContext.stat.heartbeatTimeoutCount
 	 * @return 返回true，那么服务器则不关闭此连接；返回false，服务器将按心跳超时关闭该连接
 	 */
-	boolean onHeartbeatTimeout(ChannelContext channelContext, Long interval, int heartbeatTimeoutCount);
+	default boolean onHeartbeatTimeout(ChannelContext channelContext, Long interval, int heartbeatTimeoutCount) {
+		return false;
+	}
 
 }

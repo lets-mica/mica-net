@@ -193,10 +193,10 @@
 */
 package org.tio.server;
 
-import org.tio.core.DefaultTioListener;
+import org.tio.server.intf.TioServerListener;
 
 /**
  * @author tanyaowu
  */
-public class DefaultTioServerListener implements DefaultTioListener {
+public class DefaultTioServerListener implements TioServerListener {
 }

@@ -212,16 +212,6 @@ public class HttpTioServerListener implements TioServerListener {
 	}
 
 	@Override
-	public void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) {
-
-	}
-
-	@Override
-	public void onAfterDecoded(ChannelContext channelContext, Packet packet, int packetSize) {
-
-	}
-
-	@Override
 	public void onAfterSent(ChannelContext channelContext, Packet packet, boolean isSentSuccess) {
 		HttpResponse httpResponse = (HttpResponse) packet;
 		HttpRequest request = httpResponse.getHttpRequest();
@@ -242,26 +232,6 @@ public class HttpTioServerListener implements TioServerListener {
 				}
 			}
 		}
-	}
-
-	@Override
-	public void onBeforeClose(ChannelContext channelContext, Throwable throwable, String remark, boolean isRemove) {
-
-	}
-
-	@Override
-	public void onAfterHandled(ChannelContext channelContext, Packet packet, long cost) throws Exception {
-
-	}
-
-	@Override
-	public void onAfterReceivedBytes(ChannelContext channelContext, int receivedBytes) throws Exception {
-
-	}
-
-	@Override
-	public boolean onHeartbeatTimeout(ChannelContext channelContext, Long interval, int heartbeatTimeoutCount) {
-		return false;
 	}
 
 }

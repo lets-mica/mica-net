@@ -193,11 +193,11 @@
 */
 package org.tio.client;
 
-import org.tio.core.DefaultTioListener;
+import org.tio.client.intf.TioClientListener;
 
 /**
  * @author tanyaowu
  * 2017年4月1日 上午9:32:39
  */
-public class DefaultTioClientListener implements DefaultTioListener {
+public class DefaultTioClientListener implements TioClientListener {
 }

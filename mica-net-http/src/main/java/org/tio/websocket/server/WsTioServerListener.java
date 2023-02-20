@@ -210,32 +210,4 @@ public class WsTioServerListener implements TioServerListener {
 		channelContext.set(WsSessionContext.WS_SESSION_CONTEXT_KEY, wsSessionContext);
 	}
 
-	@Override
-	public void onAfterDecoded(ChannelContext channelContext, Packet packet, int packetSize) throws Exception {
-
-	}
-
-	@Override
-	public void onAfterSent(ChannelContext channelContext, Packet packet, boolean isSentSuccess) throws Exception {
-	}
-
-	@Override
-	public void onBeforeClose(ChannelContext channelContext, Throwable throwable, String remark, boolean isRemove) throws Exception {
-	}
-
-	@Override
-	public void onAfterHandled(ChannelContext channelContext, Packet packet, long cost) throws Exception {
-
-	}
-
-	@Override
-	public void onAfterReceivedBytes(ChannelContext channelContext, int receivedBytes) throws Exception {
-
-	}
-
-	@Override
-	public boolean onHeartbeatTimeout(ChannelContext channelContext, Long interval, int heartbeatTimeoutCount) {
-		return false;
-	}
-
 }
