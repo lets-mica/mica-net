@@ -197,6 +197,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.Node;
 import org.tio.utils.SysConst;
+import org.tio.utils.Version;
 import org.tio.utils.hutool.DateUtil;
 import org.tio.utils.hutool.StrUtil;
 
@@ -293,7 +294,7 @@ public class TioServer {
 		List<String> infoList = new ArrayList<>();
 		infoList.add(StrUtil.fillAfter("mica-net site", ' ', xxLen) + "| " + SysConst.TIO_URL_SITE);
 		infoList.add(StrUtil.fillAfter("mica-net on git", ' ', xxLen) + "| " + SysConst.TIO_URL_GITEE);
-		infoList.add(StrUtil.fillAfter("mica-net version", ' ', xxLen) + "| " + SysConst.TIO_CORE_VERSION);
+		infoList.add(StrUtil.fillAfter("mica-net version", ' ', xxLen) + "| " + Version.getVersion());
 
 		infoList.add(StrUtil.fillAfter("-", '-', aaLen));
 
