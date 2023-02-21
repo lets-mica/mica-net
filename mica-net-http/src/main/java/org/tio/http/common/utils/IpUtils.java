@@ -258,7 +258,6 @@ public class IpUtils {
 	/**
 	 * @param request HttpRequest
 	 * @return ip
-	 * @author tanyaowu
 	 */
 	public static String getRealIp(HttpRequest request) {
 		if (request.httpConfig == null) {
@@ -294,8 +293,7 @@ public class IpUtils {
 	 * @param channelContext
 	 * @param httpConfig
 	 * @param httpHeaders
-	 * @return
-	 * @author tanyaowu
+	 * @return ip
 	 */
 	public static String getRealIp(ChannelContext channelContext, HttpConfig httpConfig, Map<String, String> httpHeaders) {
 		if (httpConfig == null) {

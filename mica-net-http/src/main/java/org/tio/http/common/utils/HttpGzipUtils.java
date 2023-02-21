@@ -205,16 +205,14 @@ import org.tio.utils.hutool.ZipUtil;
 public class HttpGzipUtils {
 	private static final Logger log = LoggerFactory.getLogger(HttpGzipUtils.class);
 
-	/**
-	 * @author tanyaowu
-	 */
 	private HttpGzipUtils() {
 	}
 
 	/**
-	 * @param request
-	 * @param response
-	 * @author tanyaowu
+	 * gzip
+	 *
+	 * @param request HttpRequest
+	 * @param response HttpResponse
 	 */
 	public static void gzip(HttpRequest request, HttpResponse response) {
 		if (response == null) {
@@ -233,8 +231,9 @@ public class HttpGzipUtils {
 	}
 
 	/**
-	 * @param response
-	 * @author tanyaowu
+	 * gzip
+	 *
+	 * @param response HttpResponse
 	 */
 	public static void gzip(HttpResponse response) {
 		if (response == null) {

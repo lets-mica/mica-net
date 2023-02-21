@@ -245,8 +245,7 @@ public class RequestLine {
 	/**
 	 * /user/get?value=999
 	 *
-	 * @return
-	 * @author tanyaowu
+	 * @return query path
 	 */
 	public String getPathAndQuery() {
 		if (StrUtil.isNotBlank(queryString)) {
@@ -309,10 +308,6 @@ public class RequestLine {
 		this.initPath = initPath;
 	}
 
-	/**
-	 * @return
-	 * @author tanyaowu
-	 */
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -329,8 +324,8 @@ public class RequestLine {
 	 * 用来编码用的
 	 * "GET /json?tan=谭耀武 HTTP/1.1" -->"GET /json?tan=%E8%B0%AD%E8%80%80%E6%AD%A6 HTTP/1.1"
 	 *
-	 * @return
-	 * @author tanyaowu
+	 * @param charset 字符集
+	 * @return 编码后的 url
 	 */
 	@SuppressWarnings("deprecation")
 	public String toUrlEncodedString(String charset) {

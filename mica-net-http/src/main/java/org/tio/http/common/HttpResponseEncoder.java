@@ -218,9 +218,6 @@ public class HttpResponseEncoder {
 	public static final int HEADER_FIXED_LENGTH = HEADER_SERVER_LENGTH + HEADER_DATE_LENGTH_1;
 	private static final Logger log = LoggerFactory.getLogger(HttpResponseEncoder.class);
 
-	/**
-	 * @author tanyaowu
-	 */
 	private HttpResponseEncoder() {
 
 	}
@@ -230,7 +227,6 @@ public class HttpResponseEncoder {
 	 * @param tioConfig      TioConfig
 	 * @param channelContext ChannelContext
 	 * @return ByteBuffer
-	 * @author tanyaowu
 	 */
 	public static ByteBuffer encode(HttpResponse httpResponse, TioConfig tioConfig, ChannelContext channelContext) {
 		int bodyLength = 0;

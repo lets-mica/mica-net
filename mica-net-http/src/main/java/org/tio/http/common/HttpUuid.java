@@ -204,17 +204,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class HttpUuid implements TioUuid {
 	private final AtomicLong seq;
 
-	/**
-	 * @author tanyaowu
-	 */
 	public HttpUuid() {
 		this.seq = new AtomicLong();
 	}
 
-	/**
-	 * @return
-	 * @author tanyaowu
-	 */
 	@Override
 	public String uuid() {
 		return Long.toString(seq.incrementAndGet());

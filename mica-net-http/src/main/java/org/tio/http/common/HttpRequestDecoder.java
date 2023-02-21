@@ -220,10 +220,6 @@ import java.util.Objects;
 public class HttpRequestDecoder {
 	private static final Logger log = LoggerFactory.getLogger(HttpRequestDecoder.class);
 
-	/**
-	 * @author tanyaowu
-	 * 2017年2月22日 下午4:06:42
-	 */
 	public HttpRequestDecoder() {
 
 	}
@@ -235,9 +231,8 @@ public class HttpRequestDecoder {
 	 * @param readableLength
 	 * @param channelContext
 	 * @param httpConfig
-	 * @return
+	 * @return HttpRequest
 	 * @throws TioDecodeException
-	 * @author tanyaowu
 	 */
 	public static HttpRequest decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext, HttpConfig httpConfig)
 		throws TioDecodeException {
@@ -325,7 +320,6 @@ public class HttpRequestDecoder {
 	 * @param queryString
 	 * @param charset
 	 * @throws TioDecodeException
-	 * @author tanyaowu
 	 */
 	public static void decodeParams(Map<String, Object[]> params, String queryString, Charset charset) throws TioDecodeException {
 		if (StrUtil.isBlank(queryString)) {
@@ -375,7 +369,6 @@ public class HttpRequestDecoder {
 	 * @param channelContext
 	 * @param httpConfig
 	 * @throws TioDecodeException
-	 * @author tanyaowu
 	 */
 	private static void parseBody(HttpRequest httpRequest, RequestLine firstLine, byte[] bodyBytes, ChannelContext channelContext, HttpConfig httpConfig)
 		throws TioDecodeException {
@@ -422,9 +415,8 @@ public class HttpRequestDecoder {
 	 * Content-Type : application/x-www-form-urlencoded; charset=UTF-8
 	 * Content-Type : application/x-www-form-urlencoded; charset=UTF-8
 	 *
-	 * @param httpRequest
-	 * @param headers
-	 * @author tanyaowu
+	 * @param httpRequest HttpRequest
+	 * @param headers     headers
 	 */
 	public static void parseBodyFormat(HttpRequest httpRequest, Map<String, String> headers) {
 		String contentTypeStr = headers.get(HttpConst.RequestHeaderKey.Content_Type);
@@ -460,7 +452,6 @@ public class HttpRequestDecoder {
 	 * @param httpConfig
 	 * @return 头部是否解析完成，true: 解析完成, false: 没有解析完成
 	 * @throws TioDecodeException
-	 * @author tanyaowu
 	 */
 	public static boolean parseHeaderLine(ByteBuffer buffer, Map<String, String> headers, int hasReceivedHeaderLength, HttpConfig httpConfig) throws TioDecodeException {
 		byte[] allBs = buffer.array();
@@ -625,7 +616,6 @@ public class HttpRequestDecoder {
 	 * 形如： 【Content-Type : application/x-www-form-urlencoded; charset=UTF-8】
 	 *
 	 * @throws TioDecodeException
-	 * @author tanyaowu
 	 */
 	private static void parseUrlencoded(HttpRequest httpRequest, String bodyString) throws TioDecodeException {
 		decodeParams(httpRequest.getParams(), bodyString, httpRequest.getCharset());

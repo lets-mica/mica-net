@@ -230,7 +230,6 @@ public class Tio {
 	 *
 	 * @param channelContext channelContext
 	 * @param bsId           bsId
-	 * @author tanyaowu
 	 */
 	public static void bindBsId(ChannelContext channelContext, String bsId) {
 		channelContext.tioConfig.bsIds.bind(channelContext, bsId);
@@ -241,7 +240,6 @@ public class Tio {
 	 *
 	 * @param channelContext channelContext
 	 * @param group          group
-	 * @author tanyaowu
 	 */
 	public static void bindGroup(ChannelContext channelContext, String group) {
 		channelContext.tioConfig.groups.bind(group, channelContext);
@@ -268,7 +266,6 @@ public class Tio {
 	 *
 	 * @param channelContext ChannelContext
 	 * @param token          token
-	 * @author tanyaowu
 	 */
 	public static void bindToken(ChannelContext channelContext, String token) {
 		channelContext.tioConfig.tokens.bind(token, channelContext);
@@ -279,7 +276,6 @@ public class Tio {
 	 *
 	 * @param channelContext channelContext
 	 * @param userid         userid
-	 * @author tanyaowu
 	 */
 	public static void bindUser(ChannelContext channelContext, String userid) {
 		channelContext.tioConfig.users.bind(userid, channelContext);
@@ -291,7 +287,6 @@ public class Tio {
 	 * @param channelContext channelContext
 	 * @param packet         packet
 	 * @return boolean
-	 * @author tanyaowu
 	 */
 	public static boolean bSend(ChannelContext channelContext, Packet packet) {
 		if (channelContext == null) {
@@ -309,7 +304,6 @@ public class Tio {
 	 * @param port      port
 	 * @param packet    packet
 	 * @return boolean
-	 * @author tanyaowu
 	 */
 	public static boolean bSend(TioConfig tioConfig, String ip, int port, Packet packet) {
 		return send(tioConfig, ip, port, packet, true);
@@ -322,7 +316,6 @@ public class Tio {
 	 * @param packet               packet
 	 * @param channelContextFilter channelContextFilter
 	 * @return boolean
-	 * @author tanyaowu
 	 */
 	public static boolean bSendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter) {
 		return sendToAll(tioConfig, packet, channelContextFilter, true);
@@ -335,7 +328,6 @@ public class Tio {
 	 * @param bsId      bsId
 	 * @param packet    packet
 	 * @return boolean
-	 * @author tanyaowu
 	 */
 	public static boolean bSendToBsId(TioConfig tioConfig, String bsId, Packet packet) {
 		return sendToBsId(tioConfig, bsId, packet, true);
@@ -348,7 +340,6 @@ public class Tio {
 	 * @param group     group
 	 * @param packet    packet
 	 * @return boolean
-	 * @author tanyaowu
 	 */
 	public static boolean bSendToGroup(TioConfig tioConfig, String group, Packet packet) {
 		return bSendToGroup(tioConfig, group, packet, null);
@@ -362,7 +353,6 @@ public class Tio {
 	 * @param packet               packet
 	 * @param channelContextFilter channelContextFilter
 	 * @return boolean
-	 * @author tanyaowu
 	 */
 	public static boolean bSendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter) {
 		return sendToGroup(tioConfig, group, packet, channelContextFilter, true);
@@ -371,9 +361,10 @@ public class Tio {
 	/**
 	 * 发消息给指定ChannelContext id
 	 *
-	 * @param channelContextId
-	 * @param packet
-	 * @author tanyaowu
+	 * @param tioConfig        TioConfig
+	 * @param channelContextId channelContextId
+	 * @param packet           Packet
+	 * @return boolean
 	 */
 	public static boolean bSendToId(TioConfig tioConfig, String channelContextId, Packet packet) {
 		return sendToId(tioConfig, channelContextId, packet, true);
@@ -382,11 +373,11 @@ public class Tio {
 	/**
 	 * 发消息到指定集合
 	 *
-	 * @param tioConfig
-	 * @param set
-	 * @param packet
-	 * @param channelContextFilter
-	 * @author tanyaowu
+	 * @param tioConfig            TioConfig
+	 * @param set                  集合
+	 * @param packet               Packet
+	 * @param channelContextFilter ChannelContextFilter
+	 * @return boolean
 	 */
 	public static boolean bSendToSet(TioConfig tioConfig, Set<ChannelContext> set, Packet packet, ChannelContextFilter channelContextFilter) {
 		return sendToSet(tioConfig, set, packet, channelContextFilter, true);
@@ -395,11 +386,10 @@ public class Tio {
 	/**
 	 * 阻塞发消息到指定token
 	 *
-	 * @param tioConfig
-	 * @param token
-	 * @param packet
-	 * @return
-	 * @author tanyaowu
+	 * @param tioConfig TioConfig
+	 * @param token     token
+	 * @param packet    Packet
+	 * @return boolean
 	 */
 	public static boolean bSendToToken(TioConfig tioConfig, String token, Packet packet) {
 		return sendToToken(tioConfig, token, packet, true);
@@ -408,11 +398,10 @@ public class Tio {
 	/**
 	 * 阻塞发消息给指定用户
 	 *
-	 * @param tioConfig
-	 * @param userid
-	 * @param packet
-	 * @return
-	 * @author tanyaowu
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param packet    Packet
+	 * @return boolean
 	 */
 	public static boolean bSendToUser(TioConfig tioConfig, String userid, Packet packet) {
 		return sendToUser(tioConfig, userid, packet, true);
@@ -421,18 +410,17 @@ public class Tio {
 	/**
 	 * 关闭连接
 	 *
-	 * @param channelContext
-	 * @param remark
-	 * @author tanyaowu
+	 * @param channelContext ChannelContext
+	 * @param remark         remark
 	 */
 	public static void close(ChannelContext channelContext, String remark) {
 		close(channelContext, null, remark);
 	}
 
 	/**
-	 * @param channelContext
-	 * @param remark
-	 * @param closeCode
+	 * @param channelContext ChannelContext
+	 * @param remark         remark
+	 * @param closeCode      CloseCode
 	 */
 	public static void close(ChannelContext channelContext, String remark, CloseCode closeCode) {
 		close(channelContext, null, remark, closeCode);
@@ -441,10 +429,9 @@ public class Tio {
 	/**
 	 * 关闭连接
 	 *
-	 * @param channelContext
-	 * @param throwable
-	 * @param remark
-	 * @author tanyaowu
+	 * @param channelContext ChannelContext
+	 * @param throwable      Throwable
+	 * @param remark         remark
 	 */
 	public static void close(ChannelContext channelContext, Throwable throwable, String remark) {
 		close(channelContext, throwable, remark, false);
@@ -467,11 +454,12 @@ public class Tio {
 	}
 
 	/**
-	 * @param channelContext
-	 * @param throwable
-	 * @param remark
-	 * @param isNeedRemove
-	 * @param needCloseLock
+	 * @param channelContext ChannelContext
+	 * @param throwable      Throwable
+	 * @param remark         remark
+	 * @param isNeedRemove   isNeedRemove
+	 * @param needCloseLock  needCloseLock
+	 * @param closeCode      CloseCode
 	 */
 	public static void close(ChannelContext channelContext, Throwable throwable, String remark, boolean isNeedRemove, boolean needCloseLock, CloseCode closeCode) {
 		if (channelContext == null) {
@@ -547,12 +535,11 @@ public class Tio {
 	/**
 	 * 关闭连接
 	 *
-	 * @param tioConfig
-	 * @param clientIp
-	 * @param clientPort
-	 * @param throwable
-	 * @param remark
-	 * @author tanyaowu
+	 * @param tioConfig TioConfig
+	 * @param clientIp clientIp
+	 * @param clientPort clientPort
+	 * @param throwable Throwable
+	 * @param remark remark
 	 */
 	public static void close(TioConfig tioConfig, String clientIp, Integer clientPort, Throwable throwable, String remark) {
 		ChannelContext channelContext = tioConfig.clientNodes.find(clientIp, clientPort);
@@ -562,10 +549,9 @@ public class Tio {
 	/**
 	 * 关闭某群所有连接
 	 *
-	 * @param tioConfig
-	 * @param group
-	 * @param remark
-	 * @return
+	 * @param tioConfig TioConfig
+	 * @param group group
+	 * @param remark remark
 	 */
 	public static void closeGroup(TioConfig tioConfig, String group, String remark) {
 		closeGroup(tioConfig, group, remark, null);
@@ -574,10 +560,10 @@ public class Tio {
 	/**
 	 * 关闭某群所有连接
 	 *
-	 * @param tioConfig
-	 * @param group
-	 * @param remark
-	 * @param closeCode
+	 * @param tioConfig TioConfig
+	 * @param group group
+	 * @param remark remark
+	 * @param closeCode CloseCode
 	 */
 	public static void closeGroup(TioConfig tioConfig, String group, String remark, CloseCode closeCode) {
 		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
@@ -587,10 +573,9 @@ public class Tio {
 	/**
 	 * 关闭用户的所有连接
 	 *
-	 * @param tioConfig
-	 * @param userid
-	 * @param remark
-	 * @return
+	 * @param tioConfig TioConfig
+	 * @param userid userid
+	 * @param remark remark
 	 */
 	public static void closeUser(TioConfig tioConfig, String userid, String remark) {
 		closeUser(tioConfig, userid, remark, null);
@@ -599,10 +584,10 @@ public class Tio {
 	/**
 	 * 关闭某用户的所有连接
 	 *
-	 * @param tioConfig
-	 * @param userid
-	 * @param remark
-	 * @param closeCode
+	 * @param tioConfig TioConfig
+	 * @param userid userid
+	 * @param remark remark
+	 * @param closeCode CloseCode
 	 */
 	public static void closeUser(TioConfig tioConfig, String userid, String remark, CloseCode closeCode) {
 		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
@@ -612,10 +597,9 @@ public class Tio {
 	/**
 	 * 关闭token的所有连接
 	 *
-	 * @param tioConfig
-	 * @param token
-	 * @param remark
-	 * @return
+	 * @param tioConfig TioConfig
+	 * @param token token
+	 * @param remark remark
 	 */
 	public static void closeToken(TioConfig tioConfig, String token, String remark) {
 		closeToken(tioConfig, token, remark, null);
@@ -624,10 +608,10 @@ public class Tio {
 	/**
 	 * 关闭某token的所有连接
 	 *
-	 * @param tioConfig
-	 * @param token
-	 * @param remark
-	 * @param closeCode
+	 * @param tioConfig TioConfig
+	 * @param token token
+	 * @param remark remark
+	 * @param closeCode CloseCode
 	 */
 	public static void closeToken(TioConfig tioConfig, String token, String remark, CloseCode closeCode) {
 		Set<ChannelContext> setWithLock = Tio.getByToken(tioConfig, token);
@@ -690,7 +674,6 @@ public class Tio {
 	 * @param tioConfig
 	 * @param token
 	 * @param remark
-	 * @return
 	 */
 	public static void removeToken(TioConfig tioConfig, String token, String remark) {
 		removeToken(tioConfig, token, remark, null);
@@ -712,10 +695,9 @@ public class Tio {
 	/**
 	 * 关闭集合
 	 *
-	 * @param set
-	 * @param remark
-	 * @param closeCode
-	 * @author tanyaowu
+	 * @param set       结合
+	 * @param remark    remark
+	 * @param closeCode CloseCode
 	 */
 	public static void closeSet(Set<ChannelContext> set, String remark, CloseCode closeCode) {
 		if (set != null) {
@@ -728,10 +710,9 @@ public class Tio {
 	/**
 	 * 移除集合
 	 *
-	 * @param set
-	 * @param remark
-	 * @param closeCode
-	 * @author tanyaowu
+	 * @param set       集合
+	 * @param remark    remark
+	 * @param closeCode CloseCode
 	 */
 	public static void removeSet(Set<ChannelContext> set, String remark, CloseCode closeCode) {
 		if (set != null) {
@@ -746,7 +727,6 @@ public class Tio {
 	 *
 	 * @param tioConfig TioConfig
 	 * @return ChannelContext 集合
-	 * @author tanyaowu
 	 */
 	public static Set<ChannelContext> getAll(TioConfig tioConfig) {
 		return tioConfig.connections;
@@ -756,9 +736,8 @@ public class Tio {
 	 * 此API仅供 tio client使用
 	 * 获取所有处于正常连接状态的连接
 	 *
-	 * @param tioClientConfig
-	 * @return
-	 * @author tanyaowu
+	 * @param tioClientConfig TioClientConfig
+	 * @return 集合
 	 */
 	public static Set<ChannelContext> getConnecteds(TioClientConfig tioClientConfig) {
 		return tioClientConfig.connecteds;
@@ -767,10 +746,9 @@ public class Tio {
 	/**
 	 * 根据业务id找ChannelContext
 	 *
-	 * @param tioConfig
-	 * @param bsId
-	 * @return
-	 * @author tanyaowu
+	 * @param tioConfig TioConfig
+	 * @param bsId      bsId
+	 * @return ChannelContext
 	 */
 	public static ChannelContext getByBsId(TioConfig tioConfig, String bsId) {
 		return tioConfig.bsIds.find(tioConfig, bsId);
@@ -779,11 +757,10 @@ public class Tio {
 	/**
 	 * 根据clientip和clientport获取ChannelContext
 	 *
-	 * @param tioConfig
-	 * @param clientIp
-	 * @param clientPort
-	 * @return
-	 * @author tanyaowu
+	 * @param tioConfig  TioConfig
+	 * @param clientIp   clientIp
+	 * @param clientPort clientPort
+	 * @return ChannelContext
 	 */
 	public static ChannelContext getByClientNode(TioConfig tioConfig, String clientIp, Integer clientPort) {
 		return tioConfig.clientNodes.find(clientIp, clientPort);
@@ -792,9 +769,9 @@ public class Tio {
 	/**
 	 * 根据ChannelContext.id获取ChannelContext
 	 *
-	 * @param channelContextId
-	 * @return
-	 * @author tanyaowu
+	 * @param tioConfig        TioConfig
+	 * @param channelContextId channelContextId
+	 * @return ChannelContext
 	 */
 	public static ChannelContext getByChannelContextId(TioConfig tioConfig, String channelContextId) {
 		return tioConfig.ids.find(tioConfig, channelContextId);
@@ -805,8 +782,7 @@ public class Tio {
 	 *
 	 * @param tioConfig
 	 * @param group
-	 * @return
-	 * @author tanyaowu
+	 * @return 集合
 	 */
 	public static Set<ChannelContext> getByGroup(TioConfig tioConfig, String group) {
 		return tioConfig.groups.clients(tioConfig, group);
@@ -817,8 +793,7 @@ public class Tio {
 	 *
 	 * @param tioConfig
 	 * @param token
-	 * @return
-	 * @author tanyaowu
+	 * @return 集合
 	 */
 	public static Set<ChannelContext> getByToken(TioConfig tioConfig, String token) {
 		return tioConfig.tokens.find(tioConfig, token);
@@ -829,8 +804,7 @@ public class Tio {
 	 *
 	 * @param tioConfig
 	 * @param userid
-	 * @return
-	 * @author tanyaowu
+	 * @return 集合
 	 */
 	public static Set<ChannelContext> getByUserid(TioConfig tioConfig, String userid) {
 		return tioConfig.users.find(tioConfig, userid);
@@ -842,8 +816,7 @@ public class Tio {
 	 * @param tioConfig
 	 * @param pageIndex
 	 * @param pageSize
-	 * @return
-	 * @author tanyaowu
+	 * @return Page
 	 */
 	public static Page<ChannelContext> getPageOfAll(TioConfig tioConfig, Integer pageIndex, Integer pageSize) {
 		return getPageOfAll(tioConfig, pageIndex, pageSize, null);
@@ -883,8 +856,7 @@ public class Tio {
 	 * @param tioClientConfig
 	 * @param pageIndex
 	 * @param pageSize
-	 * @return
-	 * @author tanyaowu
+	 * @return Page
 	 */
 	public static Page<ChannelContext> getPageOfConnecteds(TioClientConfig tioClientConfig, Integer pageIndex, Integer pageSize) {
 		return getPageOfConnecteds(tioClientConfig, pageIndex, pageSize, null);
@@ -897,8 +869,7 @@ public class Tio {
 	 * @param pageIndex
 	 * @param pageSize
 	 * @param converter
-	 * @return
-	 * @author tanyaowu
+	 * @return Page
 	 */
 	public static <T> Page<T> getPageOfConnecteds(TioClientConfig tioClientConfig, Integer pageIndex, Integer pageSize, Function<ChannelContext, T> converter) {
 		Set<ChannelContext> contextSet = Tio.getConnecteds(tioClientConfig);
@@ -911,7 +882,6 @@ public class Tio {
 	 * @param pageIndex pageIndex
 	 * @param pageSize  pageSize
 	 * @return 分页
-	 * @author tanyaowu
 	 */
 	public static Page<ChannelContext> getPageOfGroup(TioConfig tioConfig, String group, Integer pageIndex, Integer pageSize) {
 		return getPageOfGroup(tioConfig, group, pageIndex, pageSize, null);
@@ -951,7 +921,6 @@ public class Tio {
 	 * @param group          group
 	 * @param channelContext channelContext
 	 * @return true：在该群组
-	 * @author: tanyaowu
 	 */
 	public static boolean isInGroup(String group, ChannelContext channelContext) {
 		Set<String> groupSet = channelContext.getGroups();
@@ -1038,7 +1007,7 @@ public class Tio {
 	 *
 	 * @param channelContext channelContext
 	 * @param packet         packet
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	public static boolean send(ChannelContext channelContext, Packet packet) {
 		return send(channelContext, packet, null, null);
@@ -1049,8 +1018,7 @@ public class Tio {
 	 * @param packet         Packet
 	 * @param countDownLatch CountDownLatch
 	 * @param packetSendMode PacketSendMode
-	 * @return boolean
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	private static boolean send(final ChannelContext channelContext, Packet packet, CountDownLatch countDownLatch, PacketSendMode packetSendMode) {
 		try {
@@ -1139,7 +1107,7 @@ public class Tio {
 	 * @param ip
 	 * @param port
 	 * @param packet
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	public static boolean send(TioConfig tioConfig, String ip, int port, Packet packet) {
 		return send(tioConfig, ip, port, packet, false);
@@ -1153,8 +1121,7 @@ public class Tio {
 	 * @param port
 	 * @param packet
 	 * @param isBlock
-	 * @return
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	private static boolean send(TioConfig tioConfig, String ip, int port, Packet packet, boolean isBlock) {
 		ChannelContext channelContext = tioConfig.clientNodes.find(ip, port);
@@ -1170,6 +1137,12 @@ public class Tio {
 		}
 	}
 
+	/**
+	 * 发消息到所有连接
+	 *
+	 * @param tioConfig
+	 * @param packet
+	 */
 	public static void sendToAll(TioConfig tioConfig, Packet packet) {
 		sendToAll(tioConfig, packet, null);
 	}
@@ -1180,7 +1153,6 @@ public class Tio {
 	 * @param tioConfig
 	 * @param packet
 	 * @param channelContextFilter
-	 * @author tanyaowu
 	 */
 	public static void sendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter) {
 		sendToAll(tioConfig, packet, channelContextFilter, false);
@@ -1191,7 +1163,7 @@ public class Tio {
 	 * @param packet
 	 * @param channelContextFilter
 	 * @param isBlock
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	private static boolean sendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
 		return sendToSet(tioConfig, tioConfig.connections, packet, channelContextFilter, isBlock);
@@ -1203,8 +1175,7 @@ public class Tio {
 	 * @param tioConfig
 	 * @param bsId
 	 * @param packet
-	 * @return
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	public static boolean sendToBsId(TioConfig tioConfig, String bsId, Packet packet) {
 		return sendToBsId(tioConfig, bsId, packet, false);
@@ -1217,8 +1188,7 @@ public class Tio {
 	 * @param bsId
 	 * @param packet
 	 * @param isBlock
-	 * @return
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	private static boolean sendToBsId(TioConfig tioConfig, String bsId, Packet packet, boolean isBlock) {
 		ChannelContext channelContext = Tio.getByBsId(tioConfig, bsId);
@@ -1238,7 +1208,6 @@ public class Tio {
 	 * @param tioConfig
 	 * @param group
 	 * @param packet
-	 * @author tanyaowu
 	 */
 	public static void sendToGroup(TioConfig tioConfig, String group, Packet packet) {
 		sendToGroup(tioConfig, group, packet, null);
@@ -1251,7 +1220,6 @@ public class Tio {
 	 * @param group
 	 * @param packet
 	 * @param channelContextFilter
-	 * @author tanyaowu
 	 */
 	public static void sendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter) {
 		sendToGroup(tioConfig, group, packet, channelContextFilter, false);
@@ -1265,7 +1233,7 @@ public class Tio {
 	 * @param packet
 	 * @param channelContextFilter
 	 * @param isBlock
-	 * @return
+	 * @return 是否成功
 	 */
 	private static boolean sendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
 		Set<ChannelContext> contextSet = tioConfig.groups.clients(tioConfig, group);
@@ -1281,7 +1249,7 @@ public class Tio {
 	 *
 	 * @param channelContextId
 	 * @param packet
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	public static boolean sendToId(TioConfig tioConfig, String channelContextId, Packet packet) {
 		return sendToId(tioConfig, channelContextId, packet, false);
@@ -1293,8 +1261,7 @@ public class Tio {
 	 * @param channelContextId
 	 * @param packet
 	 * @param isBlock
-	 * @return
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	private static boolean sendToId(TioConfig tioConfig, String channelContextId, Packet packet, boolean isBlock) {
 		ChannelContext channelContext = Tio.getByChannelContextId(tioConfig, channelContextId);
@@ -1315,7 +1282,6 @@ public class Tio {
 	 * @param set
 	 * @param packet
 	 * @param channelContextFilter
-	 * @author tanyaowu
 	 */
 	public static void sendToSet(TioConfig tioConfig, Set<ChannelContext> set, Packet packet, ChannelContextFilter channelContextFilter) {
 		sendToSet(tioConfig, set, packet, channelContextFilter, false);
@@ -1329,7 +1295,7 @@ public class Tio {
 	 * @param packet
 	 * @param channelContextFilter
 	 * @param isBlock
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	private static boolean sendToSet(TioConfig tioConfig, Set<ChannelContext> set, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
 		if (set == null || set.isEmpty()) {
@@ -1392,8 +1358,7 @@ public class Tio {
 	 * @param tioConfig
 	 * @param token
 	 * @param packet
-	 * @return
-	 * @author tanyaowu
+	 * @return 是否成功
 	 */
 	public static boolean sendToToken(TioConfig tioConfig, String token, Packet packet) {
 		return sendToToken(tioConfig, token, packet, false);
@@ -1402,11 +1367,11 @@ public class Tio {
 	/**
 	 * 发消息给指定token
 	 *
-	 * @param tioConfig
-	 * @param token
-	 * @param packet
-	 * @param isBlock
-	 * @author tanyaowu
+	 * @param tioConfig TioConfig
+	 * @param token     token
+	 * @param packet    Packet
+	 * @param isBlock   isBlock
+	 * @return 是否成功
 	 */
 	private static boolean sendToToken(TioConfig tioConfig, String token, Packet packet, boolean isBlock) {
 		Set<ChannelContext> contextSet = tioConfig.tokens.find(tioConfig, token);
@@ -1437,10 +1402,10 @@ public class Tio {
 	/**
 	 * 发消息给指定用户
 	 *
-	 * @param tioConfig
-	 * @param userid
-	 * @param packet
-	 * @author tanyaowu
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param packet    Packet
+	 * @return 是否成功
 	 */
 	public static boolean sendToUser(TioConfig tioConfig, String userid, Packet packet) {
 		return sendToUser(tioConfig, userid, packet, false);
@@ -1449,11 +1414,11 @@ public class Tio {
 	/**
 	 * 发消息给指定用户
 	 *
-	 * @param tioConfig
-	 * @param userid
-	 * @param packet
-	 * @param isBlock
-	 * @author tanyaowu
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param packet    Packet
+	 * @param isBlock   isBlock
+	 * @return 是否成功
 	 */
 	private static boolean sendToUser(TioConfig tioConfig, String userid, Packet packet, boolean isBlock) {
 		Set<ChannelContext> contextSet = tioConfig.users.find(tioConfig, userid);
@@ -1484,8 +1449,7 @@ public class Tio {
 	/**
 	 * 解绑业务id
 	 *
-	 * @param channelContext
-	 * @author tanyaowu
+	 * @param channelContext ChannelContext
 	 */
 	public static void unbindBsId(ChannelContext channelContext) {
 		channelContext.tioConfig.bsIds.unbind(channelContext);
@@ -1494,8 +1458,7 @@ public class Tio {
 	/**
 	 * 与所有组解除解绑关系
 	 *
-	 * @param channelContext
-	 * @author tanyaowu
+	 * @param channelContext ChannelContext
 	 */
 	public static void unbindGroup(ChannelContext channelContext) {
 		channelContext.tioConfig.groups.unbind(channelContext);
@@ -1504,9 +1467,8 @@ public class Tio {
 	/**
 	 * 与指定组解除绑定关系
 	 *
-	 * @param group
-	 * @param channelContext
-	 * @author tanyaowu
+	 * @param group          group
+	 * @param channelContext ChannelContext
 	 */
 	public static void unbindGroup(String group, ChannelContext channelContext) {
 		channelContext.tioConfig.groups.unbind(group, channelContext);
@@ -1515,9 +1477,9 @@ public class Tio {
 	/**
 	 * 将某用户从组中解除绑定
 	 *
-	 * @param tioConfig
-	 * @param userid
-	 * @param group
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param group     group
 	 */
 	public static void unbindGroup(TioConfig tioConfig, String userid, String group) {
 		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
@@ -1531,8 +1493,7 @@ public class Tio {
 	/**
 	 * 解除channelContext绑定的token
 	 *
-	 * @param channelContext
-	 * @author tanyaowu
+	 * @param channelContext ChannelContext
 	 */
 	public static void unbindToken(ChannelContext channelContext) {
 		channelContext.tioConfig.tokens.unbind(channelContext);
@@ -1541,8 +1502,8 @@ public class Tio {
 	/**
 	 * 解除token
 	 *
-	 * @param tioConfig
-	 * @param token
+	 * @param tioConfig TioConfig
+	 * @param token     token
 	 */
 	public static void unbindToken(TioConfig tioConfig, String token) {
 		tioConfig.tokens.unbind(tioConfig, token);
@@ -1551,8 +1512,7 @@ public class Tio {
 	/**
 	 * 解除channelContext绑定的userid
 	 *
-	 * @param channelContext
-	 * @author tanyaowu
+	 * @param channelContext ChannelContext
 	 */
 	public static void unbindUser(ChannelContext channelContext) {
 		channelContext.tioConfig.users.unbind(channelContext);
@@ -1561,9 +1521,8 @@ public class Tio {
 	/**
 	 * 解除userid的绑定。一般用于多地登录，踢掉前面登录的场景
 	 *
-	 * @param tioConfig
-	 * @param userid
-	 * @author: tanyaowu
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
 	 */
 	public static void unbindUser(TioConfig tioConfig, String userid) {
 		tioConfig.users.unbind(tioConfig, userid);

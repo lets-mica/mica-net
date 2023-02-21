@@ -237,9 +237,6 @@ public class HttpResponse extends HttpPacket {
 	public HttpResponse() {
 	}
 
-	/**
-	 * @param request
-	 */
 	public HttpResponse(HttpRequest request) {
 		this();
 		this.request = request;
@@ -270,10 +267,6 @@ public class HttpResponse extends HttpPacket {
 		}
 	}
 
-	/**
-	 * @param responseHeaders
-	 * @param body
-	 */
 	public HttpResponse(Map<HeaderName, HeaderValue> responseHeaders, byte[] body) {
 		if (responseHeaders != null) {
 			this.headers.putAll(responseHeaders);
@@ -301,8 +294,7 @@ public class HttpResponse extends HttpPacket {
 	 * <p style='color:red;font-size:12pt;'>添加响应头只能通过HttpResponse.addHeader(HeaderName, HeaderValue)或HttpResponse.addHeaders(Map<HeaderName, HeaderValue> headers)方式添加<p>
 	 * </span>
 	 *
-	 * @return
-	 * @author tanyaowu
+	 * @return headers
 	 */
 	public Map<HeaderName, HeaderValue> getHeaders() {
 		return headers;
@@ -325,8 +317,7 @@ public class HttpResponse extends HttpPacket {
 	/**
 	 * 获取"Content-Type"头部内容
 	 *
-	 * @return
-	 * @author tanyaowu
+	 * @return HeaderValue
 	 */
 	public HeaderValue getContentType() {
 		return this.headers.get(HeaderName.Content_Type);
@@ -457,8 +448,7 @@ public class HttpResponse extends HttpPacket {
 
 	/**
 	 * @param name 从HeaderName中找，或者HeaderName.from(name)
-	 * @return
-	 * @author tanyaowu
+	 * @return HeaderValue
 	 */
 	public HeaderValue getHeader(HeaderName name) {
 		return headers.get(name);
