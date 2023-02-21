@@ -2,6 +2,12 @@
 
 ## 发行版本
 
+### v0.0.7 - 2023-02-21
+
+- :sparkles: 版本号改为读取 jar 信息，减少硬编码。
+- :sparkles: 使用 java8 default 接口方法简化代码，删除 DefaultTioListener 接口。
+- :sparkles: 合并 mica-mqtt CollUtil 工具类。
+
 ### v0.0.6 - 2023-02-02
 
 - :sparkles: 优化处理 header 长度异常。
