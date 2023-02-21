@@ -23,6 +23,9 @@ package org.tio.utils;
  */
 public class Version {
 
+	private Version() {
+	}
+
 	/**
 	 * 读取版本号
 	 *
