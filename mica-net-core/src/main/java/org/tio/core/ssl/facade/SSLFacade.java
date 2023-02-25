@@ -196,6 +196,7 @@ package org.tio.core.ssl.facade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
+import org.tio.core.ssl.ClientAuth;
 import org.tio.core.ssl.SslVo;
 import org.tio.core.utils.ByteBufferUtils;
 
@@ -217,10 +218,10 @@ public class SSLFacade implements ISSLFacade {
 	private boolean _clientMode;
 	private ChannelContext channelContext;
 
-	public SSLFacade(ChannelContext channelContext, SSLContext context, boolean client, boolean clientAuthRequired, ITaskHandler taskHandler) {
+	public SSLFacade(ChannelContext channelContext, SSLContext context, boolean client, ClientAuth clientAuth, ITaskHandler taskHandler) {
 		this.channelContext = channelContext;
 		final String who = client ? "client" : "server";
-		SSLEngine engine = makeSSLEngine(context, client, clientAuthRequired);
+		SSLEngine engine = makeSSLEngine(context, client, clientAuth);
 		Buffers buffers = new Buffers(engine.getSession(), channelContext);
 		_worker = new Worker(who, engine, buffers, channelContext);
 		_handshaker = new Handshaker(client, _worker, taskHandler, channelContext);
@@ -341,10 +342,23 @@ public class SSLFacade implements ISSLFacade {
 		});
 	}
 
-	private SSLEngine makeSSLEngine(SSLContext context, boolean client, boolean clientAuthRequired) {
+	private SSLEngine makeSSLEngine(SSLContext context, boolean client, ClientAuth clientAuth) {
 		SSLEngine engine = context.createSSLEngine();
 		engine.setUseClientMode(client);
-		engine.setNeedClientAuth(clientAuthRequired);
+		if (!client) {
+			switch (clientAuth) {
+				case OPTIONAL:
+					engine.setWantClientAuth(true);
+					break;
+				case REQUIRE:
+					engine.setNeedClientAuth(true);
+					break;
+				case NONE:
+					break;
+				default:
+					throw new IllegalArgumentException("Unknown auth " + clientAuth);
+			}
+		}
 		return engine;
 	}
 

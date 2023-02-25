@@ -231,8 +231,10 @@ public class SslFacadeContext {
 		DefaultTaskHandler taskHandler = new DefaultTaskHandler();
 		// 是否客户端模式
 		boolean isClient = !this.channelContext.isServer();
+		// 客户端认证模式，用于服务端
+		ClientAuth clientAuth = channelContext.tioConfig.sslConfig.getClientAuth();
 		// SSLFacade
-		sslFacade = new SSLFacade(this.channelContext, this.sslContext, isClient, false, taskHandler);
+		sslFacade = new SSLFacade(this.channelContext, this.sslContext, isClient, clientAuth, taskHandler);
 		sslFacade.setHandshakeCompletedListener(new SslHandshakeCompletedListener(this.channelContext));
 		sslFacade.setSSLListener(new SslListener(this.channelContext));
 		sslFacade.setCloseListener(new SslSessionClosedListener(this.channelContext));

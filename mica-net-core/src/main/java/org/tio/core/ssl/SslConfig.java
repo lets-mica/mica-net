@@ -208,6 +208,7 @@ import java.security.cert.X509Certificate;
  */
 public class SslConfig {
 	private static final String ALGORITHM = "SunX509";
+	private final ClientAuth clientAuth;
 	private final SSLContext sslContext;
 
 	/**
@@ -217,7 +218,8 @@ public class SslConfig {
 	 * @param trustStoreInputStream InputStream
 	 * @param passChars             passwd
 	 */
-	private SslConfig(InputStream keyStoreInputStream, InputStream trustStoreInputStream, char[] passChars) {
+	private SslConfig(ClientAuth clientAuth, InputStream keyStoreInputStream, InputStream trustStoreInputStream, char[] passChars) {
+		this.clientAuth = clientAuth;
 		this.sslContext = getSslContextByManagerFactory(getKeyManagerFactory(keyStoreInputStream, passChars), getTrustManagerFactory(trustStoreInputStream, passChars));
 	}
 
@@ -228,6 +230,7 @@ public class SslConfig {
 	 * @param trustPassword         trustPassword
 	 */
 	private SslConfig(InputStream trustStoreInputStream, char[] trustPassword) {
+		this.clientAuth = null;
 		this.sslContext = getSslContextByManagers(null, getTrustManagers(trustStoreInputStream, trustPassword));
 	}
 
@@ -237,6 +240,15 @@ public class SslConfig {
 	 * @param passwd         passwd passwd
 	 */
 	public static SslConfig forServer(String keyStoreFile, String trustStoreFile, String passwd) {
+		return forServer(keyStoreFile, trustStoreFile, passwd, ClientAuth.NONE);
+	}
+
+	/**
+	 * @param keyStoreFile   如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
+	 * @param trustStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
+	 * @param passwd         passwd passwd
+	 */
+	public static SslConfig forServer(String keyStoreFile, String trustStoreFile, String passwd, ClientAuth clientAuth) {
 		InputStream keyStoreInputStream;
 		InputStream trustStoreInputStream;
 		if (StrUtil.startWithIgnoreCase(keyStoreFile, "classpath:")) {
@@ -249,7 +261,19 @@ public class SslConfig {
 		} else {
 			trustStoreInputStream = ResourceUtil.getFileResource(trustStoreFile);
 		}
-		return forServer(keyStoreInputStream, trustStoreInputStream, passwd);
+		return forServer(keyStoreInputStream, trustStoreInputStream, passwd, clientAuth);
+	}
+
+	/**
+	 * 给服务器用的
+	 *
+	 * @param keyStoreInputStream   keyStoreInputStream
+	 * @param trustStoreInputStream trustStoreInputStream
+	 * @param passwd                passwd
+	 * @return SslConfig
+	 */
+	public static SslConfig forServer(InputStream keyStoreInputStream, InputStream trustStoreInputStream, String passwd, ClientAuth clientAuth) {
+		return new SslConfig(clientAuth, keyStoreInputStream, trustStoreInputStream, getPassChars(passwd));
 	}
 
 	/**
@@ -261,7 +285,7 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forServer(InputStream keyStoreInputStream, InputStream trustStoreInputStream, String passwd) {
-		return new SslConfig(keyStoreInputStream, trustStoreInputStream, getPassChars(passwd));
+		return forServer(keyStoreInputStream, trustStoreInputStream, passwd, ClientAuth.NONE);
 	}
 
 	/**
@@ -373,6 +397,10 @@ public class SslConfig {
 		} catch (NoSuchAlgorithmException | KeyManagementException e) {
 			throw new IllegalArgumentException(e);
 		}
+	}
+
+	public ClientAuth getClientAuth() {
+		return clientAuth;
 	}
 
 	public SSLContext getSslContext() {
