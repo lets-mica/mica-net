@@ -14,7 +14,7 @@ class SslConfigTest {
 
 	@Test
 	void testServer() {
-		SslConfig sslConfig = SslConfig.forServer("classpath:test.jks", "classpath:test.jks", "501937");
+		SslConfig sslConfig = SslConfig.forServer("classpath:test.jks", "501937");
 		Assertions.assertNotNull(sslConfig);
 	}
 

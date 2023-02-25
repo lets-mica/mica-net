@@ -201,6 +201,7 @@ import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
+import org.tio.core.ssl.ClientAuth;
 import org.tio.core.ssl.SslConfig;
 import org.tio.server.intf.TioServerHandler;
 import org.tio.server.intf.TioServerListener;
@@ -369,28 +370,50 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 * @param keyStoreFile   如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
-	 * @param trustStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
-	 * @param keyStorePwd
-	 * @throws FileNotFoundException
+	 * 开启 ssl
+	 *
+	 * @param keyStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
+	 * @param keyStorePwd  keyStorePwd
+	 * @param clientAuth   ClientAuth
 	 */
-	public void useSsl(String keyStoreFile, String trustStoreFile, String keyStorePwd) throws Exception {
-		if (StrUtil.isNotBlank(keyStoreFile) && StrUtil.isNotBlank(trustStoreFile)) {
-			SslConfig sslConfig = SslConfig.forServer(keyStoreFile, trustStoreFile, keyStorePwd);
+	public void useSsl(String keyStoreFile, String keyStorePwd, ClientAuth clientAuth) {
+		if (StrUtil.isNotBlank(keyStoreFile)) {
+			this.setSslConfig(SslConfig.forServer(keyStoreFile, keyStorePwd, clientAuth));
+		}
+	}
+
+	/**
+	 * 开启 ssl
+	 *
+	 * @param keyStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
+	 * @param keyStorePwd  keyStorePwd
+	 */
+	public void useSsl(String keyStoreFile, String keyStorePwd) {
+		if (StrUtil.isNotBlank(keyStoreFile)) {
+			SslConfig sslConfig = SslConfig.forServer(keyStoreFile, keyStorePwd);
 			this.setSslConfig(sslConfig);
 		}
 	}
 
 	/**
-	 * @param keyStoreInputStream
-	 * @param trustStoreInputStream
-	 * @param passwd
-	 * @throws Exception
-	 * @author tanyaowu
+	 * 开启 ssl
+	 *
+	 * @param keyStoreInputStream keyStoreInputStream
+	 * @param keyStorePwd         keyStorePwd keyStorePwd
 	 */
-	public void useSsl(InputStream keyStoreInputStream, InputStream trustStoreInputStream, String passwd) throws Exception {
-		SslConfig sslConfig = SslConfig.forServer(keyStoreInputStream, trustStoreInputStream, passwd);
-		this.setSslConfig(sslConfig);
+	public void useSsl(InputStream keyStoreInputStream, String keyStorePwd) {
+		this.setSslConfig(SslConfig.forServer(keyStoreInputStream, keyStorePwd));
+	}
+
+	/**
+	 * 开启 ssl
+	 *
+	 * @param keyStoreInputStream keyStoreInputStream
+	 * @param keyStorePwd         keyStorePwd keyStorePwd
+	 * @param clientAuth          ClientAuth
+	 */
+	public void useSsl(InputStream keyStoreInputStream, String keyStorePwd, ClientAuth clientAuth) {
+		this.setSslConfig(SslConfig.forServer(keyStoreInputStream, keyStorePwd, clientAuth));
 	}
 
 	/**

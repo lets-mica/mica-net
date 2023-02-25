@@ -211,81 +211,59 @@ public class SslConfig {
 	private final ClientAuth clientAuth;
 	private final SSLContext sslContext;
 
-	/**
-	 * 初始化证书配置
-	 *
-	 * @param keyStoreInputStream   InputStream
-	 * @param trustStoreInputStream InputStream
-	 * @param passChars             passwd
-	 */
-	private SslConfig(ClientAuth clientAuth, InputStream keyStoreInputStream, InputStream trustStoreInputStream, char[] passChars) {
+	SslConfig(SSLContext sslContext) {
+		this(ClientAuth.NONE, sslContext);
+	}
+
+	SslConfig(ClientAuth clientAuth, SSLContext sslContext) {
 		this.clientAuth = clientAuth;
-		this.sslContext = getSslContextByManagerFactory(getKeyManagerFactory(keyStoreInputStream, passChars), getTrustManagerFactory(trustStoreInputStream, passChars));
+		this.sslContext = sslContext;
 	}
 
 	/**
-	 * 初始化证书配置
-	 *
-	 * @param trustStoreInputStream InputStream
-	 * @param trustPassword         trustPassword
+	 * @param keyStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
+	 * @param keyPasswd    key passwd
+	 * @return SslConfig
 	 */
-	private SslConfig(InputStream trustStoreInputStream, char[] trustPassword) {
-		this.clientAuth = null;
-		this.sslContext = getSslContextByManagers(null, getTrustManagers(trustStoreInputStream, trustPassword));
+	public static SslConfig forServer(String keyStoreFile, String keyPasswd) {
+		return forServer(keyStoreFile, keyPasswd, ClientAuth.NONE);
 	}
 
 	/**
-	 * @param keyStoreFile   如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
-	 * @param trustStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
-	 * @param passwd         passwd passwd
+	 * @param keyStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
+	 * @param keyPasswd    key passwd
+	 * @return SslConfig
 	 */
-	public static SslConfig forServer(String keyStoreFile, String trustStoreFile, String passwd) {
-		return forServer(keyStoreFile, trustStoreFile, passwd, ClientAuth.NONE);
-	}
-
-	/**
-	 * @param keyStoreFile   如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
-	 * @param trustStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
-	 * @param passwd         passwd passwd
-	 */
-	public static SslConfig forServer(String keyStoreFile, String trustStoreFile, String passwd, ClientAuth clientAuth) {
+	public static SslConfig forServer(String keyStoreFile, String keyPasswd, ClientAuth clientAuth) {
 		InputStream keyStoreInputStream;
-		InputStream trustStoreInputStream;
 		if (StrUtil.startWithIgnoreCase(keyStoreFile, "classpath:")) {
 			keyStoreInputStream = ResourceUtil.getResourceAsStream(keyStoreFile);
 		} else {
 			keyStoreInputStream = ResourceUtil.getFileResource(keyStoreFile);
 		}
-		if (StrUtil.startWithIgnoreCase(trustStoreFile, "classpath:")) {
-			trustStoreInputStream = ResourceUtil.getResourceAsStream(trustStoreFile);
-		} else {
-			trustStoreInputStream = ResourceUtil.getFileResource(trustStoreFile);
-		}
-		return forServer(keyStoreInputStream, trustStoreInputStream, passwd, clientAuth);
+		return forServer(keyStoreInputStream, keyPasswd, clientAuth);
 	}
 
 	/**
 	 * 给服务器用的
 	 *
-	 * @param keyStoreInputStream   keyStoreInputStream
-	 * @param trustStoreInputStream trustStoreInputStream
-	 * @param passwd                passwd
+	 * @param keyStoreInputStream keyStoreInputStream
+	 * @param keyPasswd           key passwd
 	 * @return SslConfig
 	 */
-	public static SslConfig forServer(InputStream keyStoreInputStream, InputStream trustStoreInputStream, String passwd, ClientAuth clientAuth) {
-		return new SslConfig(clientAuth, keyStoreInputStream, trustStoreInputStream, getPassChars(passwd));
+	public static SslConfig forServer(InputStream keyStoreInputStream, String keyPasswd) {
+		return new SslConfig(ClientAuth.NONE, getServerSslContext(keyStoreInputStream, getPassChars(keyPasswd)));
 	}
 
 	/**
 	 * 给服务器用的
 	 *
-	 * @param keyStoreInputStream   keyStoreInputStream
-	 * @param trustStoreInputStream trustStoreInputStream
-	 * @param passwd                passwd
+	 * @param keyStoreInputStream keyStoreInputStream
+	 * @param keyPasswd           key passwd
 	 * @return SslConfig
 	 */
-	public static SslConfig forServer(InputStream keyStoreInputStream, InputStream trustStoreInputStream, String passwd) {
-		return forServer(keyStoreInputStream, trustStoreInputStream, passwd, ClientAuth.NONE);
+	public static SslConfig forServer(InputStream keyStoreInputStream, String keyPasswd, ClientAuth clientAuth) {
+		return new SslConfig(clientAuth, getServerSslContext(keyStoreInputStream, getPassChars(keyPasswd)));
 	}
 
 	/**
@@ -294,7 +272,7 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forClient() {
-		return new SslConfig(null, null);
+		return forClient((InputStream) null, null);
 	}
 
 	/**
@@ -309,7 +287,7 @@ public class SslConfig {
 		} else {
 			trustStoreInputStream = ResourceUtil.getFileResource(trustStoreFile);
 		}
-		return new SslConfig(trustStoreInputStream, getPassChars(trustPassword));
+		return forClient(trustStoreInputStream, trustPassword);
 	}
 
 	/**
@@ -318,7 +296,7 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forClient(InputStream trustStoreInputStream, String trustPassword) {
-		return new SslConfig(trustStoreInputStream, getPassChars(trustPassword));
+		return new SslConfig(getClientSslContext(trustStoreInputStream, getPassChars(trustPassword)));
 	}
 
 	private static KeyManagerFactory getKeyManagerFactory(InputStream keyStoreInputStream, char[] passChars) {
@@ -331,6 +309,13 @@ public class SslConfig {
 		}
 	}
 
+	private static char[] getPassChars(String passwd) {
+		if (passwd == null) {
+			return null;
+		}
+		return passwd.toCharArray();
+	}
+
 	private static TrustManagerFactory getTrustManagerFactory(InputStream trustStoreInputStream, char[] passChars) {
 		try {
 			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(ALGORITHM);
@@ -341,7 +326,43 @@ public class SslConfig {
 		}
 	}
 
-	private static TrustManager[] getTrustManagers(InputStream trustInputStream, char[] trustPassword) {
+	private static SSLContext getServerSslContext(InputStream keyStoreInputStream, char[] passChars) {
+		KeyManagerFactory keyManagerFactory = getKeyManagerFactory(keyStoreInputStream, passChars);
+		KeyManager[] keyManagers = keyManagerFactory.getKeyManagers();
+		try {
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(keyManagers, null, new SecureRandom());
+			return sslContext;
+		} catch (NoSuchAlgorithmException | KeyManagementException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	private static KeyStore getKeyStore(InputStream stream, char[] passChars) {
+		if (stream == null) {
+			return null;
+		}
+		try {
+			KeyStore keyStore = KeyStore.getInstance("JKS");
+			keyStore.load(stream, passChars);
+			return keyStore;
+		} catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	private static SSLContext getClientSslContext(InputStream trustInputStream, char[] trustPassword) {
+		TrustManager[] trustManagers = getClientTrustManagers(trustInputStream, trustPassword);
+		try {
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(null, trustManagers, new SecureRandom());
+			return sslContext;
+		} catch (NoSuchAlgorithmException | KeyManagementException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	private static TrustManager[] getClientTrustManagers(InputStream trustInputStream, char[] trustPassword) {
 		if (trustInputStream == null) {
 			return new TrustManager[]{new X509TrustManager() {
 				@Override
@@ -360,42 +381,6 @@ public class SslConfig {
 		} else {
 			TrustManagerFactory trustManagerFactory = getTrustManagerFactory(trustInputStream, trustPassword);
 			return trustManagerFactory.getTrustManagers();
-		}
-	}
-
-	private static KeyStore getKeyStore(InputStream stream, char[] passChars) {
-		if (stream == null) {
-			return null;
-		}
-		try {
-			KeyStore keyStore = KeyStore.getInstance("JKS");
-			keyStore.load(stream, passChars);
-			return keyStore;
-		} catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-			throw new IllegalArgumentException(e);
-		}
-	}
-
-	private static char[] getPassChars(String passwd) {
-		if (passwd == null) {
-			return null;
-		}
-		return passwd.toCharArray();
-	}
-
-	private static SSLContext getSslContextByManagerFactory(KeyManagerFactory keyManagerFactory,
-															TrustManagerFactory trustManagerFactory) {
-		return getSslContextByManagers(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers());
-	}
-
-	private static SSLContext getSslContextByManagers(KeyManager[] keyManagers,
-													  TrustManager[] trustManagers) {
-		try {
-			SSLContext sslContext = SSLContext.getInstance("TLS");
-			sslContext.init(keyManagers, trustManagers, null);
-			return sslContext;
-		} catch (NoSuchAlgorithmException | KeyManagementException e) {
-			throw new IllegalArgumentException(e);
 		}
 	}
 
