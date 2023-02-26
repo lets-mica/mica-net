@@ -327,13 +327,17 @@ public class SslConfig {
 	public static SSLContext getSslContext(String keyStoreFile, String keyPass,
 										   String trustStoreFile, String trustPass) {
 		InputStream keyStoreInputStream;
-		if (StrUtil.startWithIgnoreCase(keyStoreFile, "classpath:")) {
+		if (keyStoreFile == null) {
+			keyStoreInputStream = null;
+		} else if (StrUtil.startWithIgnoreCase(keyStoreFile, "classpath:")) {
 			keyStoreInputStream = ResourceUtil.getResourceAsStream(keyStoreFile);
 		} else {
 			keyStoreInputStream = ResourceUtil.getFileResource(keyStoreFile);
 		}
 		InputStream trustStoreInputStream;
-		if (StrUtil.startWithIgnoreCase(trustStoreFile, "classpath:")) {
+		if (trustStoreFile == null) {
+			trustStoreInputStream = null;
+		} else if (StrUtil.startWithIgnoreCase(trustStoreFile, "classpath:")) {
 			trustStoreInputStream = ResourceUtil.getResourceAsStream(trustStoreFile);
 		} else {
 			trustStoreInputStream = ResourceUtil.getFileResource(trustStoreFile);
