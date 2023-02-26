@@ -211,11 +211,11 @@ public class SslConfig {
 	private final ClientAuth clientAuth;
 	private final SSLContext sslContext;
 
-	SslConfig(SSLContext sslContext) {
+	public SslConfig(SSLContext sslContext) {
 		this(ClientAuth.NONE, sslContext);
 	}
 
-	SslConfig(ClientAuth clientAuth, SSLContext sslContext) {
+	public SslConfig(ClientAuth clientAuth, SSLContext sslContext) {
 		this.clientAuth = clientAuth;
 		this.sslContext = sslContext;
 	}
