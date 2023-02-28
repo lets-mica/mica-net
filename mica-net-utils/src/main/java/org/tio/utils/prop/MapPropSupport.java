@@ -193,8 +193,11 @@
 */
 package org.tio.utils.prop;
 
+import org.tio.utils.hutool.CollUtil;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 /**
  * @author tanyaowu
@@ -212,6 +215,12 @@ public class MapPropSupport implements IPropSupport {
 	@SuppressWarnings("unchecked")
 	public <T> T get(String key) {
 		return (T) props.get(key);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <V> V computeIfAbsent(String key, Function<String, Object> mappingFunction) {
+		return (V) CollUtil.computeIfAbsent(props, key, mappingFunction);
 	}
 
 	@Override

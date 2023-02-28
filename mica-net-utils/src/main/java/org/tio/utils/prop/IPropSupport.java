@@ -193,6 +193,8 @@
 */
 package org.tio.utils.prop;
 
+import java.util.function.Function;
+
 /**
  * 属性支持接口
  *
@@ -202,8 +204,6 @@ package org.tio.utils.prop;
 public interface IPropSupport {
 	/**
 	 * 清除所有属性
-	 *
-	 * @author: tanyaowu
 	 */
 	void clear();
 
@@ -213,9 +213,17 @@ public interface IPropSupport {
 	 * @param key key
 	 * @param <T> 泛型
 	 * @return T
-	 * @author: tanyaowu
 	 */
 	<T> T get(String key);
+
+	/**
+	 * get 或者生成值
+	 *
+	 * @param key             key
+	 * @param mappingFunction mappingFunction
+	 * @return V
+	 */
+	<V> V computeIfAbsent(String key, Function<String, Object> mappingFunction);
 
 	/**
 	 * 是否存在 key
