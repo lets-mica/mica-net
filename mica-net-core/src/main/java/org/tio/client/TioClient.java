@@ -434,47 +434,50 @@ public class TioClient {
 		final ClientGroupStat clientGroupStat = (ClientGroupStat) tioClientConfig.groupStat;
 		final TioClientHandler tioHandler = tioClientConfig.getTioClientHandler();
 		final String id = tioClientConfig.getId();
-		new Thread(() -> {
-			while (!tioClientConfig.isStopped()) {
-				Set<ChannelContext> set = tioClientConfig.connecteds;
-				long currTime = System.currentTimeMillis();
-				try {
-					for (ChannelContext entry : set) {
-						ClientChannelContext channelContext = (ClientChannelContext) entry;
-						if (channelContext.isClosed || channelContext.isRemoved) {
-							continue;
-						}
-						ChannelStat stat = channelContext.stat;
-						long compareTime = Math.max(stat.latestTimeOfReceivedByte, stat.latestTimeOfSentPacket);
-						long interval = currTime - compareTime;
-						if (interval >= tioClientConfig.heartbeatTimeout / 2) {
-							Packet packet = tioHandler.heartbeatPacket(channelContext);
-							if (packet != null) {
-								boolean result = Tio.send(channelContext, packet);
-								if (log.isInfoEnabled()) {
-									log.info("{} 发送心跳包 result:{}", channelContext, result);
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while (!tioClientConfig.isStopped()) {
+					Set<ChannelContext> set = tioClientConfig.connecteds;
+					long currTime = System.currentTimeMillis();
+					try {
+						for (ChannelContext entry : set) {
+							ClientChannelContext channelContext = (ClientChannelContext) entry;
+							if (channelContext.isClosed || channelContext.isRemoved) {
+								continue;
+							}
+							ChannelStat stat = channelContext.stat;
+							long compareTime = Math.max(stat.latestTimeOfReceivedByte, stat.latestTimeOfSentPacket);
+							long interval = currTime - compareTime;
+							if (interval >= tioClientConfig.heartbeatTimeout / 2) {
+								Packet packet = tioHandler.heartbeatPacket(channelContext);
+								if (packet != null) {
+									boolean result = Tio.send(channelContext, packet);
+									if (log.isInfoEnabled()) {
+										log.info("{} 发送心跳包 result:{}", channelContext, result);
+									}
 								}
 							}
 						}
-					}
-					// 打印连接信息
-					if (tioClientConfig.debug && log.isInfoEnabled()) {
-						if (tioClientConfig.statOn) {
-							log.info("[{}]: curr:{}, closed:{}, received:({}p)({}b), handled:{}, sent:({}p)({}b)", id, set.size(), clientGroupStat.closed.sum(),
-								clientGroupStat.receivedPackets.sum(), clientGroupStat.receivedBytes.sum(), clientGroupStat.handledPackets.sum(),
-								clientGroupStat.sentPackets.sum(), clientGroupStat.sentBytes.sum());
-						} else {
-							log.info("[{}]: curr:{}, closed:{}", id, set.size(), clientGroupStat.closed.sum());
+						// 打印连接信息
+						if (tioClientConfig.debug && log.isInfoEnabled()) {
+							if (tioClientConfig.statOn) {
+								log.info("[{}]: curr:{}, closed:{}, received:({}p)({}b), handled:{}, sent:({}p)({}b)", id, set.size(), clientGroupStat.closed.sum(),
+									clientGroupStat.receivedPackets.sum(), clientGroupStat.receivedBytes.sum(), clientGroupStat.handledPackets.sum(),
+									clientGroupStat.sentPackets.sum(), clientGroupStat.sentBytes.sum());
+							} else {
+								log.info("[{}]: curr:{}, closed:{}", id, set.size(), clientGroupStat.closed.sum());
+							}
 						}
-					}
-				} catch (Throwable e) {
-					log.error("", e);
-				} finally {
-					try {
-						Thread.sleep(tioClientConfig.heartbeatTimeout / 4);
-					} catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-						log.error(e.getMessage(), e);
+					} catch (Throwable e) {
+						log.error("", e);
+					} finally {
+						try {
+							Thread.sleep(tioClientConfig.heartbeatTimeout / 4);
+						} catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+							log.error(e.getMessage(), e);
+						}
 					}
 				}
 			}
@@ -496,7 +499,10 @@ public class TioClient {
 			@Override
 			public void run() {
 				while (!tioClientConfig.isStopped()) {
-					log.error("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), tioClientConfig.connections.size());
+					int connectionSize = tioClientConfig.connections.size();
+					if (connectionSize > 0) {
+						log.error("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), connectionSize);
+					}
 					LinkedBlockingQueue<ChannelContext> queue = reconnConf.getQueue();
 					ClientChannelContext channelContext = null;
 					try {
