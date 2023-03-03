@@ -215,9 +215,8 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 	private static final Logger log = LoggerFactory.getLogger(ConnectionCompletionHandler.class);
 
 	/**
-	 * @param result
-	 * @param attachment
-	 * @author tanyaowu
+	 * @param result result
+	 * @param attachment ConnectionCompletionVo
 	 */
 	@Override
 	public void completed(Void result, ConnectionCompletionVo attachment) {
@@ -225,9 +224,8 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 	}
 
 	/**
-	 * @param throwable
-	 * @param attachment
-	 * @author tanyaowu
+	 * @param throwable Throwable
+	 * @param attachment ConnectionCompletionVo
 	 */
 	@Override
 	public void failed(Throwable throwable, ConnectionCompletionVo attachment) {
@@ -235,10 +233,9 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 	}
 
 	/**
-	 * @param result
-	 * @param attachment
-	 * @param throwable
-	 * @author tanyaowu
+	 * @param result result
+	 * @param attachment attachment
+	 * @param throwable Throwable
 	 */
 	private void handler(Void result, ConnectionCompletionVo attachment, Throwable throwable) {
 		ClientChannelContext channelContext = attachment.getChannelContext();

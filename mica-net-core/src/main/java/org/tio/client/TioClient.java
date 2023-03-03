@@ -226,7 +226,6 @@ public class TioClient {
 	/**
 	 * @param tioClientConfig TioClientConfig
 	 * @throws IOException IOException
-	 * @author tanyaowu
 	 */
 	public TioClient(final TioClientConfig tioClientConfig) throws IOException {
 		this.tioClientConfig = tioClientConfig;
@@ -240,7 +239,6 @@ public class TioClient {
 	 *
 	 * @param serverNode serverNode
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	public void asyncConnect(Node serverNode) throws Exception {
 		asyncConnect(serverNode, null);
@@ -252,7 +250,6 @@ public class TioClient {
 	 * @param serverNode serverNode
 	 * @param timeout    timeout
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	public void asyncConnect(Node serverNode, Integer timeout) throws Exception {
 		asyncConnect(serverNode, null, null, timeout);
@@ -266,7 +263,6 @@ public class TioClient {
 	 * @param bindPort   bindPort
 	 * @param timeout    timeout
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	public void asyncConnect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
 		connect(serverNode, bindIp, bindPort, null, timeout, false);
@@ -278,7 +274,6 @@ public class TioClient {
 	 * @param serverNode serverNode
 	 * @return ClientChannelContext
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	public ClientChannelContext connect(Node serverNode) throws Exception {
 		return connect(serverNode, null);
@@ -291,7 +286,6 @@ public class TioClient {
 	 * @param timeout    timeout
 	 * @return ClientChannelContext
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	public ClientChannelContext connect(Node serverNode, Integer timeout) throws Exception {
 		return connect(serverNode, null, 0, timeout);
@@ -307,22 +301,20 @@ public class TioClient {
 	 * @param timeout                  超时时间，单位秒
 	 * @return ClientChannelContext
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	public ClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, ClientChannelContext initClientChannelContext, Integer timeout) throws Exception {
 		return connect(serverNode, bindIp, bindPort, initClientChannelContext, timeout, true);
 	}
 
 	/**
-	 * @param serverNode
-	 * @param bindIp
-	 * @param bindPort
-	 * @param initClientChannelContext
+	 * @param serverNode               Node
+	 * @param bindIp                   bindIp
+	 * @param bindPort                 bindPort
+	 * @param initClientChannelContext ClientChannelContext
 	 * @param timeout                  超时时间，单位秒
 	 * @param isSyn                    true: 同步, false: 异步
-	 * @return
-	 * @throws Exception
-	 * @author tanyaowu
+	 * @return ClientChannelContext
+	 * @throws Exception Exception
 	 */
 	private ClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, ClientChannelContext initClientChannelContext, Integer timeout, boolean isSyn) throws Exception {
 		boolean isReconnect = initClientChannelContext != null;
@@ -383,13 +375,12 @@ public class TioClient {
 	}
 
 	/**
-	 * @param serverNode
-	 * @param bindIp
-	 * @param bindPort
+	 * @param serverNode Node
+	 * @param bindIp     bindIp
+	 * @param bindPort   bindPort
 	 * @param timeout    超时时间，单位秒
-	 * @return
-	 * @throws Exception
-	 * @author tanyaowu
+	 * @return ClientChannelContext
+	 * @throws Exception Exception
 	 */
 	public ClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
 		return connect(serverNode, bindIp, bindPort, null, timeout);
@@ -412,9 +403,7 @@ public class TioClient {
 	/**
 	 * @param channelContext
 	 * @param timeout        单位秒
-	 * @return
-	 * @throws Exception
-	 * @author tanyaowu
+	 * @throws Exception Exception
 	 */
 	public void reconnect(ClientChannelContext channelContext, Integer timeout) throws Exception {
 		connect(channelContext.getServerNode(), channelContext.getBindIp(), channelContext.getBindPort(), channelContext, timeout);
@@ -422,8 +411,6 @@ public class TioClient {
 
 	/**
 	 * 定时任务：发心跳
-	 *
-	 * @author tanyaowu
 	 */
 	private void startHeartbeatTask() {
 		// 先判断是否取消默认的心跳机制
@@ -486,8 +473,6 @@ public class TioClient {
 
 	/**
 	 * 启动重连任务
-	 *
-	 * @author tanyaowu
 	 */
 	private void startReconnTask() {
 		final ReconnConf reconnConf = tioClientConfig.getReconnConf();
@@ -556,7 +541,6 @@ public class TioClient {
 	 * 停止
 	 *
 	 * @return boolean
-	 * @author tanyaowu
 	 */
 	public boolean stop() {
 		boolean ret = true;

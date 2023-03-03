@@ -211,42 +211,29 @@ public class ReconnConf {
 	 * 用来重连的线程池
 	 */
 	private final SynThreadPoolExecutor threadPoolExecutor;
-	LinkedBlockingQueue<ChannelContext> queue = new LinkedBlockingQueue<>();
+	private final LinkedBlockingQueue<ChannelContext> queue = new LinkedBlockingQueue<>();
 	/**
 	 * 重连的间隔时间，单位毫秒
 	 */
-	private long interval = 5000;
+	private final long interval;
 	/**
 	 * 连续重连次数，当连续重连这么多次都失败时，不再重连。0和负数则一直重连
 	 */
-	private int retryCount = 0;
+	private final int retryCount;
 
-	/**
-	 * @author tanyaowu
-	 */
 	public ReconnConf() {
+		this(5000, 0);
+	}
+
+	public ReconnConf(long interval) {
+		this(interval, 0);
+	}
+
+	public ReconnConf(long interval, int retryCount) {
 		LinkedBlockingQueue<Runnable> tioQueue = new LinkedBlockingQueue<>();
 		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("tio-client-reconn", Thread.MAX_PRIORITY);
 		// 重连一般都是客户端重连，只用一个线程即可
-		threadPoolExecutor = new SynThreadPoolExecutor(1, 1, 60L, tioQueue, defaultThreadFactory);
-	}
-
-	/**
-	 * @param interval
-	 * @author tanyaowu
-	 */
-	public ReconnConf(long interval) {
-		this();
-		this.setInterval(interval);
-	}
-
-	/**
-	 * @param interval
-	 * @param retryCount
-	 * @author tanyaowu
-	 */
-	public ReconnConf(long interval, int retryCount) {
-		this();
+		this.threadPoolExecutor = new SynThreadPoolExecutor(1, 1, 60L, tioQueue, defaultThreadFactory);
 		this.interval = interval;
 		this.retryCount = retryCount;
 	}
@@ -261,9 +248,9 @@ public class ReconnConf {
 	}
 
 	/**
-	 * @param clientChannelContext
+	 * @param clientChannelContext ClientChannelContext
 	 * @param putIfNeedConn        如果需要重连，则把该ClientChannelContext放到重连队列中
-	 * @return
+	 * @return boolean
 	 */
 	public static boolean isNeedReconn(ClientChannelContext clientChannelContext, boolean putIfNeedConn) {
 		if (clientChannelContext == null) {
@@ -291,7 +278,7 @@ public class ReconnConf {
 	}
 
 	/**
-	 * @param clientChannelContext
+	 * @param clientChannelContext ClientChannelContext
 	 * @return true:需要重连;     false:不需要重连
 	 */
 	public static boolean put(ClientChannelContext clientChannelContext) {
@@ -309,13 +296,6 @@ public class ReconnConf {
 	}
 
 	/**
-	 * @param interval the interval to set
-	 */
-	public void setInterval(long interval) {
-		this.interval = interval;
-	}
-
-	/**
 	 * @return the queue
 	 */
 	public LinkedBlockingQueue<ChannelContext> getQueue() {
@@ -329,15 +309,6 @@ public class ReconnConf {
 	 */
 	public int getRetryCount() {
 		return retryCount;
-	}
-
-	/**
-	 * 连续重连次数，当连续重连这么多次都失败时，不再重连。0和负数则一直重连
-	 *
-	 * @param retryCount the retryCount to set
-	 */
-	public void setRetryCount(int retryCount) {
-		this.retryCount = retryCount;
 	}
 
 	/**

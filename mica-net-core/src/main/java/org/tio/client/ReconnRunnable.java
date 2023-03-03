@@ -210,7 +210,7 @@ public class ReconnRunnable extends AbstractSynRunnable {
 	final ClientChannelContext channelContext;
 	final TioClient tioClient;
 
-	public ReconnRunnable(ClientChannelContext channelContext, TioClient tioClient, Executor executor) {
+	ReconnRunnable(ClientChannelContext channelContext, TioClient tioClient, Executor executor) {
 		super(executor);
 		this.channelContext = channelContext;
 		this.tioClient = tioClient;

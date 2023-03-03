@@ -220,25 +220,22 @@ public class ConnectionCompletionVo {
 
 	private CountDownLatch countDownLatch = null;
 
-	/**
-	 * @author tanyaowu
-	 */
 	public ConnectionCompletionVo() {
 
 	}
 
 	/**
-	 * @param channelContext
-	 * @param tioClient
-	 * @param isReconnect
-	 * @param asynchronousSocketChannel
-	 * @param serverNode
-	 * @param bindIp
-	 * @param bindPort
-	 * @author tanyaowu
+	 * @param channelContext            ClientChannelContext
+	 * @param tioClient                 TioClient
+	 * @param isReconnect               isReconnect
+	 * @param asynchronousSocketChannel AsynchronousSocketChannel
+	 * @param serverNode                Node
+	 * @param bindIp                    bindIp
+	 * @param bindPort                  bindPort
 	 */
-	public ConnectionCompletionVo(ClientChannelContext channelContext, TioClient tioClient, boolean isReconnect, AsynchronousSocketChannel asynchronousSocketChannel,
-								  Node serverNode, String bindIp, Integer bindPort) {
+	public ConnectionCompletionVo(ClientChannelContext channelContext, TioClient tioClient, boolean isReconnect,
+								  AsynchronousSocketChannel asynchronousSocketChannel, Node serverNode,
+								  String bindIp, Integer bindPort) {
 		super();
 		this.channelContext = channelContext;
 		this.tioClient = tioClient;
