@@ -5,6 +5,8 @@
 ### v0.0.8 - 2023-03-05
 - :sparkles: IPropSupport 添加 `computeIfAbsent` 方法。
 - :sparkles: 服务端 ssl 添加认证模式
+- :sparkles: 优化首次重连的日志
+- :sparkles: 优化 javadoc，任未优化完~
 
 ### v0.0.7 - 2023-02-21
 
