@@ -1,7 +1,6 @@
 package org.tio.utils.cache;
 
 import java.io.Serializable;
-import java.util.Iterator;
 import java.util.function.Supplier;
 
 /**
@@ -11,7 +10,7 @@ import java.util.function.Supplier;
  * @param <V> 值类型
  * @author Looly, jodd
  */
-public interface Cache<K, V> extends Iterable<V>, Serializable {
+public interface Cache<K, V> extends Serializable {
 
 	/**
 	 * 返回缓存容量，{@code 0}表示无大小限制
@@ -102,14 +101,6 @@ public interface Cache<K, V> extends Iterable<V>, Serializable {
 	 * @return 键对应的对象
 	 */
 	V get(K key, boolean isUpdateLastAccess);
-
-	/**
-	 * 返回包含键和值得迭代器
-	 *
-	 * @return 缓存对象迭代器
-	 * @since 4.0.10
-	 */
-	Iterator<CacheObj<K, V>> cacheObjIterator();
 
 	/**
 	 * 从缓存中清理过期对象，清理策略取决于具体实现
