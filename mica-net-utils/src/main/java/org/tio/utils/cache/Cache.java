@@ -155,9 +155,6 @@ public interface Cache<K, V> extends Serializable {
 	 *
 	 * @param listener 监听
 	 * @return this
-	 * @since 5.5.2
 	 */
-	default Cache<K, V> setListener(CacheListener<K, V> listener){
-		return this;
-	}
+	Cache<K, V> setListener(CacheListener<K, V> listener);
 }

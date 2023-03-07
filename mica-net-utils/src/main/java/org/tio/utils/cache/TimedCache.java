@@ -22,7 +22,7 @@ public class TimedCache<K, V> extends StampedCache<K, V> {
 	/**
 	 * 时间轮
 	 */
-	private TimerTaskService timerTaskService;
+	private final TimerTaskService timerTaskService;
 	/**
 	 * 正在执行的定时任务
 	 */
@@ -49,6 +49,7 @@ public class TimedCache<K, V> extends StampedCache<K, V> {
 		this.cacheMap = map;
 		this.timerTaskService = new DefaultTimerTaskService();
 		this.timerTaskService.start();
+		this.schedulePrune(timeout);
 	}
 
 	// ---------------------------------------------------------------- prune
@@ -81,10 +82,11 @@ public class TimedCache<K, V> extends StampedCache<K, V> {
 	 *
 	 * @param delay 间隔时长，单位毫秒
 	 */
-	public void schedulePrune(long delay) {
+	protected void schedulePrune(long delay) {
 		this.timerTask = timerTaskService.addTask(timer -> new TimerTask(delay) {
 			@Override
 			public void run() {
+				timer.add(this);
 				TimedCache.this.pruneCache();
 			}
 		});

@@ -10,14 +10,10 @@ class TimedCacheTest {
 	@Test
 	void timedCacheTest() throws InterruptedException {
 		TimedCache<String, String> timedCache = new TimedCache<>(4);
-//		TimedCache<String, String> timedCache = new TimedCache<String, String>(DateUnit.SECOND.getMillis() * 3);
 		timedCache.put("key1", "value1", 1);//1毫秒过期
 		timedCache.put("key2", "value2", DateUnit.SECOND.getMillis() * 5);//5秒过期
 		timedCache.put("key3", "value3");//默认过期(4毫秒)
 		timedCache.put("key4", "value4", Long.MAX_VALUE);//永不过期
-
-		//启动定时任务，每5毫秒秒检查一次过期
-		timedCache.schedulePrune(5);
 		//等待5毫秒
 		Thread.sleep(5);
 

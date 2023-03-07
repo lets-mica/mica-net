@@ -8,7 +8,6 @@ import java.util.concurrent.locks.StampedLock;
  * @param <K> 键类型
  * @param <V> 值类型
  * @author looly
- * @since 5.7.15
  */
 public abstract class StampedCache<K, V> extends AbstractCache<K, V>{
 	private static final long serialVersionUID = 1L;

@@ -137,7 +137,6 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 	 *
 	 * @param key 键
 	 * @return {@link CacheObj}
-	 * @since 5.8.0
 	 */
 	protected CacheObj<K, V> getWithoutLock(K key) {
 		return this.cacheMap.get(key);
@@ -205,7 +204,6 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 	 *
 	 * @param listener 监听
 	 * @return this
-	 * @since 5.5.2
 	 */
 	@Override
 	public AbstractCache<K, V> setListener(CacheListener<K, V> listener) {
@@ -257,7 +255,6 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 	 * 获取所有{@link CacheObj}值的{@link Iterator}形式
 	 *
 	 * @return {@link Iterator}
-	 * @since 5.8.0
 	 */
 	protected Iterator<CacheObj<K, V>> cacheObjIter() {
 		return this.cacheMap.values().iterator();
