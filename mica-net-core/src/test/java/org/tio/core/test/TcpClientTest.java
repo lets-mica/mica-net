@@ -35,6 +35,7 @@ public class TcpClientTest {
 				// Action
 				byte[] bytes = "Action2551".getBytes(StandardCharsets.UTF_8);
 				ByteBuffer buffer = ByteBuffer.allocate(bytes.length + 2);
+				buffer.put(bytes);
 				buffer.put(SysConst.CR);
 				buffer.put(SysConst.LF);
 

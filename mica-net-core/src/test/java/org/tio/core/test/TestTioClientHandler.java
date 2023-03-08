@@ -27,14 +27,17 @@ public class TestTioClientHandler implements TioClientHandler {
 
 	@Override
 	public Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException {
-		String dump = ByteBufferUtil.hexDump(buffer);
-		System.out.println(dump);
+		System.out.println("---------------接收-----------------");
+		System.out.println(ByteBufferUtil.hexDump(buffer));
 		return new EncodedPacket(buffer.array());
 	}
 
 	@Override
 	public ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext channelContext) {
-		return ByteBuffer.wrap(((EncodedPacket) packet).getBytes());
+		ByteBuffer buffer = ByteBuffer.wrap(((EncodedPacket) packet).getBytes());
+		System.out.println("---------------发送-----------------");
+		System.out.println(ByteBufferUtil.hexDump(buffer));
+		return buffer;
 	}
 
 	@Override
