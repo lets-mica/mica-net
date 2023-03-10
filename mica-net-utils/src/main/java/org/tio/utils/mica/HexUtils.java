@@ -128,7 +128,18 @@ public class HexUtils {
 	 * @return bytes as a hex string
 	 */
 	public static String encodeToString(byte[] data) {
-		return new String(encode(data), DEFAULT_CHARSET);
+		return encodeToString(data, DEFAULT_CHARSET);
+	}
+
+	/**
+	 * encode Hex
+	 *
+	 * @param data    Data to Hex
+	 * @param charset Charset
+	 * @return bytes as a hex string
+	 */
+	public static String encodeToString(byte[] data, Charset charset) {
+		return new String(encode(data), charset);
 	}
 
 	/**
@@ -151,10 +162,21 @@ public class HexUtils {
 	 * @return decode hex to bytes
 	 */
 	public static byte[] decode(String data) {
+		return decode(data, DEFAULT_CHARSET);
+	}
+
+	/**
+	 * decode Hex
+	 *
+	 * @param data    Hex data
+	 * @param charset Charset
+	 * @return decode hex to bytes
+	 */
+	public static byte[] decode(String data, Charset charset) {
 		if (StrUtil.isBlank(data)) {
 			return null;
 		}
-		return decode(data.getBytes(DEFAULT_CHARSET));
+		return decode(data.getBytes(charset));
 	}
 
 	/**
