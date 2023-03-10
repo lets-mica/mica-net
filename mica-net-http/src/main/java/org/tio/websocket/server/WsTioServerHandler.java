@@ -357,7 +357,6 @@ public class WsTioServerHandler implements TioServerHandler {
 		WsResponse wsResponse;
 		if (opcode == Opcode.TEXT) {
 			if (bytes == null || bytes.length == 0) {
-				Tio.remove(channelContext, "错误的websocket包，body为空");
 				return null;
 			}
 			String text = new String(bytes, wsServerConfig.getCharset());
@@ -367,13 +366,11 @@ public class WsTioServerHandler implements TioServerHandler {
 			return wsResponse;
 		} else if (opcode == Opcode.BINARY) {
 			if (bytes == null || bytes.length == 0) {
-				Tio.remove(channelContext, "错误的websocket包，body为空");
 				return null;
 			}
 			Object retObj = wsMsgHandler.onBytes(websocketPacket, bytes, channelContext);
 			String methodName = "onBytes";
 			wsResponse = processRetObj(retObj, methodName, channelContext);
-
 			return wsResponse;
 		} else if (opcode == Opcode.PING || opcode == Opcode.PONG) {
 			log.debug("收到:{}", opcode);
