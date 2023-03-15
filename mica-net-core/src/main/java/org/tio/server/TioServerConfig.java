@@ -209,7 +209,6 @@ import org.tio.utils.SysConst;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;

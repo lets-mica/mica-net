@@ -207,10 +207,8 @@ import java.nio.channels.AsynchronousSocketChannel;
 public class ServerChannelContext extends ChannelContext {
 
 	/**
-	 * @param tioConfig
-	 * @param asynchronousSocketChannel
-	 * @author tanyaowu
-	 * 2016年12月6日 下午12:17:59
+	 * @param tioConfig                 TioConfig
+	 * @param asynchronousSocketChannel AsynchronousSocketChannel
 	 */
 	public ServerChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
 		super(tioConfig, asynchronousSocketChannel);
@@ -219,7 +217,7 @@ public class ServerChannelContext extends ChannelContext {
 	/**
 	 * 创建一个虚拟ChannelContext，主要用来模拟一些操作，真实场景中用得少
 	 *
-	 * @param tioConfig
+	 * @param tioConfig TioConfig
 	 */
 	public ServerChannelContext(TioConfig tioConfig) {
 		super(tioConfig);
@@ -228,20 +226,17 @@ public class ServerChannelContext extends ChannelContext {
 	/**
 	 * 创建一个虚拟ChannelContext，主要用来模拟一些操作，譬如压力测试，真实场景中用得少
 	 *
-	 * @param tioConfig
+	 * @param tioConfig TioConfig
 	 * @param id        ChannelContext id
-	 * @author tanyaowu
 	 */
 	public ServerChannelContext(TioConfig tioConfig, String id) {
 		super(tioConfig, id);
 	}
 
 	/**
-	 * @param asynchronousSocketChannel
-	 * @return
-	 * @throws IOException
-	 * @author tanyaowu
-	 * 2016年12月6日 下午12:18:08
+	 * @param asynchronousSocketChannel AsynchronousSocketChannel
+	 * @return Node
+	 * @throws IOException IOException
 	 * @see org.tio.core.ChannelContext#createClientNode(java.nio.channels.AsynchronousSocketChannel)
 	 */
 	@Override
@@ -251,8 +246,9 @@ public class ServerChannelContext extends ChannelContext {
 	}
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * 是否服务端
+	 *
+	 * @return 是否服务端
 	 */
 	@Override
 	public boolean isServer() {
