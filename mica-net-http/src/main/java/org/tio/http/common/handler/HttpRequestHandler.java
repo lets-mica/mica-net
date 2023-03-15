@@ -208,46 +208,45 @@ public interface HttpRequestHandler {
 	/**
 	 * 处理请求
 	 *
-	 * @param packet
-	 * @return 可以为null
-	 * @throws Exception
-	 * @author tanyaowu
+	 * @param packet HttpRequest
+	 * @return 可以为 null
+	 * @throws Exception Exception
 	 */
 	HttpResponse handler(HttpRequest packet) throws Exception;
 
 	/**
 	 * 响应404
 	 *
-	 * @param request
-	 * @param requestLine
-	 * @return
-	 * @throws Exception
-	 * @author tanyaowu
+	 * @param request     HttpRequest
+	 * @param requestLine RequestLine
+	 * @return HttpResponse
+	 * @throws Exception Exception
 	 */
 	HttpResponse resp404(HttpRequest request, RequestLine requestLine) throws Exception;
 
 	/**
 	 * 响应500
 	 *
-	 * @param request
-	 * @param requestLine
-	 * @param throwable
-	 * @return
-	 * @throws Exception
-	 * @author tanyaowu
+	 * @param request     HttpRequest
+	 * @param requestLine RequestLine
+	 * @param throwable   Throwable
+	 * @return HttpResponse
+	 * @throws Exception Exception
 	 */
 	HttpResponse resp500(HttpRequest request, RequestLine requestLine, Throwable throwable) throws Exception;
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * 获取 HttpConfig
+	 *
+	 * @param request HttpRequest
+	 * @return HttpConfig
 	 */
 	HttpConfig getHttpConfig(HttpRequest request);
 
 	/**
 	 * 清空静态资源缓存，如果没有缓存，可以不处理
-	 *
-	 * @author: tanyaowu
 	 */
-	void clearStaticResCache();
+	default void clearStaticResCache() {
+
+	}
 }
