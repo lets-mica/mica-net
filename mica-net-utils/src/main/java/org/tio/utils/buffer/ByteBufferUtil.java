@@ -107,7 +107,7 @@ public class ByteBufferUtil {
 	 * @return 字符串
 	 */
 	public static String toString(ByteBuffer buffer) {
-		return new String(buffer.array(), StandardCharsets.UTF_8);
+		return toString(buffer, StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -143,7 +143,9 @@ public class ByteBufferUtil {
 	 * @param byteBuffer ByteBuffer
 	 */
 	public static String hexDump(ByteBuffer byteBuffer) {
-		return toHexString(byteBuffer.array());
+		byte[] bytes = new byte[byteBuffer.remaining()];
+		byteBuffer.get(bytes);
+		return toHexString(bytes);
 	}
 
 	/**
