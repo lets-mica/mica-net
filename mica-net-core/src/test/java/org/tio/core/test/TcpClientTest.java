@@ -19,7 +19,8 @@ public class TcpClientTest {
 	public static void main(String[] args) throws Exception {
 		// 配置
 		TioClientConfig config = new TioClientConfig(new TestTioClientHandler(), new DefaultTioClientListener());
-		config.setReadBufferSize(128);
+		// 设置小一点，减少 dump 打印的无用字符
+		config.setReadBufferSize(256);
 		config.setReconnConf(new ReconnConf());
 		TioClient tioClient = new TioClient(config);
 		ClientChannelContext connect = tioClient.connect(new Node("3vs4299313.qicp.vip", 22372));
