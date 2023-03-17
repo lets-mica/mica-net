@@ -4,6 +4,7 @@ import org.tio.utils.timer.DefaultTimerTaskService;
 import org.tio.utils.timer.TimerTask;
 import org.tio.utils.timer.TimerTaskService;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -14,19 +15,19 @@ import java.util.Map;
  *
  * @param <K> 键类型
  * @param <V> 值类型
- * @author Looly
+ * @author Looly, L.cm
  */
-public class TimedCache<K, V> extends StampedCache<K, V> {
+public class TimedCache<K extends Serializable, V extends Serializable> extends StampedCache<K, V> {
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * 时间轮
 	 */
-	private final TimerTaskService timerTaskService;
+	private final transient TimerTaskService timerTaskService;
 	/**
 	 * 正在执行的定时任务
 	 */
-	private TimerTask timerTask;
+	private transient TimerTask timerTask;
 
 	/**
 	 * 构造
@@ -44,9 +45,7 @@ public class TimedCache<K, V> extends StampedCache<K, V> {
 	 * @param map     存储缓存对象的map
 	 */
 	public TimedCache(long timeout, Map<K, CacheObj<K, V>> map) {
-		this.capacity = 0;
-		this.timeout = timeout;
-		this.cacheMap = map;
+		super(map, 0, timeout);
 		this.timerTaskService = new DefaultTimerTaskService();
 		this.timerTaskService.start();
 		this.schedulePrune(timeout);

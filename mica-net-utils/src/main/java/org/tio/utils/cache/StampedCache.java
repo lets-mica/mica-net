@@ -1,5 +1,7 @@
 package org.tio.utils.cache;
 
+import java.io.Serializable;
+import java.util.Map;
 import java.util.concurrent.locks.StampedLock;
 
 /**
@@ -9,13 +11,17 @@ import java.util.concurrent.locks.StampedLock;
  * @param <V> 值类型
  * @author looly
  */
-public abstract class StampedCache<K, V> extends AbstractCache<K, V>{
+public abstract class StampedCache<K extends Serializable, V extends Serializable> extends AbstractCache<K, V> {
 	private static final long serialVersionUID = 1L;
 
 	// 乐观锁，此处使用乐观锁解决读多写少的场景
 	// get时乐观读，再检查是否修改，修改则转入悲观读重新读一遍，可以有效解决在写时阻塞大量读操作的情况。
 	// see: https://www.cnblogs.com/jiagoushijuzi/p/13721319.html
 	protected final StampedLock lock = new StampedLock();
+
+	StampedCache(Map<K, CacheObj<K, V>> cacheMap, int capacity, long timeout) {
+		super(cacheMap, capacity, timeout);
+	}
 
 	@Override
 	public void put(K key, V object, long timeout) {
@@ -43,7 +49,6 @@ public abstract class StampedCache<K, V> extends AbstractCache<K, V>{
 		} finally {
 			lock.unlockRead(stamp);
 		}
-
 		// 过期
 		remove(key, true);
 		return false;
@@ -54,7 +59,7 @@ public abstract class StampedCache<K, V> extends AbstractCache<K, V>{
 		// 尝试读取缓存，使用乐观读锁
 		long stamp = lock.tryOptimisticRead();
 		CacheObj<K, V> co = getWithoutLock(key);
-		if(!lock.validate(stamp)){
+		if (!lock.validate(stamp)) {
 			// 有写线程修改了此对象，悲观读
 			stamp = lock.readLock();
 			try {
@@ -63,7 +68,6 @@ public abstract class StampedCache<K, V> extends AbstractCache<K, V>{
 				lock.unlockRead(stamp);
 			}
 		}
-
 		// 未命中
 		if (null == co) {
 			missCount.increment();
@@ -72,7 +76,6 @@ public abstract class StampedCache<K, V> extends AbstractCache<K, V>{
 			hitCount.increment();
 			return co.get(isUpdateLastAccess);
 		}
-
 		// 过期，既不算命中也不算非命中
 		remove(key, true);
 		return null;
@@ -97,7 +100,7 @@ public abstract class StampedCache<K, V> extends AbstractCache<K, V>{
 	public void clear() {
 		final long stamp = lock.writeLock();
 		try {
-			cacheMap.clear();
+			super.clear();
 		} finally {
 			lock.unlockWrite(stamp);
 		}

@@ -10,7 +10,7 @@ import java.util.function.Supplier;
  * @param <V> 值类型
  * @author Looly, jodd
  */
-public interface Cache<K, V> extends Serializable {
+public interface Cache<K extends Serializable, V extends Serializable> extends Serializable {
 
 	/**
 	 * 返回缓存容量，{@code 0}表示无大小限制

@@ -2,6 +2,7 @@ package org.tio.utils.cache;
 
 import org.tio.utils.hutool.CollUtil;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -24,10 +25,21 @@ import java.util.function.Supplier;
  * @param <V> 值类型
  * @author Looly, jodd
  */
-public abstract class AbstractCache<K, V> implements Cache<K, V> {
+public abstract class AbstractCache<K extends Serializable, V extends Serializable> implements Cache<K, V> {
 	private static final long serialVersionUID = 1L;
 
-	protected Map<K, CacheObj<K, V>> cacheMap;
+	/**
+	 * 数据实际存储 map
+	 */
+	private final Map<K, CacheObj<K, V>> cacheMap;
+	/**
+	 * 返回缓存容量，{@code 0}表示无大小限制
+	 */
+	protected final int capacity;
+	/**
+	 * 缓存失效时长， {@code 0} 表示无限制，单位毫秒
+	 */
+	protected final long timeout;
 
 	/**
 	 * 写的时候每个key一把锁，降低锁的粒度
@@ -35,19 +47,9 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 	protected final ConcurrentHashMap<K, Lock> keyLockMap = new ConcurrentHashMap<>();
 
 	/**
-	 * 返回缓存容量，{@code 0}表示无大小限制
-	 */
-	protected int capacity;
-	/**
-	 * 缓存失效时长， {@code 0} 表示无限制，单位毫秒
-	 */
-	protected long timeout;
-
-	/**
 	 * 每个对象是否有单独的失效时长，用于决定清理过期对象是否有必要。
 	 */
 	protected boolean existCustomTimeout;
-
 	/**
 	 * 命中数，即命中缓存计数
 	 */
@@ -56,11 +58,16 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 	 * 丢失数，即未命中缓存计数
 	 */
 	protected LongAdder missCount = new LongAdder();
-
 	/**
 	 * 缓存监听
 	 */
-	protected CacheListener<K, V> listener;
+	protected transient CacheListener<K, V> listener;
+
+	AbstractCache(Map<K, CacheObj<K, V>> cacheMap, int capacity, long timeout) {
+		this.cacheMap = cacheMap;
+		this.capacity = capacity;
+		this.timeout = timeout;
+	}
 
 	// ---------------------------------------------------------------- put start
 	@Override
@@ -181,6 +188,11 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 	@Override
 	public boolean isFull() {
 		return (capacity > 0) && (cacheMap.size() >= capacity);
+	}
+
+	@Override
+	public void clear() {
+		cacheMap.clear();
 	}
 
 	@Override
