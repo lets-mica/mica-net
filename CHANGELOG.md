@@ -2,6 +2,14 @@
 
 ## 发行版本
 
+### v0.0.9 - 2023-03-26
+- :fire: 优化 `ByteBufferUtil` 工具类，只 `dump` 有效的 `ByteBuffer` 数据和优化 `toString` 方法。
+- :sparkles: `HttpRequestHandler#clearStaticResCache` 方法改为 default 方法。
+- :sparkles: 支持空 `websocket` 包
+- :sparkles: 完善 `HexUtils` 工具类。
+- :sparkles: copy 并优化 `TimedCache`，用于处理 mqtt 保留 session。
+- :arrow_up: 依赖升级
+
 ### v0.0.8 - 2023-03-05
 - :sparkles: IPropSupport 添加 `computeIfAbsent` 方法。
 - :sparkles: 服务端 ssl 添加认证模式
