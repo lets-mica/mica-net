@@ -35,11 +35,11 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	/**
 	 * 返回缓存容量，{@code 0}表示无大小限制
 	 */
-	protected final int capacity;
+	private final int capacity;
 	/**
 	 * 缓存失效时长， {@code 0} 表示无限制，单位毫秒
 	 */
-	protected final long timeout;
+	private final long timeout;
 
 	/**
 	 * 写的时候每个key一把锁，降低锁的粒度
