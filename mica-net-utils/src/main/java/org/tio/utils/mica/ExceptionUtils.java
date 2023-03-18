@@ -58,7 +58,7 @@ public class ExceptionUtils {
 	 * @throws T 泛型
 	 */
 	@SuppressWarnings("unchecked")
-	private static <T extends Throwable> T runtime(Throwable throwable) throws T {
+	public static <T extends Throwable> T runtime(Throwable throwable) throws T {
 		throw (T) throwable;
 	}
 

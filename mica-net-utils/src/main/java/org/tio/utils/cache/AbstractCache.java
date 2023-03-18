@@ -1,6 +1,7 @@
 package org.tio.utils.cache;
 
 import org.tio.utils.hutool.CollUtil;
+import org.tio.utils.mica.ExceptionUtils;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -125,7 +126,7 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 					try {
 						v = supplier.get();
 					} catch (Exception e) {
-						throw new RuntimeException(e);
+						throw ExceptionUtils.runtime(e);
 					}
 					put(key, v, this.timeout);
 				} else {
@@ -241,9 +242,8 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	 * @param cachedObject 被缓存的对象
 	 */
 	protected void onRemove(K key, V cachedObject) {
-		final CacheListener<K, V> listener = this.listener;
-		if (null != listener) {
-			listener.onRemove(key, cachedObject);
+		if (null != this.listener) {
+			this.listener.onRemove(key, cachedObject);
 		}
 	}
 
