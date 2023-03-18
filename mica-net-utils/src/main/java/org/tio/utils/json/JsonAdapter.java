@@ -16,8 +16,6 @@
 
 package org.tio.utils.json;
 
-import org.tio.utils.hutool.ClassUtil;
-
 import java.util.List;
 
 /**
@@ -54,47 +52,5 @@ public interface JsonAdapter {
 	 * @return 对象
 	 */
 	<T> List<T> readList(String json, Class<T> clazz);
-
-	/**
-	 * 获取 jsonAdapter
-	 *
-	 * @return JsonAdapter
-	 */
-	static JsonAdapter getJsonAdapter() {
-		return getJsonAdapter(null);
-	}
-
-	/**
-	 * 获取 jsonAdapter
-	 *
-	 * @param jsonAdapter JsonAdapter
-	 * @return JsonAdapter
-	 */
-	static JsonAdapter getJsonAdapter(JsonAdapter jsonAdapter) {
-		if (jsonAdapter != null) {
-			return jsonAdapter;
-		}
-		// 基于 jackson
-		if (ClassUtil.isPresent(JacksonJsonAdapter.CLAZZ_NAME)) {
-			return new JacksonJsonAdapter();
-		}
-		// 基于 fastjson2
-		if (ClassUtil.isPresent(FastJson2JsonAdapter.CLAZZ_NAME)) {
-			return new FastJson2JsonAdapter();
-		}
-		// 基于 fastjson
-		if (ClassUtil.isPresent(FastJson1JsonAdapter.CLAZZ_NAME)) {
-			return new FastJson1JsonAdapter();
-		}
-		// 基于 gson
-		if (ClassUtil.isPresent(GsonJsonAdapter.CLAZZ_NAME)) {
-			return new GsonJsonAdapter();
-		}
-		// 基于 hutool
-		if (ClassUtil.isPresent(HuToolJsonAdapter.CLAZZ_NAME)) {
-			return new HuToolJsonAdapter();
-		}
-		throw new IllegalArgumentException("Args jsonAdapter is null and there is no available JSON toolkits (Jackson, Fastjson1, Fastjson2, Gson, Hutool-json)");
-	}
 
 }
