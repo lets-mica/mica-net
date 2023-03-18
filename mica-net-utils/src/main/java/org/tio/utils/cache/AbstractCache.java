@@ -126,7 +126,7 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 					try {
 						v = supplier.get();
 					} catch (Exception e) {
-						throw ExceptionUtils.runtime(e);
+						throw ExceptionUtils.unchecked(e);
 					}
 					put(key, v, this.timeout);
 				} else {

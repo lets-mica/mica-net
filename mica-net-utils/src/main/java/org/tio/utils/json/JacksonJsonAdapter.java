@@ -50,7 +50,7 @@ public class JacksonJsonAdapter implements JsonAdapter {
 		try {
 			return objectMapper.writeValueAsString(object);
 		} catch (JsonProcessingException e) {
-			throw ExceptionUtils.runtime(e);
+			throw ExceptionUtils.unchecked(e);
 		}
 	}
 
@@ -59,7 +59,7 @@ public class JacksonJsonAdapter implements JsonAdapter {
 		try {
 			return objectMapper.readValue(json, clazz);
 		} catch (JsonProcessingException e) {
-			throw ExceptionUtils.runtime(e);
+			throw ExceptionUtils.unchecked(e);
 		}
 	}
 
@@ -70,7 +70,7 @@ public class JacksonJsonAdapter implements JsonAdapter {
 		try {
 			return objectMapper.readValue(json, javaType);
 		} catch (JsonProcessingException e) {
-			throw ExceptionUtils.runtime(e);
+			throw ExceptionUtils.unchecked(e);
 		}
 	}
 
