@@ -8,7 +8,7 @@
 - :sparkles: 支持空 `websocket` 包
 - :sparkles: 完善 `HexUtils` 工具类。
 - :sparkles: 添加 JsonUtil，支持 `Jackson`, `Fastjson1`, `Fastjson2`, `Gson`, `hutool-json`。
-- :sparkles: copy 并优化 `TimedCache`，用于处理 mqtt 保留 session。
+- :sparkles: copy 并采用时间轮优化 `TimedCache`，用于处理 mqtt 保留 session。
 - :arrow_up: 依赖升级
 
 ### v0.0.8 - 2023-03-05
