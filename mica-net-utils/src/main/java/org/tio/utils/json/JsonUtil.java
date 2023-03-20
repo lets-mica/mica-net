@@ -51,10 +51,10 @@ public class JsonUtil {
 			defaultJsonAdapter = new JacksonJsonAdapter();
 		} else if (ClassUtil.isPresent(FastJson2JsonAdapter.CLAZZ_NAME)) {
 			defaultJsonAdapter = new FastJson2JsonAdapter();
-		} else if (ClassUtil.isPresent(FastJson1JsonAdapter.CLAZZ_NAME)) {
-			defaultJsonAdapter = new FastJson1JsonAdapter();
 		} else if (ClassUtil.isPresent(GsonJsonAdapter.CLAZZ_NAME)) {
 			defaultJsonAdapter = new GsonJsonAdapter();
+		} else if (ClassUtil.isPresent(FastJson1JsonAdapter.CLAZZ_NAME)) {
+			defaultJsonAdapter = new FastJson1JsonAdapter();
 		} else if (ClassUtil.isPresent(HuToolJsonAdapter.CLAZZ_NAME)) {
 			defaultJsonAdapter = new HuToolJsonAdapter();
 		} else {
