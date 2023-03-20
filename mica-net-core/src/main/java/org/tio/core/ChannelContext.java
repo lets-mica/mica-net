@@ -255,7 +255,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	 */
 	public AsynchronousSocketChannel asynchronousSocketChannel;
 	private ReadCompletionHandler readCompletionHandler = null;
-	public String userId;
+	private String userId;
 	private String token;
 	private String bsId;
 	private String id = null;

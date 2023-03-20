@@ -264,7 +264,7 @@ public class Users {
 		if (channelContext.tioConfig.isShortConnection) {
 			return;
 		}
-		String userId = channelContext.userId;
+		String userId = channelContext.getUserId();
 		if (StrUtil.isBlank(userId)) {
 			log.debug("{}, {}, 并没有绑定用户", channelContext.tioConfig.getName(), channelContext);
 			return;
