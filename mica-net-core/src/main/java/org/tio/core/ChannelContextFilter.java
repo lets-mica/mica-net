@@ -207,6 +207,6 @@ public interface ChannelContextFilter {
 	 * @author tanyaowu
 	 * 2017年1月13日 下午3:28:54
 	 */
-	public boolean filter(ChannelContext channelContext);
+	boolean filter(ChannelContext channelContext);
 
 }
