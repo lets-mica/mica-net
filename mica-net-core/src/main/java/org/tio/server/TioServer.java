@@ -292,17 +292,12 @@ public class TioServer {
 		int xxLen = 18;
 		int aaLen = baseLen - 3;
 		List<String> infoList = new ArrayList<>();
-		infoList.add(StrUtil.fillAfter("mica-net site", ' ', xxLen) + "| " + SysConst.TIO_URL_SITE);
-		infoList.add(StrUtil.fillAfter("mica-net on git", ' ', xxLen) + "| " + SysConst.TIO_URL_GITEE);
-		infoList.add(StrUtil.fillAfter("mica-net version", ' ', xxLen) + "| " + Version.getVersion());
-
-		infoList.add(StrUtil.fillAfter("-", '-', aaLen));
-
+		// 打印启动信息
 		infoList.add(StrUtil.fillAfter("TioConfig name", ' ', xxLen) + "| " + tioServerConfig.getName());
+		infoList.add(StrUtil.fillAfter("Mica net version", ' ', xxLen) + "| " + Version.getVersion());
 		infoList.add(StrUtil.fillAfter("Started at", ' ', xxLen) + "| " + DateUtil.formatDateTime(LocalDateTime.now()));
 		infoList.add(StrUtil.fillAfter("Listen on", ' ', xxLen) + "| " + this.serverNode);
 		infoList.add(StrUtil.fillAfter("Main Class", ' ', xxLen) + "| " + se.getClassName());
-
 		try {
 			RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
 			String runtimeName = runtimeMxBean.getName();
@@ -313,7 +308,7 @@ public class TioServer {
 			infoList.add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
 			infoList.add(StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + pid);
 		} catch (Exception ignore) {
-
+			// ignore
 		}
 		// 100
 		StringBuilder printStr = new StringBuilder(SysConst.CRLF + baseStr + SysConst.CRLF);
