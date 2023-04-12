@@ -229,9 +229,6 @@ public class HttpRequest extends HttpPacket {
 	private String bodyString;
 	private RequestBodyFormat bodyFormat;
 	private Charset charset = HttpConst.CHARSET;
-	private Boolean isAjax = null;
-	@SuppressWarnings("unused")
-	private Boolean isSupportGzip = null;
 	private Node remote = null;
 	private String domain = null;
 	private String host = null;
@@ -535,49 +532,10 @@ public class HttpRequest extends HttpPacket {
 	}
 
 	/**
-	 * @return the isAjax
-	 */
-	public Boolean getIsAjax() {
-		if (isAjax == null) {
-			String xRequestedWith = this.getHeader(HttpConst.RequestHeaderKey.X_Requested_With);
-			isAjax = "XMLHttpRequest".equalsIgnoreCase(xRequestedWith);
-		}
-		return isAjax;
-	}
-
-	/**
-	 * @param isAjax the isAjax to set
-	 */
-	public void setIsAjax(Boolean isAjax) {
-		this.isAjax = isAjax;
-	}
-
-	/**
 	 * @return the isSupportGzip
 	 */
-	public Boolean getIsSupportGzip() {
+	public boolean getIsSupportGzip() {
 		return true;
-		//		if (isSupportGzip == null) {
-		//			String Accept_Encoding = getHeader(HttpConst.RequestHeaderKey.Accept_Encoding);
-		//			if (StrUtil.isNotBlank(Accept_Encoding)) {
-		//				String[] ss = StrUtil.split(Accept_Encoding, ",");
-		//				if (ArrayUtil.contains(ss, "gzip")) {
-		//					isSupportGzip = true;
-		//				} else {
-		//					isSupportGzip = false;
-		//				}
-		//			} else {
-		//				isSupportGzip = true;
-		//			}
-		//		}
-		//		return isSupportGzip;
-	}
-
-	/**
-	 * @param isSupportGzip the isSupportGzip to set
-	 */
-	public void setIsSupportGzip(Boolean isSupportGzip) {
-		this.isSupportGzip = isSupportGzip;
 	}
 
 	/**

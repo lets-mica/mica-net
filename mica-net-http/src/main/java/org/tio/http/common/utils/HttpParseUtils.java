@@ -199,9 +199,6 @@ package org.tio.http.common.utils;
  */
 public class HttpParseUtils {
 
-	/**
-	 * @author tanyaowu
-	 */
 	private HttpParseUtils() {
 	}
 
@@ -211,14 +208,12 @@ public class HttpParseUtils {
 	 * @param str  形如:"multipart/form-data; boundary=ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm", "application/x-www-form-urlencoded; charset=UTF-8", "form-data; value="before""
 	 * @param name 形如："boundary", "charset", "value"
 	 * @return 形如："ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm", "UTF-8", "before"
-	 * @author tanyaowu
 	 */
 	public static String getSubAttribute(String str, String name) {
-		int indexOfName = str.indexOf(name + "=");
+		int indexOfName = str.indexOf(name + '=');
 		if (indexOfName == -1) {
 			return null;
 		}
-
 		int valueStartIndex = indexOfName + 1 + name.length();
 		char[] cs = new char[str.length() - valueStartIndex];
 		int i = 0;

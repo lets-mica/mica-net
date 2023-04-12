@@ -215,22 +215,18 @@ import java.util.Map;
 public class HttpMultiBodyDecoder {
 	private static final Logger log = LoggerFactory.getLogger(HttpMultiBodyDecoder.class);
 
-	/**
-	 *
-	 */
 	public HttpMultiBodyDecoder() {
 
 	}
 
 	/**
-	 * @param request
-	 * @param firstLine
-	 * @param bodyBytes
-	 * @param initboundary
-	 * @param channelContext
-	 * @param httpConfig
+	 * @param request HttpRequest
+	 * @param firstLine RequestLine
+	 * @param bodyBytes bodyBytes
+	 * @param initboundary initboundary
+	 * @param channelContext ChannelContext
+	 * @param httpConfig HttpConfig
 	 * @throws TioDecodeException
-	 * @author tanyaowu
 	 */
 	public static void decode(HttpRequest request, RequestLine firstLine, byte[] bodyBytes, String initboundary, ChannelContext channelContext, HttpConfig httpConfig)
 		throws TioDecodeException {
@@ -296,16 +292,15 @@ public class HttpMultiBodyDecoder {
 	}
 
 	/**
-	 * @param header
-	 * @param request
-	 * @param buffer
-	 * @param boundary
-	 * @param endBoundary
-	 * @param channelContext
-	 * @param httpConfig
-	 * @return
-	 * @throws LengthOverflowException
-	 * @author tanyaowu
+	 * @param header Header
+	 * @param request HttpRequest
+	 * @param buffer ByteBuffer
+	 * @param boundary boundary
+	 * @param endBoundary endBoundary
+	 * @param channelContext channelContext
+	 * @param httpConfig HttpConfig
+	 * @return Step
+	 * @throws LengthOverflowException 异常
 	 */
 	public static Step parseBody(Header header, HttpRequest request, ByteBuffer buffer, String boundary, String endBoundary, ChannelContext channelContext, HttpConfig httpConfig)
 		throws LengthOverflowException, TioDecodeException {
@@ -316,11 +311,10 @@ public class HttpMultiBodyDecoder {
 			boolean isEndBoundary = endBoundary.equals(line);
 			boolean isBoundary = boundary.equals(line);
 			if (isBoundary || isEndBoundary) {
-				int startIndex = initPosition;
 				int endIndex = buffer.position() - line.getBytes().length - 2 - 2;
-				int length = endIndex - startIndex;
+				int length = endIndex - initPosition;
 				byte[] dst = new byte[length];
-				System.arraycopy(buffer.array(), startIndex, dst, 0, length);
+				System.arraycopy(buffer.array(), initPosition, dst, 0, length);
 				String filename = header.getFilename();
 				// 该字段类型是file
 				if (filename != null) {
