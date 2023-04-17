@@ -2,6 +2,11 @@
 
 ## 发行版本
 
+### v0.1.0 - 2023-04-23
+- :sparkles: 完善 ByteBufferUtil
+- :sparkles: 去掉网址打印
+- :bug: 修复 hexDump 会消耗 ByteBuffer 内容
+
 ### v0.0.9 - 2023-03-23
 - :fire: 优化 `ByteBufferUtil` 工具类，只 `dump` 有效的 `ByteBuffer` 数据和优化 `toString` 方法。
 - :sparkles: `HttpRequestHandler#clearStaticResCache` 方法改为 default 方法。
