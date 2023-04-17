@@ -213,7 +213,6 @@ public class ByteBufferUtils {
 	 * @param byteBuffer1
 	 * @param byteBuffer2
 	 * @return
-	 * @author: tanyaowu
 	 */
 	public static ByteBuffer composite(ByteBuffer byteBuffer1, ByteBuffer byteBuffer2) {
 		int capacity = byteBuffer1.remaining() + byteBuffer2.remaining();
@@ -243,7 +242,6 @@ public class ByteBufferUtils {
 	 * @param startIndex 从0开始
 	 * @param endIndex
 	 * @return
-	 * @author: tanyaowu
 	 */
 	public static ByteBuffer copy(ByteBuffer src, int startIndex, int endIndex) {
 		int size = endIndex - startIndex;
@@ -264,7 +262,6 @@ public class ByteBufferUtils {
 	/**
 	 * @param src 本方法不会改变position等指针变量
 	 * @return
-	 * @author tanyaowu
 	 */
 	public static ByteBuffer copy(ByteBuffer src) {
 		int startIndex = src.position();
@@ -307,7 +304,6 @@ public class ByteBufferUtils {
 	 * @param buffer
 	 * @return
 	 * @throws LengthOverflowException
-	 * @author tanyaowu
 	 */
 	public static int lineEnd(ByteBuffer buffer) throws LengthOverflowException {
 		return lineEnd(buffer, Integer.MAX_VALUE);
@@ -489,11 +485,6 @@ public class ByteBufferUtils {
 	public static int readUB1(ByteBuffer buffer) {
 		return buffer.get() & 0xff;
 	}
-
-	public static int readUB1(DecodeByteBufferList buffer) {
-		return readUB1(buffer.checkGet(1));
-	}
-
 
 	public static int readUB2(ByteBuffer buffer) {
 		int ret = buffer.get() & 0xff;

@@ -46,13 +46,52 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read unsigned byte
+	 * read unsigned byte，1个字节无符号
 	 *
 	 * @param buffer ByteBuffer
 	 * @return short
 	 */
 	public static short readUnsignedByte(ByteBuffer buffer) {
 		return (short) (buffer.get() & 0xFF);
+	}
+
+	/**
+	 * read unsigned short，2个字节无符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @return int
+	 */
+	public static int readUnsignedShort(ByteBuffer buffer) {
+		int i = buffer.get() & 0xff;
+		i |= (buffer.get() & 0xff) << 8;
+		return i;
+	}
+
+	/**
+	 * read unsigned 3个字节无符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @return int
+	 */
+	public static int readUnsignedMedium(ByteBuffer buffer) {
+		int i = buffer.get() & 0xff;
+		i |= (buffer.get() & 0xff) << 8;
+		i |= (buffer.get() & 0xff) << 16;
+		return i;
+	}
+
+	/**
+	 * read unsigned int, 4个字节无符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @return long
+	 */
+	public static long readUnsignedInt(ByteBuffer buffer) {
+		long l = buffer.get() & 0xff;
+		l |= (buffer.get() & 0xff) << 8;
+		l |= (buffer.get() & 0xff) << 16;
+		l |= (long) (buffer.get() & 0xff) << 24;
+		return l;
 	}
 
 	/**
@@ -75,18 +114,6 @@ public class ByteBufferUtil {
 		byte[] bytes = new byte[count];
 		buffer.get(bytes);
 		return new String(bytes, charset);
-	}
-
-	/**
-	 * read unsigned byte
-	 *
-	 * @param buffer ByteBuffer
-	 * @return short
-	 */
-	public static int readUnsignedShort(ByteBuffer buffer) {
-		int ch1 = buffer.get() & 0xFF;
-		int ch2 = buffer.get() & 0xFF;
-		return (ch1 << 8) + (ch2);
 	}
 
 	/**
