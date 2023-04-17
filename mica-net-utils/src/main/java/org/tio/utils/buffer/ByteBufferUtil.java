@@ -21,6 +21,7 @@ import org.tio.utils.mica.HexUtils;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
  * ByteBuffer 工具
@@ -143,9 +144,8 @@ public class ByteBufferUtil {
 	 * @param byteBuffer ByteBuffer
 	 */
 	public static String hexDump(ByteBuffer byteBuffer) {
-		byte[] bytes = new byte[byteBuffer.remaining()];
-		byteBuffer.get(bytes);
-		return toHexString(bytes);
+		byte[] data = Arrays.copyOf(byteBuffer.array(), byteBuffer.remaining());
+		return toHexString(data);
 	}
 
 	/**
