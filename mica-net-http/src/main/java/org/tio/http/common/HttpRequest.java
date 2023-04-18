@@ -617,9 +617,8 @@ public class HttpRequest extends HttpPacket {
 	}
 
 	/**
-	 * @param name
-	 * @return
-	 * @author tanyaowu
+	 * @param name name
+	 * @return Integer
 	 */
 	public Integer getInt(String name) {
 		String value = getParam(name);
@@ -627,6 +626,25 @@ public class HttpRequest extends HttpPacket {
 			return null;
 		}
 		return Integer.parseInt(value);
+	}
+
+	/**
+	 * 获取 int 参数
+	 *
+	 * @param name         name
+	 * @param defaultValue 默认值
+	 * @return int
+	 */
+	public int getInt(String name, int defaultValue) {
+		String value = getParam(name);
+		if (StrUtil.isBlank(value)) {
+			return defaultValue;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 
 	public Short getShort(String name) {
@@ -637,6 +655,18 @@ public class HttpRequest extends HttpPacket {
 		return Short.parseShort(value);
 	}
 
+	public short getShort(String name, short defaultValue) {
+		String value = getParam(name);
+		if (StrUtil.isBlank(value)) {
+			return defaultValue;
+		}
+		try {
+			return Short.parseShort(value);
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
+	}
+
 	public Byte getByte(String name) {
 		String value = getParam(name);
 		if (StrUtil.isBlank(value)) {
@@ -645,12 +675,48 @@ public class HttpRequest extends HttpPacket {
 		return Byte.parseByte(value);
 	}
 
+	public byte getByte(String name, byte defaultValue) {
+		String value = getParam(name);
+		if (StrUtil.isBlank(value)) {
+			return defaultValue;
+		}
+		try {
+			return Byte.parseByte(value);
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
+	}
+
 	public Long getLong(String name) {
 		String value = getParam(name);
 		if (StrUtil.isBlank(value)) {
 			return null;
 		}
 		return Long.parseLong(value);
+	}
+
+	public long getLong(String name, long defaultValue) {
+		String value = getParam(name);
+		if (StrUtil.isBlank(value)) {
+			return defaultValue;
+		}
+		try {
+			return Long.parseLong(value);
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
+	}
+
+	public double getDouble(String name, double defaultValue) {
+		String value = getParam(name);
+		if (StrUtil.isBlank(value)) {
+			return defaultValue;
+		}
+		try {
+			return Double.parseDouble(value);
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 
 	public Double getDouble(String name) {
@@ -669,10 +735,21 @@ public class HttpRequest extends HttpPacket {
 		return Float.parseFloat(value);
 	}
 
+	public float getFloat(String name, float defaultValue) {
+		String value = getParam(name);
+		if (StrUtil.isBlank(value)) {
+			return defaultValue;
+		}
+		try {
+			return Float.parseFloat(value);
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
+	}
+
 	/**
-	 * @param name
-	 * @return
-	 * @author tanyaowu
+	 * @param name name
+	 * @return Object array
 	 */
 	public Object[] getParamArray(String name) {
 		return params.get(name);
