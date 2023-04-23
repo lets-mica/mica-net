@@ -200,6 +200,7 @@ import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.exception.TioDecodeException;
+import org.tio.core.intf.IgnorePacket;
 import org.tio.core.intf.Packet;
 import org.tio.core.stat.ChannelStat;
 import org.tio.core.utils.ByteBufferUtils;
@@ -366,7 +367,10 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						log.debug("{}, 解包获得一个packet:{}", channelContext, packet.logstr());
 					}
 
-					handler(packet, packetSize);
+					// 如果为非可忽略的包，执行处理方法
+					if (!(packet instanceof IgnorePacket)) {
+						handler(packet, packetSize);
+					}
 
 					// 组包后，还剩有数据
 					if (byteBuffer.hasRemaining()) {
