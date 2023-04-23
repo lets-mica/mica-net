@@ -21,7 +21,14 @@ package org.tio.core.intf;
  *
  * @author L.cm
  */
-public class IgnorePacket extends Packet {
+public final class IgnorePacket extends Packet {
+	/**
+	 * 实例
+	 */
+	public static final IgnorePacket INSTANCE = new IgnorePacket();
+
+	private IgnorePacket() {
+	}
 
 	@Override
 	public String logstr() {
