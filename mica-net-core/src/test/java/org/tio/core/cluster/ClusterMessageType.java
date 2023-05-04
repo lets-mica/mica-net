@@ -12,17 +12,20 @@ public enum ClusterMessageType {
 	 */
 	HEARTBEAT,
 	/**
-	 * 新节点加入
+	 * 新节点加入集群
 	 */
 	JOIN,
 	/**
-	 * 离开
+	 * 节点离开集群
 	 */
 	LEAVE,
 	/**
+	 * 集群数据同步
+	 */
+	SYNC,
+	/**
 	 * 数据
 	 */
-	DATA,
-	;
+	DATA;
 
 }
