@@ -224,17 +224,16 @@ public class TioClientConfig extends TioConfig {
 	/**
 	 * 不重连
 	 *
-	 * @param tioHandler
-	 * @param tioListener
-	 * @author tanyaowu
+	 * @param tioHandler  TioClientHandler
+	 * @param tioListener TioClientListener
 	 */
 	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener) {
 		this(tioHandler, tioListener, null);
 	}
 
 	/**
-	 * @param tioHandler
-	 * @param tioListener
+	 * @param tioHandler  TioClientHandler
+	 * @param tioListener TioClientListener
 	 * @param reconnConf  不用框架自动重连，就传null
 	 */
 	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener, ReconnConf reconnConf) {
@@ -258,17 +257,13 @@ public class TioClientConfig extends TioConfig {
 
 	/**
 	 * 使用ssl访问
-	 *
-	 * @author tanyaowu
 	 */
 	public void useSsl() {
-		SslConfig sslConfig = SslConfig.forClient();
-		setSslConfig(sslConfig);
+		setSslConfig(SslConfig.forClient());
 	}
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * @return TioHandler
 	 * 2016年12月20日 上午11:33:46
 	 * @see org.tio.core.TioConfig#getTioHandler()
 	 */
@@ -278,8 +273,7 @@ public class TioClientConfig extends TioConfig {
 	}
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * @return TioListener
 	 * 2016年12月20日 上午11:33:46
 	 * @see org.tio.core.TioConfig#getTioListener()
 	 */
@@ -334,8 +328,7 @@ public class TioClientConfig extends TioConfig {
 	}
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * @return ReconnConf
 	 */
 	public ReconnConf getReconnConf() {
 		return reconnConf;
@@ -348,10 +341,6 @@ public class TioClientConfig extends TioConfig {
 		this.reconnConf = reconnConf;
 	}
 
-	/**
-	 * @return
-	 * @author tanyaowu
-	 */
 	@Override
 	public boolean isServer() {
 		return false;
