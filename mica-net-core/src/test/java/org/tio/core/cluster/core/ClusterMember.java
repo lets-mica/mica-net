@@ -1,4 +1,4 @@
-package org.tio.core.cluster;
+package org.tio.core.cluster.core;
 
 import org.tio.core.Node;
 

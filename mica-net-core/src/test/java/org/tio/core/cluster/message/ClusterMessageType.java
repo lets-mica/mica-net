@@ -1,4 +1,4 @@
-package org.tio.core.cluster;
+package org.tio.core.cluster.message;
 
 /**
  * 集群消息类型
@@ -8,9 +8,13 @@ package org.tio.core.cluster;
 public enum ClusterMessageType {
 
 	/**
-	 * 心跳消息
+	 * 心跳消息 ping
 	 */
-	HEARTBEAT,
+	PING,
+	/**
+	 * 心跳回复消息 pong
+	 */
+	PONG,
 	/**
 	 * 新节点加入集群
 	 */
