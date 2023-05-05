@@ -193,6 +193,8 @@
 */
 package org.tio.utils.hutool;
 
+import java.nio.ByteBuffer;
+
 /**
  * 代码移植自<a href="https://github.com/biezhi/blade">blade</a><br>
  * 快速缓冲，将数据存放在缓冲集中，取代以往的单一数组
@@ -305,6 +307,16 @@ public class FastByteBuffer {
 		}
 
 		return this;
+	}
+
+	/**
+	 * 向快速缓冲加入数据
+	 *
+	 * @param buffer 数据
+	 * @return 快速缓冲自身 @see FastByteBuffer
+	 */
+	public FastByteBuffer append(ByteBuffer buffer) {
+		return append(buffer.array());
 	}
 
 	/**
