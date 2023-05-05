@@ -1,0 +1,35 @@
+package org.tio.core.cluster.core;
+
+import org.tio.core.cluster.message.ClusterDataMessage;
+
+/**
+ * 集群接口
+ *
+ * @author L.cm
+ */
+public interface ClusterApi {
+
+	/**
+	 * 启动
+	 */
+	void start();
+
+	/**
+	 * 停止
+	 */
+	void stop();
+
+	/**
+	 * 在集群中广播消息
+	 *
+	 * @param message 集群消息
+	 * @return 消息id.
+	 */
+	String broadcast(ClusterDataMessage message);
+
+	/**
+	 * 集群消息监听
+	 */
+	void listen(ClusterMessageListener listener);
+
+}
