@@ -41,6 +41,15 @@ public interface ClusterApi {
 	String send(ClusterMember member, ClusterDataMessage message);
 
 	/**
+	 * 同步发送消息
+	 *
+	 * @param member  ClusterMember
+	 * @param message 集群消息
+	 * @return 消息id.
+	 */
+	ClusterDataMessage sendSync(ClusterMember member, ClusterDataMessage message);
+
+	/**
 	 * 在集群中广播消息
 	 *
 	 * @param message 集群消息

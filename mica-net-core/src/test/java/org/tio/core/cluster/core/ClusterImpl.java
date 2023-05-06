@@ -32,6 +32,11 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
+	public ClusterDataMessage sendSync(ClusterMember member, ClusterDataMessage message) {
+		return null;
+	}
+
+	@Override
 	public String broadcast(ClusterDataMessage message) {
 		return null;
 	}
