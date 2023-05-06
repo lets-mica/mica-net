@@ -12,6 +12,10 @@ import java.util.List;
 public class ClusterConfig {
 
 	/**
+	 * 集群端口
+	 */
+	private int port;
+	/**
 	 * 种子成员
 	 */
 	private List<Node> seedMembers;
