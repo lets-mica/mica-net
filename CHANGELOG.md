@@ -2,6 +2,9 @@
 
 ## 发行版本
 
+### v0.1.1 - 2023-05-07
+- :sparkles: 添加 `IgnorePacket` 包，支持忽略 `handler` 处理。
+
 ### v0.1.0 - 2023-04-23
 - :sparkles: 完善 ByteBufferUtil
 - :sparkles: 去掉网址打印
