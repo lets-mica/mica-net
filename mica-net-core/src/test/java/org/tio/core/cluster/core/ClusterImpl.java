@@ -11,6 +11,12 @@ import java.util.Collection;
  * @author L.cm
  */
 public class ClusterImpl implements ClusterApi {
+	private final ClusterConfig config;
+
+	public ClusterImpl(ClusterConfig config) {
+		this.config = config;
+	}
+
 	@Override
 	public void start() {
 

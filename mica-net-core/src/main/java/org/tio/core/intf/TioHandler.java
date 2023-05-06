@@ -213,8 +213,8 @@ public interface TioHandler {
 	 * @param limit          ByteBuffer的limit
 	 * @param position       ByteBuffer的position，不一定是0哦
 	 * @param readableLength ByteBuffer参与本次解码的有效数据（= limit - position）
-	 * @param channelContext
-	 * @return
+	 * @param channelContext ChannelContext
+	 * @return Packet
 	 * @throws TioDecodeException
 	 */
 	Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException;
@@ -222,21 +222,19 @@ public interface TioHandler {
 	/**
 	 * 编码
 	 *
-	 * @param packet
-	 * @param tioConfig
-	 * @param channelContext
-	 * @return
-	 * @author: tanyaowu
+	 * @param packet         Packet
+	 * @param tioConfig      TioConfig
+	 * @param channelContext ChannelContext
+	 * @return ByteBuffer
 	 */
 	ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext channelContext);
 
 	/**
 	 * 处理消息包
 	 *
-	 * @param packet
-	 * @param channelContext
-	 * @throws Exception
-	 * @author: tanyaowu
+	 * @param packet         Packet
+	 * @param channelContext ChannelContext
+	 * @throws Exception Exception
 	 */
 	void handler(Packet packet, ChannelContext channelContext) throws Exception;
 
