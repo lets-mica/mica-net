@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * FastJson1 json 适配器
+ * Gson json 适配器
  *
  * @author L.cm
  */

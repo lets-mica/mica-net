@@ -19,7 +19,7 @@ package org.tio.utils.collection;
  *
  * @author netty
  */
-public final class MathUtil {
+final class MathUtil {
 
 	private MathUtil() {
 	}
