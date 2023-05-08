@@ -55,13 +55,7 @@ public class ClientReConnTask extends TimerTask {
 		int connectionSize = tioClientConfig.connections.size();
 		logger.info("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), connectionSize);
 		LinkedBlockingQueue<ChannelContext> queue = reconnConf.getQueue();
-		ClientChannelContext channelContext = null;
-		try {
-			channelContext = (ClientChannelContext) queue.take();
-		} catch (InterruptedException e1) {
-			Thread.currentThread().interrupt();
-			logger.error(e1.getMessage(), e1);
-		}
+		ClientChannelContext channelContext = (ClientChannelContext) queue.poll();
 		// 未连接的和已经删除的，不需要重新再连
 		if (channelContext == null || channelContext.isRemoved) {
 			// 添加 task，保持后续执行
