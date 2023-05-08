@@ -11,8 +11,7 @@ public class ClusterReconnectMessage extends AbsClusterMessage {
 	 */
 	private final String reconnectMemberId;
 
-	public ClusterReconnectMessage(String creatorMemberId, String reconnectMemberId) {
-		super(creatorMemberId);
+	public ClusterReconnectMessage(String reconnectMemberId) {
 		this.reconnectMemberId = reconnectMemberId;
 	}
 

@@ -15,8 +15,7 @@ public class ClusterSyncMessage extends AbsClusterMessage {
 	 */
 	private byte[] payload;
 
-	public ClusterSyncMessage(String creatorMemberId, String messageId) {
-		super(creatorMemberId);
+	public ClusterSyncMessage(String messageId) {
 		this.messageId = messageId;
 	}
 

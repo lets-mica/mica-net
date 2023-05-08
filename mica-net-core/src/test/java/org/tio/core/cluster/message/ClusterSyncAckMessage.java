@@ -12,8 +12,7 @@ public class ClusterSyncAckMessage extends AbsClusterMessage {
 	 */
 	private final String messageId;
 
-	public ClusterSyncAckMessage(String creatorMemberId, String messageId) {
-		super(creatorMemberId);
+	public ClusterSyncAckMessage(String messageId) {
 		this.messageId = messageId;
 	}
 
