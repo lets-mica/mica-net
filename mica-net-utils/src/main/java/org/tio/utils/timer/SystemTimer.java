@@ -93,6 +93,7 @@ public class SystemTimer implements Timer, Consumer<TimerTaskEntry> {
 		try {
 			bucket = delayQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 			logger.error(e.getMessage(), e);
 			return false;
 		}
