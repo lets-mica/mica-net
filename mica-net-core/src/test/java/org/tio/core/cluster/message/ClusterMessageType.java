@@ -1,5 +1,7 @@
 package org.tio.core.cluster.message;
 
+import org.tio.core.exception.TioDecodeException;
+
 /**
  * 集群消息类型
  *
@@ -10,34 +12,60 @@ public enum ClusterMessageType {
 	/**
 	 * 心跳消息 ping
 	 */
-	PING,
+	PING((byte) 1),
 	/**
 	 * 心跳回复消息 pong
 	 */
-	PONG,
+	PONG((byte) 2),
 	/**
 	 * 新节点加入
 	 */
-	JOIN,
+	JOIN((byte) 3),
 	/**
 	 * 重连
 	 */
-	RECONNECT,
+	RECONNECT((byte) 4),
 	/**
 	 * 节点异常
 	 */
-	FAILED,
+	FAILED((byte) 5),
 	/**
 	 * 数据
 	 */
-	DATA,
+	DATA((byte) 6),
 	/**
 	 * 数据同步
 	 */
-	SYNC,
+	SYNC((byte) 7),
 	/**
 	 * 数据同步回复
 	 */
-	SYNC_ACK;
+	SYNC_ACK((byte) 8);
+
+	private final byte type;
+
+	ClusterMessageType(byte type) {
+		this.type = type;
+	}
+
+	public byte getType() {
+		return type;
+	}
+
+	/**
+	 * Value of byte.
+	 *
+	 * @param value integer value
+	 * @return command packet type enum
+	 * @throws TioDecodeException Protocol decode exception
+	 */
+	public static ClusterMessageType valueOf(final byte value) throws TioDecodeException {
+		for (ClusterMessageType each : values()) {
+			if (each.type == value) {
+				return each;
+			}
+		}
+		throw new TioDecodeException("Unsupported ClusterMessageType type:" + value);
+	}
 
 }

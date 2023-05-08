@@ -12,10 +12,6 @@ public class ClusterDataMessage extends AbsClusterMessage {
 	 */
 	private byte[] payload;
 
-	public ClusterDataMessage(String creatorMemberId) {
-		super(creatorMemberId);
-	}
-
 	public byte[] getPayload() {
 		return payload;
 	}

@@ -6,20 +6,10 @@ package org.tio.core.cluster.message;
  * @author L.cm
  */
 public class ClusterPongMessage extends AbsClusterMessage {
-
 	/**
-	 * to ping 成员
+	 * 实例
 	 */
-	private final String pingMemberId;
-
-	public ClusterPongMessage(String creatorMemberId, String pingMemberId) {
-		super(creatorMemberId);
-		this.pingMemberId = pingMemberId;
-	}
-
-	public String getPingMemberId() {
-		return pingMemberId;
-	}
+	public static final ClusterPongMessage INSTANCE = new ClusterPongMessage();
 
 	@Override
 	public ClusterMessageType getMessageType() {

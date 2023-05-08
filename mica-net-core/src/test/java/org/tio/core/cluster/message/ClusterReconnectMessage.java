@@ -7,21 +7,13 @@ package org.tio.core.cluster.message;
  */
 public class ClusterReconnectMessage extends AbsClusterMessage {
 	/**
-	 * 触发的成员 Id
-	 */
-	private final String creatorMemberId;
-	/**
 	 * 重连的成员Id
 	 */
 	private final String reconnectMemberId;
 
 	public ClusterReconnectMessage(String creatorMemberId, String reconnectMemberId) {
-		this.creatorMemberId = creatorMemberId;
+		super(creatorMemberId);
 		this.reconnectMemberId = reconnectMemberId;
-	}
-
-	public String getCreatorMemberId() {
-		return creatorMemberId;
 	}
 
 	public String getReconnectMemberId() {

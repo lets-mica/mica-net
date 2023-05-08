@@ -8,22 +8,14 @@ import org.tio.core.cluster.core.ClusterMember;
  * @author L.cm
  */
 public class ClusterJoinMessage extends AbsClusterMessage {
-	/**
-	 * 触发的成员 Id
-	 */
-	private final String creatorMemberId;
+
 	/**
 	 * 加入的成员
 	 */
 	private final ClusterMember joinMember;
 
-	public ClusterJoinMessage(String creatorMemberId, ClusterMember joinMember) {
-		this.creatorMemberId = creatorMemberId;
+	public ClusterJoinMessage(ClusterMember joinMember) {
 		this.joinMember = joinMember;
-	}
-
-	public String getCreatorMemberId() {
-		return creatorMemberId;
 	}
 
 	public ClusterMember getJoinMember() {

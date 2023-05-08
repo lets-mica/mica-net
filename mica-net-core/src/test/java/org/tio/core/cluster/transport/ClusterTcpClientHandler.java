@@ -3,6 +3,7 @@ package org.tio.core.cluster.transport;
 import org.tio.client.intf.TioClientHandler;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
+import org.tio.core.cluster.message.ClusterPingMessage;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 
@@ -16,7 +17,7 @@ import java.nio.ByteBuffer;
 public class ClusterTcpClientHandler implements TioClientHandler {
 	@Override
 	public Packet heartbeatPacket(ChannelContext context) {
-		return null;
+		return ClusterPingMessage.INSTANCE;
 	}
 
 	@Override
