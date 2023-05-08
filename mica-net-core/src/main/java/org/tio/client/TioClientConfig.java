@@ -201,6 +201,9 @@ import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.SslConfig;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
+import org.tio.utils.timer.DefaultTimerTaskService;
+import org.tio.utils.timer.SystemTimer;
+import org.tio.utils.timer.TimerTaskService;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -219,7 +222,11 @@ public class TioClientConfig extends TioConfig {
 	protected ReconnConf reconnConf;
 	private TioClientHandler tioClientHandler = null;
 	private TioClientListener tioClientListener = null;
-	private ConnectionCompletionHandler connectionCompletionHandler = new ConnectionCompletionHandler();
+	private final ConnectionCompletionHandler connectionCompletionHandler;
+	/**
+	 * taskService
+	 */
+	private TimerTaskService taskService;
 
 	/**
 	 * 不重连
@@ -253,6 +260,7 @@ public class TioClientConfig extends TioConfig {
 		this.setTioClientHandler(tioHandler);
 		this.setTioClientListener(tioListener);
 		this.reconnConf = reconnConf;
+		this.connectionCompletionHandler = new ConnectionCompletionHandler();
 	}
 
 	/**
@@ -321,13 +329,6 @@ public class TioClientConfig extends TioConfig {
 	}
 
 	/**
-	 * @param connectionCompletionHandler the connectionCompletionHandler to set
-	 */
-	public void setConnectionCompletionHandler(ConnectionCompletionHandler connectionCompletionHandler) {
-		this.connectionCompletionHandler = connectionCompletionHandler;
-	}
-
-	/**
 	 * @return ReconnConf
 	 */
 	public ReconnConf getReconnConf() {
@@ -339,6 +340,14 @@ public class TioClientConfig extends TioConfig {
 	 */
 	public void setReconnConf(ReconnConf reconnConf) {
 		this.reconnConf = reconnConf;
+	}
+
+	public TimerTaskService getTaskService() {
+		return taskService;
+	}
+
+	public void setTaskService(TimerTaskService taskService) {
+		this.taskService = taskService;
 	}
 
 	@Override

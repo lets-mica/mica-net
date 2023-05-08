@@ -196,8 +196,6 @@ package org.tio.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
-import org.tio.utils.thread.pool.DefaultThreadFactory;
-import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -207,10 +205,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class ReconnConf {
 	private static final Logger log = LoggerFactory.getLogger(ReconnConf.class);
-	/**
-	 * 用来重连的线程池
-	 */
-	private final SynThreadPoolExecutor threadPoolExecutor;
 	private final LinkedBlockingQueue<ChannelContext> queue = new LinkedBlockingQueue<>();
 	/**
 	 * 重连的间隔时间，单位毫秒
@@ -230,10 +224,6 @@ public class ReconnConf {
 	}
 
 	public ReconnConf(long interval, int retryCount) {
-		LinkedBlockingQueue<Runnable> tioQueue = new LinkedBlockingQueue<>();
-		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("tio-client-reconn", Thread.MAX_PRIORITY);
-		// 重连一般都是客户端重连，只用一个线程即可
-		this.threadPoolExecutor = new SynThreadPoolExecutor(1, 1, 60L, tioQueue, defaultThreadFactory);
 		this.interval = interval;
 		this.retryCount = retryCount;
 	}
@@ -309,13 +299,6 @@ public class ReconnConf {
 	 */
 	public int getRetryCount() {
 		return retryCount;
-	}
-
-	/**
-	 * @return the threadPoolExecutor
-	 */
-	public SynThreadPoolExecutor getThreadPoolExecutor() {
-		return threadPoolExecutor;
 	}
 
 }

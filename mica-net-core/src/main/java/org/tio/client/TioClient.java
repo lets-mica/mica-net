@@ -195,23 +195,19 @@ package org.tio.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.client.intf.TioClientHandler;
-import org.tio.core.ChannelContext;
+import org.tio.client.task.ClientHeartbeatTask;
+import org.tio.client.task.ClientReConnTask;
 import org.tio.core.Node;
-import org.tio.core.Tio;
-import org.tio.core.intf.Packet;
-import org.tio.core.ssl.SslFacadeContext;
-import org.tio.core.stat.ChannelStat;
 import org.tio.utils.hutool.StrUtil;
+import org.tio.utils.timer.DefaultTimerTaskService;
+import org.tio.utils.timer.TimerTaskService;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -221,6 +217,7 @@ import java.util.concurrent.TimeUnit;
 public class TioClient {
 	private static final Logger log = LoggerFactory.getLogger(TioClient.class);
 	private final TioClientConfig tioClientConfig;
+	private final TimerTaskService taskService;
 	private final AsynchronousChannelGroup channelGroup;
 
 	/**
@@ -229,9 +226,14 @@ public class TioClient {
 	 */
 	public TioClient(final TioClientConfig tioClientConfig) throws IOException {
 		this.tioClientConfig = tioClientConfig;
+		this.taskService = getTimerTaskService(tioClientConfig.getTaskService());
 		this.channelGroup = AsynchronousChannelGroup.withThreadPool(tioClientConfig.groupExecutor);
 		startHeartbeatTask();
 		startReconnTask();
+	}
+
+	private static TimerTaskService getTimerTaskService(TimerTaskService taskService) {
+		return taskService == null ? new DefaultTimerTaskService() : taskService;
 	}
 
 	/**
@@ -413,62 +415,15 @@ public class TioClient {
 	 * 定时任务：发心跳
 	 */
 	private void startHeartbeatTask() {
+		// 启动任务服务
+		this.taskService.start();
 		// 先判断是否取消默认的心跳机制
 		if (tioClientConfig.heartbeatTimeout <= 0) {
-			log.warn("用户取消了 mica-net 的心跳定时发送功能，请用户自己去完成心跳机制");
+			log.warn("用户取消了 mica-net 的心跳定时发送功能，请确认是否自定义心跳机制");
 			return;
 		}
-		final ClientGroupStat clientGroupStat = (ClientGroupStat) tioClientConfig.groupStat;
-		final TioClientHandler tioHandler = tioClientConfig.getTioClientHandler();
-		final String id = tioClientConfig.getId();
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (!tioClientConfig.isStopped()) {
-					Set<ChannelContext> set = tioClientConfig.connecteds;
-					long currTime = System.currentTimeMillis();
-					try {
-						for (ChannelContext entry : set) {
-							ClientChannelContext channelContext = (ClientChannelContext) entry;
-							if (channelContext.isClosed || channelContext.isRemoved) {
-								continue;
-							}
-							ChannelStat stat = channelContext.stat;
-							long compareTime = Math.max(stat.latestTimeOfReceivedByte, stat.latestTimeOfSentPacket);
-							long interval = currTime - compareTime;
-							if (interval >= tioClientConfig.heartbeatTimeout / 2) {
-								Packet packet = tioHandler.heartbeatPacket(channelContext);
-								if (packet != null) {
-									boolean result = Tio.send(channelContext, packet);
-									if (log.isInfoEnabled()) {
-										log.info("{} 发送心跳包 result:{}", channelContext, result);
-									}
-								}
-							}
-						}
-						// 打印连接信息
-						if (tioClientConfig.debug && log.isInfoEnabled()) {
-							if (tioClientConfig.statOn) {
-								log.info("[{}]: curr:{}, closed:{}, received:({}p)({}b), handled:{}, sent:({}p)({}b)", id, set.size(), clientGroupStat.closed.sum(),
-									clientGroupStat.receivedPackets.sum(), clientGroupStat.receivedBytes.sum(), clientGroupStat.handledPackets.sum(),
-									clientGroupStat.sentPackets.sum(), clientGroupStat.sentBytes.sum());
-							} else {
-								log.info("[{}]: curr:{}, closed:{}", id, set.size(), clientGroupStat.closed.sum());
-							}
-						}
-					} catch (Throwable e) {
-						log.error("", e);
-					} finally {
-						try {
-							Thread.sleep(tioClientConfig.heartbeatTimeout / 4);
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-							log.error(e.getMessage(), e);
-						}
-					}
-				}
-			}
-		}, "tio-timer-heartbeat" + id).start();
+		// 开启默认的心跳任务
+		this.taskService.addTask(systemTimer -> new ClientHeartbeatTask(systemTimer, tioClientConfig));
 	}
 
 	/**
@@ -479,62 +434,8 @@ public class TioClient {
 		if (reconnConf == null || reconnConf.getInterval() <= 0) {
 			return;
 		}
-		final String id = tioClientConfig.getId();
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (!tioClientConfig.isStopped()) {
-					int connectionSize = tioClientConfig.connections.size();
-					if (connectionSize > 0) {
-						log.error("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), connectionSize);
-					}
-					LinkedBlockingQueue<ChannelContext> queue = reconnConf.getQueue();
-					ClientChannelContext channelContext = null;
-					try {
-						channelContext = (ClientChannelContext) queue.take();
-					} catch (InterruptedException e1) {
-						Thread.currentThread().interrupt();
-						log.error(e1.getMessage(), e1);
-					}
-					// 未连接的和已经删除的，不需要重新再连
-					if (channelContext == null || channelContext.isRemoved) {
-						continue;
-					}
-					SslFacadeContext sslFacadeContext = channelContext.sslFacadeContext;
-					if (sslFacadeContext != null) {
-						sslFacadeContext.setHandshakeCompleted(false);
-					}
-					long sleepTime = reconnConf.getInterval() - (System.currentTimeMillis() - channelContext.stat.timeInReconnQueue);
-					if (sleepTime > 0) {
-						try {
-							Thread.sleep(sleepTime);
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-							log.error(e.getMessage(), e);
-						}
-					}
-					// 已经删除的和已经连上的，不需要重新再连
-					if (channelContext.isRemoved || !channelContext.isClosed) {
-						continue;
-					} else {
-						ReconnRunnable runnable = channelContext.getReconnRunnable();
-						if (runnable == null) {
-							synchronized (channelContext) {
-								runnable = channelContext.getReconnRunnable();
-								if (runnable == null) {
-									runnable = new ReconnRunnable(channelContext, TioClient.this, reconnConf.getThreadPoolExecutor());
-									channelContext.setReconnRunnable(runnable);
-								}
-							}
-						}
-						runnable.execute();
-					}
-				}
-			}
-		});
-		thread.setName("tio-timer-reconnect-" + id);
-		thread.setDaemon(true);
-		thread.start();
+		// 开启默认的重连任务
+		taskService.addTask(systemTimer -> new ClientReConnTask(systemTimer, this, reconnConf));
 	}
 
 	/**
@@ -543,6 +444,8 @@ public class TioClient {
 	 * @return boolean
 	 */
 	public boolean stop() {
+		// 先停止 ack 服务
+		this.taskService.stop();
 		boolean ret = true;
 		try {
 			tioClientConfig.groupExecutor.shutdown();

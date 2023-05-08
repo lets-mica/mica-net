@@ -277,7 +277,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 				readByteBuffer.limit(readByteBuffer.capacity());
 				asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
 				log.info("connected to {}", serverNode);
-				if (isConnected && !isReconnect) {
+				if (!isReconnect) {
 					channelContext.stat.setTimeFirstConnected(System.currentTimeMillis());
 				}
 			} else {

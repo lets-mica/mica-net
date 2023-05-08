@@ -213,7 +213,6 @@ public class ClientChannelContext extends ChannelContext {
 	private final AtomicInteger reconnCount = new AtomicInteger();
 	private String bindIp;
 	private Integer bindPort;
-	private ReconnRunnable reconnRunnable;
 
 	/**
 	 * @param tioConfig                 TioConfig
@@ -286,14 +285,6 @@ public class ClientChannelContext extends ChannelContext {
 	@Override
 	public boolean isServer() {
 		return false;
-	}
-
-	public ReconnRunnable getReconnRunnable() {
-		return reconnRunnable;
-	}
-
-	public void setReconnRunnable(ReconnRunnable reconnRunnable) {
-		this.reconnRunnable = reconnRunnable;
 	}
 
 	public AtomicInteger getReconnCount() {
