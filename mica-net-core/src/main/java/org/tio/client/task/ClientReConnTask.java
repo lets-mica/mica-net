@@ -53,9 +53,7 @@ public class ClientReConnTask extends TimerTask {
 			return;
 		}
 		int connectionSize = tioClientConfig.connections.size();
-		if (connectionSize > 0) {
-			logger.error("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), connectionSize);
-		}
+		logger.info("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), connectionSize);
 		LinkedBlockingQueue<ChannelContext> queue = reconnConf.getQueue();
 		ClientChannelContext channelContext = null;
 		try {
