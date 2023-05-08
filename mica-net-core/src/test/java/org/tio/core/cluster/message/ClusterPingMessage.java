@@ -7,6 +7,20 @@ package org.tio.core.cluster.message;
  */
 public class ClusterPingMessage extends AbsClusterMessage {
 
+	/**
+	 * to ping 成员
+	 */
+	private final String pingMemberId;
+
+	public ClusterPingMessage(String creatorMemberId, String pingMemberId) {
+		super(creatorMemberId);
+		this.pingMemberId = pingMemberId;
+	}
+
+	public String getPingMemberId() {
+		return pingMemberId;
+	}
+
 	@Override
 	public ClusterMessageType getMessageType() {
 		return ClusterMessageType.PING;

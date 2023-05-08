@@ -16,13 +16,21 @@ public enum ClusterMessageType {
 	 */
 	PONG,
 	/**
-	 * 新节点加入集群
+	 * 新节点加入
 	 */
 	JOIN,
 	/**
-	 * 节点离开集群
+	 * 重连
 	 */
-	LEAVE,
+	RECONNECT,
+	/**
+	 * 节点异常
+	 */
+	FAILED,
+	/**
+	 * 数据
+	 */
+	DATA,
 	/**
 	 * 数据同步
 	 */
@@ -30,10 +38,6 @@ public enum ClusterMessageType {
 	/**
 	 * 数据同步回复
 	 */
-	SYNC_ACK,
-	/**
-	 * 数据
-	 */
-	DATA;
+	SYNC_ACK;
 
 }

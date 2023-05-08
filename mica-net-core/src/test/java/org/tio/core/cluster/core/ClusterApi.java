@@ -74,7 +74,7 @@ public interface ClusterApi {
 	 *
 	 * @return 成员列表，不包含自己
 	 */
-	Collection<ClusterMember> getOtherMembers();
+	Collection<ClusterMember> getRemoteMembers();
 
 	/**
 	 * 获取本地成员

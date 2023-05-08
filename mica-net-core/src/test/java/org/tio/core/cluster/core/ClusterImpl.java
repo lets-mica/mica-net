@@ -58,7 +58,7 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
-	public Collection<ClusterMember> getOtherMembers() {
+	public Collection<ClusterMember> getRemoteMembers() {
 		return null;
 	}
 
