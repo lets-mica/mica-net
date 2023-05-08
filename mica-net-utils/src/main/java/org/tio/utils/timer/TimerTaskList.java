@@ -22,7 +22,7 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 /**
  * TimerTaskList
@@ -72,13 +72,13 @@ class TimerTaskList implements Delayed {
 	/**
 	 * Apply the supplied function to each of tasks in this list
 	 */
-	public void foreach(Function<TimerTask, Void> f) {
+	public void foreach(Consumer<TimerTask> f) {
 		synchronized (this) {
 			TimerTaskEntry entry = root.next;
 			while (entry != root) {
 				TimerTaskEntry nextEntry = entry.next;
 				if (!entry.cancelled()) {
-					f.apply(entry.getTimerTask());
+					f.accept(entry.getTimerTask());
 				}
 				entry = nextEntry;
 			}
@@ -130,12 +130,12 @@ class TimerTaskList implements Delayed {
 	/**
 	 * Remove all task entries and apply the supplied function to each of them
 	 */
-	public void flush(Function<TimerTaskEntry, Void> f) {
+	public void flush(Consumer<TimerTaskEntry> f) {
 		synchronized (this) {
 			TimerTaskEntry head = root.next;
 			while (head != root) {
 				remove(head);
-				f.apply(head);
+				f.accept(head);
 				head = root.next;
 			}
 			expiration.set(-1L);

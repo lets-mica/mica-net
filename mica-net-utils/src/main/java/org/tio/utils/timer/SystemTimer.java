@@ -23,14 +23,14 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 /**
  * SystemTimer
  *
  * @author kafka、guest、L.cm
  */
-public class SystemTimer implements Timer, Function<TimerTaskEntry, Void> {
+public class SystemTimer implements Timer, Consumer<TimerTaskEntry> {
 	private static final Logger logger = LoggerFactory.getLogger(SystemTimer.class);
 	/**
 	 * 任务执行线程
@@ -148,12 +148,9 @@ public class SystemTimer implements Timer, Function<TimerTaskEntry, Void> {
 	 * Applies this function to the given argument.
 	 *
 	 * @param timerTaskEntry the function argument
-	 * @return the function result
 	 */
 	@Override
-	public Void apply(TimerTaskEntry timerTaskEntry) {
+	public void accept(TimerTaskEntry timerTaskEntry) {
 		addTimerTaskEntry(timerTaskEntry);
-		return null;
 	}
-
 }
