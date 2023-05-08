@@ -2,6 +2,8 @@ package org.tio.core.cluster.core;
 
 import org.tio.core.Node;
 import org.tio.core.cluster.message.ClusterDataMessage;
+import org.tio.core.cluster.message.ClusterSyncAckMessage;
+import org.tio.core.cluster.message.ClusterSyncMessage;
 
 import java.util.Collection;
 
@@ -47,7 +49,7 @@ public interface ClusterApi {
 	 * @param message 集群消息
 	 * @return 消息id.
 	 */
-	ClusterDataMessage sendSync(ClusterMember member, ClusterDataMessage message);
+	ClusterSyncAckMessage sendSync(ClusterMember member, ClusterSyncMessage message);
 
 	/**
 	 * 在集群中广播消息

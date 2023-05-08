@@ -2,6 +2,8 @@ package org.tio.core.cluster.core;
 
 import org.tio.core.Node;
 import org.tio.core.cluster.message.ClusterDataMessage;
+import org.tio.core.cluster.message.ClusterSyncAckMessage;
+import org.tio.core.cluster.message.ClusterSyncMessage;
 
 import java.util.Collection;
 
@@ -38,7 +40,7 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
-	public ClusterDataMessage sendSync(ClusterMember member, ClusterDataMessage message) {
+	public ClusterSyncAckMessage sendSync(ClusterMember member, ClusterSyncMessage message) {
 		return null;
 	}
 
