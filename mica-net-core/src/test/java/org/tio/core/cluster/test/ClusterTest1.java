@@ -1,9 +1,12 @@
 package org.tio.core.cluster.test;
 
-import org.tio.client.*;
+import org.tio.client.ReconnConf;
+import org.tio.client.TioClient;
+import org.tio.client.TioClientConfig;
 import org.tio.client.intf.TioClientHandler;
 import org.tio.client.intf.TioClientListener;
 import org.tio.core.Node;
+import org.tio.core.cluster.codec.ClusterMessageDecoder;
 import org.tio.core.cluster.transport.ClusterTcpClientHandler;
 import org.tio.core.cluster.transport.ClusterTcpClientListener;
 import org.tio.core.cluster.transport.ClusterTcpServerHandler;
@@ -25,13 +28,14 @@ import java.util.List;
 public class ClusterTest1 {
 
 	public static void main(String[] args) throws Exception {
+		ClusterMessageDecoder messageDecoder = new ClusterMessageDecoder();
 		int port = 3001;
-		TioServer tioServer = getClusterTcpService(port);
+		TioServer tioServer = getClusterTcpService(port, messageDecoder);
 		List<Node> seedMembers = new ArrayList<>();
 		seedMembers.add(new Node("127.0.0.1", 3001));
 		seedMembers.add(new Node("127.0.0.1", 3002));
 		seedMembers.add(new Node("127.0.0.1", 3003));
-		TioClientHandler tioHandler = new ClusterTcpClientHandler();
+		TioClientHandler tioHandler = new ClusterTcpClientHandler(messageDecoder);
 		TioClientListener tioListener = new ClusterTcpClientListener();
 		List<TioClient> clientList = getClusterTcpClientList(seedMembers, tioHandler, tioListener);
 	}
@@ -43,9 +47,10 @@ public class ClusterTest1 {
 		System.out.println(address2);
 	}
 
-	public static TioServer getClusterTcpService(int port) throws IOException {
+	public static TioServer getClusterTcpService(int port, ClusterMessageDecoder messageDecoder) throws IOException {
+
 		// 配置
-		TioServerConfig config = new TioServerConfig(new ClusterTcpServerHandler(), new DefaultTioServerListener());
+		TioServerConfig config = new TioServerConfig(new ClusterTcpServerHandler(messageDecoder), new DefaultTioServerListener());
 		config.setName("TCP-cluster-server");
 		// 高位在前
 		config.setReadBufferSize(1024 * 8);

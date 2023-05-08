@@ -59,7 +59,7 @@ public enum ClusterMessageType {
 	 * @return command packet type enum
 	 * @throws TioDecodeException Protocol decode exception
 	 */
-	public static ClusterMessageType valueOf(final byte value) throws TioDecodeException {
+	public static ClusterMessageType from(final byte value) throws TioDecodeException {
 		for (ClusterMessageType each : values()) {
 			if (each.type == value) {
 				return each;
