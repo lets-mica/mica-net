@@ -150,6 +150,27 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * 转成 string
+	 *
+	 * @param buffer ByteBuffer
+	 * @return 字符串
+	 */
+	public static String toString(byte[] buffer) {
+		return toString(buffer, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * 转成 string
+	 *
+	 * @param buffer  ByteBuffer
+	 * @param charset Charset
+	 * @return 字符串
+	 */
+	public static String toString(byte[] buffer, Charset charset) {
+		return new String(buffer, charset);
+	}
+
+	/**
 	 * ByteBuffer clone
 	 *
 	 * @param original ByteBuffer
