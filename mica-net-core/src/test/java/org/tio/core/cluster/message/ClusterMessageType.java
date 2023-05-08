@@ -24,9 +24,13 @@ public enum ClusterMessageType {
 	 */
 	LEAVE,
 	/**
-	 * 集群数据同步
+	 * 数据同步
 	 */
 	SYNC,
+	/**
+	 * 数据同步回复
+	 */
+	SYNC_ACK,
 	/**
 	 * 数据
 	 */
