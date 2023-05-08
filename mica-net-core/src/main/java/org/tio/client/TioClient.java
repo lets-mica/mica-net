@@ -403,6 +403,15 @@ public class TioClient {
 	}
 
 	/**
+	 * getTaskService
+	 *
+	 * @return TimerTaskService
+	 */
+	public TimerTaskService getTaskService() {
+		return taskService;
+	}
+
+	/**
 	 * @param channelContext
 	 * @param timeout        单位秒
 	 * @throws Exception Exception
