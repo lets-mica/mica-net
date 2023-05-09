@@ -201,8 +201,6 @@ import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.SslConfig;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
-import org.tio.utils.timer.DefaultTimerTaskService;
-import org.tio.utils.timer.SystemTimer;
 import org.tio.utils.timer.TimerTaskService;
 
 import java.util.Set;

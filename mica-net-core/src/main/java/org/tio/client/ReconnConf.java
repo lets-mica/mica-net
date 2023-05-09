@@ -195,9 +195,9 @@ package org.tio.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tio.client.task.ClientReConnTask;
 import org.tio.core.ChannelContext;
-
-import java.util.concurrent.LinkedBlockingQueue;
+import org.tio.utils.timer.TimerTaskService;
 
 /**
  * @author tanyaowu
@@ -205,7 +205,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class ReconnConf {
 	private static final Logger log = LoggerFactory.getLogger(ReconnConf.class);
-	private final LinkedBlockingQueue<ChannelContext> queue = new LinkedBlockingQueue<>();
 	/**
 	 * 重连的间隔时间，单位毫秒
 	 */
@@ -214,6 +213,11 @@ public class ReconnConf {
 	 * 连续重连次数，当连续重连这么多次都失败时，不再重连。0和负数则一直重连
 	 */
 	private final int retryCount;
+	/**
+	 * 重连执行器
+	 */
+	private TimerTaskService taskService;
+	private TioClient tioClient;
 
 	public ReconnConf() {
 		this(5000, 0);
@@ -226,6 +230,22 @@ public class ReconnConf {
 	public ReconnConf(long interval, int retryCount) {
 		this.interval = interval;
 		this.retryCount = retryCount;
+	}
+
+	public TimerTaskService getTaskService() {
+		return taskService;
+	}
+
+	void setTaskService(TimerTaskService taskService) {
+		this.taskService = taskService;
+	}
+
+	public TioClient getTioClient() {
+		return tioClient;
+	}
+
+	void setTioClient(TioClient tioClient) {
+		this.tioClient = tioClient;
 	}
 
 	public static ReconnConf getReconnConf(ClientChannelContext clientChannelContext) {
@@ -252,11 +272,12 @@ public class ReconnConf {
 		}
 		if (reconnConf.getInterval() > 0) {
 			if (reconnConf.getRetryCount() <= 0 || reconnConf.getRetryCount() > clientChannelContext.getReconnCount().get()) {
+				TimerTaskService timerTaskService = reconnConf.getTaskService();
 				if (putIfNeedConn) {
 					TioClientConfig tioClientConfig = (TioClientConfig) clientChannelContext.tioConfig;
 					tioClientConfig.closeds.add(clientChannelContext);
-					clientChannelContext.stat.timeInReconnQueue = System.currentTimeMillis();
-					reconnConf.getQueue().add(clientChannelContext);
+					// 添加重连任务
+					timerTaskService.addTask(systemTimer -> new ClientReConnTask(clientChannelContext, reconnConf));
 				}
 				return true;
 			} else {
@@ -283,13 +304,6 @@ public class ReconnConf {
 	 */
 	public long getInterval() {
 		return interval;
-	}
-
-	/**
-	 * @return the queue
-	 */
-	public LinkedBlockingQueue<ChannelContext> getQueue() {
-		return queue;
 	}
 
 	/**

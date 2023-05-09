@@ -271,10 +271,6 @@ public class ChannelStat implements java.io.Serializable {
 	 * 连接关闭的时间
 	 */
 	public long timeClosed;
-	/**
-	 * 进入重连队列时间
-	 */
-	public long timeInReconnQueue;
 
 	public ChannelStat() {
 		this(System.currentTimeMillis());
@@ -287,7 +283,6 @@ public class ChannelStat implements java.io.Serializable {
 		this.latestTimeOfSentByte = now;
 		this.timeCreated = now;
 		this.timeClosed = now;
-		this.timeInReconnQueue = now;
 	}
 
 	/**
@@ -413,20 +408,6 @@ public class ChannelStat implements java.io.Serializable {
 	 */
 	public void setTimeFirstConnected(Long timeFirstConnected) {
 		this.timeFirstConnected = timeFirstConnected;
-	}
-
-	/**
-	 * @return the timeInReconnQueue
-	 */
-	public long getTimeInReconnQueue() {
-		return timeInReconnQueue;
-	}
-
-	/**
-	 * @param timeInReconnQueue the timeInReconnQueue to set
-	 */
-	public void setTimeInReconnQueue(long timeInReconnQueue) {
-		this.timeInReconnQueue = timeInReconnQueue;
 	}
 
 	/**

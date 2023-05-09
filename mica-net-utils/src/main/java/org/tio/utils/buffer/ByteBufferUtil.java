@@ -129,7 +129,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 转成 string
+	 * 转成 string，读取 ByteBuffer 所有数据
 	 *
 	 * @param buffer ByteBuffer
 	 * @return 字符串
@@ -139,14 +139,14 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 转成 string
+	 * 转成 string，读取 ByteBuffer 所有数据
 	 *
 	 * @param buffer  ByteBuffer
 	 * @param charset Charset
 	 * @return 字符串
 	 */
 	public static String toString(ByteBuffer buffer, Charset charset) {
-		return new String(buffer.array(), buffer.position(), buffer.limit(), charset);
+		return new String(buffer.array(), charset);
 	}
 
 	/**

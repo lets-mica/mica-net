@@ -242,7 +242,12 @@ public class ClientChannelContext extends ChannelContext {
 	 */
 	@Override
 	public Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException {
-		InetSocketAddress inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getLocalAddress();
+		InetSocketAddress inetSocketAddress;
+		if (asynchronousSocketChannel.isOpen()) {
+			inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getLocalAddress();
+		} else {
+			inetSocketAddress = null;
+		}
 		// 一开始没网，没连接上时会返回 null
 		if (inetSocketAddress == null) {
 			return createUnknownNode();

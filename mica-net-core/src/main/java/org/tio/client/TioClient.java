@@ -412,7 +412,7 @@ public class TioClient {
 	}
 
 	/**
-	 * @param channelContext
+	 * @param channelContext ClientChannelContext
 	 * @param timeout        单位秒
 	 * @throws Exception Exception
 	 */
@@ -443,8 +443,9 @@ public class TioClient {
 		if (reconnConf == null || reconnConf.getInterval() <= 0) {
 			return;
 		}
-		// 开启默认的重连任务
-		taskService.addTask(systemTimer -> new ClientReConnTask(systemTimer, this, reconnConf));
+		// 重连的任务服务
+		reconnConf.setTioClient(this);
+		reconnConf.setTaskService(taskService);
 	}
 
 	/**

@@ -512,7 +512,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	 */
 	public void setAsynchronousSocketChannel(AsynchronousSocketChannel asynchronousSocketChannel) {
 		this.asynchronousSocketChannel = asynchronousSocketChannel;
-
 		if (asynchronousSocketChannel != null) {
 			try {
 				setClientNode(createClientNode(asynchronousSocketChannel));
