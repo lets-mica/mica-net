@@ -7,8 +7,6 @@ import org.tio.core.Tio;
 import org.tio.core.intf.EncodedPacket;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class TcpClientTest {
 
@@ -22,17 +20,12 @@ public class TcpClientTest {
 		TioClient tioClient = new TioClient(config);
 		ClientChannelContext connect = tioClient.connect(new Node("127.0.0.1", 502));
 		// 示例定时上报消息
-		Timer timer = new Timer();
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				// 默认定长的数据
-				String message = "mica:" + System.currentTimeMillis();
-				// 使用 Tio 发送数据
-				Tio.send(connect, new EncodedPacket(message.getBytes(StandardCharsets.UTF_8)));
-			}
-		}, 3000, 3000);
-
+		tioClient.schedule(() -> {
+			// 默认定长的数据
+			String message = "mica:" + System.currentTimeMillis();
+			// 使用 Tio 发送数据
+			Tio.send(connect, new EncodedPacket(message.getBytes(StandardCharsets.UTF_8)));
+		}, 3000);
 	}
 
 }

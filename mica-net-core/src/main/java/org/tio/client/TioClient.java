@@ -199,6 +199,7 @@ import org.tio.client.task.ClientHeartbeatTask;
 import org.tio.core.Node;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.timer.DefaultTimerTaskService;
+import org.tio.utils.timer.TimerTask;
 import org.tio.utils.timer.TimerTaskService;
 
 import java.io.IOException;
@@ -207,6 +208,7 @@ import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -445,6 +447,81 @@ public class TioClient {
 		// 重连的任务服务
 		reconnConf.setTioClient(this);
 		reconnConf.setTaskService(taskService);
+	}
+
+	/**
+	 * 添加定时任务，注意：如果抛出异常，会终止后续任务，请自行处理异常
+	 *
+	 * @param command runnable
+	 * @param delay   delay
+	 * @return TimerTask
+	 */
+	public TimerTask schedule(Runnable command, long delay) {
+		return schedule(command, delay, null);
+	}
+
+	/**
+	 * 添加定时任务，注意：如果抛出异常，会终止后续任务，请自行处理异常
+	 *
+	 * @param command  runnable
+	 * @param delay    delay
+	 * @param executor 用于自定义线程池，处理耗时业务
+	 * @return TimerTask
+	 */
+	public TimerTask schedule(Runnable command, long delay, Executor executor) {
+		return this.taskService.addTask((systemTimer -> new TimerTask(delay) {
+			@Override
+			public void run() {
+				try {
+					// 1. 再次添加 任务
+					systemTimer.add(this);
+					// 2. 执行任务
+					if (executor == null) {
+						command.run();
+					} else {
+						executor.execute(command);
+					}
+				} catch (Exception e) {
+					log.error("Tio client schedule error", e);
+				}
+			}
+		}));
+	}
+
+	/**
+	 * 添加定时任务
+	 *
+	 * @param command runnable
+	 * @param delay   delay
+	 * @return TimerTask
+	 */
+	public TimerTask scheduleOnce(Runnable command, long delay) {
+		return scheduleOnce(command, delay, null);
+	}
+
+	/**
+	 * 添加定时任务
+	 *
+	 * @param command  runnable
+	 * @param delay    delay
+	 * @param executor 用于自定义线程池，处理耗时业务
+	 * @return TimerTask
+	 */
+	public TimerTask scheduleOnce(Runnable command, long delay, Executor executor) {
+		return this.taskService.addTask((systemTimer -> new TimerTask(delay) {
+			@Override
+			public void run() {
+				try {
+					if (executor == null) {
+						command.run();
+					} else {
+						executor.execute(command);
+					}
+				} catch (Exception e) {
+					log.error("Tio client schedule once error", e);
+				}
+			}
+		}));
 	}
 
 	/**
