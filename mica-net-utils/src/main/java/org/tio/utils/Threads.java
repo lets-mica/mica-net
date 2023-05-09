@@ -216,15 +216,13 @@ public class Threads {
 	private static ThreadPoolExecutor groupExecutor = null;
 	private static SynThreadPoolExecutor tioExecutor = null;
 
-	/**
-	 *
-	 */
 	private Threads() {
 	}
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * getGroupExecutor
+	 *
+	 * @return ThreadPoolExecutor
 	 */
 	public static ThreadPoolExecutor getGroupExecutor() {
 		if (groupExecutor != null) {
@@ -244,8 +242,9 @@ public class Threads {
 	}
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * getTioExecutor
+	 *
+	 * @return SynThreadPoolExecutor
 	 */
 	public static SynThreadPoolExecutor getTioExecutor() {
 		if (tioExecutor != null) {
@@ -262,6 +261,69 @@ public class Threads {
 			tioExecutor.prestartCoreThread();
 			return tioExecutor;
 		}
+	}
+
+	/**
+	 * 挂起当前线程
+	 *
+	 * @param millis 挂起的毫秒数
+	 * @return 被中断返回false，否则true
+	 */
+	public static boolean sleep(long millis) {
+		if (millis > 0) {
+			try {
+				Thread.sleep(millis);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 获取 tio group 线程池
+	 *
+	 * @param groupPoolSize group 线程大小
+	 * @return ThreadPoolExecutor
+	 */
+	public static ThreadPoolExecutor getGroupExecutor(int groupPoolSize) {
+		DefaultThreadFactory threadFactory = DefaultThreadFactory.getInstance("tio-group", Thread.MAX_PRIORITY);
+		LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
+		ThreadPoolExecutor groupExecutor = new ThreadPoolExecutor(groupPoolSize, groupPoolSize,
+			Threads.KEEP_ALIVE_TIME, TimeUnit.SECONDS, runnableQueue, threadFactory, new TioCallerRunsPolicy());
+		groupExecutor.prestartCoreThread();
+		return groupExecutor;
+	}
+
+	/**
+	 * 获取 getTioExecutor 线程池
+	 *
+	 * @param tioPoolSize tio 线程池大小
+	 * @return SynThreadPoolExecutor
+	 */
+	public static SynThreadPoolExecutor getTioExecutor(int tioPoolSize) {
+		LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
+		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("tio-worker", Thread.MAX_PRIORITY);
+		SynThreadPoolExecutor tioExecutor = new SynThreadPoolExecutor(tioPoolSize, tioPoolSize,
+			Threads.KEEP_ALIVE_TIME, runnableQueue, defaultThreadFactory, new TioCallerRunsPolicy());
+		tioExecutor.prestartCoreThread();
+		return tioExecutor;
+	}
+
+	/**
+	 * 获取 biz 业务线程池
+	 *
+	 * @param poolSize 业务线程池大小
+	 * @return ThreadPoolExecutor
+	 */
+	public static ThreadPoolExecutor getBizExecutor(int poolSize) {
+		LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
+		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("biz-worker", Thread.MAX_PRIORITY);
+		ThreadPoolExecutor tioExecutor = new ThreadPoolExecutor(poolSize, poolSize,
+			Threads.KEEP_ALIVE_TIME, TimeUnit.SECONDS, runnableQueue, defaultThreadFactory, new TioCallerRunsPolicy());
+		tioExecutor.prestartCoreThread();
+		return tioExecutor;
 	}
 
 	/**

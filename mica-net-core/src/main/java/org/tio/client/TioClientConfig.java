@@ -200,6 +200,7 @@ import org.tio.core.TioConfig;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.SslConfig;
+import org.tio.utils.Threads;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 import org.tio.utils.timer.TimerTaskService;
 
@@ -242,7 +243,7 @@ public class TioClientConfig extends TioConfig {
 	 * @param reconnConf  不用框架自动重连，就传null
 	 */
 	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener, ReconnConf reconnConf) {
-		this(tioHandler, tioListener, reconnConf, null, null);
+		this(tioHandler, tioListener, reconnConf, Threads.getTioExecutor(2), Threads.getGroupExecutor(2));
 	}
 
 	/**
