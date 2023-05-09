@@ -2,7 +2,13 @@
 
 ## 发行版本
 
-### v0.1.1 - 2023-05-07
+### v0.1.1 - 2023-05-09
+- :sparkles: 下沉 mica-mqttx 中的 `schedule` 方法
+- :sparkles: 添加 mica-mqttx 中的 `WriteBuffer`
+- :sparkles: 合并 mica-mqttx `ThreadUtils` 到 `Threads`
+- :sparkles: 完善 `ByteBufferUtil`
+- :sparkles: 客户端心跳、重连改为时间轮，减少线程数
+- :sparkles: 完善 `FastByteBuffer`
 - :sparkles: 客户端心跳、重连改为时间轮，减少线程数。
 - :sparkles: 添加 `IgnorePacket` 包，支持忽略 `handler` 处理。
 
