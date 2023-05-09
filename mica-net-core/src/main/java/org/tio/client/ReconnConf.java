@@ -199,6 +199,8 @@ import org.tio.client.task.ClientReConnTask;
 import org.tio.core.ChannelContext;
 import org.tio.utils.timer.TimerTaskService;
 
+import java.util.Objects;
+
 /**
  * @author tanyaowu
  * 2017年4月1日 上午9:33:00
@@ -272,11 +274,12 @@ public class ReconnConf {
 		}
 		if (reconnConf.getInterval() > 0) {
 			if (reconnConf.getRetryCount() <= 0 || reconnConf.getRetryCount() > clientChannelContext.getReconnCount().get()) {
-				TimerTaskService timerTaskService = reconnConf.getTaskService();
 				if (putIfNeedConn) {
 					TioClientConfig tioClientConfig = (TioClientConfig) clientChannelContext.tioConfig;
 					tioClientConfig.closeds.add(clientChannelContext);
 					// 添加重连任务
+					TimerTaskService timerTaskService = reconnConf.getTaskService();
+					Objects.requireNonNull(timerTaskService, "ReconnConf timerTaskService is null.");
 					timerTaskService.addTask(systemTimer -> new ClientReConnTask(clientChannelContext, reconnConf));
 				}
 				return true;

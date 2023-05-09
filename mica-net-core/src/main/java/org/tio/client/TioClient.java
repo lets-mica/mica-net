@@ -196,7 +196,6 @@ package org.tio.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.client.task.ClientHeartbeatTask;
-import org.tio.client.task.ClientReConnTask;
 import org.tio.core.Node;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.timer.DefaultTimerTaskService;
@@ -229,7 +228,7 @@ public class TioClient {
 		this.taskService = getTimerTaskService(tioClientConfig.getTaskService());
 		this.channelGroup = AsynchronousChannelGroup.withThreadPool(tioClientConfig.groupExecutor);
 		startHeartbeatTask();
-		startReconnTask();
+		configReConnTask();
 	}
 
 	private static TimerTaskService getTimerTaskService(TimerTaskService taskService) {
@@ -438,7 +437,7 @@ public class TioClient {
 	/**
 	 * 启动重连任务
 	 */
-	private void startReconnTask() {
+	private void configReConnTask() {
 		final ReconnConf reconnConf = tioClientConfig.getReconnConf();
 		if (reconnConf == null || reconnConf.getInterval() <= 0) {
 			return;
