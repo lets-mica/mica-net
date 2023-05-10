@@ -204,7 +204,6 @@ import java.util.Objects;
 public class Node implements Comparable<Node> {
 	private final String ip;
 	private final int port;
-	private byte ssl = 1;
 
 	public Node(String ip, int port) {
 		this.ip = StrUtil.isBlank(ip) ? "0.0.0.0" : ip;
@@ -255,20 +254,6 @@ public class Node implements Comparable<Node> {
 	@Override
 	public String toString() {
 		return getPeerHost();
-	}
-
-	/**
-	 * @return the ssl
-	 */
-	public byte getSsl() {
-		return ssl;
-	}
-
-	/**
-	 * @param ssl the ssl to set
-	 */
-	public void setSsl(byte ssl) {
-		this.ssl = ssl;
 	}
 
 }
