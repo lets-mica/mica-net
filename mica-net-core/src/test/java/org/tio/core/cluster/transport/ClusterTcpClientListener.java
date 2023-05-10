@@ -17,4 +17,5 @@ public class ClusterTcpClientListener implements TioClientListener {
 	@Override
 	public void onBeforeClose(ChannelContext context, Throwable throwable, String remark, boolean isRemove) throws Exception {
 	}
+
 }

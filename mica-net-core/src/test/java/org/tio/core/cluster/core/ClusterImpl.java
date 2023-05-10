@@ -5,7 +5,7 @@ import org.tio.core.cluster.message.ClusterDataMessage;
 import org.tio.core.cluster.message.ClusterSyncAckMessage;
 import org.tio.core.cluster.message.ClusterSyncMessage;
 
-import java.util.Collection;
+import java.util.*;
 
 /**
  * 集群实现
@@ -14,9 +14,18 @@ import java.util.Collection;
  */
 public class ClusterImpl implements ClusterApi {
 	private final ClusterConfig config;
+	/**
+	 * 本地成员
+	 */
+	private final ClusterMember localMember;
+	/**
+	 * 所有成员
+	 */
+	private final List<ClusterMember> remoteMembers = new ArrayList<>();
 
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;
+		this.localMember = null;
 	}
 
 	@Override
@@ -61,12 +70,12 @@ public class ClusterImpl implements ClusterApi {
 
 	@Override
 	public Collection<ClusterMember> getRemoteMembers() {
-		return null;
+		return this.remoteMembers;
 	}
 
 	@Override
 	public ClusterMember getMember() {
-		return null;
+		return this.localMember;
 	}
 
 	@Override

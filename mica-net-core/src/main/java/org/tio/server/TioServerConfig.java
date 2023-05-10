@@ -218,71 +218,58 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 2016年10月10日 下午5:51:56
  */
 public class TioServerConfig extends TioConfig {
-	static Logger log = LoggerFactory.getLogger(TioServerConfig.class);
-	private AcceptCompletionHandler acceptCompletionHandler = null;
-	private TioServerHandler tioServerHandler = null;
-	private TioServerListener tioServerListener = null;
-	private Thread checkHeartbeatThread = null;
+	private static final Logger log = LoggerFactory.getLogger(TioServerConfig.class);
+	private final AcceptCompletionHandler acceptCompletionHandler;
+	private final TioServerHandler tioServerHandler;
+	private final TioServerListener tioServerListener;
+	private final Thread checkHeartbeatThread;
 	private boolean needCheckHeartbeat = true;
 	private boolean isShared = false;
 
 	/**
-	 * @param tioServerHandler
-	 * @param tioServerListener
-	 * @author: tanyaowu
+	 * @param tioServerHandler TioServerHandler
+	 * @param tioServerListener TioServerListener
 	 */
 	public TioServerConfig(TioServerHandler tioServerHandler, TioServerListener tioServerListener) {
 		this(null, tioServerHandler, tioServerListener);
 	}
 
 	/**
-	 * @param name
-	 * @param tioServerHandler
-	 * @param tioServerListener
-	 * @author: tanyaowu
+	 * @param name name
+	 * @param tioServerHandler TioServerHandler
+	 * @param tioServerListener TioServerListener
 	 */
 	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener) {
 		this(name, tioServerHandler, tioServerListener, null, null);
 	}
 
 	/**
-	 * @param tioServerHandler
-	 * @param tioServerListener
-	 * @param tioExecutor
-	 * @param groupExecutor
-	 * @author: tanyaowu
+	 * @param tioServerHandler TioServerHandler
+	 * @param tioServerListener TioServerListener
+	 * @param tioExecutor SynThreadPoolExecutor
+	 * @param groupExecutor ThreadPoolExecutor
 	 */
-	public TioServerConfig(TioServerHandler tioServerHandler, TioServerListener tioServerListener, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+	public TioServerConfig(TioServerHandler tioServerHandler, TioServerListener tioServerListener,
+						   SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		this(null, tioServerHandler, tioServerListener, tioExecutor, groupExecutor);
 	}
 
 	/**
-	 * @param name
-	 * @param tioServerHandler
-	 * @param tioServerListener
-	 * @param tioExecutor
-	 * @param groupExecutor
-	 * @author: tanyaowu
+	 * @param name name
+	 * @param tioServerHandler TioServerHandler
+	 * @param tioServerListener TioServerListener
+	 * @param tioExecutor SynThreadPoolExecutor
+	 * @param groupExecutor ThreadPoolExecutor
 	 */
-	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener, SynThreadPoolExecutor tioExecutor,
-						   ThreadPoolExecutor groupExecutor) {
+	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener,
+						   SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		super(tioExecutor, groupExecutor);
-		init(name, tioServerHandler, tioServerListener);
-	}
-
-	/**
-	 * @param name
-	 * @param tioServerHandler
-	 * @param tioServerListener
-	 * @author tanyaowu
-	 */
-	private void init(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener) {
 		this.name = name;
 		this.groupStat = new ServerGroupStat();
 		this.acceptCompletionHandler = new AcceptCompletionHandler();
 		this.tioServerHandler = tioServerHandler;
 		this.tioServerListener = tioServerListener;
-		checkHeartbeatThread = new Thread(new Runnable() {
+		this.checkHeartbeatThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				// 第一次先休息一下 10s
@@ -363,9 +350,9 @@ public class TioServerConfig extends TioConfig {
 				}
 			}
 		}, "tio-timer-checkheartbeat-" + id + '-' + name);
-		checkHeartbeatThread.setDaemon(true);
-		checkHeartbeatThread.setPriority(Thread.MIN_PRIORITY);
-		checkHeartbeatThread.start();
+		this.checkHeartbeatThread.setDaemon(true);
+		this.checkHeartbeatThread.setPriority(Thread.MIN_PRIORITY);
+		this.checkHeartbeatThread.start();
 	}
 
 	/**
@@ -458,14 +445,6 @@ public class TioServerConfig extends TioConfig {
 		return tioServerListener;
 	}
 
-	public void setTioServerListener(TioServerListener tioServerListener) {
-		this.tioServerListener = tioServerListener;
-	}
-
-	/**
-	 * @return
-	 * @author tanyaowu
-	 */
 	@Override
 	public boolean isServer() {
 		return true;

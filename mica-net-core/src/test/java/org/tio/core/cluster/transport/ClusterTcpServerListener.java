@@ -11,15 +11,15 @@ import org.tio.server.intf.TioServerListener;
 public class ClusterTcpServerListener implements TioServerListener {
 
 	@Override
-	public boolean onHeartbeatTimeout(ChannelContext channelContext, Long interval, int heartbeatTimeoutCount) {
+	public boolean onHeartbeatTimeout(ChannelContext context, long interval, int heartbeatTimeoutCount) {
 		return false;
 	}
 
 	@Override
-	public void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) throws Exception {
+	public void onAfterConnected(ChannelContext context, boolean isConnected, boolean isReconnect) throws Exception {
 	}
 
 	@Override
-	public void onBeforeClose(ChannelContext channelContext, Throwable throwable, String remark, boolean isRemove) throws Exception {
+	public void onBeforeClose(ChannelContext context, Throwable throwable, String remark, boolean isRemove) throws Exception {
 	}
 }

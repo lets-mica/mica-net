@@ -24,10 +24,6 @@ public class ClusterMember implements Serializable {
 	 * 成员地址
 	 */
 	private Node address;
-	/**
-	 * 命名空间
-	 */
-	private String namespace;
 
 	public String getId() {
 		return id;
@@ -53,31 +49,21 @@ public class ClusterMember implements Serializable {
 		this.address = address;
 	}
 
-	public String getNamespace() {
-		return namespace;
-	}
-
-	public void setNamespace(String namespace) {
-		this.namespace = namespace;
-	}
-
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof ClusterMember)) {
+		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
 		ClusterMember that = (ClusterMember) o;
-		return Objects.equals(id, that.id)
-			&& Objects.equals(address, that.address)
-			&& Objects.equals(namespace, that.namespace);
+		return Objects.equals(id, that.id) && Objects.equals(alias, that.alias) && Objects.equals(address, that.address);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, address, namespace);
+		return Objects.hash(id, alias, address);
 	}
 
 	@Override
@@ -86,7 +72,6 @@ public class ClusterMember implements Serializable {
 			"id='" + id + '\'' +
 			", alias='" + alias + '\'' +
 			", address=" + address +
-			", namespace='" + namespace + '\'' +
 			'}';
 	}
 }

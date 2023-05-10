@@ -1,10 +1,13 @@
 package org.tio.core.cluster.transport;
 
 import org.tio.core.ChannelContext;
+import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.cluster.codec.ClusterMessageDecoder;
 import org.tio.core.cluster.codec.ClusterMessageEncoder;
 import org.tio.core.cluster.message.AbsClusterMessage;
+import org.tio.core.cluster.message.ClusterPingMessage;
+import org.tio.core.cluster.message.ClusterPongMessage;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 import org.tio.server.intf.TioServerHandler;
@@ -37,6 +40,10 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 
 	@Override
 	public void handler(Packet packet, ChannelContext context) throws Exception {
-
+		// 心跳 ping 消息
+		if (packet instanceof ClusterPingMessage) {
+			Tio.send(context, ClusterPongMessage.INSTANCE);
+			return;
+		}
 	}
 }
