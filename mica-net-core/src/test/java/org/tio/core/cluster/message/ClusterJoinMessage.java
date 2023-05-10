@@ -1,6 +1,6 @@
 package org.tio.core.cluster.message;
 
-import org.tio.core.cluster.core.ClusterMember;
+import org.tio.core.Node;
 
 /**
  * 节点加入集群
@@ -12,13 +12,13 @@ public class ClusterJoinMessage extends AbsClusterMessage {
 	/**
 	 * 加入的成员
 	 */
-	private final ClusterMember joinMember;
+	private final Node joinMember;
 
-	public ClusterJoinMessage(ClusterMember joinMember) {
+	public ClusterJoinMessage(Node joinMember) {
 		this.joinMember = joinMember;
 	}
 
-	public ClusterMember getJoinMember() {
+	public Node getJoinMember() {
 		return joinMember;
 	}
 

@@ -27,29 +27,20 @@ public interface ClusterApi {
 	/**
 	 * 发送消息
 	 *
-	 * @param address address
+	 * @param member  member
 	 * @param message 集群消息
 	 * @return 消息id.
 	 */
-	String send(Node address, ClusterDataMessage message);
-
-	/**
-	 * 发送消息
-	 *
-	 * @param member  ClusterMember
-	 * @param message 集群消息
-	 * @return 消息id.
-	 */
-	String send(ClusterMember member, ClusterDataMessage message);
+	String send(Node member, ClusterDataMessage message);
 
 	/**
 	 * 同步发送消息
 	 *
-	 * @param member  ClusterMember
+	 * @param member  Node
 	 * @param message 集群消息
 	 * @return 消息id.
 	 */
-	ClusterSyncAckMessage sendSync(ClusterMember member, ClusterSyncMessage message);
+	ClusterSyncAckMessage sendSync(Node member, ClusterSyncMessage message);
 
 	/**
 	 * 在集群中广播消息
@@ -65,38 +56,17 @@ public interface ClusterApi {
 	void listen(ClusterMessageListener listener);
 
 	/**
-	 * 获取集群中的成员，包含当前成员
-	 *
-	 * @return 成员列表
-	 */
-	Collection<ClusterMember> getMembers();
-
-	/**
 	 * 获取集群中的成员，不包含当前成员
 	 *
 	 * @return 成员列表，不包含自己
 	 */
-	Collection<ClusterMember> getRemoteMembers();
+	Collection<Node> getRemoteMembers();
 
 	/**
 	 * 获取本地成员
 	 *
 	 * @return 本地成员
 	 */
-	ClusterMember getMember();
-
-	/**
-	 * 根据成员 id 获取成员
-	 *
-	 * @return 成员
-	 */
-	ClusterMember getMember(String id);
-
-	/**
-	 * 更加地址获取成员
-	 *
-	 * @return 成员
-	 */
-	ClusterMember member(Node address);
+	Node getLocalMember();
 
 }

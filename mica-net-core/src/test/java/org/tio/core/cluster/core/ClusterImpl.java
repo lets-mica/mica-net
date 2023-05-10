@@ -1,11 +1,14 @@
 package org.tio.core.cluster.core;
 
+import org.tio.client.TioClientConfig;
 import org.tio.core.Node;
 import org.tio.core.cluster.message.ClusterDataMessage;
 import org.tio.core.cluster.message.ClusterSyncAckMessage;
 import org.tio.core.cluster.message.ClusterSyncMessage;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 集群实现
@@ -17,11 +20,19 @@ public class ClusterImpl implements ClusterApi {
 	/**
 	 * 本地成员
 	 */
-	private final ClusterMember localMember;
+	private final Node localMember;
 	/**
-	 * 所有成员
+	 * 种子成员
 	 */
-	private final List<ClusterMember> remoteMembers = new ArrayList<>();
+	private List<Node> seedMembers;
+	/**
+	 * 后加入的成员
+	 */
+	private List<Node> lateAddMembers;
+	/**
+	 * 远程的客户端结合，用于发送消息
+	 */
+	private ConcurrentMap<Node, TioClientConfig> remoteClientConfigs = new ConcurrentHashMap<>();
 
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;
@@ -44,12 +55,7 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
-	public String send(ClusterMember member, ClusterDataMessage message) {
-		return null;
-	}
-
-	@Override
-	public ClusterSyncAckMessage sendSync(ClusterMember member, ClusterSyncMessage message) {
+	public ClusterSyncAckMessage sendSync(Node address, ClusterSyncMessage message) {
 		return null;
 	}
 
@@ -64,27 +70,12 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
-	public Collection<ClusterMember> getMembers() {
-		return null;
+	public Collection<Node> getRemoteMembers() {
+		return remoteClientConfigs.keySet();
 	}
 
 	@Override
-	public Collection<ClusterMember> getRemoteMembers() {
-		return this.remoteMembers;
-	}
-
-	@Override
-	public ClusterMember getMember() {
+	public Node getLocalMember() {
 		return this.localMember;
-	}
-
-	@Override
-	public ClusterMember getMember(String id) {
-		return null;
-	}
-
-	@Override
-	public ClusterMember member(Node address) {
-		return null;
 	}
 }
