@@ -191,9 +191,6 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-/**
- *
- */
 package org.tio.core.ssl;
 
 import org.slf4j.Logger;
@@ -219,20 +216,21 @@ public class SslFacadeContext {
 	 */
 	private boolean isHandshakeCompleted;
 
-	/**
-	 * @param channelContext
-	 */
 	public SslFacadeContext(ChannelContext channelContext) {
+		this(channelContext, channelContext.tioConfig.sslConfig);
+	}
+
+	public SslFacadeContext(ChannelContext channelContext, SslConfig sslConfig) {
 		this.channelContext = channelContext;
 		this.channelContext.setSslFacadeContext(this);
 		this.isHandshakeCompleted = false;
 		// sslContext
-		this.sslContext = channelContext.tioConfig.sslConfig.getSslContext();
+		this.sslContext = sslConfig.getSslContext();
 		DefaultTaskHandler taskHandler = new DefaultTaskHandler();
 		// 是否客户端模式
 		boolean isClient = !this.channelContext.isServer();
 		// 客户端认证模式，用于服务端
-		ClientAuth clientAuth = channelContext.tioConfig.sslConfig.getClientAuth();
+		ClientAuth clientAuth = sslConfig.getClientAuth();
 		// SSLFacade
 		sslFacade = new SSLFacade(this.channelContext, this.sslContext, isClient, clientAuth, taskHandler);
 		sslFacade.setHandshakeCompletedListener(new SslHandshakeCompletedListener(this.channelContext));
@@ -241,7 +239,9 @@ public class SslFacadeContext {
 	}
 
 	/**
-	 * @throws Exception
+	 * beginHandshake
+	 *
+	 * @throws Exception Exception
 	 */
 	public void beginHandshake() throws Exception {
 		log.info("{} 开始SSL握手", channelContext);
