@@ -202,19 +202,19 @@ public enum PacketHandlerMode {
 	/**
 	 * 处理消息与解码在同一个线程中处理
 	 */
-	SINGLE_THREAD(1),
+	SINGLE_THREAD((byte) 1),
 	/**
 	 * 把packet丢到一个队列中，让线程池去处理
 	 */
-	QUEUE(2);
+	QUEUE((byte) 2);
 
-	private final int value;
+	private final byte value;
 
-	PacketHandlerMode(int value) {
+	PacketHandlerMode(byte value) {
 		this.value = value;
 	}
 
-	public static PacketHandlerMode forNumber(int value) {
+	public static PacketHandlerMode forNumber(byte value) {
 		switch (value) {
 			case 1:
 				return SINGLE_THREAD;
@@ -228,7 +228,7 @@ public enum PacketHandlerMode {
 	/**
 	 * @return the value
 	 */
-	public int getValue() {
+	public byte getValue() {
 		return value;
 	}
 }

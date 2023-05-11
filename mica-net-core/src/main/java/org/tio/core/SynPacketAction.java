@@ -202,25 +202,23 @@ public enum SynPacketAction {
 	/**
 	 *
 	 */
-	BEFORE_WAIT(1),
-
+	BEFORE_WAIT((byte) 1),
 	/**
 	 *
 	 */
-	AFTER__WAIT(2),
-
+	AFTER__WAIT((byte) 2),
 	/**
 	 *
 	 */
-	BEFORE_DOWN(3);
+	BEFORE_DOWN((byte) 3);
 
-	private final int value;
+	private final byte value;
 
-	private SynPacketAction(int value) {
+	SynPacketAction(byte value) {
 		this.value = value;
 	}
 
-	public static SynPacketAction forNumber(int value) {
+	public static SynPacketAction forNumber(byte value) {
 		switch (value) {
 			case 1:
 				return BEFORE_WAIT;
@@ -236,7 +234,7 @@ public enum SynPacketAction {
 	/**
 	 * @return the value
 	 */
-	public int getValue() {
+	public byte getValue() {
 		return value;
 	}
 }

@@ -202,24 +202,24 @@ public enum PacketSendMode {
 	/**
 	 * 把packet丢到一个队列中，让线程池去发送
 	 */
-	QUEUE(1),
+	QUEUE((byte) 1),
 	/**
 	 * 单条消息阻塞发送，直接发送成功，才折回
 	 */
-	SINGLE_BLOCK(2),
+	SINGLE_BLOCK((byte) 2),
 
 	/**
 	 * 一群消息阻塞发送，直接发送成功，才折回
 	 */
-	GROUP_BLOCK(3);
+	GROUP_BLOCK((byte) 3);
 
-	private final int value;
+	private final byte value;
 
-	PacketSendMode(int value) {
+	PacketSendMode(byte value) {
 		this.value = value;
 	}
 
-	public static PacketSendMode forNumber(int value) {
+	public static PacketSendMode forNumber(byte value) {
 		switch (value) {
 			case 1:
 				return QUEUE;
@@ -235,7 +235,7 @@ public enum PacketSendMode {
 	/**
 	 * @return the value
 	 */
-	public int getValue() {
+	public byte getValue() {
 		return value;
 	}
 }
