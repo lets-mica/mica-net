@@ -231,7 +231,7 @@ public class IpUtils {
 		String netip = null; // 外网IP
 
 		Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
-		InetAddress ip = null;
+		InetAddress ip;
 		boolean finded = false; // 是否找到外网IP
 		while (netInterfaces.hasMoreElements() && !finded) {
 			NetworkInterface ni = netInterfaces.nextElement();

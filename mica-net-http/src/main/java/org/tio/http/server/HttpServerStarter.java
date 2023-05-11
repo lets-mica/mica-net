@@ -211,37 +211,52 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author tanyaowu
  */
 public class HttpServerStarter {
-	private HttpConfig httpConfig = null;
-	private HttpTioServerHandler httpTioServerHandler = null;
-	private HttpTioServerListener httpTioServerListener = null;
-	private TioServerConfig tioServerConfig = null;
-	private TioServer tioServer = null;
-	private HttpRequestHandler httpRequestHandler = null;
+	private final HttpConfig httpConfig;
+	private final HttpTioServerHandler httpTioServerHandler;
+	private final HttpTioServerListener httpTioServerListener;
+	private final TioServerConfig tioServerConfig;
+	private final TioServer tioServer;
+	private HttpRequestHandler httpRequestHandler;
 
 	/**
-	 * @param httpConfig
-	 * @param requestHandler
-	 * @author tanyaowu
+	 * @param httpConfig     HttpConfig
+	 * @param requestHandler HttpRequestHandler
 	 */
 	public HttpServerStarter(HttpConfig httpConfig, HttpRequestHandler requestHandler) {
 		this(httpConfig, requestHandler, null, null);
 	}
 
 	/**
-	 * @param httpConfig
-	 * @param requestHandler
-	 * @param tioExecutor
-	 * @param groupExecutor
-	 * @author tanyaowu
+	 * @param httpConfig     HttpConfig
+	 * @param requestHandler HttpRequestHandler
+	 * @param tioExecutor    SynThreadPoolExecutor
+	 * @param groupExecutor  ThreadPoolExecutor
 	 */
-	public HttpServerStarter(HttpConfig httpConfig, HttpRequestHandler requestHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+	public HttpServerStarter(HttpConfig httpConfig, HttpRequestHandler requestHandler,
+							 SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		if (tioExecutor == null) {
 			tioExecutor = Threads.getTioExecutor();
 		}
 		if (groupExecutor == null) {
 			groupExecutor = Threads.getGroupExecutor();
 		}
-		init(httpConfig, requestHandler, tioExecutor, groupExecutor);
+		this.httpConfig = httpConfig;
+		this.httpRequestHandler = requestHandler;
+		this.httpConfig.setHttpRequestHandler(this.httpRequestHandler);
+		this.httpTioServerHandler = new HttpTioServerHandler(httpConfig, requestHandler);
+		this.httpTioServerListener = new HttpTioServerListener();
+		String name = httpConfig.getName();
+		if (StrUtil.isBlank(name)) {
+			name = "Tio Http Server";
+		}
+		this.tioServerConfig = new TioServerConfig(name, httpTioServerHandler, httpTioServerListener, tioExecutor, groupExecutor);
+		this.tioServerConfig.setHeartbeatTimeout(1000 * 20L);
+		this.tioServerConfig.setShortConnection(true);
+		this.tioServerConfig.setReadBufferSize(TcpConst.MAX_DATA_LENGTH);
+		this.tioServerConfig.set(TioConfigKey.HTTP_REQ_HANDLER, this.httpRequestHandler);
+
+		this.tioServer = new TioServer(tioServerConfig);
+		this.tioServerConfig.setTioUuid(new HttpUuid());
 	}
 
 	/**
@@ -278,32 +293,6 @@ public class HttpServerStarter {
 	 */
 	public TioServerConfig getTioServerConfig() {
 		return tioServerConfig;
-	}
-
-	private void init(HttpConfig httpConfig, HttpRequestHandler requestHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
-		String systemTimerPeriod = System.getProperty("tio.system.timer.period");
-		if (StrUtil.isBlank(systemTimerPeriod)) {
-			System.setProperty("tio.system.timer.period", "50");
-		}
-
-		this.httpConfig = httpConfig;
-		this.httpRequestHandler = requestHandler;
-		httpConfig.setHttpRequestHandler(this.httpRequestHandler);
-		this.httpTioServerHandler = new HttpTioServerHandler(httpConfig, requestHandler);
-		httpTioServerListener = new HttpTioServerListener();
-		String name = httpConfig.getName();
-		if (StrUtil.isBlank(name)) {
-			name = "Tio Http Server";
-		}
-		tioServerConfig = new TioServerConfig(name, httpTioServerHandler, httpTioServerListener, tioExecutor, groupExecutor);
-		tioServerConfig.setHeartbeatTimeout(1000 * 20L);
-		tioServerConfig.setShortConnection(true);
-		tioServerConfig.setReadBufferSize(TcpConst.MAX_DATA_LENGTH);
-		tioServerConfig.set(TioConfigKey.HTTP_REQ_HANDLER, this.httpRequestHandler);
-
-		tioServer = new TioServer(tioServerConfig);
-		HttpUuid imTioUuid = new HttpUuid();
-		tioServerConfig.setTioUuid(imTioUuid);
 	}
 
 	/**
