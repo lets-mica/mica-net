@@ -232,10 +232,10 @@ public class SslFacadeContext {
 		// 客户端认证模式，用于服务端
 		ClientAuth clientAuth = sslConfig.getClientAuth();
 		// SSLFacade
-		sslFacade = new SSLFacade(this.channelContext, this.sslContext, isClient, clientAuth, taskHandler);
-		sslFacade.setHandshakeCompletedListener(new SslHandshakeCompletedListener(this.channelContext));
-		sslFacade.setSSLListener(new SslListener(this.channelContext));
-		sslFacade.setCloseListener(new SslSessionClosedListener(this.channelContext));
+		this.sslFacade = new SSLFacade(this.channelContext, this.sslContext, isClient, clientAuth, taskHandler);
+		this.sslFacade.setHandshakeCompletedListener(new SslHandshakeCompletedListener(this.channelContext));
+		this.sslFacade.setSSLListener(new SslListener(this.channelContext));
+		this.sslFacade.setCloseListener(new SslSessionClosedListener(this.channelContext));
 	}
 
 	/**
