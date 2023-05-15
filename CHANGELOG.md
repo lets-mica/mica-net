@@ -2,6 +2,11 @@
 
 ## 发行版本
 
+### v0.1.2 - 2023-05-27
+- :sparkles: 添加 `FIFOCache`、`LFUCache`、`LRUCache`。
+- :sparkles: 合并工具类 `ByteBufferUtils` 方法到 `ByteBufferUtil` 并完善 `ByteBufferUtil`。
+- :sparkles: Node 删除没用用到的 `ssl` 属性。
+
 ### v0.1.1 - 2023-05-09
 - :sparkles: 下沉 mica-mqttx 中的 `schedule` 方法
 - :sparkles: 添加 mica-mqttx 中的 `WriteBuffer`

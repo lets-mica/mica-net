@@ -2,7 +2,7 @@ package org.tio.utils.cache;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 缓存对象
@@ -24,7 +24,7 @@ public class CacheObj<K extends Serializable, V extends Serializable> implements
 	/**
 	 * 访问次数
 	 */
-	protected final LongAdder accessCount = new LongAdder();
+	protected final AtomicLong accessCount = new AtomicLong();
 	/**
 	 * 对象存活时长，0表示永久存活
 	 */
@@ -107,7 +107,7 @@ public class CacheObj<K extends Serializable, V extends Serializable> implements
 	 *
 	 * @return 是否过期
 	 */
-	protected boolean isExpired() {
+	public boolean isExpired() {
 		if (this.ttl > 0) {
 			// 此处不考虑时间回拨
 			return (System.currentTimeMillis() - this.lastAccess) > this.ttl;
@@ -126,7 +126,7 @@ public class CacheObj<K extends Serializable, V extends Serializable> implements
 		if (isUpdateLastAccess) {
 			lastAccess = System.currentTimeMillis();
 		}
-		accessCount.increment();
+		accessCount.incrementAndGet();
 		return this.obj;
 	}
 }
