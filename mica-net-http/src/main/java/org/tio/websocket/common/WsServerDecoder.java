@@ -197,7 +197,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.exception.TioDecodeException;
-import org.tio.core.utils.ByteBufferUtils;
+import org.tio.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
 
@@ -248,7 +248,7 @@ public class WsServerDecoder {
 			if (readableLength < headLength) {
 				return null;
 			}
-			payloadLength = ByteBufferUtils.readUB2WithBigEdian(buf);
+			payloadLength = ByteBufferUtil.readUnsignedShortBE(buf);
 			log.debug("{} payloadLengthFlag: 126，payloadLength {}", channelContext, payloadLength);
 		} else if (payloadLength == 127) { // 127读8个字节,后8个字节为payloadLength
 			headLength += 8;
@@ -268,7 +268,7 @@ public class WsServerDecoder {
 		}
 
 		if (hasMask) {
-			mask = ByteBufferUtils.readBytes(buf, 4);
+			mask = ByteBufferUtil.readBytes(buf, 4);
 		}
 
 		// 第二阶段解析
@@ -283,7 +283,7 @@ public class WsServerDecoder {
 			return websocketPacket;
 		}
 
-		byte[] array = ByteBufferUtils.readBytes(buf, payloadLength);
+		byte[] array = ByteBufferUtil.readBytes(buf, payloadLength);
 		if (hasMask) {
 			for (int i = 0; i < array.length; i++) {
 				array[i] = (byte) (array[i] ^ mask[i % 4]);

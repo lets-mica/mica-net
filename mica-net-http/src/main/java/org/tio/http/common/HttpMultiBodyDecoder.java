@@ -198,8 +198,8 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.exception.LengthOverflowException;
 import org.tio.core.exception.TioDecodeException;
-import org.tio.core.utils.ByteBufferUtils;
 import org.tio.http.common.utils.HttpParseUtils;
+import org.tio.utils.buffer.ByteBufferUtil;
 import org.tio.utils.hutool.StrUtil;
 
 import java.nio.ByteBuffer;
@@ -245,7 +245,7 @@ public class HttpMultiBodyDecoder {
 			label1:
 			while (true) {
 				if (step == Step.BOUNDARY) {
-					String line = ByteBufferUtils.readLine(buffer, request.getCharset(), HttpConfig.MAX_LENGTH_OF_BOUNDARY);
+					String line = ByteBufferUtil.readLine(buffer, request.getCharset(), HttpConfig.MAX_LENGTH_OF_BOUNDARY);
 					if (boundary.equals(line)) {
 						step = Step.HEADER;
 					} else if (endBoundary.equals(line)) // 结束了
@@ -261,7 +261,7 @@ public class HttpMultiBodyDecoder {
 					List<String> lines = new ArrayList<>(2);
 					label2:
 					while (true) {
-						String line = ByteBufferUtils.readLine(buffer, request.getCharset(), HttpConfig.MAX_LENGTH_OF_MULTI_HEADER);
+						String line = ByteBufferUtil.readLine(buffer, request.getCharset(), HttpConfig.MAX_LENGTH_OF_MULTI_HEADER);
 						if ("".equals(line)) {
 							break label2;
 						} else {
@@ -307,7 +307,7 @@ public class HttpMultiBodyDecoder {
 		int initPosition = buffer.position();
 
 		while (buffer.hasRemaining()) {
-			String line = ByteBufferUtils.readLine(buffer, request.getCharset(), httpConfig.getMaxLengthOfMultiBody());
+			String line = ByteBufferUtil.readLine(buffer, request.getCharset(), httpConfig.getMaxLengthOfMultiBody());
 			boolean isEndBoundary = endBoundary.equals(line);
 			boolean isBoundary = boundary.equals(line);
 			if (isBoundary || isEndBoundary) {

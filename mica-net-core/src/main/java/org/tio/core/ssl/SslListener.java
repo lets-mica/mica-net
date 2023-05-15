@@ -201,7 +201,7 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.intf.Packet;
 import org.tio.core.ssl.facade.ISSLListener;
-import org.tio.core.utils.ByteBufferUtils;
+import org.tio.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
 
@@ -268,7 +268,7 @@ public class SslListener implements ISSLListener {
 			//			channelContext.decodeRunnable.setNewByteBuffer(plainBuffer);
 			//			channelContext.decodeRunnable.run();
 			if (channelContext.tioConfig.useQueueDecode) {
-				ByteBuffer copiedByteBuffer = ByteBufferUtils.copy(plainBuffer);
+				ByteBuffer copiedByteBuffer = ByteBufferUtil.copy(plainBuffer);
 				channelContext.decodeRunnable.addMsg(copiedByteBuffer);
 				channelContext.decodeRunnable.execute();
 			} else {

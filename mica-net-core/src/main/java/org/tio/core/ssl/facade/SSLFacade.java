@@ -198,7 +198,7 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.ssl.ClientAuth;
 import org.tio.core.ssl.SslVo;
-import org.tio.core.utils.ByteBufferUtils;
+import org.tio.utils.buffer.ByteBufferUtil;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -263,7 +263,7 @@ public class SSLFacade implements ISSLFacade {
 	public void encrypt(SslVo sslVo) throws SSLException {
 		long seq = sslSeq.incrementAndGet();
 		ByteBuffer src = sslVo.getByteBuffer();
-		ByteBuffer[] byteBuffers = ByteBufferUtils.split(src, 2048);
+		ByteBuffer[] byteBuffers = ByteBufferUtil.split(src, 2048);
 		if (byteBuffers == null) {
 			if (log.isDebugEnabled()) {
 				log.debug("{}, 准备, SSL加密{}, 明文:{}", channelContext, channelContext.getId() + '_' + seq, sslVo);

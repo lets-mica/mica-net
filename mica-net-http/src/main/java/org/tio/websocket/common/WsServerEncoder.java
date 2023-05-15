@@ -193,7 +193,7 @@
 */
 package org.tio.websocket.common;
 
-import org.tio.core.utils.ByteBufferUtils;
+import org.tio.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
 
@@ -232,13 +232,13 @@ public class WsServerEncoder {
 			buf = ByteBuffer.allocate(4 + wsBodyLength);
 			buf.put(header0);
 			buf.put((byte) 126);
-			ByteBufferUtils.writeUB2WithBigEdian(buf, wsBodyLength);
+			ByteBufferUtil.writeUnsignedShortBE(buf, wsBodyLength);
 		} else {
 			buf = ByteBuffer.allocate(10 + wsBodyLength);
 			buf.put(header0);
 			buf.put((byte) 127);
 			buf.position(buf.position() + 4);
-			ByteBufferUtils.writeUB4WithBigEdian(buf, wsBodyLength);
+			ByteBufferUtil.writeUnsignedIntBE(buf, wsBodyLength);
 		}
 
 		if (wsBody != null && wsBody.length > 0) {

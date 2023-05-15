@@ -203,7 +203,7 @@ import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.IgnorePacket;
 import org.tio.core.intf.Packet;
 import org.tio.core.stat.ChannelStat;
-import org.tio.core.utils.ByteBufferUtils;
+import org.tio.utils.buffer.ByteBufferUtil;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.nio.BufferUnderflowException;
@@ -287,7 +287,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	public void decode() {
 		ByteBuffer byteBuffer = newReceivedByteBuffer;
 		if (lastByteBuffer != null) {
-			byteBuffer = ByteBufferUtils.composite(lastByteBuffer, byteBuffer);
+			byteBuffer = ByteBufferUtil.composite(lastByteBuffer, byteBuffer);
 			lastByteBuffer = null;
 		}
 
@@ -318,7 +318,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						byteBuffer.limit(limit);
 						lastByteBuffer = byteBuffer;
 					} else {
-						lastByteBuffer = ByteBufferUtils.copy(byteBuffer, initPosition, limit);
+						lastByteBuffer = ByteBufferUtil.copy(byteBuffer, initPosition, limit);
 					}
 					ChannelStat channelStat = channelContext.stat;
 					channelStat.decodeFailCount++;

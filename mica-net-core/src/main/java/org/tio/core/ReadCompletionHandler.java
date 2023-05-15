@@ -196,8 +196,8 @@ package org.tio.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext.CloseCode;
-import org.tio.core.utils.ByteBufferUtils;
 import org.tio.core.utils.TioUtils;
+import org.tio.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
@@ -211,10 +211,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 	private final ChannelContext channelContext;
 	private ByteBuffer readByteBuffer;
 
-	/**
-	 * @param channelContext
-	 * @author tanyaowu
-	 */
 	public ReadCompletionHandler(ChannelContext channelContext) {
 		this.channelContext = channelContext;
 		this.readByteBuffer = ByteBuffer.allocate(channelContext.getReadBufferSize());
@@ -245,7 +241,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			readByteBuffer.flip();
 			if (channelContext.sslFacadeContext == null) {
 				if (tioConfig.useQueueDecode) {
-					channelContext.decodeRunnable.addMsg(ByteBufferUtils.copy(readByteBuffer));
+					channelContext.decodeRunnable.addMsg(ByteBufferUtil.copy(readByteBuffer));
 					channelContext.decodeRunnable.execute();
 				} else {
 					channelContext.decodeRunnable.setNewReceivedByteBuffer(readByteBuffer);
@@ -254,7 +250,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			} else {
 				ByteBuffer copiedByteBuffer = null;
 				try {
-					copiedByteBuffer = ByteBufferUtils.copy(readByteBuffer);
+					copiedByteBuffer = ByteBufferUtil.copy(readByteBuffer);
 					log.debug("{}, 丢给SslFacade解密:{}", channelContext, copiedByteBuffer);
 					channelContext.sslFacadeContext.getSslFacade().decrypt(copiedByteBuffer);
 				} catch (Exception e) {
@@ -290,9 +286,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 	}
 
 	/**
-	 * @param exc
-	 * @param byteBuffer
-	 * @author tanyaowu
+	 * @param exc        Throwable
+	 * @param byteBuffer ByteBuffer
 	 */
 	@Override
 	public void failed(Throwable exc, ByteBuffer byteBuffer) {
@@ -300,8 +295,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 	}
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * @return ByteBuffer
 	 */
 	public ByteBuffer getReadByteBuffer() {
 		return readByteBuffer;

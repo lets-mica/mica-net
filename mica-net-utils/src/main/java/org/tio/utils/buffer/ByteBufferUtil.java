@@ -30,6 +30,9 @@ import java.util.Arrays;
  */
 public class ByteBufferUtil {
 
+	private ByteBufferUtil() {
+	}
+
 	/**
 	 * 空 byte 数组
 	 */
@@ -56,6 +59,29 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * 读取 byte 数组
+	 *
+	 * @param buffer ByteBuffer
+	 * @param length 长度
+	 * @return byte array
+	 */
+	public static byte[] readBytes(ByteBuffer buffer, int length) {
+		byte[] data = new byte[length];
+		buffer.get(data);
+		return data;
+	}
+
+	/**
+	 * 读取short
+	 *
+	 * @param buffer ByteBuffer
+	 * @return short
+	 */
+	public static short readShort(ByteBuffer buffer) {
+		return buffer.getShort();
+	}
+
+	/**
 	 * read unsigned short，2个字节无符号
 	 *
 	 * @param buffer ByteBuffer
@@ -68,6 +94,18 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * read unsigned short，2个字节无符号，大端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @return int
+	 */
+	public static int readUnsignedShortBE(ByteBuffer buffer) {
+		int ret = (buffer.get() & 0xff) << 8;
+		ret |= buffer.get() & 0xff;
+		return ret;
+	}
+
+	/**
 	 * read unsigned 3个字节无符号
 	 *
 	 * @param buffer ByteBuffer
@@ -77,6 +115,19 @@ public class ByteBufferUtil {
 		int i = buffer.get() & 0xff;
 		i |= (buffer.get() & 0xff) << 8;
 		i |= (buffer.get() & 0xff) << 16;
+		return i;
+	}
+
+	/**
+	 * read unsigned 3个字节无符号，大端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @return int
+	 */
+	public static int readUnsignedMediumBE(ByteBuffer buffer) {
+		int i = (buffer.get() & 0xff) << 16;
+		i |= (buffer.get() & 0xff) << 8;
+		i |= buffer.get() & 0xff;
 		return i;
 	}
 
@@ -95,25 +146,65 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read unsigned byte
+	 * read unsigned int, 4个字节无符号，大端在前
 	 *
 	 * @param buffer ByteBuffer
-	 * @return String
+	 * @return long
 	 */
-	public static String readString(ByteBuffer buffer, int count) {
-		return readString(buffer, count, StandardCharsets.UTF_8);
+	public static long readUnsignedIntBE(ByteBuffer buffer) {
+		long l = (long) (buffer.get() & 0xff) << 24;
+		l |= (buffer.get() & 0xff) << 16;
+		l |= (buffer.get() & 0xff) << 8;
+		l |= buffer.get() & 0xff;
+		return l;
 	}
 
 	/**
-	 * read unsigned byte
+	 * 写出 2 个字节的无符号 short
 	 *
 	 * @param buffer ByteBuffer
-	 * @return String
+	 * @param i      数据
 	 */
-	public static String readString(ByteBuffer buffer, int count, Charset charset) {
-		byte[] bytes = new byte[count];
-		buffer.get(bytes);
-		return new String(bytes, charset);
+	public static void writeUnsignedShort(ByteBuffer buffer, int i) {
+		buffer.put((byte) (i & 0xff));
+		buffer.put((byte) (i >>> 8));
+	}
+
+	/**
+	 * 写出 2 个字节的无符号 short，大端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param i      数据
+	 */
+	public static void writeUnsignedShortBE(ByteBuffer buffer, int i) {
+		buffer.put((byte) (i >>> 8));
+		buffer.put((byte) (i & 0xff));
+	}
+
+	/**
+	 * 写出 4 个字节的无符号 int
+	 *
+	 * @param buffer ByteBuffer
+	 * @param l      数据
+	 */
+	public static void writeUnsignedInt(ByteBuffer buffer, long l) {
+		buffer.put((byte) (l & 0xff));
+		buffer.put((byte) (l >>> 8));
+		buffer.put((byte) (l >>> 16));
+		buffer.put((byte) (l >>> 24));
+	}
+
+	/**
+	 * 写出 4 个字节的无符号 int，大端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param l      数据
+	 */
+	public static void writeUnsignedIntBE(ByteBuffer buffer, long l) {
+		buffer.put((byte) (l >>> 24));
+		buffer.put((byte) (l >>> 16));
+		buffer.put((byte) (l >>> 8));
+		buffer.put((byte) (l & 0xff));
 	}
 
 	/**
@@ -126,6 +217,248 @@ public class ByteBufferUtil {
 	public static ByteBuffer skipBytes(ByteBuffer buffer, int skip) {
 		buffer.position(buffer.position() + skip);
 		return buffer;
+	}
+
+	/**
+	 * 组合两个 bytebuffer，把可读部分的组合成一个新的 bytebuffer
+	 *
+	 * @param byteBuffer1 ByteBuffer
+	 * @param byteBuffer2 ByteBuffer
+	 * @return ByteBuffer
+	 */
+	public static ByteBuffer composite(ByteBuffer byteBuffer1, ByteBuffer byteBuffer2) {
+		int capacity = byteBuffer1.remaining() + byteBuffer2.remaining();
+		ByteBuffer ret = ByteBuffer.allocate(capacity);
+		ret.put(byteBuffer1);
+		ret.put(byteBuffer2);
+		ret.position(0);
+		ret.limit(ret.capacity());
+		return ret;
+	}
+
+	/**
+	 * ByteBuffer clone
+	 *
+	 * @param original ByteBuffer
+	 * @return ByteBuffer
+	 */
+	public static ByteBuffer clone(ByteBuffer original) {
+		ByteBuffer clone = ByteBuffer.allocate(original.capacity());
+		// copy from the beginning
+		original.rewind();
+		clone.put(original);
+		original.rewind();
+		clone.flip();
+		return clone;
+	}
+
+	/**
+	 * @param src            ByteBuffer
+	 * @param srcStartIndex  srcStartIndex
+	 * @param dest           ByteBuffer
+	 * @param destStartIndex destStartIndex
+	 * @param length         length
+	 */
+	public static void copy(ByteBuffer src, int srcStartIndex, ByteBuffer dest, int destStartIndex, int length) {
+		System.arraycopy(src.array(), srcStartIndex, dest.array(), destStartIndex, length);
+	}
+
+	/**
+	 * @param src        本方法不会改变position等指针变量
+	 * @param startIndex 从0开始
+	 * @param endIndex   endIndex
+	 * @return ByteBuffer
+	 */
+	public static ByteBuffer copy(ByteBuffer src, int startIndex, int endIndex) {
+		int size = endIndex - startIndex;
+		int initPosition = src.position();
+		int initLimit = src.limit();
+
+		src.position(startIndex);
+		src.limit(endIndex);
+		ByteBuffer ret = ByteBuffer.allocate(size);
+		ret.put(src);
+		ret.flip();
+
+		src.position(initPosition);
+		src.limit(initLimit);
+		return ret;
+	}
+
+	/**
+	 * @param src 本方法不会改变position等指针变量
+	 * @return ByteBuffer
+	 */
+	public static ByteBuffer copy(ByteBuffer src) {
+		int startIndex = src.position();
+		int endIndex = src.limit();
+		return copy(src, startIndex, endIndex);
+	}
+
+	/**
+	 * @param src      ByteBuffer
+	 * @param unitSize 每个单元的大小
+	 * @return 如果不需要拆分，则返回null
+	 */
+	public static ByteBuffer[] split(ByteBuffer src, int unitSize) {
+		int limit = src.limit();
+		if (unitSize >= limit) {
+			return null;
+		}
+		int size = (int) (Math.ceil((double) src.limit() / (double) unitSize));
+		ByteBuffer[] ret = new ByteBuffer[size];
+		int srcIndex = 0;
+		for (int i = 0; i < size; i++) {
+			int bufferSize = unitSize;
+			if (i == size - 1) {
+				bufferSize = src.limit() % unitSize;
+			}
+			byte[] dest = new byte[bufferSize];
+			System.arraycopy(src.array(), srcIndex, dest, 0, dest.length);
+			srcIndex = srcIndex + bufferSize;
+
+			ret[i] = ByteBuffer.wrap(dest);
+			ret[i].position(0);
+			ret[i].limit(ret[i].capacity());
+		}
+		return ret;
+	}
+
+	/**
+	 * @param buffer ByteBuffer
+	 * @return index
+	 */
+	public static int lineEnd(ByteBuffer buffer) {
+		return lineEnd(buffer, Integer.MAX_VALUE);
+	}
+
+	/**
+	 * @param buffer    ByteBuffer
+	 * @param maxLength maxLength
+	 * @return index
+	 */
+	public static int lineEnd(ByteBuffer buffer, int maxLength) {
+		int initPosition = buffer.position();
+		int endPosition = indexOf(buffer, '\n', maxLength);
+		if ((endPosition - initPosition > 0) && (buffer.get(endPosition - 1) == '\r')) {
+			return endPosition - 1;
+		}
+		return endPosition;
+	}
+
+	/**
+	 * @param buffer    position会被移动
+	 * @param theChar   结束
+	 * @param maxLength maxLength
+	 * @return index
+	 */
+	public static int indexOf(ByteBuffer buffer, char theChar, int maxLength) {
+		int count = 0;
+		boolean needJudgeLengthOverflow = buffer.remaining() > maxLength;
+		while (buffer.hasRemaining()) {
+			if (buffer.get() == theChar) {
+				return buffer.position() - 1;
+			}
+			if (needJudgeLengthOverflow) {
+				count++;
+				if (count > maxLength) {
+					throw new IndexOutOfBoundsException("maxlength is " + maxLength);
+				}
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * 读取一行
+	 *
+	 * @param buffer  ByteBuffer
+	 * @param charset Charset
+	 * @return String
+	 */
+	public static String readLine(ByteBuffer buffer, Charset charset) {
+		return readLine(buffer, charset, Integer.MAX_VALUE);
+	}
+
+	/**
+	 * @param buffer    ByteBuffer
+	 * @param charset   Charset
+	 * @param maxLength maxLength
+	 * @return String
+	 */
+	public static String readLine(ByteBuffer buffer, Charset charset, int maxLength) {
+		int startPosition = buffer.position();
+		int endPosition = lineEnd(buffer, maxLength);
+		if (endPosition == -1) {
+			return null;
+		}
+		int nowPosition = buffer.position();
+		if (endPosition > startPosition) {
+			byte[] bs = new byte[endPosition - startPosition];
+			buffer.position(startPosition);
+			buffer.get(bs);
+			buffer.position(nowPosition);
+			if (charset == null) {
+				return new String(bs);
+			} else {
+				return new String(bs, charset);
+			}
+		} else if (endPosition == startPosition) {
+			return "";
+		}
+		return null;
+	}
+
+	/**
+	 * 读取字符串
+	 *
+	 * @param buffer ByteBuffer
+	 * @return String
+	 */
+	public static String readString(ByteBuffer buffer, int count) {
+		return readString(buffer, count, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * 读取字符串
+	 *
+	 * @param buffer ByteBuffer
+	 * @return String
+	 */
+	public static String readString(ByteBuffer buffer, int count, Charset charset) {
+		byte[] bytes = new byte[count];
+		buffer.get(bytes);
+		return new String(bytes, charset);
+	}
+
+	/**
+	 * @param buffer    ByteBuffer
+	 * @param charset   Charset
+	 * @param endChar   endChar
+	 * @param maxLength maxLength
+	 * @return String
+	 */
+	public static String readString(ByteBuffer buffer, Charset charset, char endChar, int maxLength) {
+		int startPosition = buffer.position();
+		int endPosition = indexOf(buffer, endChar, maxLength);
+		if (endPosition == -1) {
+			return null;
+		}
+		int nowPosition = buffer.position();
+		if (endPosition > startPosition) {
+			byte[] bs = new byte[endPosition - startPosition];
+			buffer.position(startPosition);
+			buffer.get(bs);
+			buffer.position(nowPosition);
+			if (charset == null) {
+				return new String(bs);
+			} else {
+				return new String(bs, charset);
+			}
+		} else if (endPosition == startPosition) {
+			return "";
+		}
+		return null;
 	}
 
 	/**
@@ -168,22 +501,6 @@ public class ByteBufferUtil {
 	 */
 	public static String toString(byte[] buffer, Charset charset) {
 		return new String(buffer, charset);
-	}
-
-	/**
-	 * ByteBuffer clone
-	 *
-	 * @param original ByteBuffer
-	 * @return ByteBuffer
-	 */
-	public static ByteBuffer clone(ByteBuffer original) {
-		ByteBuffer clone = ByteBuffer.allocate(original.capacity());
-		// copy from the beginning
-		original.rewind();
-		clone.put(original);
-		original.rewind();
-		clone.flip();
-		return clone;
 	}
 
 	/**
