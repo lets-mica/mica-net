@@ -88,8 +88,10 @@ public class ByteBufferUtil {
 	 * @return int
 	 */
 	public static int readUnsignedShort(ByteBuffer buffer) {
-		int i = buffer.get() & 0xff;
-		i |= (buffer.get() & 0xff) << 8;
+		byte[] value = new byte[2];
+		buffer.get(value, 0, 2);
+		int i = value[0] & 0xff;
+		i |= (value[1] & 0xff) << 8;
 		return i;
 	}
 
@@ -100,8 +102,10 @@ public class ByteBufferUtil {
 	 * @return int
 	 */
 	public static int readUnsignedShortBE(ByteBuffer buffer) {
-		int ret = (buffer.get() & 0xff) << 8;
-		ret |= buffer.get() & 0xff;
+		byte[] value = new byte[2];
+		buffer.get(value, 0, 2);
+		int ret = (value[0] & 0xff) << 8;
+		ret |= value[1] & 0xff;
 		return ret;
 	}
 
@@ -112,9 +116,11 @@ public class ByteBufferUtil {
 	 * @return int
 	 */
 	public static int readUnsignedMedium(ByteBuffer buffer) {
-		int i = buffer.get() & 0xff;
-		i |= (buffer.get() & 0xff) << 8;
-		i |= (buffer.get() & 0xff) << 16;
+		byte[] value = new byte[3];
+		buffer.get(value, 0, 3);
+		int i = value[0] & 0xff;
+		i |= (value[1] & 0xff) << 8;
+		i |= (value[2] & 0xff) << 16;
 		return i;
 	}
 
@@ -125,9 +131,11 @@ public class ByteBufferUtil {
 	 * @return int
 	 */
 	public static int readUnsignedMediumBE(ByteBuffer buffer) {
-		int i = (buffer.get() & 0xff) << 16;
-		i |= (buffer.get() & 0xff) << 8;
-		i |= buffer.get() & 0xff;
+		byte[] value = new byte[3];
+		buffer.get(value, 0, 3);
+		int i = (value[0] & 0xff) << 16;
+		i |= (value[1] & 0xff) << 8;
+		i |= value[2] & 0xff;
 		return i;
 	}
 
@@ -138,10 +146,12 @@ public class ByteBufferUtil {
 	 * @return long
 	 */
 	public static long readUnsignedInt(ByteBuffer buffer) {
-		long l = buffer.get() & 0xff;
-		l |= (buffer.get() & 0xff) << 8;
-		l |= (buffer.get() & 0xff) << 16;
-		l |= (long) (buffer.get() & 0xff) << 24;
+		byte[] value = new byte[4];
+		buffer.get(value, 0, 4);
+		long l = value[0] & 0xff;
+		l |= (value[1] & 0xff) << 8;
+		l |= (value[2] & 0xff) << 16;
+		l |= (long) (value[3] & 0xff) << 24;
 		return l;
 	}
 
@@ -152,10 +162,12 @@ public class ByteBufferUtil {
 	 * @return long
 	 */
 	public static long readUnsignedIntBE(ByteBuffer buffer) {
-		long l = (long) (buffer.get() & 0xff) << 24;
-		l |= (buffer.get() & 0xff) << 16;
-		l |= (buffer.get() & 0xff) << 8;
-		l |= buffer.get() & 0xff;
+		byte[] value = new byte[4];
+		buffer.get(value, 0, 4);
+		long l = (long) (value[0] & 0xff) << 24;
+		l |= (value[1] & 0xff) << 16;
+		l |= (value[2] & 0xff) << 8;
+		l |= value[3] & 0xff;
 		return l;
 	}
 
@@ -166,8 +178,10 @@ public class ByteBufferUtil {
 	 * @param i      数据
 	 */
 	public static void writeUnsignedShort(ByteBuffer buffer, int i) {
-		buffer.put((byte) (i & 0xff));
-		buffer.put((byte) (i >>> 8));
+		byte[] value = new byte[2];
+		value[0] = (byte) (i & 0xff);
+		value[1] = (byte) (i >>> 8);
+		buffer.put(value, 0, 2);
 	}
 
 	/**
@@ -177,8 +191,10 @@ public class ByteBufferUtil {
 	 * @param i      数据
 	 */
 	public static void writeUnsignedShortBE(ByteBuffer buffer, int i) {
-		buffer.put((byte) (i >>> 8));
-		buffer.put((byte) (i & 0xff));
+		byte[] value = new byte[2];
+		value[0] = (byte) (i >>> 8);
+		value[1] = (byte) (i & 0xff);
+		buffer.put(value, 0, 2);
 	}
 
 	/**
@@ -188,10 +204,12 @@ public class ByteBufferUtil {
 	 * @param l      数据
 	 */
 	public static void writeUnsignedInt(ByteBuffer buffer, long l) {
-		buffer.put((byte) (l & 0xff));
-		buffer.put((byte) (l >>> 8));
-		buffer.put((byte) (l >>> 16));
-		buffer.put((byte) (l >>> 24));
+		byte[] value = new byte[4];
+		value[0] = (byte) (l & 0xff);
+		value[1] = (byte) (l >>> 8);
+		value[2] = (byte) (l >>> 16);
+		value[3] = (byte) (l >>> 24);
+		buffer.put(value, 0, 4);
 	}
 
 	/**
@@ -201,10 +219,12 @@ public class ByteBufferUtil {
 	 * @param l      数据
 	 */
 	public static void writeUnsignedIntBE(ByteBuffer buffer, long l) {
-		buffer.put((byte) (l >>> 24));
-		buffer.put((byte) (l >>> 16));
-		buffer.put((byte) (l >>> 8));
-		buffer.put((byte) (l & 0xff));
+		byte[] value = new byte[4];
+		value[0] = (byte) (l >>> 24);
+		value[1] = (byte) (l >>> 16);
+		value[2] = (byte) (l >>> 8);
+		value[3] = (byte) (l & 0xff);
+		buffer.put(value, 0, 4);
 	}
 
 	/**
@@ -214,14 +234,16 @@ public class ByteBufferUtil {
 	 * @param l      数据
 	 */
 	public static void writeUnsignedLong(ByteBuffer buffer, long l) {
-		buffer.put((byte) (l & 0xff));
-		buffer.put((byte) (l >>> 8));
-		buffer.put((byte) (l >>> 16));
-		buffer.put((byte) (l >>> 24));
-		buffer.put((byte) (l >>> 32));
-		buffer.put((byte) (l >>> 40));
-		buffer.put((byte) (l >>> 48));
-		buffer.put((byte) (l >>> 56));
+		byte[] value = new byte[8];
+		value[0] = (byte) (l & 0xff);
+		value[1] = (byte) (l >>> 8);
+		value[2] = (byte) (l >>> 16);
+		value[3] = (byte) (l >>> 24);
+		value[4] = (byte) (l >>> 32);
+		value[5] = (byte) (l >>> 40);
+		value[6] = (byte) (l >>> 48);
+		value[7] = (byte) (l >>> 56);
+		buffer.put(value, 0, 8);
 	}
 
 	/**
@@ -231,14 +253,16 @@ public class ByteBufferUtil {
 	 * @param l      数据
 	 */
 	public static void writeUnsignedLongBE(ByteBuffer buffer, long l) {
-		buffer.put((byte) (l >>> 56));
-		buffer.put((byte) (l >>> 48));
-		buffer.put((byte) (l >>> 40));
-		buffer.put((byte) (l >>> 32));
-		buffer.put((byte) (l >>> 24));
-		buffer.put((byte) (l >>> 16));
-		buffer.put((byte) (l >>> 8));
-		buffer.put((byte) (l & 0xff));
+		byte[] value = new byte[8];
+		value[0] = (byte) (l >>> 56);
+		value[1] = (byte) (l >>> 48);
+		value[2] = (byte) (l >>> 40);
+		value[3] = (byte) (l >>> 32);
+		value[4] = (byte) (l >>> 24);
+		value[5] = (byte) (l >>> 16);
+		value[6] = (byte) (l >>> 8);
+		value[7] = (byte) (l & 0xff);
+		buffer.put(value, 0, 8);
 	}
 
 	/**
