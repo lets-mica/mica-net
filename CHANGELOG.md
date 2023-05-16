@@ -4,6 +4,7 @@
 
 ### v0.1.2 - 2023-05-27
 - :sparkles: 优化 `EncodedPacket`，不再需要手动 `encode` 转换。
+- :sparkles: `TioServerListener#onHeartbeatTimeout` 方法参数 `interval` 类型由 `Long` 改为 `long`。
 - :sparkles: 添加 `FIFOCache`、`LFUCache`、`LRUCache`。
 - :sparkles: 合并工具类 `ByteBufferUtils` 方法到 `ByteBufferUtil` 并完善 `ByteBufferUtil`。
 - :sparkles: Node 删除没用用到的 `ssl` 属性。
