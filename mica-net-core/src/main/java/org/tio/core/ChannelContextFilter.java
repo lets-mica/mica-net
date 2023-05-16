@@ -202,10 +202,8 @@ public interface ChannelContextFilter {
 	/**
 	 * 过滤ChannelContext
 	 *
-	 * @param channelContext
+	 * @param channelContext ChannelContext
 	 * @return false: 排除此channelContext, true: 不排除
-	 * @author tanyaowu
-	 * 2017年1月13日 下午3:28:54
 	 */
 	boolean filter(ChannelContext channelContext);
 

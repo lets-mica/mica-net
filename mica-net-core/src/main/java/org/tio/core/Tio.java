@@ -1299,7 +1299,7 @@ public class Tio {
 	 */
 	private static boolean sendToSet(TioConfig tioConfig, Set<ChannelContext> set, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
 		if (set == null || set.isEmpty()) {
-			log.debug("{}, 集合为空", tioConfig.getName());
+			log.debug("{}, ChannelContext 集合为空", tioConfig.getName());
 			return false;
 		}
 		try {
