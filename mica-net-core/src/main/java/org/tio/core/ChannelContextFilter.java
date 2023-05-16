@@ -197,6 +197,7 @@ package org.tio.core;
  * @author tanyaowu
  * 2017年10月19日 上午9:39:36
  */
+@FunctionalInterface
 public interface ChannelContextFilter {
 
 	/**
