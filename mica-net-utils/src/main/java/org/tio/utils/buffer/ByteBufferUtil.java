@@ -208,6 +208,40 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * 写出 8 个字节的无符号 long
+	 *
+	 * @param buffer ByteBuffer
+	 * @param l      数据
+	 */
+	public static void writeUnsignedLong(ByteBuffer buffer, long l) {
+		buffer.put((byte) (l & 0xff));
+		buffer.put((byte) (l >>> 8));
+		buffer.put((byte) (l >>> 16));
+		buffer.put((byte) (l >>> 24));
+		buffer.put((byte) (l >>> 32));
+		buffer.put((byte) (l >>> 40));
+		buffer.put((byte) (l >>> 48));
+		buffer.put((byte) (l >>> 56));
+	}
+
+	/**
+	 * 写出 8 个字节的无符号 long，大端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param l      数据
+	 */
+	public static void writeUnsignedLongBE(ByteBuffer buffer, long l) {
+		buffer.put((byte) (l >>> 56));
+		buffer.put((byte) (l >>> 48));
+		buffer.put((byte) (l >>> 40));
+		buffer.put((byte) (l >>> 32));
+		buffer.put((byte) (l >>> 24));
+		buffer.put((byte) (l >>> 16));
+		buffer.put((byte) (l >>> 8));
+		buffer.put((byte) (l & 0xff));
+	}
+
+	/**
 	 * skip bytes
 	 *
 	 * @param buffer ByteBuffer
