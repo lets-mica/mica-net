@@ -205,12 +205,6 @@ public class EncodedPacket extends Packet {
 
 	public EncodedPacket(byte[] bytes) {
 		this.bytes = bytes;
-		super.setPreEncodedByteBuffer(ByteBuffer.wrap(bytes));
-	}
-
-	public EncodedPacket(ByteBuffer buffer) {
-		this.bytes = buffer.array();
-		super.setPreEncodedByteBuffer(buffer);
 	}
 
 	/**
@@ -218,6 +212,11 @@ public class EncodedPacket extends Packet {
 	 */
 	public byte[] getBytes() {
 		return bytes;
+	}
+
+	@Override
+	public ByteBuffer getPreEncodedByteBuffer() {
+		return ByteBuffer.wrap(bytes);
 	}
 
 }
