@@ -67,7 +67,7 @@ public class ByteBufferUtil {
 	 */
 	public static byte[] readBytes(ByteBuffer buffer, int length) {
 		byte[] data = new byte[length];
-		buffer.get(data);
+		buffer.get(data, 0, length);
 		return data;
 	}
 
@@ -195,6 +195,34 @@ public class ByteBufferUtil {
 		value[0] = (byte) (i >>> 8);
 		value[1] = (byte) (i & 0xff);
 		buffer.put(value, 0, 2);
+	}
+
+	/**
+	 * 写出 3 个字节的无符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @param i      数据
+	 */
+	public static void writeUnsignedMedium(ByteBuffer buffer, int i) {
+		byte[] value = new byte[3];
+		value[0] = (byte) (i & 0xff);
+		value[1] = (byte) (i >>> 8);
+		value[2] = (byte) (i >>> 16);
+		buffer.put(value, 0, 3);
+	}
+
+	/**
+	 * 写出 3 个字节的无符号，大端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param i      数据
+	 */
+	public static void writeUnsignedMediumBE(ByteBuffer buffer, int i) {
+		byte[] value = new byte[3];
+		value[0] = (byte) (i >>> 16);
+		value[1] = (byte) (i >>> 8);
+		value[2] = (byte) (i & 0xff);
+		buffer.put(value, 0, 3);
 	}
 
 	/**

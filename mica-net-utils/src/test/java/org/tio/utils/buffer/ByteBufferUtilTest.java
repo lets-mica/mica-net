@@ -31,6 +31,26 @@ class ByteBufferUtilTest {
 	}
 
 	@Test
+	void testMedium() {
+		int value = 16777215;
+		ByteBuffer buffer = ByteBuffer.allocate(3);
+		ByteBufferUtil.writeUnsignedMedium(buffer, value);
+		buffer.flip();
+		int unsignedShort = ByteBufferUtil.readUnsignedMedium(buffer);
+		Assertions.assertEquals(value, unsignedShort);
+	}
+
+	@Test
+	void testMediumBE() {
+		int value = 16777215;
+		ByteBuffer buffer = ByteBuffer.allocate(3);
+		ByteBufferUtil.writeUnsignedMediumBE(buffer, value);
+		buffer.flip();
+		int unsignedShort = ByteBufferUtil.readUnsignedMediumBE(buffer);
+		Assertions.assertEquals(value, unsignedShort);
+	}
+
+	@Test
 	void testInt() {
 		long value = 4294967295L;
 		ByteBuffer buffer = ByteBuffer.allocate(4);
