@@ -216,6 +216,7 @@ public class EncodedPacket extends Packet {
 
 	@Override
 	public ByteBuffer getPreEncodedByteBuffer() {
+		// 每次重新构造 ByteBuffer，考虑 EncodedPacket 为单例的情况。
 		return ByteBuffer.wrap(bytes);
 	}
 
