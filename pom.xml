@@ -15,14 +15,14 @@
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
-            <url>https://gitee.com/596392912/mica-mqtt/blob/master/LICENSE</url>
+            <url>https://github.com/lets-mica/mica-net/blob/master/LICENSE</url>
         </license>
     </licenses>
 
     <scm>
-        <connection>scm:git:git@gitee.com/596392912/mica-mqtt</connection>
-        <developerConnection>scm:git:git@gitee.com/596392912/mica-mqtt.git</developerConnection>
-        <url>git@gitee.com/596392912/mica-mqtt.git</url>
+        <connection>scm:git:git@github.com/lets-mica/mica-net</connection>
+        <developerConnection>scm:git:git@github.com/lets-mica/mica-net.git</developerConnection>
+        <url>git@github.com/lets-mica/mica-net.git</url>
     </scm>
 
     <modules>
