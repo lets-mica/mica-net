@@ -67,9 +67,20 @@ public class ClusterImpl implements ClusterApi {
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;
 		this.localMember = new Node(config.getHost(), config.getPort());
-		this.seedMembers = Collections.unmodifiableList(config.getSeedMembers());
+		this.seedMembers = filterSeedMembers(config, this.localMember);
 		this.messageDecoder = new ClusterMessageDecoder();
 		this.syncMessageMap = new ConcurrentHashMap<>();
+	}
+
+	/**
+	 * 过滤种子成员，去掉自己
+	 *
+	 * @return members
+	 */
+	private static List<Node> filterSeedMembers(ClusterConfig config, Node localMember) {
+		List<Node> seedMembers = config.getSeedMembers();
+		seedMembers.remove(localMember);
+		return Collections.unmodifiableList(seedMembers);
 	}
 
 	@Override
