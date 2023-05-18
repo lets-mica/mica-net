@@ -7,7 +7,6 @@ import org.tio.core.cluster.codec.ClusterMessageDecoder;
 import org.tio.core.cluster.codec.ClusterMessageEncoder;
 import org.tio.core.cluster.message.AbsClusterMessage;
 import org.tio.core.cluster.message.ClusterPingMessage;
-import org.tio.core.cluster.message.ClusterPongMessage;
 import org.tio.core.cluster.message.ClusterSyncAckMessage;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
@@ -53,10 +52,7 @@ public class ClusterTcpClientHandler implements TioClientHandler {
 
 	@Override
 	public void handler(Packet packet, ChannelContext context) throws Exception {
-		// 1. 心跳 pong
-		if (packet instanceof ClusterPongMessage) {
-			return;
-		} else if (packet instanceof ClusterSyncAckMessage) {
+		if (packet instanceof ClusterSyncAckMessage) {
 			ClusterSyncAckMessage message = (ClusterSyncAckMessage) packet;
 			String messageId = message.getMessageId();
 			CompletableFuture<ClusterSyncAckMessage> future = syncMessageMap.get(messageId);

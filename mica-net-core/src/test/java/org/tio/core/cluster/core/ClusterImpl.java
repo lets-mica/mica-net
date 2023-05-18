@@ -15,7 +15,7 @@ import org.tio.core.cluster.message.ClusterSyncMessage;
 import org.tio.core.cluster.transport.ClusterTcpClientHandler;
 import org.tio.core.cluster.transport.ClusterTcpClientListener;
 import org.tio.core.cluster.transport.ClusterTcpServerHandler;
-import org.tio.server.DefaultTioServerListener;
+import org.tio.core.cluster.transport.ClusterTcpServerListener;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 
@@ -34,6 +34,9 @@ import java.util.concurrent.ConcurrentMap;
  * @author L.cm
  */
 public class ClusterImpl implements ClusterApi {
+	/**
+	 * 集群配置
+	 */
 	private final ClusterConfig config;
 	/**
 	 * 本地成员
@@ -78,8 +81,10 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	private void startClusterTcpService() throws IOException {
+		ClusterMessageListener messageListener = this.config.getMessageListener();
+		ClusterTcpServerHandler serverHandler = new ClusterTcpServerHandler(messageDecoder, messageListener);
 		// 配置
-		TioServerConfig serverConfig = new TioServerConfig(new ClusterTcpServerHandler(messageDecoder), new DefaultTioServerListener());
+		TioServerConfig serverConfig = new TioServerConfig(serverHandler, new ClusterTcpServerListener());
 		serverConfig.setName("TCP-cluster-server");
 		// 高位在前
 		serverConfig.setReadBufferSize(1024 * 8);
@@ -118,7 +123,10 @@ public class ClusterImpl implements ClusterApi {
 	@Override
 	public ClusterSyncAckMessage sendSync(Node address, ClusterSyncMessage message) {
 		String messageId = message.getMessageId();
-		return null;
+		CompletableFuture<ClusterSyncAckMessage> future = new CompletableFuture<>();
+		syncMessageMap.put(messageId, future);
+		// 等待回调
+		return future.join();
 	}
 
 	@Override
@@ -126,11 +134,6 @@ public class ClusterImpl implements ClusterApi {
 		TioClientConfig clientConfig = this.tcpClusterClient.getTioClientConfig();
 		Set<ChannelContext> contextSet = Tio.getConnecteds(clientConfig);
 		Tio.sendToSet(clientConfig, contextSet, message, null);
-	}
-
-	@Override
-	public void listen(ClusterMessageListener listener) {
-
 	}
 
 	@Override

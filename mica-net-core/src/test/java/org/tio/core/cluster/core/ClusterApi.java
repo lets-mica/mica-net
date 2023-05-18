@@ -50,11 +50,6 @@ public interface ClusterApi {
 	void broadcast(ClusterDataMessage message);
 
 	/**
-	 * 集群消息监听
-	 */
-	void listen(ClusterMessageListener listener);
-
-	/**
 	 * 获取集群中的成员，不包含当前成员
 	 *
 	 * @return 成员列表，不包含自己

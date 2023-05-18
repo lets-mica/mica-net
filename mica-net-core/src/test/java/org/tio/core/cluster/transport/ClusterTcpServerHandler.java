@@ -5,6 +5,7 @@ import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.cluster.codec.ClusterMessageDecoder;
 import org.tio.core.cluster.codec.ClusterMessageEncoder;
+import org.tio.core.cluster.core.ClusterMessageListener;
 import org.tio.core.cluster.message.*;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
@@ -20,10 +21,16 @@ import java.nio.ByteBuffer;
 public class ClusterTcpServerHandler implements TioServerHandler {
 	private final ClusterMessageEncoder messageEncoder;
 	private final ClusterMessageDecoder messageDecoder;
+	/**
+	 * 消息监听器
+	 */
+	private final ClusterMessageListener messageListener;
 
-	public ClusterTcpServerHandler(ClusterMessageDecoder messageDecoder) {
+	public ClusterTcpServerHandler(ClusterMessageDecoder messageDecoder,
+								   ClusterMessageListener messageListener) {
 		this.messageEncoder = ClusterMessageEncoder.INSTANCE;
 		this.messageDecoder = messageDecoder;
+		this.messageListener = messageListener;
 	}
 
 	@Override
@@ -64,7 +71,9 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 	 * @param message ClusterSyncMessage
 	 */
 	private void handlerSyncMessage(ChannelContext context, ClusterSyncMessage message) {
-		System.out.println(message);
+		// 处理消息
+		messageListener.onMessage(message);
+		// 回复 ack
 		Tio.send(context, message.toAckMessage());
 	}
 
@@ -75,7 +84,8 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 	 * @param message ClusterDataMessage
 	 */
 	private void handlerDataMessage(ChannelContext context, ClusterDataMessage message) {
-
+		// 处理消息
+		messageListener.onMessage(message);
 	}
 
 }

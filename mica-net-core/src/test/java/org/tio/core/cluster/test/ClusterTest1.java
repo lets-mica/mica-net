@@ -26,6 +26,10 @@ public class ClusterTest1 {
 		config.addSeedMember(new Node("127.0.0.1", 3002));
 		config.addSeedMember(new Node("127.0.0.1", 3003));
 
+		config.setMessageListener(message -> {
+			System.out.println(new String(message.getPayload()));
+		});
+
 		ClusterApi cluster = new ClusterImpl(config);
 		cluster.start();
 

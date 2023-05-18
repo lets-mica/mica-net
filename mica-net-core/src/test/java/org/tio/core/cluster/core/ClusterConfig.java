@@ -24,6 +24,18 @@ public class ClusterConfig {
 	 * 种子成员
 	 */
 	private final List<Node> seedMembers = new ArrayList<>();
+	/**
+	 * 消息监听器
+	 */
+	private ClusterMessageListener messageListener;
+
+	public ClusterMessageListener getMessageListener() {
+		return messageListener;
+	}
+
+	public void setMessageListener(ClusterMessageListener messageListener) {
+		this.messageListener = messageListener;
+	}
 
 	public String getHost() {
 		return host;
