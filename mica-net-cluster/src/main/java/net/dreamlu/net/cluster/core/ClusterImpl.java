@@ -18,6 +18,7 @@ import org.tio.core.Node;
 import org.tio.core.Tio;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
+import org.tio.utils.timer.TimerTask;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -27,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 
 /**
  * 集群实现
@@ -148,6 +150,26 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
+	public TimerTask schedule(Runnable command, long delay) {
+		return this.tcpClusterClient.schedule(command, delay);
+	}
+
+	@Override
+	public TimerTask schedule(Runnable command, long delay, Executor executor) {
+		return this.tcpClusterClient.schedule(command, delay, executor);
+	}
+
+	@Override
+	public TimerTask scheduleOnce(Runnable command, long delay) {
+		return this.tcpClusterClient.scheduleOnce(command, delay);
+	}
+
+	@Override
+	public TimerTask scheduleOnce(Runnable command, long delay, Executor executor) {
+		return this.tcpClusterClient.scheduleOnce(command, delay, executor);
+	}
+
+	@Override
 	public Collection<Node> getRemoteMembers() {
 		return Collections.emptyList();
 	}
@@ -156,4 +178,5 @@ public class ClusterImpl implements ClusterApi {
 	public Node getLocalMember() {
 		return this.localMember;
 	}
+
 }

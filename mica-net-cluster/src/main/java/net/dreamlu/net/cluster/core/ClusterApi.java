@@ -4,8 +4,10 @@ import net.dreamlu.net.cluster.message.ClusterDataMessage;
 import net.dreamlu.net.cluster.message.ClusterSyncAckMessage;
 import net.dreamlu.net.cluster.message.ClusterSyncMessage;
 import org.tio.core.Node;
+import org.tio.utils.timer.TimerTask;
 
 import java.util.Collection;
+import java.util.concurrent.Executor;
 
 /**
  * 集群接口
@@ -48,6 +50,44 @@ public interface ClusterApi {
 	 * @param message 集群消息
 	 */
 	void broadcast(ClusterDataMessage message);
+
+	/**
+	 * 添加定时任务，注意：如果抛出异常，会终止后续任务，请自行处理异常
+	 *
+	 * @param command runnable
+	 * @param delay   delay
+	 * @return TimerTask
+	 */
+	TimerTask schedule(Runnable command, long delay);
+
+	/**
+	 * 添加定时任务，注意：如果抛出异常，会终止后续任务，请自行处理异常
+	 *
+	 * @param command  runnable
+	 * @param delay    delay
+	 * @param executor 用于自定义线程池，处理耗时业务
+	 * @return TimerTask
+	 */
+	TimerTask schedule(Runnable command, long delay, Executor executor);
+
+	/**
+	 * 添加定时任务
+	 *
+	 * @param command runnable
+	 * @param delay   delay
+	 * @return TimerTask
+	 */
+	TimerTask scheduleOnce(Runnable command, long delay);
+
+	/**
+	 * 添加定时任务
+	 *
+	 * @param command  runnable
+	 * @param delay    delay
+	 * @param executor 用于自定义线程池，处理耗时业务
+	 * @return TimerTask
+	 */
+	TimerTask scheduleOnce(Runnable command, long delay, Executor executor);
 
 	/**
 	 * 获取集群中的成员，不包含当前成员

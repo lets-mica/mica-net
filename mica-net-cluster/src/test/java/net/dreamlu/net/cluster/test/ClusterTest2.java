@@ -1,14 +1,12 @@
 package net.dreamlu.net.cluster.test;
 
+import net.dreamlu.net.cluster.core.ClusterApi;
+import net.dreamlu.net.cluster.core.ClusterConfig;
 import net.dreamlu.net.cluster.core.ClusterImpl;
 import net.dreamlu.net.cluster.message.ClusterDataMessage;
 import org.tio.core.Node;
-import net.dreamlu.net.cluster.core.ClusterApi;
-import net.dreamlu.net.cluster.core.ClusterConfig;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * 集群开发测试
@@ -33,14 +31,10 @@ public class ClusterTest2 {
 		ClusterApi cluster = new ClusterImpl(config);
 		cluster.start();
 
-		Timer timer = new Timer();
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				String message = "hello mica form cluster:" + cluster.getLocalMember();
-				cluster.broadcast(new ClusterDataMessage(message.getBytes(StandardCharsets.UTF_8)));
-			}
-		}, 3000, 3000);
+		cluster.schedule(() -> {
+			String message = "hello mica form cluster:" + cluster.getLocalMember();
+			cluster.broadcast(new ClusterDataMessage(message.getBytes(StandardCharsets.UTF_8)));
+		}, 3000);
 	}
 
 }
