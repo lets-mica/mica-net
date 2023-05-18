@@ -61,7 +61,7 @@ public class ClusterImpl implements ClusterApi {
 
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;
-		this.localMember = null;
+		this.localMember = new Node(config.getHost(), config.getPort());
 		this.messageDecoder = new ClusterMessageDecoder();
 	}
 
