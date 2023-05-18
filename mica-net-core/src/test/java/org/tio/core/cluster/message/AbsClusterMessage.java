@@ -16,4 +16,8 @@ public abstract class AbsClusterMessage extends Packet {
 	 */
 	public abstract ClusterMessageType getMessageType();
 
+	@Override
+	public String toString() {
+		return getMessageType().name();
+	}
 }

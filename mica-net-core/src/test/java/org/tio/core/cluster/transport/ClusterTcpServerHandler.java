@@ -64,6 +64,7 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 	 * @param message ClusterSyncMessage
 	 */
 	private void handlerSyncMessage(ChannelContext context, ClusterSyncMessage message) {
+		System.out.println(message);
 		Tio.send(context, message.toAckMessage());
 	}
 
