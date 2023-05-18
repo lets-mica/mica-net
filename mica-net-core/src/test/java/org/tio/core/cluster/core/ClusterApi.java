@@ -17,7 +17,7 @@ public interface ClusterApi {
 	/**
 	 * 启动
 	 */
-	void start();
+	void start() throws Exception;
 
 	/**
 	 * 停止
@@ -31,7 +31,7 @@ public interface ClusterApi {
 	 * @param message 集群消息
 	 * @return 消息id.
 	 */
-	String send(Node member, ClusterDataMessage message);
+	boolean send(Node member, ClusterDataMessage message);
 
 	/**
 	 * 同步发送消息
@@ -46,9 +46,8 @@ public interface ClusterApi {
 	 * 在集群中广播消息
 	 *
 	 * @param message 集群消息
-	 * @return 消息id.
 	 */
-	String broadcast(ClusterDataMessage message);
+	void broadcast(ClusterDataMessage message);
 
 	/**
 	 * 集群消息监听

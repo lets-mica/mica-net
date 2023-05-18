@@ -758,6 +758,17 @@ public class Tio {
 	 * 根据clientip和clientport获取ChannelContext
 	 *
 	 * @param tioConfig  TioConfig
+	 * @param node   Node
+	 * @return ChannelContext
+	 */
+	public static ChannelContext getByClientNode(TioConfig tioConfig, Node node) {
+		return tioConfig.clientNodes.find(node);
+	}
+
+	/**
+	 * 根据clientip和clientport获取ChannelContext
+	 *
+	 * @param tioConfig  TioConfig
 	 * @param clientIp   clientIp
 	 * @param clientPort clientPort
 	 * @return ChannelContext
