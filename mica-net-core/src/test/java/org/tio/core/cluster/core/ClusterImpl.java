@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -41,15 +42,11 @@ public class ClusterImpl implements ClusterApi {
 	/**
 	 * 种子成员
 	 */
-	private List<Node> seedMembers;
+	private final List<Node> seedMembers;
 	/**
 	 * 后加入的成员
 	 */
-	private List<Node> lateAddMembers;
-	/**
-	 * 远程的客户端结合，用于发送消息
-	 */
-	private ConcurrentMap<Node, TioClientConfig> remoteClientConfigs = new ConcurrentHashMap<>();
+	private List<Node> lateJoinMembers;
 	/**
 	 * tcp 集群服务
 	 */
@@ -59,12 +56,17 @@ public class ClusterImpl implements ClusterApi {
 	 */
 	private TioClient tcpClusterClient;
 	private final ClusterMessageDecoder messageDecoder;
+	/**
+	 * 同步消息处理，key：messageId，value：CompletableFuture
+	 */
+	private final ConcurrentMap<String, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap;
 
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;
 		this.localMember = new Node(config.getHost(), config.getPort());
 		this.seedMembers = Collections.unmodifiableList(config.getSeedMembers());
 		this.messageDecoder = new ClusterMessageDecoder();
+		this.syncMessageMap = new ConcurrentHashMap<>();
 	}
 
 	@Override
@@ -87,7 +89,7 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	private void startClusterTcpClient() throws Exception {
-		TioClientHandler tioHandler = new ClusterTcpClientHandler(this.messageDecoder);
+		TioClientHandler tioHandler = new ClusterTcpClientHandler(this.messageDecoder, syncMessageMap);
 		TioClientListener tioListener = new ClusterTcpClientListener();
 		// 配置
 		TioClientConfig clientConfig = new TioClientConfig(tioHandler, tioListener);
@@ -115,6 +117,7 @@ public class ClusterImpl implements ClusterApi {
 
 	@Override
 	public ClusterSyncAckMessage sendSync(Node address, ClusterSyncMessage message) {
+		String messageId = message.getMessageId();
 		return null;
 	}
 
@@ -132,7 +135,7 @@ public class ClusterImpl implements ClusterApi {
 
 	@Override
 	public Collection<Node> getRemoteMembers() {
-		return remoteClientConfigs.keySet();
+		return Collections.emptyList();
 	}
 
 	@Override

@@ -8,10 +8,13 @@ import org.tio.core.cluster.codec.ClusterMessageEncoder;
 import org.tio.core.cluster.message.AbsClusterMessage;
 import org.tio.core.cluster.message.ClusterPingMessage;
 import org.tio.core.cluster.message.ClusterPongMessage;
+import org.tio.core.cluster.message.ClusterSyncAckMessage;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 集群客户端处理器
@@ -21,10 +24,16 @@ import java.nio.ByteBuffer;
 public class ClusterTcpClientHandler implements TioClientHandler {
 	private final ClusterMessageEncoder messageEncoder;
 	private final ClusterMessageDecoder messageDecoder;
+	/**
+	 * 同步消息处理，key：messageId，value：CompletableFuture
+	 */
+	private final ConcurrentMap<String, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap;
 
-	public ClusterTcpClientHandler(ClusterMessageDecoder messageDecoder) {
+	public ClusterTcpClientHandler(ClusterMessageDecoder messageDecoder,
+								   ConcurrentMap<String, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap) {
 		this.messageEncoder = ClusterMessageEncoder.INSTANCE;
 		this.messageDecoder = messageDecoder;
+		this.syncMessageMap = syncMessageMap;
 	}
 
 	@Override
@@ -47,6 +56,13 @@ public class ClusterTcpClientHandler implements TioClientHandler {
 		// 1. 心跳 pong
 		if (packet instanceof ClusterPongMessage) {
 			return;
+		} else if (packet instanceof ClusterSyncAckMessage) {
+			ClusterSyncAckMessage message = (ClusterSyncAckMessage) packet;
+			String messageId = message.getMessageId();
+			CompletableFuture<ClusterSyncAckMessage> future = syncMessageMap.get(messageId);
+			if (future != null) {
+				future.complete(message);
+			}
 		}
 	}
 }
