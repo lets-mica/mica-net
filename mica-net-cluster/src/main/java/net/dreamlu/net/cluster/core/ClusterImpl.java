@@ -21,10 +21,7 @@ import org.tio.server.TioServerConfig;
 import org.tio.utils.timer.TimerTask;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -51,7 +48,7 @@ public class ClusterImpl implements ClusterApi {
 	/**
 	 * 后加入的成员
 	 */
-	private List<Node> lateJoinMembers;
+	private final List<Node> lateJoinMembers;
 	/**
 	 * tcp 集群服务
 	 */
@@ -70,6 +67,7 @@ public class ClusterImpl implements ClusterApi {
 		this.config = config;
 		this.localMember = new Node(config.getHost(), config.getPort());
 		this.seedMembers = filterSeedMembers(config, this.localMember);
+		this.lateJoinMembers = new ArrayList<>();
 		this.messageDecoder = new ClusterMessageDecoder();
 		this.syncMessageMap = new ConcurrentHashMap<>();
 	}
@@ -171,7 +169,10 @@ public class ClusterImpl implements ClusterApi {
 
 	@Override
 	public Collection<Node> getRemoteMembers() {
-		return Collections.emptyList();
+		Set<Node> remoteMembers = new HashSet<>(seedMembers);
+		remoteMembers.addAll(lateJoinMembers);
+		remoteMembers.remove(localMember);
+		return Collections.unmodifiableSet(remoteMembers);
 	}
 
 	@Override
