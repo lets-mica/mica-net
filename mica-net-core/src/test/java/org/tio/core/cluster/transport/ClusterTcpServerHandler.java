@@ -5,9 +5,7 @@ import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.cluster.codec.ClusterMessageDecoder;
 import org.tio.core.cluster.codec.ClusterMessageEncoder;
-import org.tio.core.cluster.message.AbsClusterMessage;
-import org.tio.core.cluster.message.ClusterPingMessage;
-import org.tio.core.cluster.message.ClusterPongMessage;
+import org.tio.core.cluster.message.*;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 import org.tio.server.intf.TioServerHandler;
@@ -42,8 +40,41 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 	public void handler(Packet packet, ChannelContext context) throws Exception {
 		// 心跳 ping 消息
 		if (packet instanceof ClusterPingMessage) {
-			Tio.send(context, ClusterPongMessage.INSTANCE);
-			return;
+			handlerPingMessage(context);
+		} else if (packet instanceof ClusterSyncMessage) {
+			handlerSyncMessage(context, (ClusterSyncMessage) packet);
+		} else if (packet instanceof ClusterDataMessage) {
+			handlerDataMessage(context, (ClusterDataMessage) packet);
 		}
 	}
+
+	/**
+	 * 处理 ping 消息
+	 *
+	 * @param context ChannelContext
+	 */
+	private static void handlerPingMessage(ChannelContext context) {
+		Tio.send(context, ClusterPongMessage.INSTANCE);
+	}
+
+	/**
+	 * 处理同步数据消息
+	 *
+	 * @param context ChannelContext
+	 * @param message ClusterSyncMessage
+	 */
+	private void handlerSyncMessage(ChannelContext context, ClusterSyncMessage message) {
+		Tio.send(context, message.toAckMessage());
+	}
+
+	/**
+	 * 处理数据消息
+	 *
+	 * @param context ChannelContext
+	 * @param message ClusterDataMessage
+	 */
+	private void handlerDataMessage(ChannelContext context, ClusterDataMessage message) {
+
+	}
+
 }

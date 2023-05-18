@@ -5,30 +5,28 @@ package org.tio.core.cluster.message;
  *
  * @author L.cm
  */
-public class ClusterSyncMessage extends AbsClusterMessage {
+public class ClusterSyncMessage extends ClusterDataMessage {
 	/**
 	 * 消息Id
 	 */
 	private final String messageId;
-	/**
-	 * 消息数据
-	 */
-	private byte[] payload;
 
-	public ClusterSyncMessage(String messageId) {
+	public ClusterSyncMessage(String messageId, byte[] payload) {
+		super(payload);
 		this.messageId = messageId;
+	}
+
+	/**
+	 * 转换成 ack 消息
+	 *
+	 * @return ack 消息
+	 */
+	public ClusterSyncAckMessage toAckMessage() {
+		return new ClusterSyncAckMessage(this.messageId);
 	}
 
 	public String getMessageId() {
 		return messageId;
-	}
-
-	public byte[] getPayload() {
-		return payload;
-	}
-
-	public void setPayload(byte[] payload) {
-		this.payload = payload;
 	}
 
 	@Override

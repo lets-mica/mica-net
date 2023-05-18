@@ -10,14 +10,14 @@ public class ClusterDataMessage extends AbsClusterMessage {
 	/**
 	 * 消息数据
 	 */
-	private byte[] payload;
+	private final byte[] payload;
+
+	public ClusterDataMessage(byte[] payload) {
+		this.payload = payload;
+	}
 
 	public byte[] getPayload() {
 		return payload;
-	}
-
-	public void setPayload(byte[] payload) {
-		this.payload = payload;
 	}
 
 	@Override
