@@ -1,22 +1,10 @@
 package org.tio.core.cluster.test;
 
-import org.tio.client.ReconnConf;
-import org.tio.client.TioClient;
-import org.tio.client.TioClientConfig;
-import org.tio.client.intf.TioClientHandler;
-import org.tio.client.intf.TioClientListener;
 import org.tio.core.Node;
-import org.tio.core.cluster.codec.ClusterMessageDecoder;
-import org.tio.core.cluster.transport.ClusterTcpClientHandler;
-import org.tio.core.cluster.transport.ClusterTcpClientListener;
-import org.tio.core.cluster.transport.ClusterTcpServerHandler;
-import org.tio.server.DefaultTioServerListener;
-import org.tio.server.TioServer;
-import org.tio.server.TioServerConfig;
+import org.tio.core.cluster.core.ClusterApi;
+import org.tio.core.cluster.core.ClusterConfig;
+import org.tio.core.cluster.core.ClusterImpl;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,48 +16,18 @@ import java.util.List;
 public class ClusterTest2 {
 
 	public static void main(String[] args) throws Exception {
-		ClusterMessageDecoder messageDecoder = new ClusterMessageDecoder();
-		int port = 3002;
-		TioServer tioServer = getClusterTcpService(port, messageDecoder);
+		ClusterConfig config = new ClusterConfig();
+		config.setHost("127.0.0.1");
+		config.setPort(3002);
+
 		List<Node> seedMembers = new ArrayList<>();
 		seedMembers.add(new Node("127.0.0.1", 3001));
 		seedMembers.add(new Node("127.0.0.1", 3002));
 		seedMembers.add(new Node("127.0.0.1", 3003));
-		TioClientHandler tioHandler = new ClusterTcpClientHandler(messageDecoder);
-		TioClientListener tioListener = new ClusterTcpClientListener();
-		startClusterTcpClient(seedMembers, tioHandler, tioListener);
-	}
+		config.setSeedMembers(seedMembers);
 
-	public static void test1() throws UnknownHostException {
-		InetAddress address1 = InetAddress.getByName("127.0.0.1");
-		InetAddress address2 = InetAddress.getByName("192.168.210.129");
-		boolean siteLocalAddress = address2.isSiteLocalAddress();
-		System.out.println(address2);
+		ClusterApi cluster = new ClusterImpl(config);
+		cluster.start();
 	}
-
-	public static TioServer getClusterTcpService(int port, ClusterMessageDecoder messageDecoder) throws IOException {
-		// 配置
-		TioServerConfig config = new TioServerConfig(new ClusterTcpServerHandler(messageDecoder), new DefaultTioServerListener());
-		config.setName("TCP-cluster-server");
-		// 高位在前
-		config.setReadBufferSize(1024 * 8);
-		// 心跳改为 1 小时
-		TioServer tioServer = new TioServer(config);
-		tioServer.start("0.0.0.0", port);
-		return tioServer;
-	}
-
-	public static void startClusterTcpClient(
-		List<Node> seedMembers, TioClientHandler tioHandler, TioClientListener tioListener
-	) throws Exception {
-		// 配置
-		TioClientConfig config = new TioClientConfig(tioHandler, tioListener);
-		config.setReconnConf(new ReconnConf());
-		TioClient tioClient = new TioClient(config);
-		for (Node seedMember : seedMembers) {
-			tioClient.connect(seedMember);
-		}
-	}
-
 
 }
