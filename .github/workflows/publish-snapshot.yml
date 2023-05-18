@@ -25,7 +25,7 @@ jobs:
             ${{ runner.os }}-maven-
       - name: Publish to the Maven Central Repository
         run: |
-          mvn clean package deploy
+          mvn clean package deploy -pl mica-net-utils,mica-net-core,mica-net-http
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
