@@ -18,14 +18,13 @@ import org.tio.core.Node;
 import org.tio.core.Tio;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
+import org.tio.utils.Threads;
+import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 import org.tio.utils.timer.TimerTask;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executor;
+import java.util.concurrent.*;
 
 /**
  * 集群实现
@@ -95,11 +94,14 @@ public class ClusterImpl implements ClusterApi {
 		ClusterMessageListener messageListener = this.config.getMessageListener();
 		ClusterTcpServerHandler serverHandler = new ClusterTcpServerHandler(messageDecoder, messageListener);
 		// 配置
-		TioServerConfig serverConfig = new TioServerConfig(serverHandler, new ClusterTcpServerListener());
-		serverConfig.setName("TCP-cluster-server");
-		// 高位在前
-		serverConfig.setReadBufferSize(1024 * 8);
-		// 心跳改为 1 小时
+		String name = "TCP-cluster-server";
+		int tioPoolSize = Threads.AVAILABLE_PROCESSORS + 1;
+		// 线程配置
+		SynThreadPoolExecutor tioExecutor = Threads.getTioExecutor(tioPoolSize);
+		ThreadPoolExecutor groupExecutor = Threads.getGroupExecutor(tioPoolSize * 2);
+		TioServerConfig serverConfig = new TioServerConfig(
+			name, serverHandler, new ClusterTcpServerListener(), tioExecutor, groupExecutor
+		);
 		this.tcpClusterServer = new TioServer(serverConfig);
 		this.tcpClusterServer.start("0.0.0.0", config.getPort());
 	}
@@ -109,6 +111,7 @@ public class ClusterImpl implements ClusterApi {
 		TioClientListener tioListener = new ClusterTcpClientListener();
 		// 配置
 		TioClientConfig clientConfig = new TioClientConfig(tioHandler, tioListener);
+		clientConfig.setName("TCP-cluster-client");
 		clientConfig.setReconnConf(new ReconnConf());
 		this.tcpClusterClient = new TioClient(clientConfig);
 		for (Node seedMember : seedMembers) {
