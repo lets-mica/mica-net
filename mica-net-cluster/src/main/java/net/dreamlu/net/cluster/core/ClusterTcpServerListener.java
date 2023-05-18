@@ -1,4 +1,4 @@
-package net.dreamlu.net.cluster.transport;
+package net.dreamlu.net.cluster.core;
 
 import org.tio.core.ChannelContext;
 import org.tio.server.intf.TioServerListener;
@@ -21,5 +21,8 @@ public class ClusterTcpServerListener implements TioServerListener {
 
 	@Override
 	public void onBeforeClose(ChannelContext context, Throwable throwable, String remark, boolean isRemove) throws Exception {
+		if (throwable != null) {
+			throwable.printStackTrace();
+		}
 	}
 }

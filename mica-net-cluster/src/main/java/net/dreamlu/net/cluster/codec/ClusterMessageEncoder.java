@@ -2,6 +2,7 @@ package net.dreamlu.net.cluster.codec;
 
 import net.dreamlu.net.cluster.message.*;
 import org.tio.core.ChannelContext;
+import org.tio.core.Node;
 import org.tio.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
@@ -41,8 +42,11 @@ public class ClusterMessageEncoder {
 				return encodeSyncMessage((ClusterSyncMessage) message);
 			case SYNC_ACK:
 				return encodeSyncAckMessage((ClusterSyncAckMessage) message);
+			case JOIN:
+				return encodeJoinMessage((ClusterJoinMessage) message);
+			default:
+				throw new IllegalArgumentException("展示不支持该集群消息类型");
 		}
-		return ByteBuffer.allocate(0);
 	}
 
 	/**
@@ -106,6 +110,26 @@ public class ClusterMessageEncoder {
 		// 消息id
 		String messageId = message.getMessageId();
 		buffer.put(messageId.getBytes(StandardCharsets.UTF_8));
+		return buffer;
+	}
+
+	/**
+	 * 新加入消息
+	 *
+	 * @param message ClusterJoinMessage
+	 * @return ByteBuffer
+	 */
+	private static ByteBuffer encodeJoinMessage(ClusterJoinMessage message) {
+		int capacity = 1 + 2 + 32;
+		ByteBuffer buffer = ByteBuffer.allocate(capacity);
+		buffer.put(ClusterMessageType.JOIN.getType());
+		Node joinMember = message.getJoinMember();
+		// 端口，0到65535
+		ByteBufferUtil.writeUnsignedShort(buffer, joinMember.getPort());
+		// ip 或者域名，预定长度为 32，考虑 ipv6（16）和长网址
+		buffer.put(joinMember.getIp().getBytes(StandardCharsets.UTF_8));
+		// 移到结尾
+		buffer.position(capacity);
 		return buffer;
 	}
 

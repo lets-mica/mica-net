@@ -2,6 +2,7 @@ package net.dreamlu.net.cluster.codec;
 
 import net.dreamlu.net.cluster.message.*;
 import org.tio.core.ChannelContext;
+import org.tio.core.Node;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 import org.tio.utils.buffer.ByteBufferUtil;
@@ -37,6 +38,8 @@ public class ClusterMessageDecoder {
 				return decodeSyncMessage(ctx, buffer, readableLength);
 			case SYNC_ACK:
 				return decodeSyncAckMessage(ctx, buffer, readableLength);
+			case JOIN:
+				return decodeJoinMessage(ctx, buffer, readableLength);
 		}
 		return null;
 	}
@@ -106,6 +109,27 @@ public class ClusterMessageDecoder {
 		// 消息 id
 		String messageId = ByteBufferUtil.readString(buffer, 21);
 		return new ClusterSyncAckMessage(messageId);
+	}
+
+	/**
+	 * 新加入消息解码
+	 *
+	 * @param buffer         buffer
+	 * @param readableLength 可读长度
+	 * @return ClusterSyncAckMessage
+	 */
+	private static ClusterJoinMessage decodeJoinMessage(ChannelContext ctx, ByteBuffer buffer, int readableLength) {
+		int messageLength = 1 + 2 + 32;
+		// 消息不够读
+		if (readableLength < messageLength) {
+			ctx.setPacketNeededLength(messageLength);
+			return null;
+		}
+		// 端口号
+		int port = ByteBufferUtil.readUnsignedShort(buffer);
+		// ip
+		String ip = ByteBufferUtil.readString(buffer, 32);
+		return new ClusterJoinMessage(new Node(ip.trim(), port));
 	}
 
 }

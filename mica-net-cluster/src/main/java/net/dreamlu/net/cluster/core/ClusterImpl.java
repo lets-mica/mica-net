@@ -4,10 +4,8 @@ import net.dreamlu.net.cluster.codec.ClusterMessageDecoder;
 import net.dreamlu.net.cluster.message.ClusterDataMessage;
 import net.dreamlu.net.cluster.message.ClusterSyncAckMessage;
 import net.dreamlu.net.cluster.message.ClusterSyncMessage;
-import net.dreamlu.net.cluster.transport.ClusterTcpClientHandler;
-import net.dreamlu.net.cluster.transport.ClusterTcpClientListener;
-import net.dreamlu.net.cluster.transport.ClusterTcpServerHandler;
-import net.dreamlu.net.cluster.transport.ClusterTcpServerListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tio.client.ReconnConf;
 import org.tio.client.TioClient;
 import org.tio.client.TioClientConfig;
@@ -32,6 +30,7 @@ import java.util.concurrent.*;
  * @author L.cm
  */
 public class ClusterImpl implements ClusterApi {
+	private static final Logger log = LoggerFactory.getLogger(ClusterImpl.class);
 	/**
 	 * 集群配置
 	 */
@@ -92,7 +91,7 @@ public class ClusterImpl implements ClusterApi {
 
 	private void startClusterTcpService() throws IOException {
 		ClusterMessageListener messageListener = this.config.getMessageListener();
-		ClusterTcpServerHandler serverHandler = new ClusterTcpServerHandler(messageDecoder, messageListener);
+		ClusterTcpServerHandler serverHandler = new ClusterTcpServerHandler(this, messageDecoder, messageListener);
 		// 配置
 		String name = "TCP-cluster-server";
 		int tioPoolSize = Threads.AVAILABLE_PROCESSORS + 1;
@@ -108,7 +107,7 @@ public class ClusterImpl implements ClusterApi {
 
 	private void startClusterTcpClient() throws Exception {
 		TioClientHandler tioHandler = new ClusterTcpClientHandler(this.messageDecoder, syncMessageMap);
-		TioClientListener tioListener = new ClusterTcpClientListener();
+		TioClientListener tioListener = new ClusterTcpClientListener(this);
 		// 配置
 		TioClientConfig clientConfig = new TioClientConfig(tioHandler, tioListener);
 		clientConfig.setName("TCP-cluster-client");
@@ -171,6 +170,16 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
+	public boolean isLateJoinMember() {
+		return !this.config.getSeedMembers().contains(this.localMember);
+	}
+
+	@Override
+	public Collection<Node> getSeedMembers() {
+		return Collections.unmodifiableList(this.config.getSeedMembers());
+	}
+
+	@Override
 	public Collection<Node> getRemoteMembers() {
 		Set<Node> remoteMembers = new HashSet<>(seedMembers);
 		remoteMembers.addAll(lateJoinMembers);
@@ -183,4 +192,20 @@ public class ClusterImpl implements ClusterApi {
 		return this.localMember;
 	}
 
+	/**
+	 * 后加入进来的节点
+	 *
+	 * @param joinMember joinMember
+	 */
+	protected void addJoinMember(Node joinMember) {
+		// 新加入的节点
+		if (!lateJoinMembers.contains(joinMember)) {
+			this.lateJoinMembers.add(joinMember);
+			try {
+				this.tcpClusterClient.connect(joinMember);
+			} catch (Exception e) {
+				log.error(e.getMessage(), e);
+			}
+		}
+	}
 }

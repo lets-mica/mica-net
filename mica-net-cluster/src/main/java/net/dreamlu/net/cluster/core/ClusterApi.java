@@ -90,6 +90,20 @@ public interface ClusterApi {
 	TimerTask scheduleOnce(Runnable command, long delay, Executor executor);
 
 	/**
+	 * 是后加入的成员
+	 *
+	 * @return 是否后加入的成员
+	 */
+	boolean isLateJoinMember();
+
+	/**
+	 * 获取种子成员
+	 *
+	 * @return 种子成员列表
+	 */
+	Collection<Node> getSeedMembers();
+
+	/**
 	 * 获取集群中的成员，不包含当前成员
 	 *
 	 * @return 成员列表，不包含自己

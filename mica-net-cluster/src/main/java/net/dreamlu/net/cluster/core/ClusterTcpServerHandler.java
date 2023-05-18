@@ -1,12 +1,11 @@
-package net.dreamlu.net.cluster.transport;
+package net.dreamlu.net.cluster.core;
 
+import net.dreamlu.net.cluster.codec.ClusterMessageDecoder;
+import net.dreamlu.net.cluster.codec.ClusterMessageEncoder;
 import net.dreamlu.net.cluster.message.*;
 import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
 import org.tio.core.TioConfig;
-import net.dreamlu.net.cluster.codec.ClusterMessageDecoder;
-import net.dreamlu.net.cluster.codec.ClusterMessageEncoder;
-import net.dreamlu.net.cluster.core.ClusterMessageListener;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 import org.tio.server.intf.TioServerHandler;
@@ -19,6 +18,7 @@ import java.nio.ByteBuffer;
  * @author L.cm
  */
 public class ClusterTcpServerHandler implements TioServerHandler {
+	private final ClusterImpl clusterApi;
 	private final ClusterMessageEncoder messageEncoder;
 	private final ClusterMessageDecoder messageDecoder;
 	/**
@@ -26,8 +26,10 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 	 */
 	private final ClusterMessageListener messageListener;
 
-	public ClusterTcpServerHandler(ClusterMessageDecoder messageDecoder,
+	public ClusterTcpServerHandler(ClusterImpl clusterApi,
+								   ClusterMessageDecoder messageDecoder,
 								   ClusterMessageListener messageListener) {
+		this.clusterApi = clusterApi;
 		this.messageEncoder = ClusterMessageEncoder.INSTANCE;
 		this.messageDecoder = messageDecoder;
 		this.messageListener = messageListener;
@@ -52,6 +54,8 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 			handlerSyncMessage(context, (ClusterSyncMessage) packet);
 		} else if (packet instanceof ClusterDataMessage) {
 			handlerDataMessage(context, (ClusterDataMessage) packet);
+		} else if (packet instanceof ClusterJoinMessage) {
+			handlerJoinMessage(context, (ClusterJoinMessage) packet);
 		}
 	}
 
@@ -86,6 +90,17 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 	private void handlerDataMessage(ChannelContext context, ClusterDataMessage message) {
 		// 处理消息
 		messageListener.onMessage(message);
+	}
+
+	/**
+	 * 处理新节点加入
+	 *
+	 * @param context ChannelContext
+	 * @param message ClusterJoinMessage
+	 */
+	private void handlerJoinMessage(ChannelContext context, ClusterJoinMessage message) {
+		// 处理消息
+		clusterApi.addJoinMember(message.getJoinMember());
 	}
 
 }
