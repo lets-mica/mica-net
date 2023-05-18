@@ -20,11 +20,9 @@ public class ClusterTest2 {
 		config.setHost("127.0.0.1");
 		config.setPort(3002);
 
-		List<Node> seedMembers = new ArrayList<>();
-		seedMembers.add(new Node("127.0.0.1", 3001));
-		seedMembers.add(new Node("127.0.0.1", 3002));
-		seedMembers.add(new Node("127.0.0.1", 3003));
-		config.setSeedMembers(seedMembers);
+		config.addSeedMember(new Node("127.0.0.1", 3001));
+		config.addSeedMember(new Node("127.0.0.1", 3002));
+		config.addSeedMember(new Node("127.0.0.1", 3003));
 
 		ClusterApi cluster = new ClusterImpl(config);
 		cluster.start();

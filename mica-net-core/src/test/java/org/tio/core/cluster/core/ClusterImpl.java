@@ -21,6 +21,7 @@ import org.tio.server.TioServerConfig;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,6 +63,7 @@ public class ClusterImpl implements ClusterApi {
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;
 		this.localMember = new Node(config.getHost(), config.getPort());
+		this.seedMembers = Collections.unmodifiableList(config.getSeedMembers());
 		this.messageDecoder = new ClusterMessageDecoder();
 	}
 

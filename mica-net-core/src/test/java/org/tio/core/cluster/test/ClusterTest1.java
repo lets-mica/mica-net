@@ -5,9 +5,6 @@ import org.tio.core.cluster.core.ClusterApi;
 import org.tio.core.cluster.core.ClusterConfig;
 import org.tio.core.cluster.core.ClusterImpl;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * 集群开发测试
  *
@@ -20,11 +17,9 @@ public class ClusterTest1 {
 		config.setHost("127.0.0.1");
 		config.setPort(3001);
 
-		List<Node> seedMembers = new ArrayList<>();
-		seedMembers.add(new Node("127.0.0.1", 3001));
-		seedMembers.add(new Node("127.0.0.1", 3002));
-		seedMembers.add(new Node("127.0.0.1", 3003));
-		config.setSeedMembers(seedMembers);
+		config.addSeedMember(new Node("127.0.0.1", 3001));
+		config.addSeedMember(new Node("127.0.0.1", 3002));
+		config.addSeedMember(new Node("127.0.0.1", 3003));
 
 		ClusterApi cluster = new ClusterImpl(config);
 		cluster.start();

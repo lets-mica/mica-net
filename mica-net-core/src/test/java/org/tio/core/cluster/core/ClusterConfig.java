@@ -2,6 +2,7 @@ package org.tio.core.cluster.core;
 
 import org.tio.core.Node;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ public class ClusterConfig {
 	/**
 	 * 种子成员
 	 */
-	private List<Node> seedMembers;
+	private final List<Node> seedMembers = new ArrayList<>();
 
 	public String getHost() {
 		return host;
@@ -44,8 +45,12 @@ public class ClusterConfig {
 		return seedMembers;
 	}
 
-	public void setSeedMembers(List<Node> seedMembers) {
-		this.seedMembers = seedMembers;
+	public void addSeedMember(Node seedMember) {
+		this.seedMembers.add(seedMember);
+	}
+
+	public void addSeedMembers(List<Node> seedMembers) {
+		this.seedMembers.addAll(seedMembers);
 	}
 
 }
