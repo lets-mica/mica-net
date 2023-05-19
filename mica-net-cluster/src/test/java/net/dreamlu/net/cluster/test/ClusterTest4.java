@@ -16,18 +16,14 @@ import java.nio.charset.StandardCharsets;
 public class ClusterTest4 {
 
 	public static void main(String[] args) throws Exception {
-		ClusterConfig config = new ClusterConfig();
-		config.setHost("127.0.0.1");
-		config.setPort(3004);
+		ClusterConfig config = new ClusterConfig("127.0.0.1", 3004, message -> {
+			System.out.println(new String(message.getPayload()));
+		});
 
 		// 不在种子成员里
 		config.addSeedMember(new Node("127.0.0.1", 3001));
 		config.addSeedMember(new Node("127.0.0.1", 3002));
 		config.addSeedMember(new Node("127.0.0.1", 3003));
-
-		config.setMessageListener(message -> {
-			System.out.println(new String(message.getPayload()));
-		});
 
 		ClusterApi cluster = new ClusterImpl(config);
 		cluster.start();
