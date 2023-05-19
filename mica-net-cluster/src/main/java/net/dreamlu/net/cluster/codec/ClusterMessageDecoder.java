@@ -40,8 +40,9 @@ public class ClusterMessageDecoder {
 				return decodeSyncAckMessage(ctx, buffer, readableLength);
 			case JOIN:
 				return decodeJoinMessage(ctx, buffer, readableLength);
+			default:
+				throw new TioDecodeException("暂不支持的集群消息类型");
 		}
-		return null;
 	}
 
 	/**
