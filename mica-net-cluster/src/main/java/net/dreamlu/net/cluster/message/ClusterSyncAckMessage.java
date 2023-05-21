@@ -10,13 +10,13 @@ public class ClusterSyncAckMessage extends AbsClusterMessage {
 	/**
 	 * 消息Id
 	 */
-	private final String messageId;
+	private final long messageId;
 
-	public ClusterSyncAckMessage(String messageId) {
+	public ClusterSyncAckMessage(long messageId) {
 		this.messageId = messageId;
 	}
 
-	public String getMessageId() {
+	public long getMessageId() {
 		return messageId;
 	}
 

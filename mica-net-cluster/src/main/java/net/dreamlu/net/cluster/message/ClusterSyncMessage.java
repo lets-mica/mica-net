@@ -9,9 +9,9 @@ public class ClusterSyncMessage extends ClusterDataMessage {
 	/**
 	 * 消息Id
 	 */
-	private final String messageId;
+	private final long messageId;
 
-	public ClusterSyncMessage(String messageId, byte[] payload) {
+	public ClusterSyncMessage(long messageId, byte[] payload) {
 		super(payload);
 		this.messageId = messageId;
 	}
@@ -25,7 +25,7 @@ public class ClusterSyncMessage extends ClusterDataMessage {
 		return new ClusterSyncAckMessage(this.messageId);
 	}
 
-	public String getMessageId() {
+	public long getMessageId() {
 		return messageId;
 	}
 

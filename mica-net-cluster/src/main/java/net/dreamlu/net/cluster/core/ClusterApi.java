@@ -33,7 +33,7 @@ public interface ClusterApi {
 	 * @param message 集群消息
 	 * @return 消息id.
 	 */
-	boolean send(Node member, ClusterDataMessage message);
+	boolean send(Node member, byte[] message);
 
 	/**
 	 * 同步发送消息
@@ -42,7 +42,7 @@ public interface ClusterApi {
 	 * @param message 集群消息
 	 * @return 消息id.
 	 */
-	ClusterSyncAckMessage sendSync(Node member, ClusterSyncMessage message);
+	ClusterSyncAckMessage sendSync(Node member, byte[] message);
 
 	/**
 	 * 在集群中广播消息

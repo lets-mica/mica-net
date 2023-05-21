@@ -18,6 +18,7 @@ import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.Threads;
+import org.tio.utils.hutool.Snowflake;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 import org.tio.utils.timer.TimerTask;
 
@@ -60,7 +61,11 @@ public class ClusterImpl implements ClusterApi {
 	/**
 	 * 同步消息处理，key：messageId，value：CompletableFuture
 	 */
-	private final ConcurrentMap<String, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap;
+	private final ConcurrentMap<Long, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap;
+	/**
+	 * id 生产器
+	 */
+	private final Snowflake snowflake;
 
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;
@@ -69,6 +74,7 @@ public class ClusterImpl implements ClusterApi {
 		this.lateJoinMembers = new ArrayList<>();
 		this.messageDecoder = new ClusterMessageDecoder();
 		this.syncMessageMap = new ConcurrentHashMap<>();
+		this.snowflake = new Snowflake(ThreadLocalRandom.current().nextInt(1, 30), ThreadLocalRandom.current().nextInt(1, 30));
 	}
 
 	/**
@@ -129,17 +135,23 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
-	public boolean send(Node address, ClusterDataMessage message) {
+	public boolean send(Node address, byte[] message) {
 		TioClientConfig clientConfig = this.tcpClusterClient.getTioClientConfig();
 		ChannelContext context = Tio.getByClientNode(clientConfig, address);
-		return Tio.send(context, message);
+		return Tio.send(context, new ClusterDataMessage(message));
 	}
 
 	@Override
-	public ClusterSyncAckMessage sendSync(Node address, ClusterSyncMessage message) {
-		String messageId = message.getMessageId();
+	public ClusterSyncAckMessage sendSync(Node address, byte[] message) {
+		// context
+		TioClientConfig clientConfig = this.tcpClusterClient.getTioClientConfig();
+		ChannelContext context = Tio.getByClientNode(clientConfig, address);
+		// messageId
+		long messageId = this.snowflake.nextId();
 		CompletableFuture<ClusterSyncAckMessage> future = new CompletableFuture<>();
 		syncMessageMap.put(messageId, future);
+		// 发送消息
+		Tio.send(context, new ClusterSyncMessage(messageId, message));
 		// 等待回调
 		return future.join();
 	}

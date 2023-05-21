@@ -85,12 +85,12 @@ public class ClusterMessageEncoder {
 	 */
 	private static ByteBuffer encodeSyncMessage(ClusterSyncMessage message) {
 		byte[] payload = message.getPayload();
-		int capacity = 1 + 21 + 2 + payload.length;
+		int capacity = 1 + 8 + 2 + payload.length;
 		ByteBuffer buffer = ByteBuffer.allocate(capacity);
 		buffer.put(ClusterMessageType.SYNC.getType());
 		// 消息id
-		String messageId = message.getMessageId();
-		buffer.put(messageId.getBytes(StandardCharsets.UTF_8));
+		long messageId = message.getMessageId();
+		buffer.putLong(messageId);
 		// 消息内容长度
 		ByteBufferUtil.writeUnsignedShort(buffer, payload.length);
 		buffer.put(payload);
@@ -104,12 +104,11 @@ public class ClusterMessageEncoder {
 	 * @return ByteBuffer
 	 */
 	private static ByteBuffer encodeSyncAckMessage(ClusterSyncAckMessage message) {
-		int capacity = 1 + 21;
+		int capacity = 1 + 8;
 		ByteBuffer buffer = ByteBuffer.allocate(capacity);
 		buffer.put(ClusterMessageType.SYNC_ACK.getType());
 		// 消息id
-		String messageId = message.getMessageId();
-		buffer.put(messageId.getBytes(StandardCharsets.UTF_8));
+		buffer.putLong(message.getMessageId());
 		return buffer;
 	}
 

@@ -26,10 +26,10 @@ public class ClusterTcpClientHandler implements TioClientHandler {
 	/**
 	 * 同步消息处理，key：messageId，value：CompletableFuture
 	 */
-	private final ConcurrentMap<String, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap;
+	private final ConcurrentMap<Long, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap;
 
 	public ClusterTcpClientHandler(ClusterMessageDecoder messageDecoder,
-								   ConcurrentMap<String, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap) {
+								   ConcurrentMap<Long, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap) {
 		this.messageEncoder = ClusterMessageEncoder.INSTANCE;
 		this.messageDecoder = messageDecoder;
 		this.syncMessageMap = syncMessageMap;
@@ -54,7 +54,7 @@ public class ClusterTcpClientHandler implements TioClientHandler {
 	public void handler(Packet packet, ChannelContext context) throws Exception {
 		if (packet instanceof ClusterSyncAckMessage) {
 			ClusterSyncAckMessage message = (ClusterSyncAckMessage) packet;
-			String messageId = message.getMessageId();
+			long messageId = message.getMessageId();
 			CompletableFuture<ClusterSyncAckMessage> future = syncMessageMap.get(messageId);
 			if (future != null) {
 				future.complete(message);
