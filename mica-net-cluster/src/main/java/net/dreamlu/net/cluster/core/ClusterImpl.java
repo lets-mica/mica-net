@@ -14,6 +14,7 @@ import org.tio.client.intf.TioClientListener;
 import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.Tio;
+import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.Threads;
@@ -112,6 +113,7 @@ public class ClusterImpl implements ClusterApi {
 		TioClientConfig clientConfig = new TioClientConfig(tioHandler, tioListener);
 		clientConfig.setName("TCP-cluster-client");
 		clientConfig.setReconnConf(new ReconnConf());
+		clientConfig.setTioUuid(new SnowflakeTioUuid());
 		this.tcpClusterClient = new TioClient(clientConfig);
 		for (Node seedMember : seedMembers) {
 			this.tcpClusterClient.connect(seedMember);

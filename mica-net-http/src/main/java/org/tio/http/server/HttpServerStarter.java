@@ -195,7 +195,7 @@ package org.tio.http.server;
 
 import org.tio.core.TcpConst;
 import org.tio.http.common.HttpConfig;
-import org.tio.http.common.HttpUuid;
+import org.tio.core.uuid.SeqTioUuid;
 import org.tio.http.common.TioConfigKey;
 import org.tio.http.common.handler.HttpRequestHandler;
 import org.tio.server.TioServer;
@@ -256,7 +256,7 @@ public class HttpServerStarter {
 		this.tioServerConfig.set(TioConfigKey.HTTP_REQ_HANDLER, this.httpRequestHandler);
 
 		this.tioServer = new TioServer(tioServerConfig);
-		this.tioServerConfig.setTioUuid(new HttpUuid());
+		this.tioServerConfig.setTioUuid(new SeqTioUuid());
 	}
 
 	/**

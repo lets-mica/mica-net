@@ -191,31 +191,26 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.websocket.common;
+package org.tio.core.uuid;
 
 import org.tio.core.intf.TioUuid;
-import org.tio.utils.hutool.Snowflake;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author tanyaowu
  * 2017年6月5日 上午10:44:26
  */
-public class WsTioUuid implements TioUuid {
-	private final Snowflake snowflake;
+public class SeqTioUuid implements TioUuid {
+	private final AtomicLong seq;
 
-	public WsTioUuid() {
-		this(ThreadLocalRandom.current().nextInt(1, 30), ThreadLocalRandom.current().nextInt(1, 30));
-	}
-
-	public WsTioUuid(long workerId, long datacenterId) {
-		snowflake = new Snowflake(workerId, datacenterId);
+	public SeqTioUuid() {
+		this.seq = new AtomicLong();
 	}
 
 	@Override
 	public String uuid() {
-		return Long.toString(snowflake.nextId());
+		return Long.toString(seq.incrementAndGet());
 	}
 
 }

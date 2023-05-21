@@ -198,7 +198,7 @@ import org.tio.http.common.HttpConfig;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
-import org.tio.websocket.common.WsTioUuid;
+import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.websocket.server.handler.IWsMsgHandler;
 
 import java.io.IOException;
@@ -229,7 +229,7 @@ public class WsServerStarter {
 	}
 
 	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) throws IOException {
-		this(wsServerConfig, wsMsgHandler, new WsTioUuid(), tioExecutor, groupExecutor);
+		this(wsServerConfig, wsMsgHandler, new SnowflakeTioUuid(), tioExecutor, groupExecutor);
 	}
 
 	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, TioUuid tioUuid, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {

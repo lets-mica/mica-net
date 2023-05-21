@@ -191,26 +191,30 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.http.common;
+package org.tio.core.uuid;
 
 import org.tio.core.intf.TioUuid;
-
-import java.util.concurrent.atomic.AtomicLong;
+import org.tio.utils.hutool.StrUtil;
 
 /**
  * @author tanyaowu
- * 2017年6月5日 上午10:44:26
+ * 2017年6月5日 上午10:31:40
  */
-public class HttpUuid implements TioUuid {
-	private final AtomicLong seq;
+public class DefaultTioUuid implements TioUuid {
 
-	public HttpUuid() {
-		this.seq = new AtomicLong();
+	/**
+	 * @author tanyaowu
+	 */
+	public DefaultTioUuid() {
 	}
 
+	/**
+	 * @return
+	 * @author tanyaowu
+	 */
 	@Override
 	public String uuid() {
-		return Long.toString(seq.incrementAndGet());
+		return StrUtil.getNanoId();
 	}
 
 }

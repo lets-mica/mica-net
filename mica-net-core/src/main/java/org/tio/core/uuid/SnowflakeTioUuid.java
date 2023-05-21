@@ -191,30 +191,31 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package org.tio.core;
+package org.tio.core.uuid;
 
 import org.tio.core.intf.TioUuid;
-import org.tio.utils.hutool.StrUtil;
+import org.tio.utils.hutool.Snowflake;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author tanyaowu
- * 2017年6月5日 上午10:31:40
+ * 2017年6月5日 上午10:44:26
  */
-public class DefaultTioUuid implements TioUuid {
+public class SnowflakeTioUuid implements TioUuid {
+	private final Snowflake snowflake;
 
-	/**
-	 * @author tanyaowu
-	 */
-	public DefaultTioUuid() {
+	public SnowflakeTioUuid() {
+		this(ThreadLocalRandom.current().nextInt(1, 30), ThreadLocalRandom.current().nextInt(1, 30));
 	}
 
-	/**
-	 * @return
-	 * @author tanyaowu
-	 */
+	public SnowflakeTioUuid(long workerId, long datacenterId) {
+		snowflake = new Snowflake(workerId, datacenterId);
+	}
+
 	@Override
 	public String uuid() {
-		return StrUtil.getNanoId();
+		return Long.toString(snowflake.nextId());
 	}
 
 }
