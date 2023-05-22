@@ -199,11 +199,10 @@ import java.nio.ByteBuffer;
  * 代码移植自<a href="https://github.com/biezhi/blade">blade</a><br>
  * 快速缓冲，将数据存放在缓冲集中，取代以往的单一数组
  *
- * @author biezhi, looly
+ * @author biezhi、looly、L.cm
  * @since 1.0
  */
 public class FastByteBuffer {
-
 	/**
 	 * 一个缓冲区的最小字节数
 	 */
@@ -364,6 +363,139 @@ public class FastByteBuffer {
 		return this;
 	}
 
+	/**
+	 * 输出一个byte类型的数据
+	 *
+	 * @param b 待输出数值
+	 */
+	public void writeByte(byte b) {
+		this.append(b);
+	}
+
+	/**
+	 * 输出一个bytes类型的数据
+	 *
+	 * @param bytes 待输出数值
+	 */
+	public void writeBytes(byte[] bytes) {
+		this.append(bytes, 0, bytes.length);
+	}
+
+	/**
+	 * 输出一个bytes类型的数据
+	 *
+	 * @param bytes 待输出数值
+	 * @param off   off
+	 * @param len   len
+	 */
+	public void writeBytes(byte[] bytes, int off, int len) {
+		this.append(bytes, off, len);
+	}
+
+	/**
+	 * 输出一个short类型的数据，小端模式
+	 *
+	 * @param v short数值
+	 */
+	public void writeShort(short v) {
+		byte[] bytes = new byte[2];
+		bytes[0] = (byte) (v & 0xFF);
+		bytes[1] = (byte) ((v >>> 8) & 0xFF);
+		this.append(bytes, 0, 2);
+	}
+
+	/**
+	 * 输出一个short类型的数据，大端模式
+	 *
+	 * @param v short数值
+	 */
+	public void writeShortBE(short v) {
+		byte[] bytes = new byte[2];
+		bytes[0] = (byte) ((v >>> 8) & 0xFF);
+		bytes[1] = (byte) (v & 0xFF);
+		this.append(bytes, 0, 2);
+	}
+
+	/**
+	 * 输出int数值,占用4个字节，小端模式
+	 *
+	 * @param v int数值
+	 */
+	public void writeInt(int v) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte) (v & 0xFF);
+		bytes[1] = (byte) ((v >>> 8) & 0xFF);
+		bytes[2] = (byte) ((v >>> 16) & 0xFF);
+		bytes[3] = (byte) ((v >>> 24) & 0xFF);
+		this.append(bytes, 0, 4);
+	}
+
+	/**
+	 * 输出int数值,占用4个字节，大端模式
+	 *
+	 * @param v int数值
+	 */
+	public void writeIntBE(int v) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte) ((v >>> 24) & 0xFF);
+		bytes[1] = (byte) ((v >>> 16) & 0xFF);
+		bytes[2] = (byte) ((v >>> 8) & 0xFF);
+		bytes[3] = (byte) (v & 0xFF);
+		this.append(bytes, 0, 4);
+	}
+
+	/**
+	 * 输出long数值,占用8个字节，小端模式
+	 *
+	 * @param v long数值
+	 */
+	public void writeLong(long v) {
+		byte[] bytes = new byte[8];
+		bytes[0] = (byte) (v & 0xFF);
+		bytes[1] = (byte) ((v >>> 8) & 0xFF);
+		bytes[2] = (byte) ((v >>> 16) & 0xFF);
+		bytes[3] = (byte) ((v >>> 24) & 0xFF);
+		bytes[4] = (byte) ((v >>> 32) & 0xFF);
+		bytes[5] = (byte) ((v >>> 40) & 0xFF);
+		bytes[6] = (byte) ((v >>> 48) & 0xFF);
+		bytes[7] = (byte) ((v >>> 56) & 0xFF);
+		this.append(bytes, 0, 8);
+	}
+
+	/**
+	 * 输出long数值,占用8个字节，大端模式
+	 *
+	 * @param v long数值
+	 */
+	public void writeLongBE(long v) {
+		byte[] bytes = new byte[8];
+		bytes[0] = (byte) ((v >>> 56) & 0xFF);
+		bytes[1] = (byte) ((v >>> 48) & 0xFF);
+		bytes[2] = (byte) ((v >>> 40) & 0xFF);
+		bytes[3] = (byte) ((v >>> 32) & 0xFF);
+		bytes[4] = (byte) ((v >>> 24) & 0xFF);
+		bytes[5] = (byte) ((v >>> 16) & 0xFF);
+		bytes[6] = (byte) ((v >>> 8) & 0xFF);
+		bytes[7] = (byte) (v & 0xFF);
+		this.append(bytes, 0, 8);
+	}
+
+	/**
+	 * 写可变长度整数
+	 *
+	 * @param num num
+	 */
+	public void writeVarLengthInt(int num) {
+		do {
+			int digit = num % 128;
+			num /= 128;
+			if (num > 0) {
+				digit |= 0x80;
+			}
+			this.append((byte) digit);
+		} while (num > 0);
+	}
+
 	public int size() {
 		return size;
 	}
@@ -395,6 +527,9 @@ public class FastByteBuffer {
 		return buffers[index];
 	}
 
+	/**
+	 * 重置，用于复用
+	 */
 	public void reset() {
 		size = 0;
 		offset = 0;
@@ -462,6 +597,15 @@ public class FastByteBuffer {
 			i++;
 		}
 		return array;
+	}
+
+	/**
+	 * 转换成数组
+	 *
+	 * @return ByteBuffer
+	 */
+	public ByteBuffer toBuffer() {
+		return ByteBuffer.wrap(this.toArray());
 	}
 
 	/**
