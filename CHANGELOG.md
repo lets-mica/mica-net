@@ -3,6 +3,7 @@
 ## 发行版本
 
 ### v0.1.2 - 2023-05-27
+- :sparkles: 回滚 `ChannelStat` 使用 `AtomicLong` 更加合适，内存占用更少。
 - :sparkles: 合并 `WriteBuffer` 到 `FastByteBuffer`。
 - :sparkles: 添加 `mica-net-cluster` 集群模块。
 - :sparkles: 优化 `EncodedPacket`，不再需要手动 `encode` 转换。
