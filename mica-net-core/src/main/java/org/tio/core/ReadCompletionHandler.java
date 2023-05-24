@@ -224,8 +224,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			if (tioConfig.statOn) {
 				tioConfig.groupStat.receivedBytes.add(result);
 				tioConfig.groupStat.receivedTcps.increment();
-				channelContext.stat.receivedBytes.add(result);
-				channelContext.stat.receivedTcps.increment();
+				channelContext.stat.receivedBytes.addAndGet(result);
+				channelContext.stat.receivedTcps.incrementAndGet();
 			}
 
 			channelContext.stat.latestTimeOfReceivedByte = System.currentTimeMillis();

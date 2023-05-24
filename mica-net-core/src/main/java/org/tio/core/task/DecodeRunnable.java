@@ -352,7 +352,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 
 					if (tioConfig.statOn) {
 						tioConfig.groupStat.receivedPackets.increment();
-						channelContext.stat.receivedPackets.increment();
+						channelContext.stat.receivedPackets.incrementAndGet();
 					}
 
 					if (tioConfig.getTioListener() != null) {

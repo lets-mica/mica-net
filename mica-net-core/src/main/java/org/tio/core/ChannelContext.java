@@ -483,7 +483,7 @@ public abstract class ChannelContext extends MapPropSupport {
 				}
 				if (tioConfig.statOn) {
 					tioConfig.groupStat.sentPackets.increment();
-					stat.sentPackets.increment();
+					stat.sentPackets.incrementAndGet();
 				}
 			}
 		} catch (Throwable e) {

@@ -258,7 +258,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 
 			if (isSentSuccess && tioConfig.statOn) {
 				tioConfig.groupStat.sentBytes.add(bytesWritten);
-				channelContext.stat.sentBytes.add(bytesWritten);
+				channelContext.stat.sentBytes.addAndGet(bytesWritten);
 			}
 
 			try {

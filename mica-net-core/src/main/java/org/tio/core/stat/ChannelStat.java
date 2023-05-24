@@ -194,7 +194,7 @@
 package org.tio.core.stat;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author tanyaowu
@@ -205,36 +205,36 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * 本连接已发送的字节数
 	 */
-	public final LongAdder sentBytes = new LongAdder();
+	public final AtomicLong sentBytes = new AtomicLong();
 	/**
 	 * 本连接已发送的packet数
 	 */
-	public final LongAdder sentPackets = new LongAdder();
+	public final AtomicLong sentPackets = new AtomicLong();
 	/**
 	 * 本连接已处理的字节数
 	 */
-	public final LongAdder handledBytes = new LongAdder();
+	public final AtomicLong handledBytes = new AtomicLong();
 	/**
 	 * 本连接已处理的packet数
 	 */
-	public final LongAdder handledPackets = new LongAdder();
+	public final AtomicLong handledPackets = new AtomicLong();
 	/**
 	 * 处理消息包耗时，单位：毫秒
 	 * 拿这个值除以handledPackets，就是处理每个消息包的平均耗时
 	 */
-	public final LongAdder handledPacketCosts = new LongAdder();
+	public final AtomicLong handledPacketCosts = new AtomicLong();
 	/**
 	 * 本连接已接收的字节数
 	 */
-	public final LongAdder receivedBytes = new LongAdder();
+	public final AtomicLong receivedBytes = new AtomicLong();
 	/**
 	 * 本连接已接收了多少次TCP数据包
 	 */
-	public final LongAdder receivedTcps = new LongAdder();
+	public final AtomicLong receivedTcps = new AtomicLong();
 	/**
 	 * 本连接已接收的packet数
 	 */
-	public final LongAdder receivedPackets = new LongAdder();
+	public final AtomicLong receivedPackets = new AtomicLong();
 	/**
 	 * 心跳超时次数
 	 */
@@ -289,7 +289,7 @@ public class ChannelStat implements java.io.Serializable {
 	 * 平均每次TCP接收到的字节数，这个可以用来监控慢攻击，配置PacketsPerTcpReceive定位慢攻击
 	 */
 	public double getBytesPerTcpReceive() {
-		if (receivedTcps.sum() == 0) {
+		if (receivedTcps.get() == 0) {
 			return 0;
 		}
 		return receivedBytes.doubleValue() / receivedTcps.doubleValue();
@@ -299,7 +299,7 @@ public class ChannelStat implements java.io.Serializable {
 	 * 平均每次TCP接收到的业务包数，这个可以用来监控慢攻击，此值越小越有攻击嫌疑
 	 */
 	public double getPacketsPerTcpReceive() {
-		if (receivedTcps.sum() == 0) {
+		if (receivedTcps.get() == 0) {
 			return 0;
 		}
 		return receivedPackets.doubleValue() / receivedTcps.doubleValue();
@@ -315,14 +315,14 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * @return the countHandledByte
 	 */
-	public LongAdder getHandledBytes() {
+	public AtomicLong getHandledBytes() {
 		return handledBytes;
 	}
 
 	/**
 	 * @return the countHandledPacket
 	 */
-	public LongAdder getHandledPackets() {
+	public AtomicLong getHandledPackets() {
 		return handledPackets;
 	}
 
@@ -350,28 +350,28 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * @return the countReceivedByte
 	 */
-	public LongAdder getReceivedBytes() {
+	public AtomicLong getReceivedBytes() {
 		return receivedBytes;
 	}
 
 	/**
 	 * @return the countReceivedPacket
 	 */
-	public LongAdder getReceivedPackets() {
+	public AtomicLong getReceivedPackets() {
 		return receivedPackets;
 	}
 
 	/**
 	 * @return the countSentByte
 	 */
-	public LongAdder getSentBytes() {
+	public AtomicLong getSentBytes() {
 		return sentBytes;
 	}
 
 	/**
 	 * @return the countSentPacket
 	 */
-	public LongAdder getSentPackets() {
+	public AtomicLong getSentPackets() {
 		return sentPackets;
 	}
 
@@ -441,11 +441,11 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * @return the receivedTcps
 	 */
-	public LongAdder getReceivedTcps() {
+	public AtomicLong getReceivedTcps() {
 		return receivedTcps;
 	}
 
-	public LongAdder getHandledPacketCosts() {
+	public AtomicLong getHandledPacketCosts() {
 		return handledPacketCosts;
 	}
 
@@ -455,7 +455,7 @@ public class ChannelStat implements java.io.Serializable {
 	 * @return
 	 */
 	public double getHandledCostsPerPacket() {
-		if (handledPackets.sum() > 0) {
+		if (handledPackets.get() > 0) {
 			return handledPacketCosts.doubleValue() / handledPackets.doubleValue();
 		}
 		return 0;

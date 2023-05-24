@@ -262,9 +262,9 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 			long end = System.currentTimeMillis();
 			long iv = end - start;
 			if (tioConfig.statOn) {
-				channelContext.stat.handledPackets.increment();
-				channelContext.stat.handledBytes.add(packet.getByteCount());
-				channelContext.stat.handledPacketCosts.add(iv);
+				channelContext.stat.handledPackets.incrementAndGet();
+				channelContext.stat.handledBytes.addAndGet(packet.getByteCount());
+				channelContext.stat.handledPacketCosts.addAndGet(iv);
 				// groupStat
 				tioConfig.groupStat.handledPackets.increment();
 				tioConfig.groupStat.handledBytes.add(packet.getByteCount());
