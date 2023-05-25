@@ -393,26 +393,22 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 				return false;
 			}
 		}
-
-		sendByteBuffer(byteBuffer, packet);
+		this.sendByteBuffer(byteBuffer, packet);
 		return true;
 	}
 
 	/**
-	 * @param byteBuffer
+	 * @param byteBuffer ByteBuffer
 	 * @param packets    Packet or List<Packet>
-	 * @author tanyaowu
 	 */
-	public void sendByteBuffer(ByteBuffer byteBuffer, Object packets) {
+	private void sendByteBuffer(ByteBuffer byteBuffer, Object packets) {
 		if (byteBuffer == null) {
 			log.error("{},byteBuffer is null", channelContext);
 			return;
 		}
-
 		if (!TioUtils.checkBeforeIO(channelContext)) {
 			return;
 		}
-
 		ReentrantLock lock = channelContext.writeCompletionHandler.lock;
 		lock.lock();
 		try {
