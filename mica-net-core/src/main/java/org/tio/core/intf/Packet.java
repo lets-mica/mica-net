@@ -221,7 +221,7 @@ public class Packet implements java.io.Serializable, Cloneable {
 	/**
 	 * 同步发送时，需要的同步序列号
 	 */
-	private Integer synSeq = 0;
+	private int synSeq = 0;
 	/**
 	 * 预编码过的bytebuffer，如果此值不为null，框架则会忽略原来的encode()而直接用此值
 	 */
@@ -289,14 +289,14 @@ public class Packet implements java.io.Serializable, Cloneable {
 	/**
 	 * @return the synSeq
 	 */
-	public Integer getSynSeq() {
+	public int getSynSeq() {
 		return synSeq;
 	}
 
 	/**
 	 * @param synSeq the synSeq to set
 	 */
-	public void setSynSeq(Integer synSeq) {
+	public void setSynSeq(int synSeq) {
 		this.synSeq = synSeq;
 	}
 

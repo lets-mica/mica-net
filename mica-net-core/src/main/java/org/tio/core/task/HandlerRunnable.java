@@ -241,8 +241,8 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	public void handler(Packet packet) {
 		long start = System.currentTimeMillis();
 		try {
-			Integer synSeq = packet.getSynSeq();
-			if (synSeq != null && synSeq > 0) {
+			int synSeq = packet.getSynSeq();
+			if (synSeq > 0) {
 				Map<Integer, Packet> syns = tioConfig.getWaitingResps();
 				Packet initPacket = syns.remove(synSeq);
 				if (initPacket != null) {
