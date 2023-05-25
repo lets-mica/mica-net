@@ -205,6 +205,7 @@ import org.tio.utils.hutool.StrUtil;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author tanyaowu
@@ -212,6 +213,8 @@ import java.util.Map.Entry;
 public class HttpRequest extends HttpPacket {
 	private static final long serialVersionUID = -3849253977016967211L;
 	private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
+	private static final AtomicLong ID_GEN = new AtomicLong();
+	private long id = ID_GEN.incrementAndGet();
 	public RequestLine requestLine = null;
 	public ChannelContext channelContext;
 	public HttpConfig httpConfig;
@@ -248,6 +251,13 @@ public class HttpRequest extends HttpPacket {
 	}
 
 	public HttpRequest() {
+	}
+
+	/**
+	 * @return the id
+	 */
+	public long getId() {
+		return id;
 	}
 
 	/**
@@ -779,7 +789,6 @@ public class HttpRequest extends HttpPacket {
 
 	/**
 	 * @return
-	 * @author tanyaowu
 	 */
 	@Override
 	public String logstr() {

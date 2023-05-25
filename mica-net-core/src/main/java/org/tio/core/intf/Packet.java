@@ -199,7 +199,6 @@ import org.tio.utils.SysConst;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author tanyaowu
@@ -208,15 +207,11 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Packet implements java.io.Serializable, Cloneable {
 	private static final Logger log = LoggerFactory.getLogger(Packet.class);
 	private static final long serialVersionUID = 5275372187150637318L;
-	private static final AtomicLong ID_GEN = new AtomicLong();
-	private Long id = ID_GEN.incrementAndGet();
 	/**
 	 * 本packet在解码时，消耗的字节数
 	 */
 	private int byteCount = 0;
-	private Long respId = null;
 	private transient PacketListener packetListener;
-	private boolean isBlockSend = false;
 	private Meta meta = null;
 	/**
 	 * 消息是否是另外一台机器通过topic转过来的，如果是就不要死循环地再一次转发啦
@@ -264,20 +259,6 @@ public class Packet implements java.io.Serializable, Cloneable {
 	}
 
 	/**
-	 * @return the id
-	 */
-	public Long getId() {
-		return id;
-	}
-
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	/**
 	 * @return the packetListener
 	 */
 	public PacketListener getPacketListener() {
@@ -306,20 +287,6 @@ public class Packet implements java.io.Serializable, Cloneable {
 	}
 
 	/**
-	 * @return the respId
-	 */
-	public Long getRespId() {
-		return respId;
-	}
-
-	/**
-	 * @param respId the respId to set
-	 */
-	public void setRespId(Long respId) {
-		this.respId = respId;
-	}
-
-	/**
 	 * @return the synSeq
 	 */
 	public Integer getSynSeq() {
@@ -331,20 +298,6 @@ public class Packet implements java.io.Serializable, Cloneable {
 	 */
 	public void setSynSeq(Integer synSeq) {
 		this.synSeq = synSeq;
-	}
-
-	/**
-	 * @return the isBlockSend
-	 */
-	public boolean isBlockSend() {
-		return isBlockSend;
-	}
-
-	/**
-	 * @param isBlockSend the isBlockSend to set
-	 */
-	public void setBlockSend(boolean isBlockSend) {
-		this.isBlockSend = isBlockSend;
 	}
 
 	public String logstr() {
