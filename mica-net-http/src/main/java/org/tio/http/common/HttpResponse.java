@@ -243,26 +243,22 @@ public class HttpResponse extends HttpPacket {
 		if (request == null) {
 			return;
 		}
-
 		if (request.httpConfig != null && request.httpConfig.compatible1_0) {
 			String connection = request.getConnection();
-			switch (request.requestLine.version) {
-				case HttpConst.HttpVersion.V1_0:
-					if (StrUtil.equals(connection, HttpConst.RequestHeaderValue.Connection.keep_alive)) {
-						addHeader(HeaderName.Connection, HeaderValue.Connection.keep_alive);
-						addHeader(HeaderName.Keep_Alive, HeaderValue.Keep_Alive.TIMEOUT_10_MAX_20);
-					} else {
-						//					addHeader(HeaderName.Connection, HeaderValue.Connection.close);
-					}
-					break;
-				default:
-					if (StrUtil.equals(connection, HttpConst.RequestHeaderValue.Connection.close)) {
-						//					addHeader(HeaderName.Connection, HeaderValue.Connection.close);
-					} else {
-						//					addHeader(HeaderName.Connection, HeaderValue.Connection.keep_alive);
-						//					addHeader(HeaderName.Keep_Alive, HeaderValue.Keep_Alive.TIMEOUT_10_MAX_20);
-					}
-					break;
+			if (HttpConst.HttpVersion.V1_0.equals(request.requestLine.version)) {
+				if (StrUtil.equals(connection, HttpConst.RequestHeaderValue.Connection.keep_alive)) {
+					addHeader(HeaderName.Connection, HeaderValue.Connection.keep_alive);
+					addHeader(HeaderName.Keep_Alive, HeaderValue.Keep_Alive.TIMEOUT_10_MAX_20);
+				} else {
+					//					addHeader(HeaderName.Connection, HeaderValue.Connection.close);
+				}
+			} else {
+				if (StrUtil.equals(connection, HttpConst.RequestHeaderValue.Connection.close)) {
+					//					addHeader(HeaderName.Connection, HeaderValue.Connection.close);
+				} else {
+					//					addHeader(HeaderName.Connection, HeaderValue.Connection.keep_alive);
+					//					addHeader(HeaderName.Keep_Alive, HeaderValue.Keep_Alive.TIMEOUT_10_MAX_20);
+				}
 			}
 		}
 	}
@@ -397,7 +393,7 @@ public class HttpResponse extends HttpPacket {
 	public String logstr() {
 		String str;
 		if (request != null) {
-			str = "\r\n响应: 请求ID_" + request.getId() + "  " + request.getRequestLine().getPathAndQuery();
+			str = "\r\n响应: 请求ID_" + request.getId() + ' ' + request.getRequestLine().getPathAndQuery();
 			str += SysConst.CRLF + this.getHeaderString();
 		} else {
 			str = "\r\n响应\r\n" + status.getHeaderText();

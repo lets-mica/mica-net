@@ -361,7 +361,6 @@ public class WsPacket extends Packet {
 	@Override
 	public String logstr() {
 		return "websocket";
-
 	}
 
 	public byte[][] getBodys() {
