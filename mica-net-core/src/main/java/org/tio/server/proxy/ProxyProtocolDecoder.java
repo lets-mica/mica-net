@@ -44,6 +44,10 @@ public final class ProxyProtocolDecoder {
 	 * 开启 proxy_protocol 的 key
 	 */
 	private static final String PROXY_PROTOCOL_KEY = "proxy_protocol_key";
+	/**
+	 * PROXY UNKNOWN\r\n
+	 */
+	private static final String UNKNOWN = "UNKNOWN";
 
 	/**
 	 * 开始 proxy protocol
@@ -90,8 +94,13 @@ public final class ProxyProtocolDecoder {
 		// 清除协议 key
 		context.remove(PROXY_PROTOCOL_KEY);
 		// 设置客户端代理节点
-		context.setClientNode(new Node(message.getSourceAddress(), message.getSourcePort()));
-		context.setProxyClientNode(new Node(message.getDestinationAddress(), message.getDestinationPort()));
+		String proxiedProtocol = message.getProxiedProtocol();
+		if (UNKNOWN.equals(proxiedProtocol)) {
+			context.setProxyClientNode(new Node(UNKNOWN, message.getDestinationPort()));
+		} else {
+			context.setClientNode(new Node(message.getSourceAddress(), message.getSourcePort()));
+			context.setProxyClientNode(new Node(message.getDestinationAddress(), message.getDestinationPort()));
+		}
 		return IgnorePacket.INSTANCE;
 	}
 
@@ -125,17 +134,17 @@ public final class ProxyProtocolDecoder {
 		if (!"PROXY".equals(parts[0])) {
 			throw new TioDecodeException("unknown identifier: " + parts[0]);
 		}
-		String protoAndFam = parts[1];
-		if (!"TCP4".equals(protoAndFam) && !"TCP6".equals(protoAndFam) && !"UNKNOWN".equals(protoAndFam)) {
-			throw new TioDecodeException("unsupported v1 proxied protocol: " + protoAndFam);
+		String proxiedProtocol = parts[1];
+		if (!"TCP4".equals(proxiedProtocol) && !"TCP6".equals(proxiedProtocol) && !UNKNOWN.equals(proxiedProtocol)) {
+			throw new TioDecodeException("unsupported v1 proxied protocol: " + proxiedProtocol);
 		}
-		if ("UNKNOWN".equals(protoAndFam)) {
+		if (UNKNOWN.equals(proxiedProtocol)) {
 			return unknownMsg();
 		}
 		if (numParts != 6) {
 			throw new TioDecodeException("invalid TCP4/6 header: " + header + " (expected: 6 parts)");
 		}
-		return new ProxyProtocolMessage(protoAndFam, parts[2], parts[3], parts[4], parts[5]);
+		return new ProxyProtocolMessage(proxiedProtocol, parts[2], parts[3], parts[4], parts[5]);
 	}
 
 	/**
@@ -143,7 +152,7 @@ public final class ProxyProtocolDecoder {
 	 * 'UNKNOWN' we must discard all other header values.
 	 */
 	private static ProxyProtocolMessage unknownMsg() {
-		return new ProxyProtocolMessage("UNKNOWN", null, null, 0, 0);
+		return new ProxyProtocolMessage(UNKNOWN, null, null, 0, 0);
 	}
 
 	/**
