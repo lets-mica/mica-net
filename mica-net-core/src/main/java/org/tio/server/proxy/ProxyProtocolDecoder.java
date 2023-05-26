@@ -55,6 +55,15 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
+	 * 去掉 proxy protocol
+	 *
+	 * @param context ChannelContext
+	 */
+	public static void removeProxyProtocol(ChannelContext context) {
+		context.remove(PROXY_PROTOCOL_KEY);
+	}
+
+	/**
 	 * 判断是否开启 proxy protocol
 	 *
 	 * @param context ChannelContext
