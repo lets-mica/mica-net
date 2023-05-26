@@ -17,7 +17,10 @@
 package org.tio.server.proxy;
 
 import org.tio.core.ChannelContext;
+import org.tio.core.Node;
 import org.tio.core.exception.TioDecodeException;
+import org.tio.core.intf.IgnorePacket;
+import org.tio.core.intf.Packet;
 import org.tio.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
@@ -65,13 +68,33 @@ public final class ProxyProtocolDecoder {
 	 * 解码 proxy protocol
 	 *
 	 * @param buffer         ByteBuffer
-	 * @param position       position
 	 * @param readableLength readableLength
 	 * @param context        ChannelContext
 	 * @return ProxyProtocolMessage
 	 * @throws TioDecodeException TioDecodeException
 	 */
-	public static ProxyProtocolMessage decode(ByteBuffer buffer, int position, int readableLength, ChannelContext context) throws TioDecodeException {
+	public static Packet decode(ByteBuffer buffer, int readableLength, ChannelContext context) throws TioDecodeException {
+		ProxyProtocolMessage message = decodeMessage(buffer, readableLength);
+		if (message == null) {
+			return null;
+		}
+		// 清除协议 key
+		context.remove(PROXY_PROTOCOL_KEY);
+		// 设置客户端代理节点
+		context.setClientNode(new Node(message.getSourceAddress(), message.getSourcePort()));
+		context.setProxyClientNode(new Node(message.getDestinationAddress(), message.getDestinationPort()));
+		return IgnorePacket.INSTANCE;
+	}
+
+	/**
+	 * 解码 proxy protocol
+	 *
+	 * @param buffer         ByteBuffer
+	 * @param readableLength readableLength
+	 * @return ProxyProtocolMessage
+	 * @throws TioDecodeException TioDecodeException
+	 */
+	public static ProxyProtocolMessage decodeMessage(ByteBuffer buffer, int readableLength) throws TioDecodeException {
 		int endOfLine = findEndOfLine(buffer);
 		// 判断超长的情况，有可能是半包，多次进入
 		if (endOfLine > V1_MAX_LENGTH || (readableLength > V1_MAX_LENGTH && endOfLine == -1)) {
@@ -85,10 +108,6 @@ public final class ProxyProtocolDecoder {
 		String header = ByteBufferUtil.readString(buffer, endOfLine, StandardCharsets.US_ASCII);
 		// 跳过 \r\n
 		ByteBufferUtil.skipBytes(buffer, 2);
-		// 清除，单元测试时为 null
-		if (context != null) {
-			context.remove(PROXY_PROTOCOL_KEY);
-		}
 		String[] parts = header.split(" ");
 		int numParts = parts.length;
 		if (numParts < 2) {

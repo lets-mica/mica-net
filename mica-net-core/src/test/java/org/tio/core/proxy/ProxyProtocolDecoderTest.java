@@ -18,11 +18,7 @@ package org.tio.core.proxy;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.tio.client.TioClientConfig;
-import org.tio.core.TioConfig;
 import org.tio.core.exception.TioDecodeException;
-import org.tio.server.ServerChannelContext;
-import org.tio.server.TioServerConfig;
 import org.tio.server.proxy.ProxyProtocolDecoder;
 import org.tio.server.proxy.ProxyProtocolMessage;
 
@@ -35,13 +31,12 @@ import java.nio.charset.StandardCharsets;
  * @author L.cm
  */
 class ProxyProtocolDecoderTest {
-	private final ProxyProtocolDecoder proxyProtocolDecoder = new ProxyProtocolDecoder();
 
 	@Test
 	void testIPV4Decode() throws TioDecodeException {
 		String header = "PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n";
 		ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-		ProxyProtocolMessage msg = proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+		ProxyProtocolMessage msg = ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		Assertions.assertEquals("TCP4", msg.getProxiedProtocol());
 		Assertions.assertEquals("192.168.0.1", msg.getSourceAddress());
 		Assertions.assertEquals("192.168.0.11", msg.getDestinationAddress());
@@ -53,7 +48,7 @@ class ProxyProtocolDecoderTest {
 	void testIPV6Decode() throws TioDecodeException {
 		String header = "PROXY TCP6 2001:0db8:85a3:0000:0000:8a2e:0370:7334 1050:0:0:0:5:600:300c:326b 56324 443\r\n";
 		ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-		ProxyProtocolMessage msg = proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+		ProxyProtocolMessage msg = ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		Assertions.assertEquals("TCP6", msg.getProxiedProtocol());
 		Assertions.assertEquals("2001:0db8:85a3:0000:0000:8a2e:0370:7334", msg.getSourceAddress());
 		Assertions.assertEquals("1050:0:0:0:5:600:300c:326b", msg.getDestinationAddress());
@@ -65,7 +60,7 @@ class ProxyProtocolDecoderTest {
 	void testUnknownProtocolDecode() throws TioDecodeException {
 		String header = "PROXY UNKNOWN 192.168.0.1 192.168.0.11 56324 443\r\n";
 		ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-		ProxyProtocolMessage msg = proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+		ProxyProtocolMessage msg = ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		Assertions.assertEquals("UNKNOWN", msg.getProxiedProtocol());
 		Assertions.assertNull(msg.getSourceAddress());
 		Assertions.assertNull(msg.getDestinationAddress());
@@ -78,7 +73,7 @@ class ProxyProtocolDecoderTest {
 		final String header = "PROXY UDP4 192.168.0.1 192.168.0.11 56324 443\r\n";
 		Assertions.assertThrows(TioDecodeException.class, () -> {
 			ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-			proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+			ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		});
 	}
 
@@ -87,7 +82,7 @@ class ProxyProtocolDecoderTest {
 		final String header = "PROXY TCP4 192.168.0.1 192.168.0.11 80000 443\r\n";
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-			proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+			ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		});
 	}
 
@@ -96,7 +91,7 @@ class ProxyProtocolDecoderTest {
 		final String header = "PROXY TCP7 192.168.0.1 192.168.0.11 56324 443\r\n";
 		Assertions.assertThrows(TioDecodeException.class, () -> {
 			ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-			proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+			ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		});
 	}
 
@@ -105,7 +100,7 @@ class ProxyProtocolDecoderTest {
 		final String header = "PROXY TCP4 192.168.0.1 192.168.0.11 56324\r\n";
 		Assertions.assertThrows(TioDecodeException.class, () -> {
 			ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-			proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+			ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		});
 	}
 
@@ -114,7 +109,7 @@ class ProxyProtocolDecoderTest {
 		final String header = "PROXY TCP4 192.168.0.1 192.168.0.11 56324 443 123\r\n";
 		Assertions.assertThrows(TioDecodeException.class, () -> {
 			ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-			proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+			ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		});
 	}
 
@@ -123,7 +118,7 @@ class ProxyProtocolDecoderTest {
 		final String header = "PING TCP4 192.168.0.1 192.168.0.11 56324 443\r\n";
 		Assertions.assertThrows(TioDecodeException.class, () -> {
 			ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-			proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+			ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		});
 	}
 
@@ -132,7 +127,7 @@ class ProxyProtocolDecoderTest {
 		final String header = "PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\nGET / HTTP/1.1\r\n";
 		Assertions.assertThrows(TioDecodeException.class, () -> {
 			ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-			proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+			ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		});
 	}
 
@@ -142,7 +137,7 @@ class ProxyProtocolDecoderTest {
 			"00000000000000000000000000000000000000000000000000000000000000000443\r\n";
 		Assertions.assertThrows(TioDecodeException.class, () -> {
 			ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
-			proxyProtocolDecoder.decode(byteBuffer, byteBuffer.position(), byteBuffer.limit(), null);
+			ProxyProtocolDecoder.decodeMessage(byteBuffer, byteBuffer.limit());
 		});
 	}
 
