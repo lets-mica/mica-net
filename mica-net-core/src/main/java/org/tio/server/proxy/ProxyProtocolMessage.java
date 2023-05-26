@@ -24,6 +24,10 @@ package org.tio.server.proxy;
 public class ProxyProtocolMessage {
 
 	/**
+	 * 代理的协议，ipv4/6
+	 */
+	private final String proxiedProtocol;
+	/**
 	 * 源地址
 	 */
 	private final String sourceAddress;
@@ -40,11 +44,28 @@ public class ProxyProtocolMessage {
 	 */
 	private final int destinationPort;
 
-	public ProxyProtocolMessage(String sourceAddress, String destinationAddress, int sourcePort, int destinationPort) {
+	public ProxyProtocolMessage(String proxiedProtocol,
+								String sourceAddress,
+								String destinationAddress,
+								String sourcePort,
+								String destinationPort) {
+		this(proxiedProtocol, sourceAddress, destinationAddress, portStringToInt(sourcePort), portStringToInt(destinationPort));
+	}
+
+	public ProxyProtocolMessage(String proxiedProtocol,
+								String sourceAddress,
+								String destinationAddress,
+								int sourcePort,
+								int destinationPort) {
+		this.proxiedProtocol = proxiedProtocol;
 		this.sourceAddress = sourceAddress;
 		this.destinationAddress = destinationAddress;
 		this.sourcePort = sourcePort;
 		this.destinationPort = destinationPort;
+	}
+
+	public String getProxiedProtocol() {
+		return proxiedProtocol;
 	}
 
 	public String getSourceAddress() {
@@ -63,10 +84,31 @@ public class ProxyProtocolMessage {
 		return destinationPort;
 	}
 
+	/**
+	 * Convert port to integer
+	 *
+	 * @param value the port
+	 * @return port as an integer
+	 * @throws IllegalArgumentException if port is not a valid integer
+	 */
+	private static int portStringToInt(String value) {
+		int port;
+		try {
+			port = Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("invalid port: " + value, e);
+		}
+		if (port <= 0 || port > 65535) {
+			throw new IllegalArgumentException("invalid port: " + value + " (expected: 1 ~ 65535)");
+		}
+		return port;
+	}
+
 	@Override
 	public String toString() {
 		return "ProxyProtocolMessage{" +
-			"sourceAddress='" + sourceAddress + '\'' +
+			"proxiedProtocol='" + proxiedProtocol + '\'' +
+			", sourceAddress='" + sourceAddress + '\'' +
 			", destinationAddress='" + destinationAddress + '\'' +
 			", sourcePort=" + sourcePort +
 			", destinationPort=" + destinationPort +
