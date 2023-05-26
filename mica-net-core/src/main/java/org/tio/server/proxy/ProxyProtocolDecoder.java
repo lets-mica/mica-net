@@ -71,25 +71,24 @@ public final class ProxyProtocolDecoder {
 	 * @return ProxyProtocolMessage
 	 * @throws TioDecodeException TioDecodeException
 	 */
-	public ProxyProtocolMessage decode(ByteBuffer buffer, int position, int readableLength, ChannelContext context) throws TioDecodeException {
+	public static ProxyProtocolMessage decode(ByteBuffer buffer, int position, int readableLength, ChannelContext context) throws TioDecodeException {
 		int endOfLine = findEndOfLine(buffer);
 		// 判断超长的情况，有可能是半包，多次进入
-		if (readableLength > V1_MAX_LENGTH) {
+		if (endOfLine > V1_MAX_LENGTH || (readableLength > V1_MAX_LENGTH && endOfLine == -1)) {
 			throw new TioDecodeException("Error v1 proxy protocol, readableLength: " + readableLength);
 		}
 		// 有可能半包，所以返回 null
 		if (endOfLine == -1) {
 			return null;
 		}
-		buffer.mark();
-		buffer.position(position);
 		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
 		String header = ByteBufferUtil.readString(buffer, endOfLine, StandardCharsets.US_ASCII);
+		// 跳过 \r\n
+		ByteBufferUtil.skipBytes(buffer, 2);
 		// 清除，单元测试时为 null
 		if (context != null) {
 			context.remove(PROXY_PROTOCOL_KEY);
 		}
-		buffer.reset();
 		String[] parts = header.split(" ");
 		int numParts = parts.length;
 		if (numParts < 2) {
