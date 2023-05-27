@@ -3,6 +3,8 @@
 ## 发行版本
 
 ### v0.1.2 - 2023-05-27
+- :sparkles: 添加 `ProxyProtocolDecoder` 支持 nginx 开启 tcp proxy_protocol on; 时转发源 ip 信息。
+- :sparkles: 精简 `Packet`，减少内存占用
 - :sparkles: 回滚 `ChannelStat` 使用 `AtomicLong` 更加合适，内存占用更少。
 - :sparkles: 合并 `WriteBuffer` 到 `FastByteBuffer`。
 - :sparkles: 添加 `mica-net-cluster` 集群模块。
