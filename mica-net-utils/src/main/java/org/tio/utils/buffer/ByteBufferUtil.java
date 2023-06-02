@@ -140,6 +140,16 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * read int, 4个字节
+	 *
+	 * @param buffer ByteBuffer
+	 * @return int
+	 */
+	public static int readInt(ByteBuffer buffer) {
+		return buffer.getInt();
+	}
+
+	/**
 	 * read unsigned int, 4个字节无符号
 	 *
 	 * @param buffer ByteBuffer
@@ -165,6 +175,56 @@ public class ByteBufferUtil {
 		byte[] value = new byte[4];
 		buffer.get(value, 0, 4);
 		long l = (long) (value[0] & 0xff) << 24;
+		l |= (value[1] & 0xff) << 16;
+		l |= (value[2] & 0xff) << 8;
+		l |= value[3] & 0xff;
+		return l;
+	}
+
+	/**
+	 * read long, 8个字节
+	 *
+	 * @param buffer ByteBuffer
+	 * @return long
+	 */
+	public static long readLong(ByteBuffer buffer) {
+		return buffer.getLong();
+	}
+
+	/**
+	 * read long, 8个字节，无符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @return long
+	 */
+	public static long readUnsignedLong(ByteBuffer buffer) {
+		byte[] value = new byte[8];
+		buffer.get(value, 0, 8);
+		long l = value[0] & 0xff;
+		l |= (value[1] & 0xff) << 8;
+		l |= (value[2] & 0xff) << 16;
+		l |= (long) (value[3] & 0xff) << 24;
+		l |= (long) (value[4] & 0xff) << 32;
+		l |= (long) (value[5] & 0xff) << 40;
+		l |= (long) (value[6] & 0xff) << 48;
+		l |= (long) (value[7] & 0xff) << 56;
+		return l;
+	}
+
+	/**
+	 * read long, 8个字节，无符号，大端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @return long
+	 */
+	public static long readUnsignedLongBE(ByteBuffer buffer) {
+		byte[] value = new byte[8];
+		buffer.get(value, 0, 8);
+		long l = (long) (value[0] & 0xff) << 56;
+		l |= (long) (value[0] & 0xff) << 48;
+		l |= (long) (value[0] & 0xff) << 40;
+		l |= (long) (value[0] & 0xff) << 32;
+		l |= (long) (value[0] & 0xff) << 24;
 		l |= (value[1] & 0xff) << 16;
 		l |= (value[2] & 0xff) << 8;
 		l |= value[3] & 0xff;
