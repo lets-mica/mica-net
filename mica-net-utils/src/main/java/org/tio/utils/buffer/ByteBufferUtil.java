@@ -181,7 +181,7 @@ public class ByteBufferUtil {
 	 * read int, 4个字节，小端
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return int
 	 */
 	public static int readIntLE(ByteBuffer buffer) {
 		byte[] value = new byte[4];
@@ -197,12 +197,12 @@ public class ByteBufferUtil {
 	 * read int, 4个字节，大端在前
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return int
 	 */
 	public static int readIntBE(ByteBuffer buffer) {
 		byte[] value = new byte[4];
 		buffer.get(value, 0, 4);
-		int ret = value[0]  << 24;
+		int ret = value[0] << 24;
 		ret |= (value[1] & 0xff) << 16;
 		ret |= (value[2] & 0xff) << 8;
 		ret |= value[3] & 0xff;
@@ -239,6 +239,36 @@ public class ByteBufferUtil {
 		l |= (value[2] & 0xff) << 8;
 		l |= value[3] & 0xff;
 		return l;
+	}
+
+	/**
+	 * read float, 4个字节，小端
+	 *
+	 * @param buffer ByteBuffer
+	 * @return float
+	 */
+	public static float readFloat(ByteBuffer buffer) {
+		return buffer.getFloat();
+	}
+
+	/**
+	 * read float, 4个字节，小端
+	 *
+	 * @param buffer ByteBuffer
+	 * @return float
+	 */
+	public static float readFloatLE(ByteBuffer buffer) {
+		return Float.intBitsToFloat(readIntLE(buffer));
+	}
+
+	/**
+	 * read float, 4个字节，大端
+	 *
+	 * @param buffer ByteBuffer
+	 * @return float
+	 */
+	public static float readFloatBE(ByteBuffer buffer) {
+		return Float.intBitsToFloat(readIntBE(buffer));
 	}
 
 	/**
@@ -329,6 +359,36 @@ public class ByteBufferUtil {
 		l |= (value[6] & 0xff) << 8;
 		l |= value[7] & 0xff;
 		return l;
+	}
+
+	/**
+	 * read double, 8个字节
+	 *
+	 * @param buffer ByteBuffer
+	 * @return double
+	 */
+	public static double readDouble(ByteBuffer buffer) {
+		return buffer.getDouble();
+	}
+
+	/**
+	 * read double, 8个字节，小端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @return double
+	 */
+	public static double readDoubleLE(ByteBuffer buffer) {
+		return Double.longBitsToDouble(readLongLE(buffer));
+	}
+
+	/**
+	 * read double, 8个字节，大端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @return double
+	 */
+	public static double readDoubleBE(ByteBuffer buffer) {
+		return Double.longBitsToDouble(readLongBE(buffer));
 	}
 
 	/**
@@ -472,6 +532,36 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * 写出 4 个字节的 float
+	 *
+	 * @param buffer ByteBuffer
+	 * @param value  数据
+	 */
+	public static void writeFloat(ByteBuffer buffer, float value) {
+		buffer.putFloat(value);
+	}
+
+	/**
+	 * 写出 4 个字节的 float，小端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param value  数据
+	 */
+	public static void writeFloatLE(ByteBuffer buffer, float value) {
+		writeIntLE(buffer, Float.floatToRawIntBits(value));
+	}
+
+	/**
+	 * 写出 4 个字节的 float，大端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param value  数据
+	 */
+	public static void writeFloatBE(ByteBuffer buffer, float value) {
+		writeIntBE(buffer, Float.floatToRawIntBits(value));
+	}
+
+	/**
 	 * 写出 8 个字节的 long，小端模式
 	 *
 	 * @param buffer ByteBuffer
@@ -545,6 +635,36 @@ public class ByteBufferUtil {
 		value[6] = (byte) (l >>> 8);
 		value[7] = (byte) (l & 0xff);
 		buffer.put(value, 0, 8);
+	}
+
+	/**
+	 * 写出 8 个字节的 value
+	 *
+	 * @param buffer ByteBuffer
+	 * @param value  数据
+	 */
+	public static void writeDouble(ByteBuffer buffer, double value) {
+		buffer.putDouble(value);
+	}
+
+	/**
+	 * 写出 8 个字节的 value，小端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param value  数据
+	 */
+	public static void writeDoubleLE(ByteBuffer buffer, double value) {
+		writeLongLE(buffer, Double.doubleToRawLongBits(value));
+	}
+
+	/**
+	 * 写出 8 个字节的 value，大端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param value  数据
+	 */
+	public static void writeDoubleBE(ByteBuffer buffer, double value) {
+		writeLongBE(buffer, Double.doubleToRawLongBits(value));
 	}
 
 	/**

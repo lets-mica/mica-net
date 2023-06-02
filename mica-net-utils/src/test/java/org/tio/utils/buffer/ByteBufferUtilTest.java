@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 class ByteBufferUtilTest {
 
 	@Test
-	void test() {
+	void test1() {
 		short short1 = 25511;
 		short short2 = -25511;
 		ByteBuffer byteBuffer = ByteBuffer.allocate(28);
@@ -35,6 +35,26 @@ class ByteBufferUtilTest {
 		Assertions.assertEquals(int2, ByteBufferUtil.readIntLE(byteBuffer));
 		Assertions.assertEquals(long1, ByteBufferUtil.readLongBE(byteBuffer));
 		Assertions.assertEquals(long2, ByteBufferUtil.readLongLE(byteBuffer));
+	}
+
+	@Test
+	void test2() {
+		ByteBuffer byteBuffer = ByteBuffer.allocate(24);
+		// float
+		float float1 = 25511111.0001F;
+		float float2 = -25511111.0002F;
+		byteBuffer.putFloat(float1);
+		ByteBufferUtil.writeFloatLE(byteBuffer, float2);
+		// double
+		double double1 = 255111111111.011111D;
+		double double2 = -255111111111.02222D;
+		byteBuffer.putDouble(double1);
+		ByteBufferUtil.writeDoubleLE(byteBuffer, double2);
+		byteBuffer.flip();
+		Assertions.assertEquals(float1, ByteBufferUtil.readFloatBE(byteBuffer));
+		Assertions.assertEquals(float2, ByteBufferUtil.readFloatLE(byteBuffer));
+		Assertions.assertEquals(double1, ByteBufferUtil.readDoubleBE(byteBuffer));
+		Assertions.assertEquals(double2, ByteBufferUtil.readDoubleLE(byteBuffer));
 	}
 
 	@Test
