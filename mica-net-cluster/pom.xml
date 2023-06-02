@@ -17,6 +17,18 @@
             <groupId>net.dreamlu</groupId>
             <artifactId>mica-net-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+            <version>1.8.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-runtime</artifactId>
+            <version>1.8.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

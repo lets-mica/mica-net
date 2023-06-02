@@ -59,3 +59,6 @@ gen_code
 # Flattened pom
 .flattened-pom.xml
 /**/.flattened-pom.xml
+
+# test
+test-nio
