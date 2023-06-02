@@ -218,11 +218,11 @@ public class ByteBufferUtil {
 	public static long readUnsignedInt(ByteBuffer buffer) {
 		byte[] value = new byte[4];
 		buffer.get(value, 0, 4);
-		long l = value[0] & 0xff;
-		l |= (value[1] & 0xff) << 8;
-		l |= (value[2] & 0xff) << 16;
-		l |= (long) (value[3] & 0xff) << 24;
-		return l;
+		long ret = value[0] & 0xff;
+		ret |= (value[1] & 0xff) << 8;
+		ret |= (value[2] & 0xff) << 16;
+		ret |= (long) (value[3] & 0xff) << 24;
+		return ret;
 	}
 
 	/**
@@ -234,11 +234,11 @@ public class ByteBufferUtil {
 	public static long readUnsignedIntBE(ByteBuffer buffer) {
 		byte[] value = new byte[4];
 		buffer.get(value, 0, 4);
-		long l = (long) (value[0] & 0xff) << 24;
-		l |= (value[1] & 0xff) << 16;
-		l |= (value[2] & 0xff) << 8;
-		l |= value[3] & 0xff;
-		return l;
+		long ret = (long) (value[0] & 0xff) << 24;
+		ret |= (value[1] & 0xff) << 16;
+		ret |= (value[2] & 0xff) << 8;
+		ret |= value[3] & 0xff;
+		return ret;
 	}
 
 	/**
@@ -290,15 +290,15 @@ public class ByteBufferUtil {
 	public static long readLongLE(ByteBuffer buffer) {
 		byte[] value = new byte[8];
 		buffer.get(value, 0, 8);
-		long l = value[0] & 0xff;
-		l |= (value[1] & 0xff) << 8;
-		l |= (value[2] & 0xff) << 16;
-		l |= (long) (value[3] & 0xff) << 24;
-		l |= (long) (value[4] & 0xff) << 32;
-		l |= (long) (value[5] & 0xff) << 40;
-		l |= (long) (value[6] & 0xff) << 48;
-		l |= (long) value[7] << 56;
-		return l;
+		long ret = value[0] & 0xff;
+		ret |= (value[1] & 0xff) << 8;
+		ret |= (value[2] & 0xff) << 16;
+		ret |= (long) (value[3] & 0xff) << 24;
+		ret |= (long) (value[4] & 0xff) << 32;
+		ret |= (long) (value[5] & 0xff) << 40;
+		ret |= (long) (value[6] & 0xff) << 48;
+		ret |= (long) value[7] << 56;
+		return ret;
 	}
 
 	/**
@@ -310,15 +310,15 @@ public class ByteBufferUtil {
 	public static long readLongBE(ByteBuffer buffer) {
 		byte[] value = new byte[8];
 		buffer.get(value, 0, 8);
-		long l = (long) value[0] << 56;
-		l |= (long) (value[1] & 0xff) << 48;
-		l |= (long) (value[2] & 0xff) << 40;
-		l |= (long) (value[3] & 0xff) << 32;
-		l |= (long) (value[4] & 0xff) << 24;
-		l |= (value[5] & 0xff) << 16;
-		l |= (value[6] & 0xff) << 8;
-		l |= value[7] & 0xff;
-		return l;
+		long ret = (long) value[0] << 56;
+		ret |= (long) (value[1] & 0xff) << 48;
+		ret |= (long) (value[2] & 0xff) << 40;
+		ret |= (long) (value[3] & 0xff) << 32;
+		ret |= (long) (value[4] & 0xff) << 24;
+		ret |= (value[5] & 0xff) << 16;
+		ret |= (value[6] & 0xff) << 8;
+		ret |= value[7] & 0xff;
+		return ret;
 	}
 
 	/**
@@ -330,15 +330,15 @@ public class ByteBufferUtil {
 	public static long readUnsignedLong(ByteBuffer buffer) {
 		byte[] value = new byte[8];
 		buffer.get(value, 0, 8);
-		long l = value[0] & 0xff;
-		l |= (value[1] & 0xff) << 8;
-		l |= (value[2] & 0xff) << 16;
-		l |= (long) (value[3] & 0xff) << 24;
-		l |= (long) (value[4] & 0xff) << 32;
-		l |= (long) (value[5] & 0xff) << 40;
-		l |= (long) (value[6] & 0xff) << 48;
-		l |= (long) (value[7] & 0xff) << 56;
-		return l;
+		long ret = value[0] & 0xff;
+		ret |= (value[1] & 0xff) << 8;
+		ret |= (value[2] & 0xff) << 16;
+		ret |= (long) (value[3] & 0xff) << 24;
+		ret |= (long) (value[4] & 0xff) << 32;
+		ret |= (long) (value[5] & 0xff) << 40;
+		ret |= (long) (value[6] & 0xff) << 48;
+		ret |= (long) (value[7] & 0xff) << 56;
+		return ret;
 	}
 
 	/**
@@ -350,15 +350,15 @@ public class ByteBufferUtil {
 	public static long readUnsignedLongBE(ByteBuffer buffer) {
 		byte[] value = new byte[8];
 		buffer.get(value, 0, 8);
-		long l = (long) (value[0] & 0xff) << 56;
-		l |= (long) (value[1] & 0xff) << 48;
-		l |= (long) (value[2] & 0xff) << 40;
-		l |= (long) (value[3] & 0xff) << 32;
-		l |= (long) (value[4] & 0xff) << 24;
-		l |= (value[5] & 0xff) << 16;
-		l |= (value[6] & 0xff) << 8;
-		l |= value[7] & 0xff;
-		return l;
+		long ret = (long) (value[0] & 0xff) << 56;
+		ret |= (long) (value[1] & 0xff) << 48;
+		ret |= (long) (value[2] & 0xff) << 40;
+		ret |= (long) (value[3] & 0xff) << 32;
+		ret |= (long) (value[4] & 0xff) << 24;
+		ret |= (value[5] & 0xff) << 16;
+		ret |= (value[6] & 0xff) << 8;
+		ret |= value[7] & 0xff;
+		return ret;
 	}
 
 	/**
@@ -395,12 +395,12 @@ public class ByteBufferUtil {
 	 * 写出 2 个字节的 short，小端模式
 	 *
 	 * @param buffer ByteBuffer
-	 * @param i      数据
+	 * @param s      数据
 	 */
-	public static void writeShortLE(ByteBuffer buffer, int i) {
+	public static void writeShortLE(ByteBuffer buffer, short s) {
 		byte[] value = new byte[2];
-		value[0] = (byte) i;
-		value[1] = (byte) (i >> 8);
+		value[0] = (byte) s;
+		value[1] = (byte) (s >> 8);
 		buffer.put(value, 0, 2);
 	}
 
@@ -408,12 +408,12 @@ public class ByteBufferUtil {
 	 * 写出 2 个字节的 short，大端模式
 	 *
 	 * @param buffer ByteBuffer
-	 * @param i      数据
+	 * @param s      数据
 	 */
-	public static void writeShortBE(ByteBuffer buffer, int i) {
+	public static void writeShortBE(ByteBuffer buffer, short s) {
 		byte[] value = new byte[2];
-		value[0] = (byte) (i >> 8);
-		value[1] = (byte) i;
+		value[0] = (byte) (s >> 8);
+		value[1] = (byte) s;
 		buffer.put(value, 0, 2);
 	}
 
