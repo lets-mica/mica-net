@@ -19,7 +19,6 @@ package org.tio.utils.buffer;
 import org.tio.utils.mica.HexUtils;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -89,11 +88,11 @@ public class ByteBufferUtil {
 	 * @return short
 	 */
 	public static short readShortLE(ByteBuffer buffer) {
-		short value = buffer.getShort();
-		if (ByteOrder.LITTLE_ENDIAN == buffer.order()) {
-			return value;
-		}
-		return Short.reverseBytes(value);
+		byte[] value = new byte[2];
+		buffer.get(value, 0, 2);
+		short ret = value[0];
+		ret |= (value[1] & 0xff) << 8;
+		return ret;
 	}
 
 	/**
@@ -103,11 +102,11 @@ public class ByteBufferUtil {
 	 * @return short
 	 */
 	public static short readShortBE(ByteBuffer buffer) {
-		short value = buffer.getShort();
-		if (ByteOrder.BIG_ENDIAN == buffer.order()) {
-			return value;
-		}
-		return Short.reverseBytes(value);
+		byte[] value = new byte[2];
+		buffer.get(value, 0, 2);
+		short ret = (short) ((value[0]) << 8);
+		ret |= value[1] & 0xff;
+		return ret;
 	}
 
 	/**
@@ -147,10 +146,10 @@ public class ByteBufferUtil {
 	public static int readUnsignedMedium(ByteBuffer buffer) {
 		byte[] value = new byte[3];
 		buffer.get(value, 0, 3);
-		int i = value[0] & 0xff;
-		i |= (value[1] & 0xff) << 8;
-		i |= (value[2] & 0xff) << 16;
-		return i;
+		int ret = value[0] & 0xff;
+		ret |= (value[1] & 0xff) << 8;
+		ret |= (value[2] & 0xff) << 16;
+		return ret;
 	}
 
 	/**
@@ -162,10 +161,10 @@ public class ByteBufferUtil {
 	public static int readUnsignedMediumBE(ByteBuffer buffer) {
 		byte[] value = new byte[3];
 		buffer.get(value, 0, 3);
-		int i = (value[0] & 0xff) << 16;
-		i |= (value[1] & 0xff) << 8;
-		i |= value[2] & 0xff;
-		return i;
+		int ret = (value[0] & 0xff) << 16;
+		ret |= (value[1] & 0xff) << 8;
+		ret |= value[2] & 0xff;
+		return ret;
 	}
 
 	/**
@@ -185,11 +184,13 @@ public class ByteBufferUtil {
 	 * @return long
 	 */
 	public static int readIntLE(ByteBuffer buffer) {
-		int value = buffer.getInt();
-		if (ByteOrder.LITTLE_ENDIAN == buffer.order()) {
-			return value;
-		}
-		return Integer.reverseBytes(value);
+		byte[] value = new byte[4];
+		buffer.get(value, 0, 4);
+		int ret = value[0] & 0xff;
+		ret |= (value[1] & 0xff) << 8;
+		ret |= (value[2] & 0xff) << 16;
+		ret |= value[3] << 24;
+		return ret;
 	}
 
 	/**
@@ -199,11 +200,13 @@ public class ByteBufferUtil {
 	 * @return long
 	 */
 	public static int readIntBE(ByteBuffer buffer) {
-		int value = buffer.getInt();
-		if (ByteOrder.BIG_ENDIAN == buffer.order()) {
-			return value;
-		}
-		return Integer.reverseBytes(value);
+		byte[] value = new byte[4];
+		buffer.get(value, 0, 4);
+		int ret = value[0]  << 24;
+		ret |= (value[1] & 0xff) << 16;
+		ret |= (value[2] & 0xff) << 8;
+		ret |= value[3] & 0xff;
+		return ret;
 	}
 
 	/**
@@ -255,11 +258,17 @@ public class ByteBufferUtil {
 	 * @return long
 	 */
 	public static long readLongLE(ByteBuffer buffer) {
-		long value = buffer.getLong();
-		if (ByteOrder.LITTLE_ENDIAN == buffer.order()) {
-			return value;
-		}
-		return Long.reverseBytes(value);
+		byte[] value = new byte[8];
+		buffer.get(value, 0, 8);
+		long l = value[0] & 0xff;
+		l |= (value[1] & 0xff) << 8;
+		l |= (value[2] & 0xff) << 16;
+		l |= (long) (value[3] & 0xff) << 24;
+		l |= (long) (value[4] & 0xff) << 32;
+		l |= (long) (value[5] & 0xff) << 40;
+		l |= (long) (value[6] & 0xff) << 48;
+		l |= (long) value[7] << 56;
+		return l;
 	}
 
 	/**
@@ -269,11 +278,17 @@ public class ByteBufferUtil {
 	 * @return long
 	 */
 	public static long readLongBE(ByteBuffer buffer) {
-		long value = buffer.getLong();
-		if (ByteOrder.BIG_ENDIAN == buffer.order()) {
-			return value;
-		}
-		return Long.reverseBytes(value);
+		byte[] value = new byte[8];
+		buffer.get(value, 0, 8);
+		long l = (long) value[0] << 56;
+		l |= (long) (value[1] & 0xff) << 48;
+		l |= (long) (value[2] & 0xff) << 40;
+		l |= (long) (value[3] & 0xff) << 32;
+		l |= (long) (value[4] & 0xff) << 24;
+		l |= (value[5] & 0xff) << 16;
+		l |= (value[6] & 0xff) << 8;
+		l |= value[7] & 0xff;
+		return l;
 	}
 
 	/**
@@ -400,14 +415,14 @@ public class ByteBufferUtil {
 	 * 写出 4 个字节的 int，小端模式
 	 *
 	 * @param buffer ByteBuffer
-	 * @param l      数据
+	 * @param i      数据
 	 */
-	public static void writeIntLE(ByteBuffer buffer, long l) {
+	public static void writeIntLE(ByteBuffer buffer, int i) {
 		byte[] value = new byte[4];
-		value[0] = (byte) l;
-		value[1] = (byte) (l >> 8);
-		value[2] = (byte) (l >> 16);
-		value[3] = (byte) (l >> 24);
+		value[0] = (byte) i;
+		value[1] = (byte) (i >> 8);
+		value[2] = (byte) (i >> 16);
+		value[3] = (byte) (i >> 24);
 		buffer.put(value, 0, 4);
 	}
 
@@ -415,14 +430,14 @@ public class ByteBufferUtil {
 	 * 写出 4 个字节的 int，大端模式
 	 *
 	 * @param buffer ByteBuffer
-	 * @param l      数据
+	 * @param i      数据
 	 */
-	public static void writeIntBE(ByteBuffer buffer, long l) {
+	public static void writeIntBE(ByteBuffer buffer, int i) {
 		byte[] value = new byte[4];
-		value[0] = (byte) (l >> 24);
-		value[1] = (byte) (l >> 16);
-		value[2] = (byte) (l >> 8);
-		value[3] = (byte) l;
+		value[0] = (byte) (i >> 24);
+		value[1] = (byte) (i >> 16);
+		value[2] = (byte) (i >> 8);
+		value[3] = (byte) i;
 		buffer.put(value, 0, 4);
 	}
 
