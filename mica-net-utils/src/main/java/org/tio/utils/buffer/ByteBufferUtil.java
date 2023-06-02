@@ -19,6 +19,7 @@ package org.tio.utils.buffer;
 import org.tio.utils.mica.HexUtils;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -72,13 +73,41 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 读取short
+	 * 读取 short
 	 *
 	 * @param buffer ByteBuffer
 	 * @return short
 	 */
 	public static short readShort(ByteBuffer buffer) {
 		return buffer.getShort();
+	}
+
+	/**
+	 * 读取 short，小端
+	 *
+	 * @param buffer ByteBuffer
+	 * @return short
+	 */
+	public static short readShortLE(ByteBuffer buffer) {
+		short value = buffer.getShort();
+		if (ByteOrder.LITTLE_ENDIAN == buffer.order()) {
+			return value;
+		}
+		return Short.reverseBytes(value);
+	}
+
+	/**
+	 * 读取 short，大端
+	 *
+	 * @param buffer ByteBuffer
+	 * @return short
+	 */
+	public static short readShortBE(ByteBuffer buffer) {
+		short value = buffer.getShort();
+		if (ByteOrder.BIG_ENDIAN == buffer.order()) {
+			return value;
+		}
+		return Short.reverseBytes(value);
 	}
 
 	/**
@@ -150,6 +179,34 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * read int, 4个字节，小端
+	 *
+	 * @param buffer ByteBuffer
+	 * @return long
+	 */
+	public static int readIntLE(ByteBuffer buffer) {
+		int value = buffer.getInt();
+		if (ByteOrder.LITTLE_ENDIAN == buffer.order()) {
+			return value;
+		}
+		return Integer.reverseBytes(value);
+	}
+
+	/**
+	 * read int, 4个字节，大端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @return long
+	 */
+	public static int readIntBE(ByteBuffer buffer) {
+		int value = buffer.getInt();
+		if (ByteOrder.BIG_ENDIAN == buffer.order()) {
+			return value;
+		}
+		return Integer.reverseBytes(value);
+	}
+
+	/**
 	 * read unsigned int, 4个字节无符号
 	 *
 	 * @param buffer ByteBuffer
@@ -197,6 +254,34 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @return long
 	 */
+	public static long readLongLE(ByteBuffer buffer) {
+		long value = buffer.getLong();
+		if (ByteOrder.LITTLE_ENDIAN == buffer.order()) {
+			return value;
+		}
+		return Long.reverseBytes(value);
+	}
+
+	/**
+	 * read long, 8个字节，无符号，大端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @return long
+	 */
+	public static long readLongBE(ByteBuffer buffer) {
+		long value = buffer.getLong();
+		if (ByteOrder.BIG_ENDIAN == buffer.order()) {
+			return value;
+		}
+		return Long.reverseBytes(value);
+	}
+
+	/**
+	 * read long, 8个字节，无符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @return long
+	 */
 	public static long readUnsignedLong(ByteBuffer buffer) {
 		byte[] value = new byte[8];
 		buffer.get(value, 0, 8);
@@ -221,14 +306,40 @@ public class ByteBufferUtil {
 		byte[] value = new byte[8];
 		buffer.get(value, 0, 8);
 		long l = (long) (value[0] & 0xff) << 56;
-		l |= (long) (value[0] & 0xff) << 48;
-		l |= (long) (value[0] & 0xff) << 40;
-		l |= (long) (value[0] & 0xff) << 32;
-		l |= (long) (value[0] & 0xff) << 24;
-		l |= (value[1] & 0xff) << 16;
-		l |= (value[2] & 0xff) << 8;
-		l |= value[3] & 0xff;
+		l |= (long) (value[1] & 0xff) << 48;
+		l |= (long) (value[2] & 0xff) << 40;
+		l |= (long) (value[3] & 0xff) << 32;
+		l |= (long) (value[4] & 0xff) << 24;
+		l |= (value[5] & 0xff) << 16;
+		l |= (value[6] & 0xff) << 8;
+		l |= value[7] & 0xff;
 		return l;
+	}
+
+	/**
+	 * 写出 2 个字节的 short，小端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param i      数据
+	 */
+	public static void writeShortLE(ByteBuffer buffer, int i) {
+		byte[] value = new byte[2];
+		value[0] = (byte) i;
+		value[1] = (byte) (i >> 8);
+		buffer.put(value, 0, 2);
+	}
+
+	/**
+	 * 写出 2 个字节的 short，大端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param i      数据
+	 */
+	public static void writeShortBE(ByteBuffer buffer, int i) {
+		byte[] value = new byte[2];
+		value[0] = (byte) (i >> 8);
+		value[1] = (byte) i;
+		buffer.put(value, 0, 2);
 	}
 
 	/**
@@ -286,6 +397,36 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * 写出 4 个字节的 int，小端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param l      数据
+	 */
+	public static void writeIntLE(ByteBuffer buffer, long l) {
+		byte[] value = new byte[4];
+		value[0] = (byte) l;
+		value[1] = (byte) (l >> 8);
+		value[2] = (byte) (l >> 16);
+		value[3] = (byte) (l >> 24);
+		buffer.put(value, 0, 4);
+	}
+
+	/**
+	 * 写出 4 个字节的 int，大端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param l      数据
+	 */
+	public static void writeIntBE(ByteBuffer buffer, long l) {
+		byte[] value = new byte[4];
+		value[0] = (byte) (l >> 24);
+		value[1] = (byte) (l >> 16);
+		value[2] = (byte) (l >> 8);
+		value[3] = (byte) l;
+		buffer.put(value, 0, 4);
+	}
+
+	/**
 	 * 写出 4 个字节的无符号 int
 	 *
 	 * @param buffer ByteBuffer
@@ -313,6 +454,44 @@ public class ByteBufferUtil {
 		value[2] = (byte) (l >>> 8);
 		value[3] = (byte) (l & 0xff);
 		buffer.put(value, 0, 4);
+	}
+
+	/**
+	 * 写出 8 个字节的 long，小端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param l      数据
+	 */
+	public static void writeLongLE(ByteBuffer buffer, long l) {
+		byte[] value = new byte[8];
+		value[0] = (byte) l;
+		value[1] = (byte) (l >> 8);
+		value[2] = (byte) (l >> 16);
+		value[3] = (byte) (l >> 24);
+		value[4] = (byte) (l >> 32);
+		value[5] = (byte) (l >> 40);
+		value[6] = (byte) (l >> 48);
+		value[7] = (byte) (l >> 56);
+		buffer.put(value, 0, 8);
+	}
+
+	/**
+	 * 写出 8 个字节的 long，大端模式
+	 *
+	 * @param buffer ByteBuffer
+	 * @param l      数据
+	 */
+	public static void writeLongBE(ByteBuffer buffer, long l) {
+		byte[] value = new byte[8];
+		value[0] = (byte) (l >> 56);
+		value[1] = (byte) (l >> 48);
+		value[2] = (byte) (l >> 40);
+		value[3] = (byte) (l >> 32);
+		value[4] = (byte) (l >> 24);
+		value[5] = (byte) (l >> 16);
+		value[6] = (byte) (l >> 8);
+		value[7] = (byte) l;
+		buffer.put(value, 0, 8);
 	}
 
 	/**
