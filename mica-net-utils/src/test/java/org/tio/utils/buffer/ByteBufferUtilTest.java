@@ -61,10 +61,10 @@ class ByteBufferUtilTest {
 	void testShort() {
 		int value = 65535;
 		ByteBuffer buffer = ByteBuffer.allocate(6);
-		ByteBufferUtil.writeUnsignedShort(buffer, value);
+		ByteBufferUtil.writeUnsignedShortLE(buffer, value);
 		ByteBufferUtil.writeIntBE(buffer, value);
 		buffer.flip();
-		int unsignedShort = ByteBufferUtil.readUnsignedShort(buffer);
+		int unsignedShort = ByteBufferUtil.readUnsignedShortLE(buffer);
 		Assertions.assertEquals(value, unsignedShort);
 		int shortValue = ByteBufferUtil.readIntBE(buffer);
 		Assertions.assertEquals(value, shortValue);
@@ -87,9 +87,9 @@ class ByteBufferUtilTest {
 	void testMedium() {
 		int value = 16777215;
 		ByteBuffer buffer = ByteBuffer.allocate(3);
-		ByteBufferUtil.writeUnsignedMedium(buffer, value);
+		ByteBufferUtil.writeUnsignedMediumLE(buffer, value);
 		buffer.flip();
-		int unsignedShort = ByteBufferUtil.readUnsignedMedium(buffer);
+		int unsignedShort = ByteBufferUtil.readUnsignedMediumLE(buffer);
 		Assertions.assertEquals(value, unsignedShort);
 	}
 
@@ -107,10 +107,10 @@ class ByteBufferUtilTest {
 	void testInt() {
 		long value = 4294967295L;
 		ByteBuffer buffer = ByteBuffer.allocate(12);
-		ByteBufferUtil.writeUnsignedInt(buffer, value);
+		ByteBufferUtil.writeUnsignedIntLE(buffer, value);
 		ByteBufferUtil.writeLongBE(buffer, value);
 		buffer.flip();
-		long unsignedShort = ByteBufferUtil.readUnsignedInt(buffer);
+		long unsignedShort = ByteBufferUtil.readUnsignedIntLE(buffer);
 		Assertions.assertEquals(value, unsignedShort);
 		long intValue = ByteBufferUtil.readLongBE(buffer);
 		Assertions.assertEquals(value, intValue);

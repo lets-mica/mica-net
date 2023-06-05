@@ -115,12 +115,12 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @return int
 	 */
-	public static int readUnsignedShort(ByteBuffer buffer) {
+	public static int readUnsignedShortLE(ByteBuffer buffer) {
 		byte[] value = new byte[2];
 		buffer.get(value, 0, 2);
-		int i = value[0] & 0xff;
-		i |= (value[1] & 0xff) << 8;
-		return i;
+		int ret = value[0] & 0xff;
+		ret |= (value[1] & 0xff) << 8;
+		return ret;
 	}
 
 	/**
@@ -143,7 +143,7 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @return int
 	 */
-	public static int readUnsignedMedium(ByteBuffer buffer) {
+	public static int readUnsignedMediumLE(ByteBuffer buffer) {
 		byte[] value = new byte[3];
 		buffer.get(value, 0, 3);
 		int ret = value[0] & 0xff;
@@ -215,7 +215,7 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @return long
 	 */
-	public static long readUnsignedInt(ByteBuffer buffer) {
+	public static long readUnsignedIntLE(ByteBuffer buffer) {
 		byte[] value = new byte[4];
 		buffer.get(value, 0, 4);
 		long ret = value[0] & 0xff;
@@ -327,7 +327,7 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @return long
 	 */
-	public static long readUnsignedLong(ByteBuffer buffer) {
+	public static long readUnsignedLongLE(ByteBuffer buffer) {
 		byte[] value = new byte[8];
 		buffer.get(value, 0, 8);
 		long ret = value[0] & 0xff;
@@ -423,7 +423,7 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param i      数据
 	 */
-	public static void writeUnsignedShort(ByteBuffer buffer, int i) {
+	public static void writeUnsignedShortLE(ByteBuffer buffer, int i) {
 		byte[] value = new byte[2];
 		value[0] = (byte) (i & 0xff);
 		value[1] = (byte) (i >>> 8);
@@ -449,7 +449,7 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param i      数据
 	 */
-	public static void writeUnsignedMedium(ByteBuffer buffer, int i) {
+	public static void writeUnsignedMediumLE(ByteBuffer buffer, int i) {
 		byte[] value = new byte[3];
 		value[0] = (byte) (i & 0xff);
 		value[1] = (byte) (i >>> 8);
@@ -507,7 +507,7 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param l      数据
 	 */
-	public static void writeUnsignedInt(ByteBuffer buffer, long l) {
+	public static void writeUnsignedIntLE(ByteBuffer buffer, long l) {
 		byte[] value = new byte[4];
 		value[0] = (byte) (l & 0xff);
 		value[1] = (byte) (l >>> 8);
@@ -605,7 +605,7 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param l      数据
 	 */
-	public static void writeUnsignedLong(ByteBuffer buffer, long l) {
+	public static void writeUnsignedLongLE(ByteBuffer buffer, long l) {
 		byte[] value = new byte[8];
 		value[0] = (byte) (l & 0xff);
 		value[1] = (byte) (l >>> 8);
