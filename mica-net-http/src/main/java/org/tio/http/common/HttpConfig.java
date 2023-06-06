@@ -203,17 +203,17 @@ import java.nio.charset.Charset;
  */
 public class HttpConfig {
 	/**
-	 * 头部，最多有多少字节
+	 * 头部，最多有多少字节，默认：20K
 	 */
 	public static final int MAX_LENGTH_OF_HEADER = 1024 * 20;
 	/**
-	 * 头部，每行最大的字节数
+	 * 头部，每行最大的字节数，默认：8K
 	 */
-	public static final int MAX_LENGTH_OF_HEADERLINE = 1024 * 2;
+	public static final int MAX_LENGTH_OF_HEADER_LINE = 1024 * 8;
 	/**
-	 * 请求行的最大长度
+	 * 请求行的最大长度，默认：8K
 	 */
-	public static final int MAX_LENGTH_OF_REQUESTLINE = 1024 * 2;
+	public static final int MAX_LENGTH_OF_REQUEST_LINE = 1024 * 8;
 	/**
 	 * 文件上传时，boundary值的最大长度
 	 */
@@ -245,7 +245,7 @@ public class HttpConfig {
 	/**
 	 * 请求行的最大长度
 	 */
-	public int maxLengthOfRequestLine = MAX_LENGTH_OF_REQUESTLINE;
+	public int maxLengthOfRequestLine = MAX_LENGTH_OF_REQUEST_LINE;
 	/**
 	 * 头部，最多有多少字节
 	 */
@@ -253,7 +253,7 @@ public class HttpConfig {
 	/**
 	 * 头部，每行最大的字节数
 	 */
-	public int maxLengthOfHeaderline = MAX_LENGTH_OF_HEADERLINE;
+	public int maxLengthOfHeaderLine = MAX_LENGTH_OF_HEADER_LINE;
 	public int maxForwardCount = MAX_FORWARD_COUNT;
 	/**
 	 * 是否兼容1.0
@@ -477,12 +477,12 @@ public class HttpConfig {
 		this.maxLengthOfHeader = maxLengthOfHeader;
 	}
 
-	public int getMaxLengthOfHeaderline() {
-		return maxLengthOfHeaderline;
+	public int getMaxLengthOfHeaderLine() {
+		return maxLengthOfHeaderLine;
 	}
 
-	public void setMaxLengthOfHeaderline(int maxLengthOfHeaderline) {
-		this.maxLengthOfHeaderline = maxLengthOfHeaderline;
+	public void setMaxLengthOfHeaderLine(int maxLengthOfHeaderLine) {
+		this.maxLengthOfHeaderLine = maxLengthOfHeaderLine;
 	}
 
 	public String getName() {
