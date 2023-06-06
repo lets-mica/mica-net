@@ -58,7 +58,7 @@ public class ClusterMessageDecoder {
 		if (readableLength < 3) {
 			return null;
 		}
-		int dataLength = ByteBufferUtil.readUnsignedShort(buffer);
+		int dataLength = ByteBufferUtil.readUnsignedShortLE(buffer);
 		int messageLength = 3 + dataLength;
 		if (readableLength < messageLength) {
 			ctx.setPacketNeededLength(messageLength);
@@ -83,7 +83,7 @@ public class ClusterMessageDecoder {
 		}
 		// 消息 id
 		long messageId = buffer.getLong();
-		int dataLength = ByteBufferUtil.readUnsignedShort(buffer);
+		int dataLength = ByteBufferUtil.readUnsignedShortLE(buffer);
 		int messageLength = 11 + dataLength;
 		if (readableLength < messageLength) {
 			ctx.setPacketNeededLength(messageLength);
@@ -127,7 +127,7 @@ public class ClusterMessageDecoder {
 			return null;
 		}
 		// 端口号
-		int port = ByteBufferUtil.readUnsignedShort(buffer);
+		int port = ByteBufferUtil.readUnsignedShortLE(buffer);
 		// ip
 		String ip = ByteBufferUtil.readString(buffer, 32);
 		return new ClusterJoinMessage(new Node(ip.trim(), port));
