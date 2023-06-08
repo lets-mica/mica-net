@@ -2,9 +2,10 @@
 
 ## 发行版本
 
-### v0.1.3 - 2023-06-24
+### v0.1.3 - 2023-06-09
 - :sparkles: 优化 `HttpConfig` 默认参数，最大请求头默认改为 **8K**。
-- :sparkles: 完善 `ByteBufferUtil`，方便使用。
+- :sparkles: 完善 `ByteBufferUtil` 对**大小端**、**无符号**的处理，方便使用。
+- :memo: docs 目录添加文档，方便上手 mica-net **tcp** 开发。
 
 ### v0.1.2 - 2023-05-27
 - :sparkles: 添加 `ProxyProtocolDecoder` 支持 nginx 开启 tcp proxy_protocol on; 时转发源 ip 信息。
