@@ -392,6 +392,16 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * 写出 1 个字节的无符号 byte
+	 *
+	 * @param buffer ByteBuffer
+	 * @param s      数据
+	 */
+	public static void writeUnsignedByte(ByteBuffer buffer, short s) {
+		buffer.put((byte) s);
+	}
+
+	/**
 	 * 写出 2 个字节的 short，小端模式
 	 *
 	 * @param buffer ByteBuffer
