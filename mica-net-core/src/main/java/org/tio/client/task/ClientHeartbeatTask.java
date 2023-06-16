@@ -76,7 +76,9 @@ public class ClientHeartbeatTask extends TimerTask {
 					Packet packet = tioHandler.heartbeatPacket(channelContext);
 					if (packet != null) {
 						boolean result = Tio.send(channelContext, packet);
-						logger.info("{} 发送心跳包 result:{}", channelContext, result);
+						if (tioClientConfig.debug && logger.isInfoEnabled()) {
+							logger.info("{} 发送心跳包 result:{}", channelContext, result);
+						}
 					}
 				}
 			}
