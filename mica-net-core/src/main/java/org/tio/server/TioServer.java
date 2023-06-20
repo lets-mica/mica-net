@@ -330,6 +330,8 @@ public class TioServer {
 	public boolean stop() {
 		isWaitingStop = true;
 		boolean ret = true;
+		// 删除实例
+		tioServerConfig.remove();
 		try {
 			channelGroup.shutdownNow();
 		} catch (Exception e) {

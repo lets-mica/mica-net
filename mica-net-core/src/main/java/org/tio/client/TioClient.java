@@ -533,6 +533,8 @@ public class TioClient {
 		// 先停止 ack 服务
 		this.taskService.stop();
 		boolean ret = true;
+		// 删除实例
+		tioClientConfig.remove();
 		try {
 			tioClientConfig.groupExecutor.shutdown();
 		} catch (Exception e1) {

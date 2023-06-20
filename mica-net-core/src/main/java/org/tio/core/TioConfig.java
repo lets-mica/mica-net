@@ -229,15 +229,15 @@ public abstract class TioConfig extends MapPropSupport {
 	/**
 	 * 本jvm中所有的TioServerConfig对象
 	 */
-	public static final Set<TioServerConfig> ALL_SERVER_GROUPCONTEXTS = new HashSet<>();
+	public static final Set<TioServerConfig> ALL_SERVER_GROUP_CONTEXTS = new HashSet<>();
 	/**
 	 * 本jvm中所有的TioClientConfig对象
 	 */
-	public static final Set<TioClientConfig> ALL_CLIENT_GROUPCONTEXTS = new HashSet<>();
+	public static final Set<TioClientConfig> ALL_CLIENT_GROUP_CONTEXTS = new HashSet<>();
 	/**
 	 * 本jvm中所有的TioConfig对象
 	 */
-	public static final Set<TioConfig> ALL_GROUPCONTEXTS = new HashSet<>();
+	public static final Set<TioConfig> ALL_GROUP_CONTEXTS = new HashSet<>();
 	private static final AtomicInteger ID_ATOMIC = new AtomicInteger();
 	static Logger log = LoggerFactory.getLogger(TioConfig.class);
 	public final String id;
@@ -267,7 +267,7 @@ public abstract class TioConfig extends MapPropSupport {
 	 * 解码出现异常时，是否打印异常日志
 	 */
 	public boolean logWhenDecodeError = false;
-	public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD;                                    //.queue;
+	public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD;    //.queue;
 	public SynThreadPoolExecutor tioExecutor;
 	public CloseRunnable closeRunnable;
 	public ThreadPoolExecutor groupExecutor;
@@ -304,14 +304,14 @@ public abstract class TioConfig extends MapPropSupport {
 	 */
 	public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		super();
-		ALL_GROUPCONTEXTS.add(this);
+		ALL_GROUP_CONTEXTS.add(this);
 		if (this instanceof TioServerConfig) {
-			ALL_SERVER_GROUPCONTEXTS.add((TioServerConfig) this);
+			ALL_SERVER_GROUP_CONTEXTS.add((TioServerConfig) this);
 		} else {
-			ALL_CLIENT_GROUPCONTEXTS.add((TioClientConfig) this);
+			ALL_CLIENT_GROUP_CONTEXTS.add((TioClientConfig) this);
 		}
-		if (ALL_GROUPCONTEXTS.size() > 20) {
-			log.warn("已经产生{}个TioConfig对象，t-io作者怀疑你在误用t-io", ALL_GROUPCONTEXTS.size());
+		if (ALL_GROUP_CONTEXTS.size() > 20) {
+			log.warn("已经产生{}个TioConfig对象，t-io作者怀疑你在误用t-io", ALL_GROUP_CONTEXTS.size());
 		}
 		this.id = Integer.toString(ID_ATOMIC.incrementAndGet());
 		this.tioExecutor = tioExecutor;
@@ -492,6 +492,18 @@ public abstract class TioConfig extends MapPropSupport {
 
 	public boolean isSsl() {
 		return sslConfig != null;
+	}
+
+	/**
+	 * 停止时删除客户端
+	 */
+	public void remove() {
+		ALL_GROUP_CONTEXTS.remove(this);
+		if (isServer()) {
+			ALL_SERVER_GROUP_CONTEXTS.remove(this);
+		} else {
+			ALL_CLIENT_GROUP_CONTEXTS.remove(this);
+		}
 	}
 
 	@Override
