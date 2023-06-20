@@ -42,7 +42,7 @@ public abstract class Mapped implements Closeable {
 				}
 			};
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			log.debug(e.getMessage(), e);
 		}
 		// java8 使用 DirectByteBuffer 上的 cleaner
 		if (buffCleaner == null) {
@@ -62,7 +62,7 @@ public abstract class Mapped implements Closeable {
 					}
 				};
 			} catch (Exception e) {
-				log.error(e.getMessage(), e);
+				log.debug(e.getMessage(), e);
 			}
 		}
 		// 没有 DirectByteBuffer cleaner，构造一个空的。
