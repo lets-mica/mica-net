@@ -55,8 +55,8 @@ public final class FileQueue<E> {
 	}
 
 	public static final class Builder {
-		private long maxFileSize = 100 * 1024 * 1024; // 100m
-		private long maxDataSize = 64 * 1024; // 64k
+		private long maxFileSize = 100 * 1024 * 1024L; // 100m
+		private long maxDataSize = 64 * 1024L; // 64k
 		private int bufferSize = 2 * 1024; // 2k
 		private Path path;
 

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -18,7 +19,7 @@ import java.util.function.Consumer;
 /**
  * 内存映射文件抽象
  *
- * @author leon
+ * @author leon、L.cm
  */
 public abstract class Mapped implements Closeable {
 	private static final Logger log = LoggerFactory.getLogger(Mapped.class);
@@ -26,12 +27,13 @@ public abstract class Mapped implements Closeable {
 	protected static Consumer<MappedByteBuffer> buffCleaner;
 
 	static {
+		// java 9+ Unsafe 有 invokeCleaner
 		try {
-			Class<?> cls = Class.forName("sun.misc.Unsafe");
-			Field field = cls.getDeclaredField("theUnsafe");
+			Class<?> unsafeCls = Class.forName("sun.misc.Unsafe");
+			Field field = unsafeCls.getDeclaredField("theUnsafe");
 			field.setAccessible(true);
 			Object unsafe = field.get(null);
-			Method method = cls.getMethod("invokeCleaner", ByteBuffer.class);
+			Method method = unsafeCls.getMethod("invokeCleaner", ByteBuffer.class);
 			buffCleaner = buffer -> {
 				try {
 					method.invoke(unsafe, buffer);
@@ -41,8 +43,32 @@ public abstract class Mapped implements Closeable {
 			};
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
-			buffCleaner = buffer -> {
-			};
+		}
+		// java8 使用 DirectByteBuffer 上的 cleaner
+		if (buffCleaner == null) {
+			ByteBuffer direct = ByteBuffer.allocateDirect(0);
+			try {
+				Field cleanerField =  direct.getClass().getDeclaredField("cleaner");
+				cleanerField.setAccessible(true);
+				final Object cleaner = cleanerField.get(direct);
+				Method cleanMethod = cleaner.getClass().getDeclaredMethod("clean");
+				cleanMethod.invoke(cleaner);
+				buffCleaner = buffer -> {
+					try {
+						final Object bufferCleaner = cleanerField.get(buffer);
+						cleanMethod.invoke(bufferCleaner);
+					} catch (Exception ee) {
+						log.error(ee.getMessage(), ee);
+					}
+				};
+			} catch (Exception e) {
+				log.error(e.getMessage(), e);
+			}
+		}
+		// 没有 DirectByteBuffer cleaner，构造一个空的。
+		if (buffCleaner == null) {
+			log.warn("没有找到 DirectByteBuffer cleaner");
+			buffCleaner = Buffer::clear;
 		}
 	}
 
