@@ -29,7 +29,6 @@
         <module>mica-net-utils</module>
         <module>mica-net-core</module>
         <module>mica-net-http</module>
-        <module>mica-net-cluster</module>
     </modules>
 
     <properties>
