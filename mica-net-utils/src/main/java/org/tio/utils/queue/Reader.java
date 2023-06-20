@@ -1,6 +1,5 @@
-package org.tio.core.queue;
+package org.tio.utils.queue;
 
-import net.dreamlu.net.cluster.test.ProtoStuffUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,7 +9,14 @@ import java.nio.file.Path;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
+/**
+ * 读取器
+ *
+ * @param <E> 泛型
+ * @author leon
+ */
 final class Reader<E> extends Mapped {
 	private static final Logger log = LoggerFactory.getLogger(Reader.class);
 	static final String NAME = "data.read";
@@ -42,18 +48,18 @@ final class Reader<E> extends Mapped {
 		this.mds = mds;
 		this.writer = writer;
 
-		dataIdx = readCurrentDataIndex();
-		offset = initOffsetMapped();
-		offsetIdx = readCurrentOffsetIndex();
-		data = initDataMapped();
-		maxDataIdx = readMaxDataIndex();
+		this.dataIdx = readCurrentDataIndex();
+		this.offset = initOffsetMapped();
+		this.offsetIdx = readCurrentOffsetIndex();
+		this.data = initDataMapped();
+		this.maxDataIdx = readMaxDataIndex();
 
 		startCleanThread();
 	}
 
-	public E take() throws InterruptedException {
+	public E take(Function<byte[], E> mapper) throws InterruptedException {
 		E poll;
-		while ((poll = poll()) == null) {
+		while ((poll = poll(mapper)) == null) {
 			while (offsetIdx >= writer.offsetIdx) {
 				writer.waiting();
 			}
@@ -61,8 +67,7 @@ final class Reader<E> extends Mapped {
 		return poll;
 	}
 
-	@SuppressWarnings("unchecked")
-	public E poll() {
+	public E poll(Function<byte[], E> mapper) {
 		lock.lock();
 		try {
 			byte[] bytes = poll0();
@@ -72,7 +77,7 @@ final class Reader<E> extends Mapped {
 			dataIdx += 1;
 			buffer.putLong(dataIdx);
 			buffer.flip();
-			return (E) ProtoStuffUtil.deserialize(bytes, Wrap.class).getValue();
+			return mapper.apply(bytes);
 		} finally {
 			lock.unlock();
 		}
@@ -111,7 +116,7 @@ final class Reader<E> extends Mapped {
 			// 上一个文件放入清理队列
 			clearQueue.put(pathname(path, dataName, DataFile.EXTENSION));
 			dataName = offsetIdx;
-			log.debug("读取下一个数据文件: " + nextFile);
+			log.debug("读取下一个数据文件: {}", nextFile);
 		} catch (Exception e) {
 			throw new RuntimeException("创建读取日志文件映射地址异常", e);
 		}
@@ -129,7 +134,7 @@ final class Reader<E> extends Mapped {
 			// 上一个文件放入清理队列
 			clearQueue.put(pathname(path, offsetName, OffsetFile.EXTENSION));
 			offsetName = dataIdx;
-			log.debug("读取下一个偏移量文件: " + nextFile);
+			log.debug("读取下一个偏移量文件:{}", nextFile);
 		} catch (Exception e) {
 			throw new RuntimeException("创建数据偏移量文件映射地址异常", e);
 		}
@@ -182,10 +187,10 @@ final class Reader<E> extends Mapped {
 		long idx;
 		if (newed) { // 新data.read，写数据下标 （首读）
 			buffer.putLong(idx = writer.dataIdx);
-			log.debug("首次读取: " + path);
+			log.debug("首次读取:{}", path);
 		} else {
 			idx = buffer.getLong(); // 读数据
-			log.debug("继续读取: " + path);
+			log.debug("继续读取:{}", path);
 		}
 		buffer.flip();
 		return idx;
@@ -203,7 +208,7 @@ final class Reader<E> extends Mapped {
 				try {
 					Path consumed = clearQueue.take();
 					Files.deleteIfExists(consumed);
-					log.debug("已读并删除：" + consumed);
+					log.debug("已读并删除：{}", consumed);
 				} catch (InterruptedException | IOException e) {
 					log.error(e.getMessage(), e);
 					break;

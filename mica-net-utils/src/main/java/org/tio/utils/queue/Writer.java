@@ -1,6 +1,5 @@
-package org.tio.core.queue;
+package org.tio.utils.queue;
 
-import net.dreamlu.net.cluster.test.ProtoStuffUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,10 +8,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
+/**
+ * 文件写
+ *
+ * @param <E> 泛型
+ * @author leon
+ */
 final class Writer<E> extends Mapped {
 	private static final Logger log = LoggerFactory.getLogger(Writer.class);
-	static final String NAME = "data.writ";
+	static final String NAME = "data.write";
 	private final Path path;
 	private final long mfs;
 	private final long mds;
@@ -40,24 +46,24 @@ final class Writer<E> extends Mapped {
 		maxDataIdx = readMaxDataIndex();
 	}
 
-	void writ(E element, int bufSize) {
+	void write(E element, Function<E, byte[]> mapper, int bufSize) {
 		if (element == null) {
 			throw new NullPointerException("文件队列数据不能为空！");
 		}
-		byte[] bytes = ProtoStuffUtil.serialize(new Wrap<>(element));
+		byte[] bytes = mapper.apply(element);
 		if (bytes.length > mds) {
 			throw new RuntimeException("数据超长, max: " + mds + ", cur: " + bytes.length);
 		}
 		lock.lock();
 		try {
-			writ(bytes);
+			write(bytes);
 			condition.signalAll();
 		} finally {
 			lock.unlock();
 		}
 	}
 
-	void writ(byte[] bytes) {
+	void write(byte[] bytes) {
 		if (data == null) {
 			return; // 停服释放锁时，线程进入本方法后data为空，将导致异常
 		}
@@ -65,7 +71,7 @@ final class Writer<E> extends Mapped {
 		if (inc > maxOffsetIdx) {
 			dataGrow();// 数据文件扩容
 		}
-		data.writ(bytes); // 写入数据
+		data.write(bytes); // 写入数据
 		if (++dataIdx > maxDataIdx) {
 			offsetGrow(); // 偏移量文件扩容
 		}
@@ -84,7 +90,7 @@ final class Writer<E> extends Mapped {
 			this.force();
 			maxDataIdx += mfs / 8;
 			offset = new OffsetFile(newFile, 0, mfs);
-			log.debug("偏移量文件扩容: " + newFile);
+			log.debug("偏移量文件扩容:{}", newFile);
 		} catch (Exception e) {
 			throw new RuntimeException("创建数据偏移量文件映射地址异常", e);
 		}
@@ -98,7 +104,7 @@ final class Writer<E> extends Mapped {
 			this.force();
 			maxOffsetIdx = offsetIdx + mfs;
 			data = new DataFile(newFile, 0, mfs);
-			log.debug("数据文件扩容: " + newFile);
+			log.debug("数据文件扩容:{}", newFile);
 		} catch (Exception e) {
 			throw new RuntimeException("创建数据文件映射地址异常", e);
 		}

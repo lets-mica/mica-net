@@ -1,9 +1,9 @@
-package org.tio.core.test;
+package org.tio.utils.queue;
 
-import net.dreamlu.net.cluster.test.queue.FileQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.utils.Threads;
+import org.tio.utils.json.JsonUtil;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -14,13 +14,18 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 文件队列测试
+ *
+ * @author L.cm
+ */
 public class FileQueueTest {
 	private static final Logger log = LoggerFactory.getLogger(FileQueueTest.class);
-	public static String DEFAULT_ROOT = System.getProperty("user.dir");
+	public static String DEFAULT_ROOT = System.getProperty("user.dir") + "/mica-net-utils/target";
 
 	public static void main(String[] args) throws Exception {
 		FileQueue<Test> queue = FileQueue.builder()
-			.path(Paths.get(DEFAULT_ROOT + "/test-nio"))
+			.path(Paths.get(DEFAULT_ROOT, "test-nio"))
 			.maxFileSize(500 * 1024 * 1024)
 			.build();
 		parallelWrit1bw(queue);
@@ -31,14 +36,14 @@ public class FileQueueTest {
 
 	static void testISO8601() throws IOException {
 		FileQueue<Duration[]> queue = FileQueue.builder()
-			.path(Paths.get(DEFAULT_ROOT + "/test0"))
+			.path(Paths.get(DEFAULT_ROOT, "test-0"))
 			.build();
 		ThreadPoolExecutor executor = Threads.getGroupExecutor(4);
 		for (int i = 0; i < executor.getCorePoolSize(); i++) {
 			executor.execute(() -> {
 				while (true) {
 					Duration[] msg = new Duration[]{random(), random(), random()};
-					queue.put(msg);
+					queue.put(msg, JsonUtil::toJsonBytes);
 					log.info("生产者：" + Arrays.toString(msg));
 					try {
 						TimeUnit.SECONDS.sleep(5);
@@ -52,7 +57,7 @@ public class FileQueueTest {
 		new Thread(() -> {
 			while (true) {
 				try {
-					Duration[] msg = queue.take();
+					Duration[] msg = queue.take(bytes -> JsonUtil.readValue(bytes, Duration[].class));
 					log.info("消费者：" + Arrays.toString(msg));
 				} catch (InterruptedException e) {
 					return;
@@ -75,7 +80,8 @@ public class FileQueueTest {
 				long start = System.currentTimeMillis();
 				try {
 					for (int j = 0; j < count; j++) {
-						queue.put(new Test(a + "name" + j, null));
+						Test test = new Test(a + "name" + j, null);
+						queue.put(test, JsonUtil::toJsonBytes);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -94,7 +100,7 @@ public class FileQueueTest {
 				int count = 0;
 				long start = System.currentTimeMillis();
 				try {
-					while (queue.poll() != null) {
+					while (queue.poll(bytes -> JsonUtil.readValue(bytes, Test.class)) != null) {
 						count++;
 					}
 				} catch (Exception e) {
@@ -111,6 +117,9 @@ public class FileQueueTest {
 		private String name;
 
 		private List<Test1> test1s;
+
+		public Test() {
+		}
 
 		public Test(String name, List<Test1> test1s) {
 			this.name = name;
@@ -135,6 +144,9 @@ public class FileQueueTest {
 	}
 
 	public static class Test1 {
+		public Test1() {
+		}
+
 		private int id;
 
 		public Test1(int id) {

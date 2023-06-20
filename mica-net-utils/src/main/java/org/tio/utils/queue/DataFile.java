@@ -1,4 +1,4 @@
-package org.tio.core.queue;
+package org.tio.utils.queue;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,6 +8,8 @@ import java.util.Comparator;
 
 /**
  * 保存数据的文件
+ *
+ * @author leon
  */
 final class DataFile extends Mapped {
 	static final File[] EMPTY_FILES = {};
@@ -17,7 +19,7 @@ final class DataFile extends Mapped {
 		super(path, pos, size);
 	}
 
-	void writ(byte[] bytes) {
+	void write(byte[] bytes) {
 		buffer.put(bytes);
 	}
 

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.tio.utils.mica.ExceptionUtils;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
@@ -55,10 +56,28 @@ public class JacksonJsonAdapter implements JsonAdapter {
 	}
 
 	@Override
+	public byte[] toJsonBytes(Object object) {
+		try {
+			return objectMapper.writeValueAsBytes(object);
+		} catch (JsonProcessingException e) {
+			throw ExceptionUtils.unchecked(e);
+		}
+	}
+
+	@Override
 	public <T> T readValue(String json, Class<T> clazz) {
 		try {
 			return objectMapper.readValue(json, clazz);
 		} catch (JsonProcessingException e) {
+			throw ExceptionUtils.unchecked(e);
+		}
+	}
+
+	@Override
+	public <T> T readValue(byte[] json, Class<T> clazz) {
+		try {
+			return objectMapper.readValue(json, clazz);
+		} catch (IOException e) {
 			throw ExceptionUtils.unchecked(e);
 		}
 	}
@@ -70,6 +89,17 @@ public class JacksonJsonAdapter implements JsonAdapter {
 		try {
 			return objectMapper.readValue(json, javaType);
 		} catch (JsonProcessingException e) {
+			throw ExceptionUtils.unchecked(e);
+		}
+	}
+
+	@Override
+	public <T> List<T> readList(byte[] json, Class<T> clazz) {
+		JavaType javaType = objectMapper.getTypeFactory()
+			.constructCollectionType(List.class, clazz);
+		try {
+			return objectMapper.readValue(json, javaType);
+		} catch (IOException e) {
 			throw ExceptionUtils.unchecked(e);
 		}
 	}

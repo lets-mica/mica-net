@@ -34,6 +34,17 @@ public interface JsonAdapter {
 	String toJsonString(Object object);
 
 	/**
+	 * 转换成 json byte array
+	 *
+	 * @param object object
+	 * @return json 字符串
+	 */
+	default byte[] toJsonBytes(Object object) {
+		String jsonString = toJsonString(object);
+		return jsonString == null ? null : jsonString.getBytes();
+	}
+
+	/**
 	 * 将 json 字符串转成对象
 	 *
 	 * @param json  json
@@ -44,6 +55,18 @@ public interface JsonAdapter {
 	<T> T readValue(String json, Class<T> clazz);
 
 	/**
+	 * 将 json byte array 转成对象
+	 *
+	 * @param json  json
+	 * @param clazz Class
+	 * @param <T>   泛型
+	 * @return 对象
+	 */
+	default <T> T readValue(byte[] json, Class<T> clazz) {
+		return readValue(new String(json), clazz);
+	}
+
+	/**
 	 * 将 json 字符串转成对象
 	 *
 	 * @param json  json
@@ -52,5 +75,17 @@ public interface JsonAdapter {
 	 * @return 对象
 	 */
 	<T> List<T> readList(String json, Class<T> clazz);
+
+	/**
+	 * 将 json byte array 转成对象
+	 *
+	 * @param json  json
+	 * @param clazz Class
+	 * @param <T>   泛型
+	 * @return 对象
+	 */
+	default <T> List<T> readList(byte[] json, Class<T> clazz) {
+		return readList(new String(json), clazz);
+	}
 
 }

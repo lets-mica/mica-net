@@ -37,12 +37,27 @@ public class FastJson2JsonAdapter implements JsonAdapter {
 	}
 
 	@Override
+	public byte[] toJsonBytes(Object object) {
+		return JSON.toJSONBytes(object);
+	}
+
+	@Override
 	public <T> T readValue(String json, Class<T> clazz) {
 		return JSON.parseObject(json, clazz);
 	}
 
 	@Override
+	public <T> T readValue(byte[] json, Class<T> clazz) {
+		return JSON.parseObject(json, clazz);
+	}
+
+	@Override
 	public <T> List<T> readList(String json, Class<T> clazz) {
+		return JSON.parseArray(json, clazz);
+	}
+
+	@Override
+	public <T> List<T> readList(byte[] json, Class<T> clazz) {
 		return JSON.parseArray(json, clazz);
 	}
 

@@ -1,4 +1,4 @@
-package org.tio.core.queue;
+package org.tio.utils.queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +17,8 @@ import java.util.function.Consumer;
 
 /**
  * 内存映射文件抽象
+ *
+ * @author leon
  */
 public abstract class Mapped implements Closeable {
 	private static final Logger log = LoggerFactory.getLogger(Mapped.class);

@@ -32,18 +32,28 @@ public class FastJson1JsonAdapter implements JsonAdapter {
 	public static final String CLAZZ_NAME = "com.alibaba.fastjson.JSON";
 
 	@Override
-    public String toJsonString(Object object) {
-        return JSON.toJSONString(object);
-    }
+	public String toJsonString(Object object) {
+		return JSON.toJSONString(object);
+	}
 
-    @Override
-    public <T> T readValue(String json, Class<T> clazz) {
-        return JSON.parseObject(json, clazz);
-    }
+	@Override
+	public byte[] toJsonBytes(Object object) {
+		return JSON.toJSONBytes(object);
+	}
 
-    @Override
-    public <T> List<T> readList(String json, Class<T> clazz) {
-        return JSON.parseArray(json, clazz);
-    }
+	@Override
+	public <T> T readValue(String json, Class<T> clazz) {
+		return JSON.parseObject(json, clazz);
+	}
+
+	@Override
+	public <T> T readValue(byte[] json, Class<T> clazz) {
+		return JSON.parseObject(json, clazz);
+	}
+
+	@Override
+	public <T> List<T> readList(String json, Class<T> clazz) {
+		return JSON.parseArray(json, clazz);
+	}
 
 }
