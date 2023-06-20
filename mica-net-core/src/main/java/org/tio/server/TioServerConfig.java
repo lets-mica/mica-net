@@ -212,6 +212,7 @@ import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author tanyaowu
@@ -274,7 +275,7 @@ public class TioServerConfig extends TioConfig {
 			public void run() {
 				// 第一次先休息一下 10s
 				try {
-					Thread.sleep(10_1000L);
+					TimeUnit.SECONDS.sleep(10);
 				} catch (InterruptedException e1) {
 					log.error(e1.getMessage(), e1);
 				}
