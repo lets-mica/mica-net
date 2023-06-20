@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 public abstract class Mapped implements Closeable {
 	private static final Logger log = LoggerFactory.getLogger(Mapped.class);
 	protected static final int DATA_FILENAME_MAX_LENGTH = 19;
-	protected static Consumer<MappedByteBuffer> BUFF_CLEANER;
+	protected static Consumer<MappedByteBuffer> buffCleaner;
 
 	static {
 		try {
@@ -32,7 +32,7 @@ public abstract class Mapped implements Closeable {
 			field.setAccessible(true);
 			Object unsafe = field.get(null);
 			Method method = cls.getMethod("invokeCleaner", ByteBuffer.class);
-			BUFF_CLEANER = buffer -> {
+			buffCleaner = buffer -> {
 				try {
 					method.invoke(unsafe, buffer);
 				} catch (Exception e) {
@@ -41,7 +41,7 @@ public abstract class Mapped implements Closeable {
 			};
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
-			BUFF_CLEANER = buffer -> {
+			buffCleaner = buffer -> {
 			};
 		}
 	}
@@ -60,7 +60,7 @@ public abstract class Mapped implements Closeable {
 
 	@Override
 	public void close() throws IOException {
-		BUFF_CLEANER.accept(buffer);
+		buffCleaner.accept(buffer);
 		force();
 		channel.close();
 		rw.close();

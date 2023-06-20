@@ -23,11 +23,11 @@ final class OffsetFile extends Mapped {
 			map = channel.map(FileChannel.MapMode.READ_WRITE, pos, size);
 			return map.getLong();
 		} finally {
-			BUFF_CLEANER.accept(map);
+			buffCleaner.accept(map);
 		}
 	}
 
-	void writ(long offset) {
+	void write(long offset) {
 		buffer.putLong(offset);
 	}
 

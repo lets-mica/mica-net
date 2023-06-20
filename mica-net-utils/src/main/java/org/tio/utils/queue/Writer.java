@@ -75,7 +75,7 @@ final class Writer<E> extends Mapped {
 		if (++dataIdx > maxDataIdx) {
 			offsetGrow(); // 偏移量文件扩容
 		}
-		offset.writ(inc); // 写入偏移量
+		offset.write(inc); // 写入偏移量
 
 		buffer.putLong(dataIdx); // 记录数据下标
 		buffer.flip(); // 翻转为原状态 （可读）
