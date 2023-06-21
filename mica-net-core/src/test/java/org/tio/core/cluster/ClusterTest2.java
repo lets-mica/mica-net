@@ -1,10 +1,9 @@
 package org.tio.core.cluster;
 
+import org.tio.core.Node;
 import org.tio.server.cluster.core.ClusterApi;
 import org.tio.server.cluster.core.ClusterConfig;
 import org.tio.server.cluster.core.ClusterImpl;
-import org.tio.server.cluster.message.ClusterDataMessage;
-import org.tio.core.Node;
 
 import java.nio.charset.StandardCharsets;
 
@@ -29,7 +28,7 @@ public class ClusterTest2 {
 
 		cluster.schedule(() -> {
 			String message = "hello mica form cluster:" + cluster.getLocalMember();
-			cluster.broadcast(new ClusterDataMessage(message.getBytes(StandardCharsets.UTF_8)));
+			cluster.broadcast(message.getBytes(StandardCharsets.UTF_8));
 		}, 3000);
 	}
 

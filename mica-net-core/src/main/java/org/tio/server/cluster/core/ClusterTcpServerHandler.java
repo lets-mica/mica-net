@@ -53,9 +53,9 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 		} else if (packet instanceof ClusterSyncMessage) {
 			handlerSyncMessage(context, (ClusterSyncMessage) packet);
 		} else if (packet instanceof ClusterDataMessage) {
-			handlerDataMessage(context, (ClusterDataMessage) packet);
+			handlerDataMessage((ClusterDataMessage) packet);
 		} else if (packet instanceof ClusterJoinMessage) {
-			handlerJoinMessage(context, (ClusterJoinMessage) packet);
+			handlerJoinMessage((ClusterJoinMessage) packet);
 		}
 	}
 
@@ -84,10 +84,9 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 	/**
 	 * 处理数据消息
 	 *
-	 * @param context ChannelContext
 	 * @param message ClusterDataMessage
 	 */
-	private void handlerDataMessage(ChannelContext context, ClusterDataMessage message) {
+	private void handlerDataMessage(ClusterDataMessage message) {
 		// 处理消息
 		messageListener.onMessage(message);
 	}
@@ -95,10 +94,9 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 	/**
 	 * 处理新节点加入
 	 *
-	 * @param context ChannelContext
 	 * @param message ClusterJoinMessage
 	 */
-	private void handlerJoinMessage(ChannelContext context, ClusterJoinMessage message) {
+	private void handlerJoinMessage(ClusterJoinMessage message) {
 		// 处理消息
 		clusterApi.addJoinMember(message.getJoinMember());
 	}

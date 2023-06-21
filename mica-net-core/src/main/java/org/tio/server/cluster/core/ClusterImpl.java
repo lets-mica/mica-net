@@ -135,10 +135,10 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
-	public boolean send(Node address, byte[] message) {
+	public boolean send(Node address, byte[] data) {
 		TioClientConfig clientConfig = this.tcpClusterClient.getTioClientConfig();
 		ChannelContext context = Tio.getByClientNode(clientConfig, address);
-		return Tio.send(context, new ClusterDataMessage(message));
+		return Tio.send(context, new ClusterDataMessage(data));
 	}
 
 	@Override
@@ -157,10 +157,10 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
-	public void broadcast(ClusterDataMessage message) {
+	public void broadcast(byte[] data) {
 		TioClientConfig clientConfig = this.tcpClusterClient.getTioClientConfig();
 		Set<ChannelContext> contextSet = Tio.getConnecteds(clientConfig);
-		Tio.sendToSet(clientConfig, contextSet, message, null);
+		Tio.sendToSet(clientConfig, contextSet, new ClusterDataMessage(data), null);
 	}
 
 	@Override

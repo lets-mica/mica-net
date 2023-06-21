@@ -28,11 +28,11 @@ public interface ClusterApi {
 	/**
 	 * 发送消息
 	 *
-	 * @param member  member
-	 * @param message 集群消息
+	 * @param member member
+	 * @param data   集群消息
 	 * @return 消息id.
 	 */
-	boolean send(Node member, byte[] message);
+	boolean send(Node member, byte[] data);
 
 	/**
 	 * 同步发送消息
@@ -46,9 +46,9 @@ public interface ClusterApi {
 	/**
 	 * 在集群中广播消息
 	 *
-	 * @param message 集群消息
+	 * @param data 集群消息
 	 */
-	void broadcast(ClusterDataMessage message);
+	void broadcast(byte[] data);
 
 	/**
 	 * 添加定时任务，注意：如果抛出异常，会终止后续任务，请自行处理异常
