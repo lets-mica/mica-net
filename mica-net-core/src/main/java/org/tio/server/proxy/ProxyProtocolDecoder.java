@@ -94,8 +94,8 @@ public final class ProxyProtocolDecoder {
 		// 清除协议 key
 		context.remove(PROXY_PROTOCOL_KEY);
 		// 设置客户端代理节点
-		String proxiedProtocol = message.getProxiedProtocol();
-		if (UNKNOWN.equals(proxiedProtocol)) {
+		String protocol = message.getProtocol();
+		if (UNKNOWN.equals(protocol)) {
 			context.setProxyClientNode(new Node(UNKNOWN, message.getDestinationPort()));
 		} else {
 			context.setClientNode(new Node(message.getSourceAddress(), message.getSourcePort()));

@@ -26,7 +26,7 @@ public class ProxyProtocolMessage {
 	/**
 	 * 代理的协议，ipv4/6
 	 */
-	private final String proxiedProtocol;
+	private final String protocol;
 	/**
 	 * 源地址
 	 */
@@ -44,28 +44,28 @@ public class ProxyProtocolMessage {
 	 */
 	private final int destinationPort;
 
-	public ProxyProtocolMessage(String proxiedProtocol,
+	public ProxyProtocolMessage(String protocol,
 								String sourceAddress,
 								String destinationAddress,
 								String sourcePort,
 								String destinationPort) {
-		this(proxiedProtocol, sourceAddress, destinationAddress, portStringToInt(sourcePort), portStringToInt(destinationPort));
+		this(protocol, sourceAddress, destinationAddress, portStringToInt(sourcePort), portStringToInt(destinationPort));
 	}
 
-	public ProxyProtocolMessage(String proxiedProtocol,
+	public ProxyProtocolMessage(String protocol,
 								String sourceAddress,
 								String destinationAddress,
 								int sourcePort,
 								int destinationPort) {
-		this.proxiedProtocol = proxiedProtocol;
+		this.protocol = protocol;
 		this.sourceAddress = sourceAddress;
 		this.destinationAddress = destinationAddress;
 		this.sourcePort = sourcePort;
 		this.destinationPort = destinationPort;
 	}
 
-	public String getProxiedProtocol() {
-		return proxiedProtocol;
+	public String getProtocol() {
+		return protocol;
 	}
 
 	public String getSourceAddress() {
@@ -107,7 +107,7 @@ public class ProxyProtocolMessage {
 	@Override
 	public String toString() {
 		return "ProxyProtocolMessage{" +
-			"proxiedProtocol='" + proxiedProtocol + '\'' +
+			"protocol='" + protocol + '\'' +
 			", sourceAddress='" + sourceAddress + '\'' +
 			", destinationAddress='" + destinationAddress + '\'' +
 			", sourcePort=" + sourcePort +

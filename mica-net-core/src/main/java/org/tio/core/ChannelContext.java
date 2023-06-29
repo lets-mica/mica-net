@@ -260,18 +260,29 @@ public abstract class ChannelContext extends MapPropSupport {
 	private String bsId;
 	private String id = null;
 	private Node clientNode;
-	private Node proxyClientNode = null;                                            //一些连接是代理的，譬如web服务器放在nginx后面，此时需要知道最原始的ip
+	/**
+	 * 一些连接是代理的，譬如web服务器放在nginx后面，此时需要知道最原始的ip
+	 */
+	private Node proxyClientNode = null;
 	private Node serverNode;
 	/**
 	 * 该连接在哪些组中
 	 */
 	private Set<String> groups = null;
-	private Integer readBufferSize = null;                                            //个性化readBufferSize
-	private CloseCode closeCode = CloseCode.INIT_STATUS;                        //连接关闭的原因码
+	/**
+	 * 个性化readBufferSize
+	 */
+	private Integer readBufferSize = null;
+	/**
+	 * 连接关闭的原因码
+	 */
+	private CloseCode closeCode = CloseCode.INIT_STATUS;
 
 	/**
-	 * @param tioConfig
-	 * @param asynchronousSocketChannel
+	 * ChannelContext
+	 *
+	 * @param tioConfig                 TioConfig
+	 * @param asynchronousSocketChannel AsynchronousSocketChannel
 	 * @author tanyaowu
 	 */
 	public ChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
@@ -333,25 +344,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * @throws IOException IOException
 	 */
 	public abstract Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException;
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		ChannelContext other = (ChannelContext) obj;
-		if (id == null) {
-			return other.id == null;
-		} else {
-			return id.equals(other.id);
-		}
-	}
 
 	/**
 	 * @return the remoteNode
@@ -423,19 +415,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	 */
 	public WriteCompletionHandler getWriteCompletionHandler() {
 		return writeCompletionHandler;
-	}
-
-	/**
-	 * @return
-	 * @author tanyaowu
-	 */
-	@Override
-	public int hashCode() {
-		if (StrUtil.isNotBlank(id)) {
-			return this.id.hashCode();
-		} else {
-			return super.hashCode();
-		}
 	}
 
 	public void init(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
@@ -521,12 +500,10 @@ public abstract class ChannelContext extends MapPropSupport {
 	 */
 	public void setClosed(boolean isClosed) {
 		this.isClosed = isClosed;
-		if (isClosed) {
-			if (clientNode == null || !UNKNOWN_ADDRESS_IP.equals(clientNode.getIp())) {
-				String before = this.toString();
-				assignAnUnknownClientNode();
-				log.info("关闭前{}, 关闭后{}", before, this);
-			}
+		if (isClosed && (clientNode == null || !UNKNOWN_ADDRESS_IP.equals(clientNode.getIp()))) {
+			String before = this.toString();
+			assignAnUnknownClientNode();
+			log.info("关闭前{}, 关闭后{}", before, this);
 		}
 	}
 
@@ -566,27 +543,6 @@ public abstract class ChannelContext extends MapPropSupport {
 		this.userId = userId;
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder(64);
-		if (serverNode != null) {
-			sb.append("server:").append(serverNode);
-		} else {
-			sb.append("server:").append("NULL");
-		}
-		if (clientNode != null) {
-			sb.append(", client:").append(clientNode);
-		} else {
-			sb.append(", client:").append("NULL");
-		}
-
-		if (isVirtual) {
-			sb.append(", virtual");
-		}
-
-		return sb.toString();
-	}
-
 	/**
 	 * @return the bsId
 	 */
@@ -621,8 +577,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	/**
 	 * 是否是服务器端
 	 *
-	 * @return
-	 * @author tanyaowu
+	 * @return boolean
 	 */
 	public abstract boolean isServer();
 
@@ -673,10 +628,55 @@ public abstract class ChannelContext extends MapPropSupport {
 		this.closeCode = closeCode;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		ChannelContext other = (ChannelContext) obj;
+		if (id == null) {
+			return other.id == null;
+		} else {
+			return id.equals(other.id);
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		if (StrUtil.isNotBlank(id)) {
+			return this.id.hashCode();
+		} else {
+			return super.hashCode();
+		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder(64);
+		if (serverNode != null) {
+			sb.append("server:").append(serverNode);
+		} else {
+			sb.append("server:").append("NULL");
+		}
+		if (clientNode != null) {
+			sb.append(", client:").append(clientNode);
+		} else {
+			sb.append(", client:").append("NULL");
+		}
+		if (isVirtual) {
+			sb.append(", virtual");
+		}
+		return sb.toString();
+	}
+
 	/**
 	 * 连接关闭码
-	 *
-	 * @author tanyaowu
 	 */
 	public enum CloseCode {
 		/**
@@ -816,9 +816,6 @@ public abstract class ChannelContext extends MapPropSupport {
 		}
 	}
 
-	/**
-	 * @author tanyaowu
-	 */
 	public static class CloseMeta {
 		public Throwable throwable;
 		public String remark;
