@@ -2,7 +2,15 @@
 
 ## 发行版本
 
+### v0.1.4 - 2023-07-01
+- :sparkles: 文件队列 java8 使用 `DirectByteBuffer` 上的 `cleaner`
+- :sparkles: `leon` 勇哥的文件队列合并到 util
+- :sparkles: 停止时清理配置对象
+- :sparkles: 集群功能合并进 core，待集成。
+- :bug: 修复服务端心跳，第一次 `sleep` 太久。
+
 ### v0.1.3 - 2023-06-09
+- :sparkles: 优化心跳日志，受 debug 控制
 - :sparkles: 优化 `HttpConfig` 默认参数，最大请求头默认改为 **8K**。
 - :sparkles: 完善 `ByteBufferUtil` 对**大小端**、**无符号**的处理，方便使用。
 - :memo: docs 目录添加文档，方便上手 mica-net **tcp** 开发。
