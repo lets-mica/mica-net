@@ -2,6 +2,8 @@ package org.tio.utils.queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tio.utils.hutool.CollUtil;
+import org.tio.utils.mica.ExceptionUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,15 +24,13 @@ public final class FileQueue<E> {
 	static final Map<Path, FileQueue<?>> CACHE = new ConcurrentHashMap<>(16);
 	private final Reader<E> reader;
 	private final Writer<E> writer;
-	private final int bufSize;
 
-	FileQueue(Path path, int bufferSize, long maxFileSize, long maxDataSize) throws IOException {
+	FileQueue(Path path, long maxFileSize, long maxDataSize) throws IOException {
 		if (Files.notExists(path)) {
 			Files.createDirectories(path);
 		}
 		this.writer = new Writer<>(path, maxFileSize, maxDataSize);
 		this.reader = new Reader<>(path, maxFileSize, maxDataSize, this.writer);
-		this.bufSize = bufferSize;
 	}
 
 	public static Builder builder() {
@@ -38,7 +38,7 @@ public final class FileQueue<E> {
 	}
 
 	public void put(E element, Function<E, byte[]> mapper) {
-		writer.write(element, mapper, bufSize);
+		writer.write(element, mapper);
 	}
 
 	public E take(Function<byte[], E> mapper) throws InterruptedException {
@@ -57,7 +57,6 @@ public final class FileQueue<E> {
 	public static final class Builder {
 		private long maxFileSize = 100 * 1024 * 1024L; // 100m
 		private long maxDataSize = 64 * 1024L; // 64k
-		private int bufferSize = 2 * 1024; // 2k
 		private Path path;
 
 		public Builder path(String path) {
@@ -67,11 +66,6 @@ public final class FileQueue<E> {
 
 		public Builder path(Path path) {
 			this.path = path;
-			return this;
-		}
-
-		public Builder bufferSize(int bufferSize) {
-			this.bufferSize = bufferSize;
 			return this;
 		}
 
@@ -85,17 +79,14 @@ public final class FileQueue<E> {
 			return this;
 		}
 
-		public <E> FileQueue<E> build() throws IOException {
-			FileQueue<?> queue = CACHE.get(path);
-			if (queue == null) {
-				synchronized (FileQueue.class) {
-					queue = CACHE.get(path);
-					if (queue == null) {
-						queue = new FileQueue<>(path, bufferSize, maxFileSize, maxDataSize);
-						CACHE.put(path, queue);
-					}
+		public <E> FileQueue<E> build() {
+			FileQueue<?> queue = CollUtil.computeIfAbsent(CACHE, path, key -> {
+				try {
+					return new FileQueue<>(path, maxFileSize, maxDataSize);
+				} catch (IOException e) {
+					throw ExceptionUtils.unchecked(e);
 				}
-			}
+			});
 			if (CACHE.size() == 1) {
 				Runtime.getRuntime().addShutdownHook(new Thread(() -> CACHE.forEach((k, v) -> {
 					try {
@@ -109,4 +100,5 @@ public final class FileQueue<E> {
 			return (FileQueue<E>) queue;
 		}
 	}
+
 }

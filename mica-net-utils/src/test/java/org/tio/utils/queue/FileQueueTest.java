@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +81,7 @@ public class FileQueueTest {
 				long start = System.currentTimeMillis();
 				try {
 					for (int j = 0; j < count; j++) {
-						Test test = new Test(a + "name" + j, null);
+						Test test = new Test(a + "name" + j, Collections.singletonList(new Test1(j)));
 						queue.put(test, JsonUtil::toJsonBytes);
 					}
 				} catch (Exception e) {

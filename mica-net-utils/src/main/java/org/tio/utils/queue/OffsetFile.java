@@ -18,12 +18,12 @@ final class OffsetFile extends Mapped {
 	}
 
 	public long get(long pos, int size) throws IOException {
-		MappedByteBuffer map = null;
+		MappedByteBuffer byteBuffer = null;
 		try {
-			map = channel.map(FileChannel.MapMode.READ_WRITE, pos, size);
-			return map.getLong();
+			byteBuffer = channel.map(FileChannel.MapMode.READ_WRITE, pos, size);
+			return byteBuffer.getLong();
 		} finally {
-			buffCleaner.accept(map);
+			buffCleaner.accept(byteBuffer);
 		}
 	}
 

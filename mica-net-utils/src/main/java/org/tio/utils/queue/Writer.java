@@ -46,7 +46,7 @@ final class Writer<E> extends Mapped {
 		maxDataIdx = readMaxDataIndex();
 	}
 
-	void write(E element, Function<E, byte[]> mapper, int bufSize) {
+	void write(E element, Function<E, byte[]> mapper) {
 		if (element == null) {
 			throw new NullPointerException("文件队列数据不能为空！");
 		}
