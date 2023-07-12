@@ -219,9 +219,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * 2017年10月19日 上午9:39:46
  */
 public abstract class ChannelContext extends MapPropSupport {
+	private static final Logger log = LoggerFactory.getLogger(ChannelContext.class);
 	public static final String UNKNOWN_ADDRESS_IP = "$UNKNOWN";
 	public static final AtomicInteger UNKNOWN_ADDRESS_PORT_SEQ = new AtomicInteger();
-	private static final Logger log = LoggerFactory.getLogger(ChannelContext.class);
 	public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
 	public final ChannelStat stat = new ChannelStat();
 	public final CloseMeta closeMeta = new CloseMeta();
@@ -246,10 +246,26 @@ public abstract class ChannelContext extends MapPropSupport {
 	public SendRunnable sendRunnable = null;
 	public WriteCompletionHandler writeCompletionHandler = null;
 	public SslFacadeContext sslFacadeContext;
+	/**
+	 * 是否等待关闭
+	 */
 	public boolean isWaitingClose = false;
+	/**
+	 * 是否已经关闭
+	 */
 	public boolean isClosed = true;
+	/**
+	 * 是否需要被移除
+	 */
 	public boolean isRemoved = false;
+	/**
+	 * 虚拟，用于测试
+	 */
 	public boolean isVirtual = false;
+	/**
+	 * 认证成功标识，可以连接，用于业务
+	 */
+	private boolean isAccepted = false;
 	/**
 	 * The asynchronous socket channel.
 	 */
@@ -505,6 +521,14 @@ public abstract class ChannelContext extends MapPropSupport {
 			assignAnUnknownClientNode();
 			log.info("关闭前{}, 关闭后{}", before, this);
 		}
+	}
+
+	public boolean isAccepted() {
+		return isAccepted;
+	}
+
+	public void setAccepted(boolean accepted) {
+		isAccepted = accepted;
 	}
 
 	public void setPacketNeededLength(Integer packetNeededLength) {
