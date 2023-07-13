@@ -2,7 +2,8 @@
 
 ## 发行版本
 
-### v0.1.4 - 2023-07-01
+### v0.1.4 - 2023-07-16
+- :sparkles: `ChannelContext` 添加 `isAccepted` 标记
 - :sparkles: 文件队列 java8 使用 `DirectByteBuffer` 上的 `cleaner`
 - :sparkles: `leon` 勇哥的文件队列合并到 util
 - :sparkles: 停止时清理配置对象
