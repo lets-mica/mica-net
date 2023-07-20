@@ -241,7 +241,9 @@ public interface HttpRequestHandler {
 	 * @param request HttpRequest
 	 * @return HttpConfig
 	 */
-	HttpConfig getHttpConfig(HttpRequest request);
+	default HttpConfig getHttpConfig(HttpRequest request) {
+		return request.getHttpConfig();
+	}
 
 	/**
 	 * 清空静态资源缓存，如果没有缓存，可以不处理

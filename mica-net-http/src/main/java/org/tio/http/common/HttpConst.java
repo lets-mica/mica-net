@@ -300,6 +300,11 @@ public interface HttpConst {
 			 */
 			String application_x_www_form_urlencoded = "application/x-www-form-urlencoded";
 		}
+
+		interface Accept {
+			String gzip = "gzip";
+		}
+
 	}
 
 	interface ResponseHeaderKey {
@@ -374,16 +379,6 @@ public interface HttpConst {
 		 *
 		 */
 		String Access_Control_Allow_Headers = "Access-Control-Allow-Headers".toLowerCase();    //.toLowerCase(); //value: x-requested-with,content-type
-
-		/**
-		 * 是否是从缓存中获取的数据，tio-httpserver特有的头部信息
-		 */
-		String tio_from_cache = "tio-from-cache";
-
-		/**
-		 *
-		 */
-		String tio_webpack_used_cache = "tio-webpack-used-cache";
 
 	}
 

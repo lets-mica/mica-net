@@ -545,7 +545,8 @@ public class HttpRequest extends HttpPacket {
 	 * @return the isSupportGzip
 	 */
 	public boolean getIsSupportGzip() {
-		return true;
+		String header = getHeader(HttpConst.RequestHeaderKey.Accept_Encoding);
+		return header != null && header.contains(HttpConst.RequestHeaderValue.Accept.gzip);
 	}
 
 	/**

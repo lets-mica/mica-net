@@ -231,8 +231,6 @@ public class HeaderName {
 	public static final HeaderName Content_Type = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Type);
 	public static final HeaderName Location = HeaderName.from(HttpConst.ResponseHeaderKey.Location);
 	public static final HeaderName Cache_Control = HeaderName.from(HttpConst.ResponseHeaderKey.Cache_Control);
-	public static final HeaderName tio_from_cache = HeaderName.from(HttpConst.ResponseHeaderKey.tio_from_cache);
-	public static final HeaderName tio_webpack_used_cache = HeaderName.from(HttpConst.ResponseHeaderKey.tio_webpack_used_cache);
 	public static final HeaderName Access_Control_Allow_Credentials = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Credentials);
 	public static final HeaderName Sec_Websocket_Protocol = HeaderName.from(HttpConst.RequestHeaderKey.Sec_Websocket_Protocol);
 
