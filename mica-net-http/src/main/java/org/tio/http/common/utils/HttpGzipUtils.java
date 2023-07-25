@@ -222,11 +222,10 @@ public class HttpGzipUtils {
 			gzip(response);
 		} else {
 			if (request != null) {
-				log.warn("{}, 不支持gzip, {}", request.getClientIp(), request.getHeader(HttpConst.RequestHeaderKey.User_Agent));
+				log.debug("{}, 不支持gzip, {}", request.getClientIp(), request.getHeader(HttpConst.RequestHeaderKey.User_Agent));
 			} else {
-				log.info("request对象为空");
+				log.debug("request对象为空");
 			}
-
 		}
 	}
 
