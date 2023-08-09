@@ -22,6 +22,7 @@ package org.tio.utils;
  * @author L.cm
  */
 public class Version {
+	private static final String PROJECT_VERSION = "${project.version}";
 
 	private Version() {
 	}
@@ -32,8 +33,7 @@ public class Version {
 	 * @return 版本号
 	 */
 	public static String getVersion() {
-		Package pkg = Version.class.getPackage();
-		return (pkg != null ? pkg.getImplementationVersion() : null);
+		return PROJECT_VERSION;
 	}
 
 }
