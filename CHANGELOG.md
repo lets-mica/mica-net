@@ -2,8 +2,12 @@
 
 ## 发行版本
 
+### v0.1.5 - 2023-09-02
+- :sparkles: 优化版本号写入到 `Version.java`，达成 fatjar 时读取不到版本。
+- :sparkles: http gzip 完善判断，对于不支持 gzip 的，不压缩。
+- :arrow_up: 依赖升级
+
 ### v0.1.4 - 2023-07-16
-- :sparkles: `ChannelContext` 添加 `isAccepted` 标记
 - :sparkles: 文件队列 java8 使用 `DirectByteBuffer` 上的 `cleaner`
 - :sparkles: `leon` 勇哥的文件队列合并到 util
 - :sparkles: 停止时清理配置对象
