@@ -208,11 +208,11 @@ public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
 	 * <li>注：请不要在这个方法中向对方发送任何消息，因为这个时候握手还没完成，发消息会导致协议交互失败。</li>
 	 * <li>对于大部分业务，该方法只需要一行代码：return httpResponse;</li>
 	 *
-	 * @param httpRequest
-	 * @param httpResponse
-	 * @param channelContext
-	 * @return
-	 * @throws Exception
+	 * @param httpRequest    HttpRequest
+	 * @param httpResponse   HttpResponse
+	 * @param channelContext ChannelContext
+	 * @return HttpResponse
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	HttpResponse handshake(HttpRequest httpRequest, HttpResponse httpResponse, ChannelContext channelContext) throws Exception;
@@ -220,10 +220,10 @@ public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
 	/**
 	 * 握手成功后触发该方法
 	 *
-	 * @param httpRequest
-	 * @param httpResponse
-	 * @param channelContext
-	 * @throws Exception
+	 * @param httpRequest    HttpRequest
+	 * @param httpResponse   HttpResponse
+	 * @param channelContext ChannelContext
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	void onAfterHandshaked(HttpRequest httpRequest, HttpResponse httpResponse, ChannelContext channelContext) throws Exception;
@@ -231,11 +231,11 @@ public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
 	/**
 	 * <li>当收到Opcode.BINARY消息时，执行该方法。也就是说如何你的ws是基于BINARY传输的，就会走到这个方法</li>
 	 *
-	 * @param wsRequest
-	 * @param bytes
-	 * @param channelContext
+	 * @param wsRequest      WsRequest
+	 * @param bytes          bytes
+	 * @param channelContext ChannelContext
 	 * @return 可以是WsResponse、byte[]、ByteBuffer、String或null，如果是null，框架不会回消息
-	 * @throws Exception
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	Object onBytes(WsRequest wsRequest, byte[] bytes, ChannelContext channelContext) throws Exception;
@@ -243,11 +243,11 @@ public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
 	/**
 	 * 当收到Opcode.CLOSE时，执行该方法，业务层在该方法中一般不需要写什么逻辑，空着就好
 	 *
-	 * @param wsRequest
-	 * @param bytes
-	 * @param channelContext
+	 * @param wsRequest      WsRequest
+	 * @param bytes          bytes
+	 * @param channelContext ChannelContext
 	 * @return 可以是WsResponse、byte[]、ByteBuffer、String或null，如果是null，框架不会回消息
-	 * @throws Exception
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	Object onClose(WsRequest wsRequest, byte[] bytes, ChannelContext channelContext) throws Exception;
@@ -255,11 +255,11 @@ public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
 	/**
 	 * <li>当收到Opcode.TEXT消息时，执行该方法。也就是说如何你的ws是基于TEXT传输的，就会走到这个方法</li>
 	 *
-	 * @param wsRequest
-	 * @param text
-	 * @param channelContext
+	 * @param wsRequest      WsRequest
+	 * @param text           text
+	 * @param channelContext ChannelContext
 	 * @return 可以是WsResponse、byte[]、ByteBuffer、String或null，如果是null，框架不会回消息
-	 * @throws Exception
+	 * @throws Exception Exception
 	 * @author tanyaowu
 	 */
 	Object onText(WsRequest wsRequest, String text, ChannelContext channelContext) throws Exception;

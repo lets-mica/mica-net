@@ -223,7 +223,6 @@ public class WsTioServerHandler implements TioServerHandler {
 	 * SEC_WEBSOCKET_KEY后缀
 	 */
 	private static final String SEC_WEBSOCKET_KEY_SUFFIX = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
 	private static final byte[] SEC_WEBSOCKET_KEY_SUFFIX_BYTES = SEC_WEBSOCKET_KEY_SUFFIX.getBytes();
 	private final IWsMsgHandler wsMsgHandler;
 	private final HttpConfig wsServerConfig;
