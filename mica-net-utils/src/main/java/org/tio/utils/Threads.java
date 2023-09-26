@@ -198,6 +198,7 @@ import org.tio.utils.thread.pool.DefaultThreadFactory;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 import org.tio.utils.thread.pool.TioCallerRunsPolicy;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
@@ -315,9 +316,9 @@ public class Threads {
 	 * 获取 biz 业务线程池
 	 *
 	 * @param poolSize 业务线程池大小
-	 * @return ThreadPoolExecutor
+	 * @return ExecutorService
 	 */
-	public static ThreadPoolExecutor getBizExecutor(int poolSize) {
+	public static ExecutorService getBizExecutor(int poolSize) {
 		LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
 		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("biz-worker", Thread.MAX_PRIORITY);
 		ThreadPoolExecutor tioExecutor = new ThreadPoolExecutor(poolSize, poolSize,
