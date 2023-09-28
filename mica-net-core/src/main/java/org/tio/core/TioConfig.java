@@ -203,7 +203,7 @@ import org.tio.core.stat.GroupStat;
 import org.tio.core.task.CloseRunnable;
 import org.tio.core.uuid.DefaultTioUuid;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.Threads;
+import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.prop.MapPropSupport;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
@@ -316,11 +316,11 @@ public abstract class TioConfig extends MapPropSupport {
 		this.id = Integer.toString(ID_ATOMIC.incrementAndGet());
 		this.tioExecutor = tioExecutor;
 		if (this.tioExecutor == null) {
-			this.tioExecutor = Threads.getTioExecutor();
+			this.tioExecutor = ThreadUtils.getTioExecutor();
 		}
 		this.groupExecutor = groupExecutor;
 		if (this.groupExecutor == null) {
-			this.groupExecutor = Threads.getGroupExecutor();
+			this.groupExecutor = ThreadUtils.getGroupExecutor();
 		}
 		closeRunnable = new CloseRunnable(this.tioExecutor);
 	}

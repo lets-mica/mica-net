@@ -2,7 +2,7 @@ package org.tio.utils.queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.utils.Threads;
+import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.json.JsonUtil;
 
 import java.io.IOException;
@@ -39,7 +39,7 @@ public class FileQueueTest {
 		FileQueue<Duration[]> queue = FileQueue.builder()
 			.path(Paths.get(DEFAULT_ROOT, "test-0"))
 			.build();
-		ThreadPoolExecutor executor = Threads.getGroupExecutor(4);
+		ThreadPoolExecutor executor = ThreadUtils.getGroupExecutor(4);
 		for (int i = 0; i < executor.getCorePoolSize(); i++) {
 			executor.execute(() -> {
 				while (true) {

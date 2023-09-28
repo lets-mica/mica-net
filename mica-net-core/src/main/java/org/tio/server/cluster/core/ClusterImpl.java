@@ -17,7 +17,7 @@ import org.tio.core.Tio;
 import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.Threads;
+import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.hutool.Snowflake;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 import org.tio.utils.timer.TimerTask;
@@ -101,10 +101,10 @@ public class ClusterImpl implements ClusterApi {
 		ClusterTcpServerHandler serverHandler = new ClusterTcpServerHandler(this, messageDecoder, messageListener);
 		// 配置
 		String name = "TCP-cluster-server";
-		int tioPoolSize = Threads.AVAILABLE_PROCESSORS + 1;
+		int tioPoolSize = ThreadUtils.AVAILABLE_PROCESSORS + 1;
 		// 线程配置
-		SynThreadPoolExecutor tioExecutor = Threads.getTioExecutor(tioPoolSize);
-		ThreadPoolExecutor groupExecutor = Threads.getGroupExecutor(tioPoolSize * 2);
+		SynThreadPoolExecutor tioExecutor = ThreadUtils.getTioExecutor(tioPoolSize);
+		ThreadPoolExecutor groupExecutor = ThreadUtils.getGroupExecutor(tioPoolSize * 2);
 		TioServerConfig serverConfig = new TioServerConfig(
 			name, serverHandler, new ClusterTcpServerListener(), tioExecutor, groupExecutor
 		);

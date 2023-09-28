@@ -198,7 +198,7 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.Tio;
-import org.tio.utils.Threads;
+import org.tio.utils.thread.ThreadUtils;
 
 /**
  * @author tanyaowu
@@ -228,7 +228,7 @@ public class TioUtils {
 			}
 		} else {
 			log.error("{}, 请检查此异常, asynchronousSocketChannel is null, isClosed:{}, isRemoved:{}, {} ", channelContext, channelContext.isClosed, channelContext.isRemoved,
-				Threads.stackTrace());
+				ThreadUtils.stackTrace());
 			return false;
 		}
 		if (!isOpen) {

@@ -200,7 +200,7 @@ import org.tio.http.common.TioConfigKey;
 import org.tio.http.common.handler.HttpRequestHandler;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.Threads;
+import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
@@ -235,10 +235,10 @@ public class HttpServerStarter {
 	public HttpServerStarter(HttpConfig httpConfig, HttpRequestHandler requestHandler,
 							 SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		if (tioExecutor == null) {
-			tioExecutor = Threads.getTioExecutor();
+			tioExecutor = ThreadUtils.getTioExecutor();
 		}
 		if (groupExecutor == null) {
-			groupExecutor = Threads.getGroupExecutor();
+			groupExecutor = ThreadUtils.getGroupExecutor();
 		}
 		this.httpConfig = httpConfig;
 		this.httpRequestHandler = requestHandler;

@@ -192,7 +192,7 @@
 	   limitations under the License.
 */
 
-package org.tio.utils;
+package org.tio.utils.thread;
 
 import org.tio.utils.thread.pool.DefaultThreadFactory;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
@@ -208,7 +208,7 @@ import java.util.concurrent.TimeUnit;
  * @author tanyaowu
  * 2017年7月7日 上午11:12:03
  */
-public class Threads {
+public class ThreadUtils {
 	public static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	public static final int CORE_POOL_SIZE = AVAILABLE_PROCESSORS;
 	public static final int MAX_POOL_SIZE_FOR_TIO = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_TIO", Math.max(CORE_POOL_SIZE * 2, 8));
@@ -217,7 +217,7 @@ public class Threads {
 	private static ThreadPoolExecutor groupExecutor = null;
 	private static SynThreadPoolExecutor tioExecutor = null;
 
-	private Threads() {
+	private ThreadUtils() {
 	}
 
 	/**
@@ -229,7 +229,7 @@ public class Threads {
 		if (groupExecutor != null) {
 			return groupExecutor;
 		}
-		synchronized (Threads.class) {
+		synchronized (ThreadUtils.class) {
 			if (groupExecutor != null) {
 				return groupExecutor;
 			}
@@ -251,7 +251,7 @@ public class Threads {
 		if (tioExecutor != null) {
 			return tioExecutor;
 		}
-		synchronized (Threads.class) {
+		synchronized (ThreadUtils.class) {
 			if (tioExecutor != null) {
 				return tioExecutor;
 			}
@@ -292,7 +292,7 @@ public class Threads {
 		DefaultThreadFactory threadFactory = DefaultThreadFactory.getInstance("tio-group", Thread.MAX_PRIORITY);
 		LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
 		ThreadPoolExecutor groupExecutor = new ThreadPoolExecutor(groupPoolSize, groupPoolSize,
-			Threads.KEEP_ALIVE_TIME, TimeUnit.SECONDS, runnableQueue, threadFactory, new TioCallerRunsPolicy());
+			ThreadUtils.KEEP_ALIVE_TIME, TimeUnit.SECONDS, runnableQueue, threadFactory, new TioCallerRunsPolicy());
 		groupExecutor.prestartCoreThread();
 		return groupExecutor;
 	}
@@ -307,7 +307,7 @@ public class Threads {
 		LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
 		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("tio-worker", Thread.MAX_PRIORITY);
 		SynThreadPoolExecutor tioExecutor = new SynThreadPoolExecutor(tioPoolSize, tioPoolSize,
-			Threads.KEEP_ALIVE_TIME, runnableQueue, defaultThreadFactory, new TioCallerRunsPolicy());
+			ThreadUtils.KEEP_ALIVE_TIME, runnableQueue, defaultThreadFactory, new TioCallerRunsPolicy());
 		tioExecutor.prestartCoreThread();
 		return tioExecutor;
 	}
@@ -322,7 +322,7 @@ public class Threads {
 		LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
 		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("biz-worker", Thread.MAX_PRIORITY);
 		ThreadPoolExecutor tioExecutor = new ThreadPoolExecutor(poolSize, poolSize,
-			Threads.KEEP_ALIVE_TIME, TimeUnit.SECONDS, runnableQueue, defaultThreadFactory, new TioCallerRunsPolicy());
+			ThreadUtils.KEEP_ALIVE_TIME, TimeUnit.SECONDS, runnableQueue, defaultThreadFactory, new TioCallerRunsPolicy());
 		tioExecutor.prestartCoreThread();
 		return tioExecutor;
 	}
