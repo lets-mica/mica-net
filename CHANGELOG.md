@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v0.1.6 - 2023-10-05
+- :sparkles: Threads 移动并改名为 ThreadUtils。
+- :sparkles: ThreadUtils biz 线程池支持虚拟线程。
+
 ### v0.1.5 - 2023-09-02
 - :sparkles: 优化版本号写入到 `Version.java`，达成 fatjar 时读取不到版本。
 - :sparkles: http gzip 完善判断，对于不支持 gzip 的，不压缩。
