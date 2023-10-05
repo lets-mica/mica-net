@@ -214,7 +214,7 @@ public class ThreadUtils {
 	public static final int MAX_POOL_SIZE_FOR_TIO = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_TIO", Math.max(CORE_POOL_SIZE * 2, 8));
 	public static final int MAX_POOL_SIZE_FOR_GROUP = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_GROUP", Math.max(CORE_POOL_SIZE * 4, 16));
 	public static final long KEEP_ALIVE_TIME = 0L;
-	private static ExecutorService groupExecutor = null;
+	private static ThreadPoolExecutor groupExecutor = null;
 	private static SynThreadPoolExecutor tioExecutor = null;
 
 	private ThreadUtils() {
@@ -236,9 +236,8 @@ public class ThreadUtils {
 			LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
 			DefaultThreadFactory threadFactory = DefaultThreadFactory.getInstance("tio-group", Thread.MAX_PRIORITY);
 			CallerRunsPolicy callerRunsPolicy = new TioCallerRunsPolicy();
-			ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(MAX_POOL_SIZE_FOR_GROUP, MAX_POOL_SIZE_FOR_GROUP, KEEP_ALIVE_TIME, TimeUnit.SECONDS, runnableQueue, threadFactory, callerRunsPolicy);
-			threadPoolExecutor.prestartCoreThread();
-			groupExecutor = threadPoolExecutor;
+			groupExecutor = new ThreadPoolExecutor(MAX_POOL_SIZE_FOR_GROUP, MAX_POOL_SIZE_FOR_GROUP, KEEP_ALIVE_TIME, TimeUnit.SECONDS, runnableQueue, threadFactory, callerRunsPolicy);
+			groupExecutor.prestartCoreThread();
 			return groupExecutor;
 		}
 	}
