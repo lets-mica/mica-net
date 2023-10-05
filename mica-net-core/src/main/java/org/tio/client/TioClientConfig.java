@@ -206,7 +206,7 @@ import org.tio.utils.timer.TimerTaskService;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author tanyaowu
@@ -253,7 +253,7 @@ public class TioClientConfig extends TioConfig {
 	 * @param tioExecutor   SynThreadPoolExecutor
 	 * @param groupExecutor ThreadPoolExecutor
 	 */
-	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener, ReconnConf reconnConf, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener, ReconnConf reconnConf, SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		super(tioExecutor, groupExecutor);
 		this.groupStat = new ClientGroupStat();
 		this.setTioClientHandler(tioHandler);

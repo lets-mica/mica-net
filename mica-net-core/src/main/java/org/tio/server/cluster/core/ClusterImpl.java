@@ -1,9 +1,5 @@
 package org.tio.server.cluster.core;
 
-import org.tio.server.cluster.codec.ClusterMessageDecoder;
-import org.tio.server.cluster.message.ClusterDataMessage;
-import org.tio.server.cluster.message.ClusterSyncAckMessage;
-import org.tio.server.cluster.message.ClusterSyncMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.client.ReconnConf;
@@ -17,8 +13,12 @@ import org.tio.core.Tio;
 import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.thread.ThreadUtils;
+import org.tio.server.cluster.codec.ClusterMessageDecoder;
+import org.tio.server.cluster.message.ClusterDataMessage;
+import org.tio.server.cluster.message.ClusterSyncAckMessage;
+import org.tio.server.cluster.message.ClusterSyncMessage;
 import org.tio.utils.hutool.Snowflake;
+import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 import org.tio.utils.timer.TimerTask;
 
@@ -104,7 +104,7 @@ public class ClusterImpl implements ClusterApi {
 		int tioPoolSize = ThreadUtils.AVAILABLE_PROCESSORS + 1;
 		// 线程配置
 		SynThreadPoolExecutor tioExecutor = ThreadUtils.getTioExecutor(tioPoolSize);
-		ThreadPoolExecutor groupExecutor = ThreadUtils.getGroupExecutor(tioPoolSize * 2);
+		ExecutorService groupExecutor = ThreadUtils.getGroupExecutor(tioPoolSize * 2);
 		TioServerConfig serverConfig = new TioServerConfig(
 			name, serverHandler, new ClusterTcpServerListener(), tioExecutor, groupExecutor
 		);

@@ -194,11 +194,11 @@
 package org.tio.websocket.server;
 
 import org.tio.core.intf.TioUuid;
+import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.http.common.HttpConfig;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
-import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.websocket.server.handler.IWsMsgHandler;
 
 import java.io.IOException;

@@ -194,19 +194,18 @@
 package org.tio.http.server;
 
 import org.tio.core.TcpConst;
-import org.tio.http.common.HttpConfig;
 import org.tio.core.uuid.SeqTioUuid;
+import org.tio.http.common.HttpConfig;
 import org.tio.http.common.TioConfigKey;
 import org.tio.http.common.handler.HttpRequestHandler;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.hutool.StrUtil;
+import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author tanyaowu
