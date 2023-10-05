@@ -225,7 +225,7 @@ public class ThreadUtils {
 	 *
 	 * @return ThreadPoolExecutor
 	 */
-	public static ThreadPoolExecutor getGroupExecutor() {
+	public static ExecutorService getGroupExecutor() {
 		if (groupExecutor != null) {
 			return groupExecutor;
 		}

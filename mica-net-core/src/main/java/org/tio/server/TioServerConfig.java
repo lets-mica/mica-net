@@ -211,6 +211,7 @@ import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 import java.io.InputStream;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -263,7 +264,7 @@ public class TioServerConfig extends TioConfig {
 	 * @param groupExecutor ThreadPoolExecutor
 	 */
 	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener,
-						   SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+						   SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		super(tioExecutor, groupExecutor);
 		this.name = name;
 		this.groupStat = new ServerGroupStat();

@@ -205,6 +205,7 @@ import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -233,7 +234,7 @@ public class HttpServerStarter {
 	 * @param groupExecutor  ThreadPoolExecutor
 	 */
 	public HttpServerStarter(HttpConfig httpConfig, HttpRequestHandler requestHandler,
-							 SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+							 SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		if (tioExecutor == null) {
 			tioExecutor = ThreadUtils.getTioExecutor();
 		}

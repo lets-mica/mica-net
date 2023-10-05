@@ -203,8 +203,8 @@ import org.tio.core.stat.GroupStat;
 import org.tio.core.task.CloseRunnable;
 import org.tio.core.uuid.DefaultTioUuid;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.prop.MapPropSupport;
+import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 import java.nio.ByteOrder;
@@ -214,7 +214,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -270,7 +270,7 @@ public abstract class TioConfig extends MapPropSupport {
 	public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD;    //.queue;
 	public SynThreadPoolExecutor tioExecutor;
 	public CloseRunnable closeRunnable;
-	public ThreadPoolExecutor groupExecutor;
+	public ExecutorService groupExecutor;
 	public ClientNodes clientNodes = new ClientNodes();
 	public Set<ChannelContext> connections = ConcurrentHashMap.newKeySet();
 	public Groups groups = new Groups();
@@ -302,7 +302,7 @@ public abstract class TioConfig extends MapPropSupport {
 	 * @param groupExecutor
 	 * @author: tanyaowu
 	 */
-	public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+	public TioConfig(SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		super();
 		ALL_GROUP_CONTEXTS.add(this);
 		if (this instanceof TioServerConfig) {
