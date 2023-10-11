@@ -91,7 +91,7 @@ public class ByteBufferUtil {
 		byte[] value = new byte[2];
 		buffer.get(value, 0, 2);
 		short ret = value[0];
-		ret |= (value[1] & 0xff) << 8;
+		ret |= (short) ((value[1] & 0xff) << 8);
 		return ret;
 	}
 
@@ -105,7 +105,7 @@ public class ByteBufferUtil {
 		byte[] value = new byte[2];
 		buffer.get(value, 0, 2);
 		short ret = (short) ((value[0]) << 8);
-		ret |= value[1] & 0xff;
+		ret |= (short) (value[1] & 0xff);
 		return ret;
 	}
 
@@ -1050,7 +1050,7 @@ public class ByteBufferUtil {
 	 * @return String
 	 */
 	private static String fixHexString(final String hexStr) {
-		if (hexStr == null || hexStr.length() == 0) {
+		if (hexStr == null || hexStr.isEmpty()) {
 			return "00000000h";
 		} else {
 			final StringBuilder buf = new StringBuilder(8);
