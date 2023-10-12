@@ -25,6 +25,7 @@ import org.tio.utils.timer.TimerTask;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * 集群实现
@@ -70,7 +71,7 @@ public class ClusterImpl implements ClusterApi {
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;
 		this.localMember = new Node(config.getHost(), config.getPort());
-		this.seedMembers = filterSeedMembers(config, this.localMember);
+		this.seedMembers = filterSeedMembers(config);
 		this.lateJoinMembers = new ArrayList<>();
 		this.messageDecoder = new ClusterMessageDecoder();
 		this.syncMessageMap = new ConcurrentHashMap<>();
@@ -82,10 +83,10 @@ public class ClusterImpl implements ClusterApi {
 	 *
 	 * @return members
 	 */
-	private static List<Node> filterSeedMembers(ClusterConfig config, Node localMember) {
-		List<Node> seedMembers = config.getSeedMembers();
-		seedMembers.remove(localMember);
-		return Collections.unmodifiableList(seedMembers);
+	private static List<Node> filterSeedMembers(ClusterConfig config) {
+		return config.getSeedMembers().stream()
+			.distinct()
+			.collect(Collectors.toList());
 	}
 
 	@Override
@@ -118,10 +119,14 @@ public class ClusterImpl implements ClusterApi {
 		// 配置
 		TioClientConfig clientConfig = new TioClientConfig(tioHandler, tioListener);
 		clientConfig.setName("TCP-cluster-client");
-		clientConfig.setReconnConf(new ReconnConf());
+		// 1s 重连
+		clientConfig.setReconnConf(new ReconnConf(1000));
 		clientConfig.setTioUuid(new SnowflakeTioUuid());
 		this.tcpClusterClient = new TioClient(clientConfig);
-		for (Node seedMember : seedMembers) {
+		// 移除本地节点
+		List<Node> clientNodes = new ArrayList<>(seedMembers);
+		clientNodes.remove(localMember);
+		for (Node seedMember : clientNodes) {
 			this.tcpClusterClient.connect(seedMember);
 		}
 	}
@@ -211,7 +216,7 @@ public class ClusterImpl implements ClusterApi {
 	 *
 	 * @param joinMember joinMember
 	 */
-	protected void addJoinMember(Node joinMember) {
+	protected synchronized void addJoinMember(Node joinMember) {
 		// 新加入的节点
 		if (!lateJoinMembers.contains(joinMember)) {
 			this.lateJoinMembers.add(joinMember);

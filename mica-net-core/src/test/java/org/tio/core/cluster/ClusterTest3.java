@@ -27,7 +27,7 @@ public class ClusterTest3 {
 		cluster.start();
 
 		cluster.schedule(() -> {
-			String message = "hello mica form cluster:" + cluster.getLocalMember();
+			String message = String.format("hello mica form cluster:%s ns:%s", cluster.getLocalMember(), System.nanoTime());
 			cluster.broadcast(message.getBytes(StandardCharsets.UTF_8));
 		}, 3000);
 	}
