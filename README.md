@@ -2,6 +2,10 @@
 [![Mica net Maven release](https://img.shields.io/nexus/r/https/oss.sonatype.org/net.dreamlu/mica-net-core.svg?style=flat-square)](https://mvnrepository.com/artifact/net.dreamlu/mica-net-core)
 [![Mica net Maven snapshots](https://img.shields.io/nexus/s/https/oss.sonatype.org/net.dreamlu/mica-net-core.svg?style=flat-square)](https://oss.sonatype.org/content/repositories/snapshots/net/dreamlu/mica-net-core/)
 
+## 注意（开发细节）
+
+- 客户端主动断开用 close(Tio.close)，服务端主动断开用（Tio.remove）。
+
 ## 声明
 
 该项目基于 t-io（Apache License v2）简化而来，并且完全遵循 **Apache License v2** 协议。
