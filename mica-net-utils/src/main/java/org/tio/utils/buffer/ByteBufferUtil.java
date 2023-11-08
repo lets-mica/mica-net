@@ -19,6 +19,7 @@ package org.tio.utils.buffer;
 import org.tio.utils.mica.HexUtils;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -115,6 +116,21 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @return int
 	 */
+	public static int readUnsignedShort(ByteBuffer buffer) {
+		ByteOrder order = buffer.order();
+		if (ByteOrder.BIG_ENDIAN == order) {
+			return readUnsignedShortBE(buffer);
+		} else {
+			return readUnsignedShortLE(buffer);
+		}
+	}
+
+	/**
+	 * read unsigned short，2个字节无符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @return int
+	 */
 	public static int readUnsignedShortLE(ByteBuffer buffer) {
 		byte[] value = new byte[2];
 		buffer.get(value, 0, 2);
@@ -135,6 +151,21 @@ public class ByteBufferUtil {
 		int ret = (value[0] & 0xff) << 8;
 		ret |= value[1] & 0xff;
 		return ret;
+	}
+
+	/**
+	 * read unsigned 3个字节无符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @return int
+	 */
+	public static int readUnsignedMedium(ByteBuffer buffer) {
+		ByteOrder order = buffer.order();
+		if (ByteOrder.BIG_ENDIAN == order) {
+			return readUnsignedMediumBE(buffer);
+		} else {
+			return readUnsignedMediumLE(buffer);
+		}
 	}
 
 	/**
@@ -207,6 +238,21 @@ public class ByteBufferUtil {
 		ret |= (value[2] & 0xff) << 8;
 		ret |= value[3] & 0xff;
 		return ret;
+	}
+
+	/**
+	 * read unsigned int, 4个字节无符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @return long
+	 */
+	public static long readUnsignedInt(ByteBuffer buffer) {
+		ByteOrder order = buffer.order();
+		if (ByteOrder.BIG_ENDIAN == order) {
+			return readUnsignedIntBE(buffer);
+		} else {
+			return readUnsignedIntLE(buffer);
+		}
 	}
 
 	/**
@@ -319,6 +365,21 @@ public class ByteBufferUtil {
 		ret |= (value[6] & 0xff) << 8;
 		ret |= value[7] & 0xff;
 		return ret;
+	}
+
+	/**
+	 * read long, 8个字节，无符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @return long
+	 */
+	public static long readUnsignedLong(ByteBuffer buffer) {
+		ByteOrder order = buffer.order();
+		if (ByteOrder.BIG_ENDIAN == order) {
+			return readUnsignedLongBE(buffer);
+		} else {
+			return readUnsignedLongLE(buffer);
+		}
 	}
 
 	/**
