@@ -19,6 +19,7 @@ package org.tio.server.proxy;
 import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.exception.TioDecodeException;
+import org.tio.core.intf.IgnorePacket;
 import org.tio.core.intf.Packet;
 import org.tio.server.intf.DecoderFunction;
 import org.tio.utils.buffer.ByteBufferUtil;
@@ -36,6 +37,10 @@ import java.nio.charset.StandardCharsets;
  * @author L.cm
  */
 public final class ProxyProtocolDecoder {
+	/**
+	 * 最小头 “PROXY”
+	 */
+	private static final int V1_MIN_HEAD_LENGTH = 5;
 	/**
 	 * Maximum possible length of a v1 proxy protocol header per spec
 	 */
@@ -110,7 +115,21 @@ public final class ProxyProtocolDecoder {
 	 * @throws TioDecodeException TioDecodeException
 	 */
 	public static Packet decode(ChannelContext context, ByteBuffer buffer, int readableLength, DecoderFunction next) throws TioDecodeException {
+		// 如果小于最小长度，尝试解析下一个
+		if (readableLength < V1_MIN_HEAD_LENGTH) {
+			return next.apply(context, buffer, readableLength);
+		}
+		// 标记
 		buffer.mark();
+		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
+		String proxyPrefix = ByteBufferUtil.readString(buffer, V1_MIN_HEAD_LENGTH, StandardCharsets.US_ASCII);
+		// 非 PROXY 协议，直接返回
+		if (!"PROXY".equals(proxyPrefix)) {
+			// 清除协议 key，重置 buffer
+			context.remove(PROXY_PROTOCOL_KEY);
+			buffer.reset();
+			return next.apply(context, buffer, readableLength);
+		}
 		ProxyProtocolMessage message;
 		try {
 			message = decodeMessage(buffer, readableLength);
@@ -136,7 +155,29 @@ public final class ProxyProtocolDecoder {
 			context.setClientNode(new Node(message.getSourceAddress(), message.getSourcePort()));
 			context.setProxyClientNode(new Node(message.getDestinationAddress(), message.getDestinationPort()));
 		}
-		return next.apply(context, buffer, readableLength);
+		if (buffer.hasRemaining()) {
+			return next.apply(context, buffer, readableLength);
+		} else {
+			return IgnorePacket.INSTANCE;
+		}
+	}
+
+	/**
+	 * 解码 proxy protocol
+	 *
+	 * @param buffer         ByteBuffer
+	 * @param readableLength readableLength
+	 * @return ProxyProtocolMessage
+	 * @throws TioDecodeException TioDecodeException
+	 */
+	public static ProxyProtocolMessage decodeForTest(ByteBuffer buffer, int readableLength) throws TioDecodeException {
+		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
+		String proxyPrefix = ByteBufferUtil.readString(buffer, V1_MIN_HEAD_LENGTH, StandardCharsets.US_ASCII);
+		// 非 PROXY 协议，直接返回
+		if (!"PROXY".equals(proxyPrefix)) {
+			throw new TioDecodeException("unknown identifier: " + proxyPrefix);
+		}
+		return decodeMessage(buffer, readableLength);
 	}
 
 	/**
@@ -154,32 +195,32 @@ public final class ProxyProtocolDecoder {
 			throw new TioDecodeException("Error v1 proxy protocol, readableLength: " + readableLength);
 		}
 		// 有可能半包，所以返回 null
-		if (endOfLine == -1) {
+		if (endOfLine == -1 || readableLength < endOfLine) {
 			return null;
 		}
 		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
-		String header = ByteBufferUtil.readString(buffer, endOfLine, StandardCharsets.US_ASCII);
+		// 跳过空格
+		ByteBufferUtil.skipBytes(buffer, 1);
+		// TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
+		String header = ByteBufferUtil.readString(buffer, endOfLine - V1_MIN_HEAD_LENGTH - 1, StandardCharsets.US_ASCII);
 		// 跳过 \r\n
 		ByteBufferUtil.skipBytes(buffer, 2);
 		String[] parts = header.split(" ");
 		int numParts = parts.length;
-		if (numParts < 2) {
-			throw new TioDecodeException("invalid header: " + header + " (expected: 'PROXY' and proxied protocol values)");
+		if (numParts < 1) {
+			throw new TioDecodeException("invalid header: PROXY " + header + " (expected: 'PROXY' and proxied protocol values)");
 		}
-		if (!"PROXY".equals(parts[0])) {
-			throw new TioDecodeException("unknown identifier: " + parts[0]);
+		String proxyProtocol = parts[0];
+		if (!"TCP4".equals(proxyProtocol) && !"TCP6".equals(proxyProtocol) && !UNKNOWN.equals(proxyProtocol)) {
+			throw new ProxyProtocolException("unsupported v1 proxy protocol: " + proxyProtocol);
 		}
-		String proxiedProtocol = parts[1];
-		if (!"TCP4".equals(proxiedProtocol) && !"TCP6".equals(proxiedProtocol) && !UNKNOWN.equals(proxiedProtocol)) {
-			throw new ProxyProtocolException("unsupported v1 proxied protocol: " + proxiedProtocol);
-		}
-		if (UNKNOWN.equals(proxiedProtocol)) {
+		if (UNKNOWN.equals(proxyProtocol)) {
 			return unknownMsg();
 		}
-		if (numParts != 6) {
-			throw new ProxyProtocolException("invalid TCP4/6 header: " + header + " (expected: 6 parts)");
+		if (numParts != 5) {
+			throw new ProxyProtocolException("invalid TCP4/6 header: PROXY " + header + " (expected: 6 parts)");
 		}
-		return new ProxyProtocolMessage(proxiedProtocol, parts[2], parts[3], parts[4], parts[5]);
+		return new ProxyProtocolMessage(proxyProtocol, parts[1], parts[2], parts[3], parts[4]);
 	}
 
 	/**
