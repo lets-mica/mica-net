@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v0.1.7 - 2023-10-05
+- :sparkles: PROXY protocol 支持优化，开启式支持不带 PROXY protocol 报文的连接。
+- :sparkles: 完善 `ByteBufferUtil` 工具，添加 `readUnsignedShort`、`readUnsignedMedium`、`readUnsignedInt` 等方法。
+
 ### v0.1.6 - 2023-10-05
 - :sparkles: Threads 移动并改名为 ThreadUtils。
 - :sparkles: ThreadUtils biz 线程池支持虚拟线程。
