@@ -83,17 +83,17 @@ public final class ProxyProtocolDecoder {
 	/**
 	 * 解码，如果开启了 proxy protocol
 	 *
+	 * @param context        ChannelContext
 	 * @param buffer         ByteBuffer
 	 * @param readableLength readableLength
-	 * @param context        ChannelContext
 	 * @param next           下一个解码器
 	 * @return ProxyProtocolMessage
 	 * @throws TioDecodeException TioDecodeException
 	 */
-	public static Packet decodeIfEnable(ByteBuffer buffer, int readableLength, ChannelContext context,
+	public static Packet decodeIfEnable(ChannelContext context, ByteBuffer buffer, int readableLength,
 										DecoderFunction next) throws TioDecodeException {
 		if (ProxyProtocolDecoder.isProxyProtocolEnabled(context)) {
-			return decode(buffer, readableLength, context, next);
+			return decode(context, buffer, readableLength, next);
 		} else {
 			return next.apply(buffer, readableLength, context);
 		}
@@ -102,14 +102,14 @@ public final class ProxyProtocolDecoder {
 	/**
 	 * 解码 proxy protocol
 	 *
+	 * @param context        ChannelContext
 	 * @param buffer         ByteBuffer
 	 * @param readableLength readableLength
-	 * @param context        ChannelContext
 	 * @param next           下一个解码器
 	 * @return ProxyProtocolMessage
 	 * @throws TioDecodeException TioDecodeException
 	 */
-	public static Packet decode(ByteBuffer buffer, int readableLength, ChannelContext context, DecoderFunction next) throws TioDecodeException {
+	public static Packet decode(ChannelContext context, ByteBuffer buffer, int readableLength, DecoderFunction next) throws TioDecodeException {
 		buffer.mark();
 		ProxyProtocolMessage message;
 		try {
