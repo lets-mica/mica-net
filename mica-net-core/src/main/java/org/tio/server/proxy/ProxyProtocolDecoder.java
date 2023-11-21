@@ -130,17 +130,8 @@ public final class ProxyProtocolDecoder {
 			buffer.reset();
 			return next.apply(context, buffer, readableLength);
 		}
-		ProxyProtocolMessage message;
-		try {
-			message = decodeMessage(buffer, readableLength);
-		} catch (ProxyProtocolException e) {
-			throw e;
-		} catch (TioDecodeException e) {
-			// 清除协议 key，重置 buffer
-			context.remove(PROXY_PROTOCOL_KEY);
-			buffer.reset();
-			return next.apply(context, buffer, readableLength);
-		}
+		// 解析 proxy 协议
+		ProxyProtocolMessage message = decodeMessage(buffer, readableLength);
 		// 半包的情况
 		if (message == null) {
 			return null;
@@ -212,13 +203,13 @@ public final class ProxyProtocolDecoder {
 		}
 		String proxyProtocol = parts[0];
 		if (!"TCP4".equals(proxyProtocol) && !"TCP6".equals(proxyProtocol) && !UNKNOWN.equals(proxyProtocol)) {
-			throw new ProxyProtocolException("unsupported v1 proxy protocol: " + proxyProtocol);
+			throw new TioDecodeException("unsupported v1 proxy protocol: " + proxyProtocol);
 		}
 		if (UNKNOWN.equals(proxyProtocol)) {
 			return unknownMsg();
 		}
 		if (numParts != 5) {
-			throw new ProxyProtocolException("invalid TCP4/6 header: PROXY " + header + " (expected: 6 parts)");
+			throw new TioDecodeException("invalid TCP4/6 header: PROXY " + header + " (expected: 6 parts)");
 		}
 		return new ProxyProtocolMessage(proxyProtocol, parts[1], parts[2], parts[3], parts[4]);
 	}
