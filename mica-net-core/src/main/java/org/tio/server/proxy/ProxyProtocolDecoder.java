@@ -19,12 +19,12 @@ package org.tio.server.proxy;
 import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.exception.TioDecodeException;
-import org.tio.core.intf.IgnorePacket;
 import org.tio.core.intf.Packet;
 import org.tio.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.function.Supplier;
 
 /**
  * 开启 nginx 代理协议时需要开启，转发代理 ip 信息
@@ -48,6 +48,9 @@ public final class ProxyProtocolDecoder {
 	 * PROXY UNKNOWN\r\n
 	 */
 	private static final String UNKNOWN = "UNKNOWN";
+
+	private ProxyProtocolDecoder() {
+	}
 
 	/**
 	 * 开始 proxy protocol
@@ -83,11 +86,24 @@ public final class ProxyProtocolDecoder {
 	 * @param buffer         ByteBuffer
 	 * @param readableLength readableLength
 	 * @param context        ChannelContext
+	 * @param next           下一个解码器
 	 * @return ProxyProtocolMessage
 	 * @throws TioDecodeException TioDecodeException
 	 */
-	public static Packet decode(ByteBuffer buffer, int readableLength, ChannelContext context) throws TioDecodeException {
-		ProxyProtocolMessage message = decodeMessage(buffer, readableLength);
+	public static Packet decode(ByteBuffer buffer, int readableLength, ChannelContext context, Supplier<Packet> next) throws TioDecodeException {
+		buffer.mark();
+		ProxyProtocolMessage message;
+		try {
+			message = decodeMessage(buffer, readableLength);
+		} catch (ProxyProtocolException e) {
+			throw e;
+		} catch (TioDecodeException e) {
+			// 清除协议 key，重置 buffer
+			context.remove(PROXY_PROTOCOL_KEY);
+			buffer.reset();
+			return next.get();
+		}
+		// 半包的情况
 		if (message == null) {
 			return null;
 		}
@@ -101,7 +117,7 @@ public final class ProxyProtocolDecoder {
 			context.setClientNode(new Node(message.getSourceAddress(), message.getSourcePort()));
 			context.setProxyClientNode(new Node(message.getDestinationAddress(), message.getDestinationPort()));
 		}
-		return IgnorePacket.INSTANCE;
+		return next.get();
 	}
 
 	/**
@@ -136,13 +152,13 @@ public final class ProxyProtocolDecoder {
 		}
 		String proxiedProtocol = parts[1];
 		if (!"TCP4".equals(proxiedProtocol) && !"TCP6".equals(proxiedProtocol) && !UNKNOWN.equals(proxiedProtocol)) {
-			throw new TioDecodeException("unsupported v1 proxied protocol: " + proxiedProtocol);
+			throw new ProxyProtocolException("unsupported v1 proxied protocol: " + proxiedProtocol);
 		}
 		if (UNKNOWN.equals(proxiedProtocol)) {
 			return unknownMsg();
 		}
 		if (numParts != 6) {
-			throw new TioDecodeException("invalid TCP4/6 header: " + header + " (expected: 6 parts)");
+			throw new ProxyProtocolException("invalid TCP4/6 header: " + header + " (expected: 6 parts)");
 		}
 		return new ProxyProtocolMessage(proxiedProtocol, parts[2], parts[3], parts[4], parts[5]);
 	}
