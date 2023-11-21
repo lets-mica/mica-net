@@ -20,11 +20,11 @@ import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
+import org.tio.server.intf.DecoderFunction;
 import org.tio.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Supplier;
 
 /**
  * 开启 nginx 代理协议时需要开启，转发代理 ip 信息
@@ -91,11 +91,11 @@ public final class ProxyProtocolDecoder {
 	 * @throws TioDecodeException TioDecodeException
 	 */
 	public static Packet decodeIfEnable(ByteBuffer buffer, int readableLength, ChannelContext context,
-										Supplier<Packet> next) throws TioDecodeException {
+										DecoderFunction next) throws TioDecodeException {
 		if (ProxyProtocolDecoder.isProxyProtocolEnabled(context)) {
 			return decode(buffer, readableLength, context, next);
 		} else {
-			return next.get();
+			return next.apply(buffer, readableLength, context);
 		}
 	}
 
@@ -109,7 +109,7 @@ public final class ProxyProtocolDecoder {
 	 * @return ProxyProtocolMessage
 	 * @throws TioDecodeException TioDecodeException
 	 */
-	public static Packet decode(ByteBuffer buffer, int readableLength, ChannelContext context, Supplier<Packet> next) throws TioDecodeException {
+	public static Packet decode(ByteBuffer buffer, int readableLength, ChannelContext context, DecoderFunction next) throws TioDecodeException {
 		buffer.mark();
 		ProxyProtocolMessage message;
 		try {
@@ -120,7 +120,7 @@ public final class ProxyProtocolDecoder {
 			// 清除协议 key，重置 buffer
 			context.remove(PROXY_PROTOCOL_KEY);
 			buffer.reset();
-			return next.get();
+			return next.apply(buffer, readableLength, context);
 		}
 		// 半包的情况
 		if (message == null) {
@@ -136,7 +136,7 @@ public final class ProxyProtocolDecoder {
 			context.setClientNode(new Node(message.getSourceAddress(), message.getSourcePort()));
 			context.setProxyClientNode(new Node(message.getDestinationAddress(), message.getDestinationPort()));
 		}
-		return next.get();
+		return next.apply(buffer, readableLength, context);
 	}
 
 	/**
