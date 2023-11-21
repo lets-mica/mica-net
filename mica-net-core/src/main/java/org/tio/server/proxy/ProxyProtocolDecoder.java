@@ -81,6 +81,25 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
+	 * 解码，如果开启了 proxy protocol
+	 *
+	 * @param buffer         ByteBuffer
+	 * @param readableLength readableLength
+	 * @param context        ChannelContext
+	 * @param next           下一个解码器
+	 * @return ProxyProtocolMessage
+	 * @throws TioDecodeException TioDecodeException
+	 */
+	public static Packet decodeIfEnable(ByteBuffer buffer, int readableLength, ChannelContext context,
+										Supplier<Packet> next) throws TioDecodeException {
+		if (ProxyProtocolDecoder.isProxyProtocolEnabled(context)) {
+			return decode(buffer, readableLength, context, next);
+		} else {
+			return next.get();
+		}
+	}
+
+	/**
 	 * 解码 proxy protocol
 	 *
 	 * @param buffer         ByteBuffer
