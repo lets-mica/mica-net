@@ -95,7 +95,7 @@ public final class ProxyProtocolDecoder {
 		if (ProxyProtocolDecoder.isProxyProtocolEnabled(context)) {
 			return decode(context, buffer, readableLength, next);
 		} else {
-			return next.apply(buffer, readableLength, context);
+			return next.apply(context, buffer, readableLength);
 		}
 	}
 
@@ -120,7 +120,7 @@ public final class ProxyProtocolDecoder {
 			// 清除协议 key，重置 buffer
 			context.remove(PROXY_PROTOCOL_KEY);
 			buffer.reset();
-			return next.apply(buffer, readableLength, context);
+			return next.apply(context, buffer, readableLength);
 		}
 		// 半包的情况
 		if (message == null) {
@@ -136,7 +136,7 @@ public final class ProxyProtocolDecoder {
 			context.setClientNode(new Node(message.getSourceAddress(), message.getSourcePort()));
 			context.setProxyClientNode(new Node(message.getDestinationAddress(), message.getDestinationPort()));
 		}
-		return next.apply(buffer, readableLength, context);
+		return next.apply(context, buffer, readableLength);
 	}
 
 	/**

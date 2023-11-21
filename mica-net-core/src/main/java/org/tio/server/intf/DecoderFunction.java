@@ -39,6 +39,6 @@ public interface DecoderFunction {
 	 * @return ProxyProtocolMessage
 	 * @throws TioDecodeException TioDecodeException
 	 */
-	Packet apply(ByteBuffer buffer, int readableLength, ChannelContext context) throws TioDecodeException;
+	Packet apply(ChannelContext context, ByteBuffer buffer, int readableLength) throws TioDecodeException;
 
 }
