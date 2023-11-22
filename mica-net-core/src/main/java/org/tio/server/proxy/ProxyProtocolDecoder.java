@@ -38,9 +38,9 @@ import java.nio.charset.StandardCharsets;
  */
 public final class ProxyProtocolDecoder {
 	/**
-	 * 最小头 “PROXY”
+	 * 最小头 “PROXY ” 用来判定是否 v1 的协议
 	 */
-	private static final int V1_MIN_HEAD_LENGTH = 5;
+	private static final int V1_MIN_HEAD_LENGTH = 6;
 	/**
 	 * Maximum possible length of a v1 proxy protocol header per spec
 	 */
@@ -97,7 +97,7 @@ public final class ProxyProtocolDecoder {
 	 */
 	public static Packet decodeIfEnable(ChannelContext context, ByteBuffer buffer, int readableLength,
 										DecoderFunction next) throws TioDecodeException {
-		if (ProxyProtocolDecoder.isProxyProtocolEnabled(context)) {
+		if (isProxyProtocolEnabled(context)) {
 			return decode(context, buffer, readableLength, next);
 		} else {
 			return next.apply(context, buffer, readableLength);
@@ -124,7 +124,7 @@ public final class ProxyProtocolDecoder {
 		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
 		String proxyPrefix = ByteBufferUtil.readString(buffer, V1_MIN_HEAD_LENGTH, StandardCharsets.US_ASCII);
 		// 非 PROXY 协议，直接返回
-		if (!"PROXY".equals(proxyPrefix)) {
+		if (!"PROXY ".equals(proxyPrefix)) {
 			// 清除协议 key，重置 buffer
 			context.remove(PROXY_PROTOCOL_KEY);
 			buffer.reset();
@@ -165,7 +165,7 @@ public final class ProxyProtocolDecoder {
 		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
 		String proxyPrefix = ByteBufferUtil.readString(buffer, V1_MIN_HEAD_LENGTH, StandardCharsets.US_ASCII);
 		// 非 PROXY 协议，直接返回
-		if (!"PROXY".equals(proxyPrefix)) {
+		if (!"PROXY ".equals(proxyPrefix)) {
 			throw new TioDecodeException("unknown identifier: " + proxyPrefix);
 		}
 		return decodeMessage(buffer, readableLength);
@@ -186,14 +186,12 @@ public final class ProxyProtocolDecoder {
 			throw new TioDecodeException("Error v1 proxy protocol, readableLength: " + readableLength);
 		}
 		// 有可能半包，所以返回 null
-		if (endOfLine == -1 || readableLength < endOfLine) {
+		if (endOfLine == -1) {
 			return null;
 		}
-		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
-		// 跳过空格
-		ByteBufferUtil.skipBytes(buffer, 1);
+		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n 去除前缀 PROXY
 		// TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
-		String header = ByteBufferUtil.readString(buffer, endOfLine - V1_MIN_HEAD_LENGTH - 1, StandardCharsets.US_ASCII);
+		String header = ByteBufferUtil.readString(buffer, endOfLine - V1_MIN_HEAD_LENGTH, StandardCharsets.US_ASCII);
 		// 跳过 \r\n
 		ByteBufferUtil.skipBytes(buffer, 2);
 		String[] parts = header.split(" ");
