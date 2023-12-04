@@ -465,7 +465,7 @@ public class Tio {
 		if (channelContext == null) {
 			return;
 		}
-		if (channelContext.isWaitingClose) {
+		if (channelContext.isWaitingClose()) {
 			log.debug("{} 正在等待被关闭", channelContext);
 			return;
 		}
@@ -482,10 +482,10 @@ public class Tio {
 			if (!tryLock) {
 				return;
 			}
-			channelContext.isWaitingClose = true;
+			channelContext.setWaitingClose(true);
 			writeLock.unlock();
 		} else {
-			channelContext.isWaitingClose = true;
+			channelContext.setWaitingClose(true);
 		}
 
 		if (closeCode == null) {
@@ -1039,19 +1039,19 @@ public class Tio {
 				}
 				return false;
 			}
-			if (channelContext.isVirtual) {
+			if (channelContext.isVirtual()) {
 				if (countDownLatch != null) {
 					countDownLatch.countDown();
 				}
 				return true;
 			}
 
-			if (channelContext.isClosed || channelContext.isRemoved) {
+			if (channelContext.isClosed() || channelContext.isRemoved()) {
 				if (countDownLatch != null) {
 					countDownLatch.countDown();
 				}
 				if (channelContext != null) {
-					log.info("can't send data, {}, isClosed:{}, isRemoved:{}", channelContext, channelContext.isClosed, channelContext.isRemoved);
+					log.info("can't send data, {}, isClosed:{}, isRemoved:{}", channelContext, channelContext.isClosed(), channelContext.isRemoved());
 				}
 				return false;
 			}

@@ -245,11 +245,11 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 				}
 
 				try {
-					if (channelContext.isClosed && !isNeedRemove) {
+					if (channelContext.isClosed() && !isNeedRemove) {
 						log.info("{}, {}已经关闭，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark, throwable == null ? "无" : throwable.toString());
 						return;
 					}
-					if (channelContext.isRemoved) {
+					if (channelContext.isRemoved()) {
 						log.info("{}, {}已经删除，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark, throwable == null ? "无" : throwable.toString());
 						return;
 					}
@@ -284,7 +284,7 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 						log.error(e.getMessage(), e);
 					} finally {
 						// 不删除且没有连接上，则加到重连队列中
-						if (!isNeedRemove && channelContext.isClosed && !channelContext.isServer()) {
+						if (!isNeedRemove && channelContext.isClosed() && !channelContext.isServer()) {
 							ClientChannelContext clientChannelContext = (ClientChannelContext) channelContext;
 							ReconnConf.put(clientChannelContext);
 						}
@@ -293,7 +293,7 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 					log.error(throwable == null ? remark : throwable.getMessage(), e);
 				}
 			} finally {
-				channelContext.isWaitingClose = false;
+				channelContext.setWaitingClose(false);
 			}
 		}
 	}

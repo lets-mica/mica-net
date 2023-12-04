@@ -387,7 +387,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 					}
 				}
 			} catch (Throwable e) {
-				if (channelContext.logWhenDecodeError) {
+				if (channelContext.isLogWhenDecodeError()) {
 					log.error("解码时遇到异常", e);
 				}
 				channelContext.setPacketNeededLength(null);

@@ -225,7 +225,7 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 
 		if (channelContext.tioConfig.getTioListener() != null) {
 			try {
-				channelContext.tioConfig.getTioListener().onAfterConnected(channelContext, true, channelContext.isReconnect);
+				channelContext.tioConfig.getTioListener().onAfterConnected(channelContext, true, channelContext.isReconnect());
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}

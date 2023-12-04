@@ -225,12 +225,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
 	public final ChannelStat stat = new ChannelStat();
 	public final CloseMeta closeMeta = new CloseMeta();
-	public boolean isReconnect = false;
-	/**
-	 * 解码出现异常时，是否打印异常日志
-	 * 此值默认与org.tio.core.TioConfig.logWhenDecodeError保持一致
-	 */
-	public boolean logWhenDecodeError = false;
 	/**
 	 * 此值不设时，心跳时间取org.tio.core.TioConfig.heartbeatTimeout
 	 * 当然这个值如果小于org.tio.core.TioConfig.heartbeatTimeout，定时检查的时间间隔还是以org.tio.core.TioConfig.heartbeatTimeout为准，只是在判断时用此值
@@ -246,10 +240,16 @@ public abstract class ChannelContext extends MapPropSupport {
 	public SendRunnable sendRunnable = null;
 	public WriteCompletionHandler writeCompletionHandler = null;
 	public SslFacadeContext sslFacadeContext;
-	public boolean isWaitingClose = false;
-	public boolean isClosed = true;
-	public boolean isRemoved = false;
-	public boolean isVirtual = false;
+	/**
+	 * 状态位，使用二进制标识位来判断状态
+	 *
+	 * <p>
+	 * 0~2 位，配置状态 isVirtual(虚拟用于压测):0,isReconnect(重连):0logWhenDecodeError(解码出现异常时，是否打印异常日志):0
+	 * 3~5 位，连接状态 isWaitingClose(等待关闭):0,isClosed(已关闭):1,isRemoved(已关闭):0
+	 * 6~7 位，扩展状态 isAccepted(已接受,用于业务例如：mqtt):0,isBizStatus(业务自定义状态):0
+	 * </p>
+	 */
+	private byte states = 0;
 	/**
 	 * The asynchronous socket channel.
 	 */
@@ -258,7 +258,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	private String userId;
 	private String token;
 	private String bsId;
-	private String id = null;
+	private String id;
 	private Node clientNode;
 	/**
 	 * 一些连接是代理的，譬如web服务器放在nginx后面，此时需要知道最原始的ip
@@ -318,7 +318,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * @author tanyaowu
 	 */
 	public ChannelContext(TioConfig tioConfig, String id) {
-		isVirtual = true;
+		this.setVirtual(true);
 		this.tioConfig = tioConfig;
 		this.clientNode = new Node("127.0.0.1", 26254);
 		this.id = id;
@@ -418,17 +418,19 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	public void init(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
-		id = tioConfig.getTioUuid().uuid();
+		this.id = tioConfig.getTioUuid().uuid();
 		this.setTioConfig(tioConfig);
 		tioConfig.ids.bind(this);
 		this.setAsynchronousSocketChannel(asynchronousSocketChannel);
 		this.readCompletionHandler = new ReadCompletionHandler(this);
 		this.writeCompletionHandler = new WriteCompletionHandler(this);
-		this.logWhenDecodeError = tioConfig.logWhenDecodeError;
+		this.setLogWhenDecodeError(tioConfig.logWhenDecodeError);
 		initOther();
 	}
 
 	void initOther() {
+		// closed
+		setState(4, true);
 		if (!tioConfig.isShortConnection) {
 			// 在长连接中，绑定群组几乎是必须要干的事，所以直接在初始化时给它赋值，省得在后面做同步处理
 			groups = ConcurrentHashMap.newKeySet();
@@ -495,11 +497,47 @@ public abstract class ChannelContext extends MapPropSupport {
 		}
 	}
 
+	public boolean isVirtual() {
+		return getState(0);
+	}
+
+	public void setVirtual(boolean virtual) {
+		setState(0, virtual);
+	}
+
+	public boolean isReconnect() {
+		return getState(1);
+	}
+
+	public void setReconnect(boolean isReconnect) {
+		setState(1, isReconnect);
+	}
+
+	public boolean isLogWhenDecodeError() {
+		return getState(2);
+	}
+
+	public void setLogWhenDecodeError(boolean logWhenDecodeError) {
+		setState(2, logWhenDecodeError);
+	}
+
+	public boolean isWaitingClose() {
+		return getState(3);
+	}
+
+	public void setWaitingClose(boolean waitingClose) {
+		setState(3, waitingClose);
+	}
+
+	public boolean isClosed() {
+		return getState(4);
+	}
+
 	/**
 	 * @param isClosed the isClosed to set
 	 */
 	public void setClosed(boolean isClosed) {
-		this.isClosed = isClosed;
+		setState(4, isClosed);
 		if (isClosed && (clientNode == null || !UNKNOWN_ADDRESS_IP.equals(clientNode.getIp()))) {
 			String before = this.toString();
 			assignAnUnknownClientNode();
@@ -507,19 +545,35 @@ public abstract class ChannelContext extends MapPropSupport {
 		}
 	}
 
-	public void setPacketNeededLength(Integer packetNeededLength) {
-		this.packetNeededLength = packetNeededLength;
-	}
-
-	public void setReconnect(boolean isReconnect) {
-		this.isReconnect = isReconnect;
+	public boolean isRemoved() {
+		return getState(5);
 	}
 
 	/**
 	 * @param isRemoved the isRemoved to set
 	 */
 	public void setRemoved(boolean isRemoved) {
-		this.isRemoved = isRemoved;
+		setState(5, isRemoved);
+	}
+
+	public boolean isAccepted() {
+		return getState(6);
+	}
+
+	public void setAccepted(boolean accepted) {
+		setState(6, accepted);
+	}
+
+	public boolean isBizStatus() {
+		return getState(7);
+	}
+
+	public void setBizStatus(boolean bizStatus) {
+		setState(7, bizStatus);
+	}
+
+	public void setPacketNeededLength(Integer packetNeededLength) {
+		this.packetNeededLength = packetNeededLength;
 	}
 
 	public void setSslFacadeContext(SslFacadeContext sslFacadeContext) {
@@ -564,7 +618,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	/**
 	 * @param tioConfig the tioConfig to set
 	 */
-	public void setTioConfig(TioConfig tioConfig) {
+	private void setTioConfig(TioConfig tioConfig) {
 		this.tioConfig = tioConfig;
 		if (tioConfig != null) {
 			decodeRunnable = new DecodeRunnable(this, tioConfig.tioExecutor);
@@ -628,6 +682,32 @@ public abstract class ChannelContext extends MapPropSupport {
 		this.closeCode = closeCode;
 	}
 
+	/**
+	 * 获取指定状态位的值
+	 */
+	private boolean getState(int position) {
+		if (position < 0 || position > 7) {
+			throw new IllegalArgumentException("Position must be between 0 ~ 7");
+		}
+		return (this.states & (1 << position)) != 0;
+	}
+
+	/**
+	 * 设置指定状态位的值
+	 */
+	private void setState(int position, boolean state) {
+		if (position < 0 || position > 7) {
+			throw new IllegalArgumentException("Position must be between 0 ~ 7");
+		}
+		if (state) {
+			// 使用或运算将指定位设置为1
+			this.states |= (byte) (1 << position);
+		} else {
+			// 使用与运算将指定位设置为0
+			this.states &= (byte) ~(1 << position);
+		}
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -669,7 +749,7 @@ public abstract class ChannelContext extends MapPropSupport {
 		} else {
 			sb.append(", client:").append("NULL");
 		}
-		if (isVirtual) {
+		if (this.isVirtual()) {
 			sb.append(", virtual");
 		}
 		return sb.toString();

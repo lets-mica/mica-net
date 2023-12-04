@@ -37,7 +37,7 @@ public class ClientReConnTask extends TimerTask {
 		int connectionSize = tioClientConfig.connections.size();
 		logger.info("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), connectionSize);
 		// 未连接的和已经删除的，不需要重新再连
-		if (channelContext == null || channelContext.isRemoved) {
+		if (channelContext == null || channelContext.isRemoved()) {
 			return;
 		}
 		SslFacadeContext sslFacadeContext = channelContext.sslFacadeContext;
@@ -45,7 +45,7 @@ public class ClientReConnTask extends TimerTask {
 			sslFacadeContext.setHandshakeCompleted(false);
 		}
 		// 已经删除的和已经连上的，不需要重新再连
-		if (channelContext.isRemoved || !channelContext.isClosed) {
+		if (channelContext.isRemoved() || !channelContext.isClosed()) {
 			return;
 		}
 		channelContext.getReconnCount().incrementAndGet();
@@ -54,7 +54,7 @@ public class ClientReConnTask extends TimerTask {
 		writeLock.lock();
 		try {
 			// 已经连上了，不需要再重连了
-			if (!channelContext.isClosed) {
+			if (!channelContext.isClosed()) {
 				return;
 			}
 			long start = System.currentTimeMillis();

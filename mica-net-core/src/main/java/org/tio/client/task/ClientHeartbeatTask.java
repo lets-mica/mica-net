@@ -66,7 +66,7 @@ public class ClientHeartbeatTask extends TimerTask {
 		try {
 			for (ChannelContext entry : set) {
 				ClientChannelContext channelContext = (ClientChannelContext) entry;
-				if (channelContext.isClosed || channelContext.isRemoved) {
+				if (channelContext.isClosed() || channelContext.isRemoved()) {
 					continue;
 				}
 				ChannelStat stat = channelContext.stat;
