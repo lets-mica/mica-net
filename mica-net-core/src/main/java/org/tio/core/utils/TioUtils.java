@@ -232,7 +232,7 @@ public class TioUtils {
 			return false;
 		}
 		if (!isOpen) {
-			log.info("{}, 可能对方关闭了连接, isopen:{}, isClosed:{}, isRemoved:{}", channelContext, isOpen, channelContext.isClosed(), channelContext.isRemoved());
+			log.info("{}, 可能对方关闭了连接, isOpen:{}, isClosed:{}, isRemoved:{}", channelContext, false, channelContext.isClosed(), channelContext.isRemoved());
 			Tio.close(channelContext, "asynchronousSocketChannel is not open, 可能对方关闭了连接", CloseCode.CHANNEL_NOT_OPEN);
 			return false;
 		}

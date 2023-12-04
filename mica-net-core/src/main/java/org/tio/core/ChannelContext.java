@@ -430,7 +430,7 @@ public abstract class ChannelContext extends MapPropSupport {
 
 	void initOther() {
 		// 默认 closed 设置为 true
-		setState(4, true);
+		setClosedState(true);
 		if (!tioConfig.isShortConnection) {
 			// 在长连接中，绑定群组几乎是必须要干的事，所以直接在初始化时给它赋值，省得在后面做同步处理
 			groups = ConcurrentHashMap.newKeySet();
@@ -533,11 +533,15 @@ public abstract class ChannelContext extends MapPropSupport {
 		return getState(4);
 	}
 
+	private void setClosedState(boolean isClosed) {
+		setState(4, isClosed);
+	}
+
 	/**
 	 * @param isClosed the isClosed to set
 	 */
 	public void setClosed(boolean isClosed) {
-		setState(4, isClosed);
+		setClosedState(isClosed);
 		if (isClosed && (clientNode == null || !UNKNOWN_ADDRESS_IP.equals(clientNode.getIp()))) {
 			String before = this.toString();
 			assignAnUnknownClientNode();
