@@ -557,6 +557,9 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	public boolean isAccepted() {
+		if (isClosed()) {
+			return false;
+		}
 		return getState(6);
 	}
 
