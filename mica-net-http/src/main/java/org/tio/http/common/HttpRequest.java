@@ -214,7 +214,7 @@ public class HttpRequest extends HttpPacket {
 	private static final long serialVersionUID = -3849253977016967211L;
 	private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
 	private static final AtomicLong ID_GEN = new AtomicLong();
-	private long id = ID_GEN.incrementAndGet();
+	private final long id = ID_GEN.incrementAndGet();
 	public RequestLine requestLine = null;
 	public ChannelContext channelContext;
 	public HttpConfig httpConfig;
