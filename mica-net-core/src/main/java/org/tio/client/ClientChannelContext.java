@@ -210,7 +210,7 @@ public class ClientChannelContext extends ChannelContext {
 	/**
 	 * 连续重连次数，连接成功后，此值会被重置0
 	 */
-	private final AtomicInteger reconnCount = new AtomicInteger();
+	private final AtomicInteger reConnCount = new AtomicInteger();
 	private String bindIp;
 	private Integer bindPort;
 
@@ -293,7 +293,7 @@ public class ClientChannelContext extends ChannelContext {
 	}
 
 	public AtomicInteger getReconnCount() {
-		return reconnCount;
+		return reConnCount;
 	}
 
 }
