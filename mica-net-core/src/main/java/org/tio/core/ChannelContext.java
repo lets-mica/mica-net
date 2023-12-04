@@ -429,7 +429,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	void initOther() {
-		// closed
+		// 默认 closed 设置为 true
 		setState(4, true);
 		if (!tioConfig.isShortConnection) {
 			// 在长连接中，绑定群组几乎是必须要干的事，所以直接在初始化时给它赋值，省得在后面做同步处理
