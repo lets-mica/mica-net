@@ -691,6 +691,8 @@ public abstract class ChannelContext extends MapPropSupport {
 
 	/**
 	 * 获取指定状态位的值
+	 *
+	 * @param position 0~7 8位
 	 */
 	private boolean getState(int position) {
 		return (this.states & (1 << position)) != 0;
@@ -698,6 +700,9 @@ public abstract class ChannelContext extends MapPropSupport {
 
 	/**
 	 * 设置指定状态位的值
+	 *
+	 * @param position 0~7 8位
+	 * @param state    状态
 	 */
 	private void setState(int position, boolean state) {
 		if (state) {
