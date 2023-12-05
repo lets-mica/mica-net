@@ -693,9 +693,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * 获取指定状态位的值
 	 */
 	private boolean getState(int position) {
-		if (position < 0 || position > 7) {
-			throw new IllegalArgumentException("Position must be between 0 ~ 7");
-		}
 		return (this.states & (1 << position)) != 0;
 	}
 
@@ -703,9 +700,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * 设置指定状态位的值
 	 */
 	private void setState(int position, boolean state) {
-		if (position < 0 || position > 7) {
-			throw new IllegalArgumentException("Position must be between 0 ~ 7");
-		}
 		if (state) {
 			// 使用或运算将指定位设置为1
 			this.states |= (byte) (1 << position);
