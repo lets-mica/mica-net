@@ -1,6 +1,5 @@
 package org.tio.core.cluster;
 
-import org.tio.core.Node;
 import org.tio.server.cluster.core.ClusterApi;
 import org.tio.server.cluster.core.ClusterConfig;
 import org.tio.server.cluster.core.ClusterImpl;
@@ -19,9 +18,11 @@ public class ClusterTest1 {
 			System.out.println(new String(message.getPayload()));
 		});
 
-		config.addSeedMember(new Node("127.0.0.1", 3001));
-		config.addSeedMember(new Node("127.0.0.1", 3002));
-		config.addSeedMember(new Node("127.0.0.1", 3003));
+		config.addSeedMember("127.0.0.1", 3001);
+		config.addSeedMember("127.0.0.1", 3002);
+		config.addSeedMember("127.0.0.1", 3003);
+
+		// TODO L.cm 思考：是不是不应该无限的对离线重试，对方重新连接触发再重新连接
 
 		ClusterApi cluster = new ClusterImpl(config);
 		cluster.start();

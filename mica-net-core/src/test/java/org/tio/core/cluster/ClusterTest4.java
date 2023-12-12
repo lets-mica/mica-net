@@ -1,6 +1,5 @@
 package org.tio.core.cluster;
 
-import org.tio.core.Node;
 import org.tio.server.cluster.core.ClusterApi;
 import org.tio.server.cluster.core.ClusterConfig;
 import org.tio.server.cluster.core.ClusterImpl;
@@ -20,9 +19,9 @@ public class ClusterTest4 {
 		});
 
 		// 不在种子成员里
-		config.addSeedMember(new Node("127.0.0.1", 3001));
-		config.addSeedMember(new Node("127.0.0.1", 3002));
-		config.addSeedMember(new Node("127.0.0.1", 3003));
+		config.addSeedMember("127.0.0.1", 3001);
+		config.addSeedMember("127.0.0.1", 3002);
+		config.addSeedMember("127.0.0.1", 3003);
 
 		ClusterApi cluster = new ClusterImpl(config);
 		cluster.start();

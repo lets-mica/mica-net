@@ -75,6 +75,10 @@ public class ClusterConfig {
 		return seedMembers;
 	}
 
+	public void addSeedMember(String ip, int port) {
+		this.seedMembers.add(new Node(ip, port));
+	}
+
 	public void addSeedMember(Node seedMember) {
 		this.seedMembers.add(seedMember);
 	}
