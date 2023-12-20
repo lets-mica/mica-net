@@ -210,16 +210,15 @@ import org.tio.utils.buffer.ByteBufferUtil;
 
 public class SSLFacade implements ISSLFacade {
 	@SuppressWarnings("unused")
-	private static final String	TAG	= "SSLFascade";
-	private static final Logger	log	= LoggerFactory.getLogger(SSLFacade.class);
+	private static final String TAG = "SSLFascade";
+	private static final Logger log = LoggerFactory.getLogger(SSLFacade.class);
 
 	private final AtomicLong sslSeq = new AtomicLong();
-
-	private Handshaker					_handshaker;
-	private IHandshakeCompletedListener	_hcl;
-	private final Worker				_worker;
-	private boolean						_clientMode;
-	private ChannelContext				channelContext;
+	private final Worker _worker;
+	private Handshaker _handshaker;
+	private IHandshakeCompletedListener _hcl;
+	private boolean _clientMode;
+	private ChannelContext channelContext;
 
 	public SSLFacade(ChannelContext channelContext, SSLContext context, boolean client, ClientAuth clientAuth, ITaskHandler taskHandler) {
 		this.channelContext = channelContext;
@@ -232,24 +231,6 @@ public class SSLFacade implements ISSLFacade {
 		_handshaker = new Handshaker(_worker, taskHandler, channelContext);
 		_worker.setHandshaker(_handshaker);
 		_clientMode = client;
-	}
-
-	// private void debug(final String message, final String... args) {
-	// SSLLog.debug(TAG, message, args);
-	// }
-
-	/* Privates */
-	private void attachCompletionListener() {
-		_handshaker.addCompletedListener(new IHandshakeCompletedListener() {
-			@Override
-			public void onComplete() {
-				// _handshaker = null;
-				if (_hcl != null) {
-					_hcl.onComplete();
-					_hcl = null;
-				}
-			}
-		});
 	}
 
 	@Override
@@ -312,8 +293,8 @@ public class SSLFacade implements ISSLFacade {
 			}
 
 			ByteBuffer encryptedByteBuffer = ByteBuffer.allocate(alllen);
-			for (int i = 0; i < encryptedByteBuffers.length; i++) {
-				encryptedByteBuffer.put(encryptedByteBuffers[i]);
+			for (ByteBuffer byteBuffer : encryptedByteBuffers) {
+				encryptedByteBuffer.put(byteBuffer);
 			}
 			encryptedByteBuffer.flip();
 			sslVo.setByteBuffer(encryptedByteBuffer);
@@ -380,6 +361,20 @@ public class SSLFacade implements ISSLFacade {
 	public void terminate() {
 		/* Called if peer closed connection unexpectedly */
 		_worker.close(false);
+	}
+
+	/* Privates */
+	private void attachCompletionListener() {
+		_handshaker.addCompletedListener(new IHandshakeCompletedListener() {
+			@Override
+			public void onComplete() {
+				// _handshaker = null;
+				if (_hcl != null) {
+					_hcl.onComplete();
+					_hcl = null;
+				}
+			}
+		});
 	}
 
 }
