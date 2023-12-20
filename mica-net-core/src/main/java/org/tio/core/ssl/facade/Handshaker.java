@@ -218,16 +218,16 @@ class Handshaker {
 
 	private final ITaskHandler _taskHandler;
 	private final Worker _worker;
+	private final ChannelContext channelContext;
 	private boolean _finished;
 	private IHandshakeCompletedListener _hscl;
 	private ISessionClosedListener _sessionClosedListener;
-	private ChannelContext channelContext;
 
 	public Handshaker(Worker worker, ITaskHandler taskHandler, ChannelContext channelContext) {
 		this.channelContext = channelContext;
-		_worker = worker;
-		_taskHandler = taskHandler;
-		_finished = false;
+		this._worker = worker;
+		this._taskHandler = taskHandler;
+		this._finished = false;
 	}
 
 	void addCompletedListener(IHandshakeCompletedListener hscl) {
@@ -269,6 +269,14 @@ class Handshaker {
 
 	void removeCompletedListener(IHandshakeCompletedListener hscl) {
 		_hscl = hscl;
+	}
+
+	public ISessionClosedListener getSessionClosedListener() {
+		return _sessionClosedListener;
+	}
+
+	public void setSessionClosedListener(ISessionClosedListener sessionClosedListener) {
+		this._sessionClosedListener = sessionClosedListener;
 	}
 
 	/**

@@ -213,23 +213,22 @@ public class SSLFacade implements ISSLFacade {
 	private static final Logger log = LoggerFactory.getLogger(SSLFacade.class);
 
 	private final AtomicLong sslSeq = new AtomicLong();
+	private final ChannelContext channelContext;
+	private final boolean isClientMode;
 	private final Worker _worker;
-	private Handshaker _handshaker;
+	private final Handshaker _handshaker;
 	private IHandshakeCompletedListener _hcl;
-	private boolean _clientMode;
-	private ChannelContext channelContext;
 
 	public SSLFacade(ChannelContext channelContext, SSLContext context, boolean client, ClientAuth clientAuth, ITaskHandler taskHandler) {
 		this.channelContext = channelContext;
+		this.isClientMode = client;
 		// Currently there is no support for SSL session reuse,
 		// so no need to take a peerHost or port from the host application
-		final String who = client ? "client" : "server";
-		SSLEngine engine = makeSSLEngine(context, client, clientAuth);
+        SSLEngine engine = makeSSLEngine(context, client, clientAuth);
 		Buffers buffers = new Buffers(engine.getSession());
-		_worker = new Worker(engine, buffers, channelContext);
-		_handshaker = new Handshaker(_worker, taskHandler, channelContext);
-		_worker.setHandshaker(_handshaker);
-		_clientMode = client;
+		this._worker = new Worker(engine, buffers, channelContext);
+		this._handshaker = new Handshaker(_worker, taskHandler, channelContext);
+		this._worker.setHandshaker(_handshaker);
 	}
 
 	@Override
@@ -302,7 +301,7 @@ public class SSLFacade implements ISSLFacade {
 
 	@Override
 	public boolean isClientMode() {
-		return _clientMode;
+		return isClientMode;
 	}
 
 	@Override
@@ -343,6 +342,7 @@ public class SSLFacade implements ISSLFacade {
 	@Override
 	public void setCloseListener(ISessionClosedListener l) {
 		_worker.setSessionClosedListener(l);
+		_handshaker.setSessionClosedListener(l);
 	}
 
 	@Override

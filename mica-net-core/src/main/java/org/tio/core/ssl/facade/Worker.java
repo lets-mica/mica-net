@@ -211,7 +211,7 @@ class Worker {
 	private final Buffers _buffers;
 	private final ChannelContext channelContext;
 	private ISSLListener _sslListener;
-	private ISessionClosedListener _sessionClosedListener = new DefaultOnCloseListener();
+	private ISessionClosedListener _sessionClosedListener;
 	private Handshaker handshaker = null;
 
 	Worker(SSLEngine engine, Buffers buffers, ChannelContext channelContext) {
@@ -330,12 +330,6 @@ class Worker {
 		return _engine.getHandshakeStatus();
 	}
 
-	void handleEnOfSession(final SSLEngineResult result) {
-		if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
-			_sessionClosedListener.onSessionClosed();
-		}
-	}
-
 	boolean isCloseCompleted() {
 		return _engine.isOutboundDone();
 	}
@@ -391,7 +385,9 @@ class Worker {
 				}
 				break;
 			case CLOSED:
-				_sessionClosedListener.onSessionClosed();
+				if (_sessionClosedListener != null) {
+					_sessionClosedListener.onSessionClosed();
+				}
 				break;
 		}
 		if (!_buffers.isCacheEmpty() && result.getStatus() == SSLEngineResult.Status.OK && result.bytesConsumed() > 0) {
@@ -429,14 +425,12 @@ class Worker {
 			case OK:
 				break;
 			case CLOSED:
-				_sessionClosedListener.onSessionClosed();
+				if (_sessionClosedListener != null) {
+					_sessionClosedListener.onSessionClosed();
+				}
 				break;
 		}
 		return result;
-	}
-
-	public Handshaker getHandshaker() {
-		return handshaker;
 	}
 
 	public void setHandshaker(Handshaker handshaker) {
