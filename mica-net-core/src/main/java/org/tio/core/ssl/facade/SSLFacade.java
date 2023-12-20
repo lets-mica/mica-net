@@ -208,9 +208,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SSLFacade implements ISSLFacade {
-	@SuppressWarnings("unused")
-	private static final String TAG = "SSLFascade";
-	private static final Logger log = LoggerFactory.getLogger(SSLFacade.class);
+    private static final Logger log = LoggerFactory.getLogger(SSLFacade.class);
 
 	private final AtomicLong sslSeq = new AtomicLong();
 	private final ChannelContext channelContext;

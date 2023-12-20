@@ -289,11 +289,7 @@ class Buffers {
 	ByteBuffer grow(BufferType b, int recommendedBufferSize) {
 		ByteBuffer originalBuffer = get(b);
 		ByteBuffer newBuffer = ByteBuffer.allocate(recommendedBufferSize);
-		try {
-			BufferUtils.copy(originalBuffer, newBuffer);
-		} catch (BufferOverflowException e) {
-			throw e;
-		}
+		BufferUtils.copy(originalBuffer, newBuffer);
 		return newBuffer;
 	}
 
@@ -305,7 +301,9 @@ class Buffers {
 				newBuffer.put(data);
 				newBuffer.flip();
 			} catch (Exception e) {
-				log.error(e.getMessage() + ", data: " + data + ", BufferType.IN_CIPHER:" + get(BufferType.IN_CIPHER), e);
+				if (log.isErrorEnabled()) {
+					log.error("{} , data: {}, BufferType.IN_CIPHER: {}", e.getMessage(), data, get(BufferType.IN_CIPHER));
+				}
 				throw new RuntimeException(e);
 			}
 		}
@@ -340,6 +338,7 @@ class Buffers {
 			waitUnwrapBuffer.set(data);
 		}
 	}
+
 	void clearCache() {
 		waitUnwrapBuffer.clear();
 	}
