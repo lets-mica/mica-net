@@ -193,6 +193,14 @@
 */
 package org.tio.core.ssl.facade;
 
+import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
@@ -200,114 +208,53 @@ import org.tio.core.ssl.ClientAuth;
 import org.tio.core.ssl.SslVo;
 import org.tio.utils.buffer.ByteBufferUtil;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicLong;
-
 public class SSLFacade implements ISSLFacade {
 	@SuppressWarnings("unused")
-	private static final String TAG = "SSLFascade";
-	private static final Logger log = LoggerFactory.getLogger(SSLFacade.class);
-	private final Worker _worker;
-	private AtomicLong sslSeq = new AtomicLong();
-	private Handshaker _handshaker;
-	private IHandshakeCompletedListener _hcl;
-	private boolean _clientMode;
-	private ChannelContext channelContext;
+	private static final String	TAG	= "SSLFascade";
+	private static final Logger	log	= LoggerFactory.getLogger(SSLFacade.class);
+
+	private final AtomicLong sslSeq = new AtomicLong();
+
+	private Handshaker					_handshaker;
+	private IHandshakeCompletedListener	_hcl;
+	private final Worker				_worker;
+	private boolean						_clientMode;
+	private ChannelContext				channelContext;
 
 	public SSLFacade(ChannelContext channelContext, SSLContext context, boolean client, ClientAuth clientAuth, ITaskHandler taskHandler) {
 		this.channelContext = channelContext;
+		// Currently there is no support for SSL session reuse,
+		// so no need to take a peerHost or port from the host application
 		final String who = client ? "client" : "server";
 		SSLEngine engine = makeSSLEngine(context, client, clientAuth);
-		Buffers buffers = new Buffers(engine.getSession(), channelContext);
+		Buffers buffers = new Buffers(engine.getSession());
 		_worker = new Worker(who, engine, buffers, channelContext);
-		_handshaker = new Handshaker(client, _worker, taskHandler, channelContext);
+		_handshaker = new Handshaker(_worker, taskHandler, channelContext);
+		_worker.setHandshaker(_handshaker);
 		_clientMode = client;
 	}
 
-	@Override
-	public boolean isClientMode() {
-		return _clientMode;
-	}
+	// private void debug(final String message, final String... args) {
+	// SSLLog.debug(TAG, message, args);
+	// }
 
-	@Override
-	public void setHandshakeCompletedListener(IHandshakeCompletedListener hcl) {
-		_hcl = hcl;
-		attachCompletionListener();
-	}
-
-	@Override
-	public void setSSLListener(ISSLListener l) {
-		_worker.setSSLListener(l);
-	}
-
-	@Override
-	public void setCloseListener(ISessionClosedListener l) {
-		_worker.setSessionClosedListener(l);
+	/* Privates */
+	private void attachCompletionListener() {
+		_handshaker.addCompletedListener(new IHandshakeCompletedListener() {
+			@Override
+			public void onComplete() {
+				// _handshaker = null;
+				if (_hcl != null) {
+					_hcl.onComplete();
+					_hcl = null;
+				}
+			}
+		});
 	}
 
 	@Override
 	public void beginHandshake() throws SSLException {
 		_handshaker.begin();
-	}
-
-	@Override
-	public boolean isHandshakeCompleted() {
-		return (_handshaker == null) || _handshaker.isFinished();
-	}
-
-	@Override
-	public void encrypt(SslVo sslVo) throws SSLException {
-		long seq = sslSeq.incrementAndGet();
-		ByteBuffer src = sslVo.getByteBuffer();
-		ByteBuffer[] byteBuffers = ByteBufferUtil.split(src, 2048);
-		if (byteBuffers == null) {
-			if (log.isDebugEnabled()) {
-				log.debug("{}, 准备, SSL加密{}, 明文:{}", channelContext, channelContext.getId() + '_' + seq, sslVo);
-			}
-			SSLEngineResult result = _worker.wrap(sslVo, sslVo.getByteBuffer());
-			if (log.isDebugEnabled()) {
-				log.debug("{}, 完成, SSL加密{}, 明文:{}, 结果:{}", channelContext, channelContext.getId() + '_' + seq, sslVo, result);
-			}
-		} else {
-			if (log.isDebugEnabled()) {
-				log.debug("{}, 准备, SSL加密{}, 包过大，被拆成了[{}]个包进行发送, 明文:{}", channelContext, channelContext.getId() + '_' + seq, byteBuffers.length, sslVo);
-			}
-			ByteBuffer[] encryptedByteBuffers = new ByteBuffer[byteBuffers.length];
-			int allLen = 0;
-			for (int i = 0; i < byteBuffers.length; i++) {
-				SslVo sslVo1 = new SslVo(byteBuffers[i], sslVo.getObj());
-				SSLEngineResult result = _worker.wrap(sslVo1, byteBuffers[i]);
-				ByteBuffer encryptedByteBuffer = sslVo1.getByteBuffer();
-				encryptedByteBuffers[i] = encryptedByteBuffer;
-				allLen += encryptedByteBuffer.limit();
-				if (log.isDebugEnabled()) {
-					log.debug("{}, 完成, SSL加密{}, 明文:{}, 拆包[{}]的结果:{}", channelContext, channelContext.getId() + '_' + seq, sslVo, (i + 1), result);
-				}
-			}
-			ByteBuffer encryptedByteBuffer = ByteBuffer.allocate(allLen);
-			for (ByteBuffer byteBuffer : encryptedByteBuffers) {
-				encryptedByteBuffer.put(byteBuffer);
-			}
-			encryptedByteBuffer.flip();
-			sslVo.setByteBuffer(encryptedByteBuffer);
-		}
-	}
-
-	@Override
-	public void decrypt(ByteBuffer byteBuffer) throws SSLException {
-		long seq = sslSeq.incrementAndGet();
-		if (log.isDebugEnabled()) {
-			log.debug("{}, 准备, SSL解密{}, 密文:{}", channelContext, channelContext.getId() + '_' + seq, byteBuffer);
-		}
-		SSLEngineResult result = _worker.unwrap(byteBuffer);
-		if (log.isDebugEnabled()) {
-			log.debug("{}, 完成, SSL解密{}, 密文:{}, 结果:{}", channelContext, channelContext.getId() + '_' + seq, byteBuffer, result);
-		}
-		_handshaker.handleUnwrapResult(result);
 	}
 
 	@Override
@@ -317,29 +264,80 @@ public class SSLFacade implements ISSLFacade {
 	}
 
 	@Override
+	public void decrypt(ByteBuffer byteBuffer) throws SSLException {
+		long seq = sslSeq.incrementAndGet();
+		if (log.isDebugEnabled()) {
+			log.debug("{}, 准备SSL解密:{}, 密文:{}", channelContext, channelContext.getId() + " _" + seq, byteBuffer);
+		}
+
+		SSLEngineResult result = _worker.unwrap(byteBuffer);
+
+//		_handshaker.handleUnwrapResult(result);
+		if (log.isDebugEnabled()) {
+			log.debug("{}, 完成SSL解密:{}, 密文:{}, 结果:{}", channelContext, channelContext.getId() + " _" + seq, byteBuffer, result);
+		}
+//		_worker.emitPlainData(result);
+	}
+
+	@Override
+	public void encrypt(SslVo sslVo) throws SSLException {
+		long seq = sslSeq.incrementAndGet();
+
+		ByteBuffer src = sslVo.getByteBuffer();
+		ByteBuffer[] byteBuffers = ByteBufferUtil.split(src, Integer.getInteger("tio.ssl.split.unit", 16366));
+		if (byteBuffers == null) {
+			if (log.isDebugEnabled()) {
+				log.debug("{}, 准备SSL加密:{}, 明文:{}", channelContext, channelContext.getId() + " _" + seq, sslVo);
+			}
+
+			SSLEngineResult result = _worker.wrap(sslVo, sslVo.getByteBuffer());
+			if (log.isDebugEnabled()) {
+				log.debug("{}, 完成SSL加密:{}, 明文:{}, 结果:{}", channelContext, channelContext.getId() + " _" + seq, sslVo, result);
+			}
+		} else {
+			if (log.isDebugEnabled()) {
+				log.debug("{}, 准备SSL加密:{}, 包过大，被拆成了[{}]个包进行发送, 明文:{}", channelContext, channelContext.getId() + " _" + seq, byteBuffers.length, sslVo);
+			}
+			ByteBuffer[] encryptedByteBuffers = new ByteBuffer[byteBuffers.length];
+			int alllen = 0;
+			for (int i = 0; i < byteBuffers.length; i++) {
+				SslVo sslVo1 = new SslVo(byteBuffers[i], sslVo.getObj());
+				SSLEngineResult result = _worker.wrap(sslVo1, byteBuffers[i]);
+				ByteBuffer encryptedByteBuffer = sslVo1.getByteBuffer();
+				encryptedByteBuffers[i] = encryptedByteBuffer;
+				alllen += encryptedByteBuffer.limit();
+				if (log.isDebugEnabled()) {
+					log.debug("{}, 完成SSL加密:{}, 明文:{}, 拆包[{}]的结果:{}", channelContext, channelContext.getId() + " _" + seq, sslVo, (i + 1), result);
+				}
+			}
+
+			ByteBuffer encryptedByteBuffer = ByteBuffer.allocate(alllen);
+			for (int i = 0; i < encryptedByteBuffers.length; i++) {
+				encryptedByteBuffer.put(encryptedByteBuffers[i]);
+			}
+			encryptedByteBuffer.flip();
+			sslVo.setByteBuffer(encryptedByteBuffer);
+		}
+	}
+
+	@Override
+	public boolean isClientMode() {
+		return _clientMode;
+	}
+
+	@Override
 	public boolean isCloseCompleted() {
-		/* Host application should only close underlying transport after
-		 close_notify packet generated by wrap has been sent to peer. Use this
-		 method to check if the packet has been generated
+		/*
+		 * Host application should only close underlying transport after close_notify
+		 * packet generated by wrap has been sent to peer. Use this method to check if
+		 * the packet has been generated
 		 */
 		return _worker.isCloseCompleted();
 	}
 
 	@Override
-	public void terminate() {
-		/* Called if peer closed connection unexpectedly */
-		_worker.close(false);
-	}
-
-	/* Privates */
-	private void attachCompletionListener() {
-		_handshaker.addCompletedListener(() -> {
-			//_handshaker = null;
-			if (_hcl != null) {
-				_hcl.onComplete();
-				_hcl = null;
-			}
-		});
+	public boolean isHandshakeCompleted() {
+		return (_handshaker == null) || _handshaker.isFinished();
 	}
 
 	private SSLEngine makeSSLEngine(SSLContext context, boolean client, ClientAuth clientAuth) {
@@ -360,6 +358,28 @@ public class SSLFacade implements ISSLFacade {
 			}
 		}
 		return engine;
+	}
+
+	@Override
+	public void setCloseListener(ISessionClosedListener l) {
+		_worker.setSessionClosedListener(l);
+	}
+
+	@Override
+	public void setHandshakeCompletedListener(IHandshakeCompletedListener hcl) {
+		_hcl = hcl;
+		attachCompletionListener();
+	}
+
+	@Override
+	public void setSSLListener(ISSLListener l) {
+		_worker.setSSLListener(l);
+	}
+
+	@Override
+	public void terminate() {
+		/* Called if peer closed connection unexpectedly */
+		_worker.close(false);
 	}
 
 }

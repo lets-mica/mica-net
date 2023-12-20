@@ -195,7 +195,6 @@ package org.tio.core.ssl.facade;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.core.ChannelContext;
 
 import javax.net.ssl.SSLSession;
 import java.nio.BufferOverflowException;
@@ -203,17 +202,12 @@ import java.nio.ByteBuffer;
 
 class Buffers {
 
-	private static Logger log = LoggerFactory.getLogger(Buffers.class);
+	private static final Logger log = LoggerFactory.getLogger(Buffers.class);
 	/**
 	 * 待解密的bytebuffer
 	 */
 	private final AppendableBuffer waitUnwrapBuffer;
-	/**
-	 *
-	 */
 	private final SSLSession ssLSession;
-	@SuppressWarnings("unused")
-	private final ChannelContext channelContext;
 	/*
 	 Buffers is a simple abstraction that encapsulates the 4 SSL
 	 buffers and an unwrap caching buffer.
@@ -250,8 +244,7 @@ class Buffers {
 	private ByteBuffer _peerNet;
 	private ByteBuffer _myNet;
 
-	public Buffers(SSLSession ssLSession, ChannelContext channelContext) {
-		this.channelContext = channelContext;
+	public Buffers(SSLSession ssLSession) {
 		this.ssLSession = ssLSession;
 		allocate();
 		waitUnwrapBuffer = new AppendableBuffer();
@@ -283,13 +276,11 @@ class Buffers {
 				assign(t, grow(t, ssLSession.getApplicationBufferSize()));
 				break;
 			case IN_CIPHER:
+			case OUT_CIPHER:
 				assign(t, grow(t, ssLSession.getPacketBufferSize()));
 				break;
 			case OUT_PLAIN:
-				//No known reason for this case to occur
-				break;
-			case OUT_CIPHER:
-				assign(t, grow(t, ssLSession.getPacketBufferSize()));
+				// No known reason for this case to occur
 				break;
 		}
 
@@ -298,8 +289,11 @@ class Buffers {
 	ByteBuffer grow(BufferType b, int recommendedBufferSize) {
 		ByteBuffer originalBuffer = get(b);
 		ByteBuffer newBuffer = ByteBuffer.allocate(recommendedBufferSize);
-		//debug("grow buffer " + originalBuffer + " to " + newBuffer);
-		BufferUtils.copy(originalBuffer, newBuffer);
+		try {
+			BufferUtils.copy(originalBuffer, newBuffer);
+		} catch (BufferOverflowException e) {
+			throw e;
+		}
 		return newBuffer;
 	}
 
@@ -346,7 +340,6 @@ class Buffers {
 			waitUnwrapBuffer.set(data);
 		}
 	}
-
 	void clearCache() {
 		waitUnwrapBuffer.clear();
 	}
@@ -372,7 +365,6 @@ class Buffers {
 
 	private void assign(BufferType t, ByteBuffer b) {
 		switch (t) {
-
 			case IN_PLAIN:
 				_peerApp = b;
 				break;
@@ -401,7 +393,7 @@ class Buffers {
 	}
 
 	private ByteBuffer growIfNecessary(BufferType t, int size) {
-		//grow if not enough space
+		// grow if not enough space
 		ByteBuffer b = get(t);
 		//    log.info("growIfNecessary {}, size:{}", b, size);
 		//  System.out.println("Grow " + t + " : " + b + " size=" + size);
@@ -411,4 +403,5 @@ class Buffers {
 		}
 		return get(t);
 	}
+
 }

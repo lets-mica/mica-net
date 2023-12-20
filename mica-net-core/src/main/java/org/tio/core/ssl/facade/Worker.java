@@ -193,17 +193,18 @@
 */
 package org.tio.core.ssl.facade;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.ssl.SslVo;
 import org.tio.utils.hutool.StrUtil;
-
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 class Worker {
 
@@ -212,11 +213,13 @@ class Worker {
 	/*  Uses the SSLEngine and Buffers to perform wrap/unwrap operations.
 	 Also, provides access to SSLEngine ops for handshake
 	 */
-	private static final String TAG = "Worker";
-	private final SSLEngine _engine;
-	private final Buffers _buffers;
-	private ISSLListener _sslListener;
-	private ISessionClosedListener _sessionClosedListener = new DefaultOnCloseListener();
+	private final static String TAG = "Worker";
+	private final SSLEngine			_engine;
+	private final Buffers			_buffers;
+	private ISSLListener			_sslListener;
+	private ISessionClosedListener	_sessionClosedListener	= new DefaultOnCloseListener();
+	private Handshaker				handshaker				= null;
+
 	@SuppressWarnings("unused")
 	private String who;
 
@@ -236,171 +239,21 @@ class Worker {
 		return newBuffer;
 	}
 
-	void setSessionClosedListener(final ISessionClosedListener scl) {
-		_sessionClosedListener = scl;
-	}
 
 	void beginHandshake() throws SSLException {
 		_engine.beginHandshake();
-	}
-
-	SSLEngineResult.HandshakeStatus getHandshakeStatus() {
-		return _engine.getHandshakeStatus();
-	}
-
-	/**
-	 * 只是简单地调一下SSLEngine.getDelegatedTask()
-	 *
-	 * @return
-	 */
-	Runnable getDelegatedTask() {
-		return _engine.getDelegatedTask();
-	}
-
-	/**
-	 * 加密
-	 *
-	 * @param sslVo
-	 * @param plainData
-	 * @return
-	 * @throws SSLException
-	 */
-	SSLEngineResult wrap(SslVo sslVo, ByteBuffer plainData) throws SSLException {
-		_buffers.prepareForWrap(plainData);
-		SSLEngineResult result = doWrap();
-
-		emitWrappedData(sslVo, result);
-
-		switch (result.getStatus()) {
-			case BUFFER_UNDERFLOW:
-				throw new RuntimeException("BUFFER_UNDERFLOW while wrapping!");
-			case BUFFER_OVERFLOW:
-				_buffers.grow(BufferType.OUT_CIPHER);
-				if (plainData != null && plainData.hasRemaining()) {
-					plainData.position(result.bytesConsumed());
-					ByteBuffer remainingData = BufferUtils.slice(plainData);
-					wrap(sslVo, remainingData);
-				}
-				break;
-			case OK:
-				break;
-			case CLOSED:
-				_sessionClosedListener.onSessionClosed();
-				break;
-		}
-		return result;
-	}
-
-	/**
-	 * 解密
-	 *
-	 * @param encryptedData 待解密的数据
-	 * @return
-	 * @throws SSLException
-	 */
-	SSLEngineResult unwrap(ByteBuffer encryptedData) throws SSLException {
-		ByteBuffer allEncryptedData = _buffers.prependCached(encryptedData);
-		_buffers.prepareForUnwrap(allEncryptedData);
-		SSLEngineResult result = doUnwrap();
-		allEncryptedData.position(result.bytesConsumed());
-		// 未处理的数据
-		ByteBuffer unprocessedEncryptedData = BufferUtils.slice(allEncryptedData);
-
-		emitPlainData(result);
-
-		switch (result.getStatus()) {
-			case BUFFER_UNDERFLOW: //数据不够解密不了，则把剩下的数据存起来，下次继续使用
-				_buffers.cache(unprocessedEncryptedData);
-				break;
-			case BUFFER_OVERFLOW:
-				_buffers.grow(BufferType.IN_PLAIN);
-				if (unprocessedEncryptedData == null) {
-					throw new RuntimeException("Worker.unwrap had " + "buffer_overflow but all data was consumed!!");
-				} else {
-					//				unwrap(sslVo, unprocessedEncryptedData);
-					unwrap(unprocessedEncryptedData);
-				}
-				break;
-			case OK:
-				if (unprocessedEncryptedData == null) {
-					_buffers.clearCache();
-				} else {
-					_buffers.cache(unprocessedEncryptedData);
-				}
-				break;
-			case CLOSED:
-				_sessionClosedListener.onSessionClosed();
-				break;
-		}
-		if (_buffers.isCacheEmpty() == false && result.getStatus() == SSLEngineResult.Status.OK && result.bytesConsumed() > 0) {
-			//			debug("Still data in cahce");
-			ByteBuffer byteBuffer = ByteBuffer.allocate(0);
-			result = unwrap(byteBuffer);
-		}
-		return result;
-	}
-
-	void setSSLListener(ISSLListener SSLListener) {
-		_sslListener = SSLListener;
-	}
-
-	void handleEnOfSession(final SSLEngineResult result) {
-		if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
-			_sessionClosedListener.onSessionClosed();
-		}
 	}
 
 	void close(boolean properly) {
 		_engine.closeOutbound();
 		try {
 			if (properly) {
-				//sends a TLS close_notify alert
-				wrap(new SslVo(), null);
+				wrap(new SslVo(), null); // sends a TLS close_notify alert
 			}
 			_engine.closeInbound();
 		} catch (SSLException ignore) {
 		}
 
-	}
-
-	boolean isCloseCompleted() {
-		return _engine.isOutboundDone();
-	}
-
-	boolean pendingUnwrap() {
-		return !_buffers.isCacheEmpty();
-	}
-
-	private void emitWrappedData(SslVo sslVo, SSLEngineResult result) {
-		if (result.bytesProduced() > 0) {
-			ByteBuffer internalCipherBuffer = _buffers.get(BufferType.OUT_CIPHER);
-			sslVo.setByteBuffer(makeExternalBuffer(internalCipherBuffer));
-			_sslListener.onWrappedData(sslVo);
-		}
-	}
-
-	private void emitPlainData(SSLEngineResult result) {
-		if (result.bytesProduced() > 0) {
-			ByteBuffer internalPlainBuffer = _buffers.get(BufferType.IN_PLAIN);
-			ByteBuffer plainBuffer = (makeExternalBuffer(internalPlainBuffer));
-			_sslListener.onPlainData(plainBuffer);
-		}
-
-	}
-
-	/**
-	 * 加密
-	 *
-	 * @return
-	 * @throws SSLException
-	 */
-	private SSLEngineResult doWrap() throws SSLException {
-		ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
-		ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
-		if (log.isDebugEnabled()) {
-			log.debug("{}, doWrap(加密): plainText:{} to cipherText: {}", channelContext, plainText, cipherText);
-		}
-		return _engine.wrap(plainText, cipherText);
 	}
 
 	/**
@@ -418,13 +271,199 @@ class Worker {
 			}
 			return _engine.unwrap(cipherText, plainText);
 		} catch (SSLException e) {
-			if (log.isInfoEnabled()) {
+			if (log.isErrorEnabled()) {
 				byte[] bs = new byte[cipherText.limit()];
 				System.arraycopy(cipherText.array(), 0, bs, 0, bs.length);
-				log.error(channelContext + ", 解密Error:" + e.getMessage() + ", byte:" + Arrays.toString(bs) + ", string:" + new String(bs) + ", buffer:" + cipherText, e);
+				log.error(channelContext + ", 解密Error:" + e.toString() + ", byte:" + Arrays.toString(bs) + ", string:" + new String(bs) + ", buffer:" + cipherText, e);
 			}
 			throw e;
 		}
+	}
+
+	/**
+	 * 加密
+	 *
+	 * @return
+	 * @throws SSLException
+	 */
+	private SSLEngineResult doWrap() throws SSLException {
+		try {
+			ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
+			ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
+			if (log.isDebugEnabled()) {
+				log.debug("{}, doWrap(加密): plainText:{} to cipherText: {}", channelContext, plainText, cipherText);
+			}
+			return _engine.wrap(plainText, cipherText);
+		} catch (SSLException e) {
+			throw e;
+		}
+	}
+
+	public void emitPlainData(SSLEngineResult result) {
+		if (result.bytesProduced() > 0) {
+			ByteBuffer internalPlainBuffer = _buffers.get(BufferType.IN_PLAIN);
+			if (log.isDebugEnabled()) {
+				log.debug("{} internalPlainBuffer {} ", channelContext, internalPlainBuffer);
+			}
+			ByteBuffer plainBuffer = (makeExternalBuffer(internalPlainBuffer));
+			if (log.isDebugEnabled()) {
+				log.debug("{} plainBuffer[{}][{}] \r\n{}", channelContext, result.getHandshakeStatus(), plainBuffer.limit(), plainBuffer.array());
+			}
+
+			//			if (result.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.FINISHED)) {
+			//				if (channelContext instanceof ServerChannelContext) {
+			//					this.getHandshaker().handshakeFinished();
+			//				}
+			//			}
+
+			if (log.isDebugEnabled()) {
+				log.debug("{} emitPlaintData 握手状态 HandshakeStatus {}", channelContext, result.getHandshakeStatus());
+			}
+			_sslListener.onPlainData(plainBuffer);
+		} else {
+			if (log.isDebugEnabled()) {
+				log.debug("result.bytesProduced() = {} <= 0, result.bytesConsumed() = {}", result.bytesProduced(), result.bytesConsumed());
+			}
+		}
+	}
+
+	private void emitWrappedData(SslVo sslVo, SSLEngineResult result) {
+		if (result.bytesProduced() > 0) {
+			ByteBuffer internalCipherBuffer = _buffers.get(BufferType.OUT_CIPHER);
+			sslVo.setByteBuffer(makeExternalBuffer(internalCipherBuffer));
+			_sslListener.onWrappedData(sslVo);
+		}
+	}
+
+	/**
+	 * 只是简单地调一下SSLEngine.getDelegatedTask()
+	 *
+	 * @return
+	 */
+	Runnable getDelegatedTask() {
+		return _engine.getDelegatedTask();
+	}
+
+	SSLEngineResult.HandshakeStatus getHandshakeStatus() {
+		return _engine.getHandshakeStatus();
+	}
+
+	void handleEnOfSession(final SSLEngineResult result) {
+		if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
+			_sessionClosedListener.onSessionClosed();
+		}
+	}
+
+	boolean isCloseCompleted() {
+		return _engine.isOutboundDone();
+	}
+
+	boolean pendingUnwrap() {
+		return !_buffers.isCacheEmpty();
+	}
+	/* Private */
+
+	void setSessionClosedListener(final ISessionClosedListener scl) {
+		_sessionClosedListener = scl;
+	}
+
+	void setSSLListener(ISSLListener SSLListener) {
+		_sslListener = SSLListener;
+	}
+
+	/**
+	 * 解密
+	 *
+	 * @param sslVo
+	 * @param encryptedData 待解密的数据
+	 * @return
+	 * @throws SSLException
+	 */
+	SSLEngineResult unwrap(ByteBuffer encryptedData) throws SSLException {
+		ByteBuffer allEncryptedData = _buffers.prependCached(encryptedData);
+		_buffers.prepareForUnwrap(allEncryptedData);
+		SSLEngineResult result = doUnwrap();
+		allEncryptedData.position(result.bytesConsumed());
+		ByteBuffer unprocessedEncryptedData = BufferUtils.slice(allEncryptedData);// 未处理的数据
+
+		handshaker.handleUnwrapResult(result);
+		//TODO 可能要删除
+		emitPlainData(result);
+
+
+		switch (result.getStatus()) {
+		case BUFFER_UNDERFLOW: // 数据不够解密不了，则把剩下的数据存起来，下次继续使用
+			_buffers.cache(unprocessedEncryptedData);
+			break;
+		case BUFFER_OVERFLOW:
+			_buffers.grow(BufferType.IN_PLAIN);
+			if (unprocessedEncryptedData == null) {
+				throw new RuntimeException("Worker.unwrap had " + "buffer_overflow but all data was consumed!!");
+			} else {
+				// unwrap(sslVo, unprocessedEncryptedData);
+				unwrap(unprocessedEncryptedData);
+			}
+			break;
+		case OK:
+			if (unprocessedEncryptedData == null) {
+				_buffers.clearCache();
+			} else {
+				_buffers.cache(unprocessedEncryptedData);
+			}
+			break;
+		case CLOSED:
+			_sessionClosedListener.onSessionClosed();
+			break;
+		}
+		if (_buffers.isCacheEmpty() == false && result.getStatus() == SSLEngineResult.Status.OK && result.bytesConsumed() > 0) {
+			// debug("Still data in cahce");
+			ByteBuffer byteBuffer = ByteBuffer.allocate(0);
+			result = unwrap(byteBuffer);
+		}
+
+		return result;
+	}
+
+	/**
+	 * 加密
+	 *
+	 * @param sslVo
+	 * @param plainData
+	 * @return
+	 * @throws SSLException
+	 */
+	SSLEngineResult wrap(SslVo sslVo, ByteBuffer plainData) throws SSLException {
+		_buffers.prepareForWrap(plainData);
+		SSLEngineResult result = doWrap();
+
+		emitWrappedData(sslVo, result);
+
+		switch (result.getStatus()) {
+		case BUFFER_UNDERFLOW:
+			throw new RuntimeException("BUFFER_UNDERFLOW while wrapping!");
+		case BUFFER_OVERFLOW:
+			_buffers.grow(BufferType.OUT_CIPHER);
+			if (plainData != null && plainData.hasRemaining()) {
+				plainData.position(result.bytesConsumed());
+				ByteBuffer remainingData = BufferUtils.slice(plainData);
+				wrap(sslVo, remainingData);
+			}
+			break;
+		case OK:
+			break;
+		case CLOSED:
+			_sessionClosedListener.onSessionClosed();
+			break;
+		}
+		return result;
+	}
+
+	public Handshaker getHandshaker() {
+		return handshaker;
+	}
+
+	public void setHandshaker(Handshaker handshaker) {
+		this.handshaker = handshaker;
 	}
 
 }
