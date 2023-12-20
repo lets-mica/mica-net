@@ -203,6 +203,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 class Worker {
 
@@ -420,7 +421,7 @@ class Worker {
 			if (log.isInfoEnabled()) {
 				byte[] bs = new byte[cipherText.limit()];
 				System.arraycopy(cipherText.array(), 0, bs, 0, bs.length);
-				log.error(channelContext + ", 解密Error:" + e.getMessage() + ", byte:" + StrUtil.arrayToString(bs) + ", string:" + new String(bs) + ", buffer:" + cipherText, e);
+				log.error(channelContext + ", 解密Error:" + e.getMessage() + ", byte:" + Arrays.toString(bs) + ", string:" + new String(bs) + ", buffer:" + cipherText, e);
 			}
 			throw e;
 		}

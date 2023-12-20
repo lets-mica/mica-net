@@ -284,46 +284,6 @@ public class StrUtil {
 	}
 
 	/**
-	 * 数组或集合转String
-	 *
-	 * @param obj 集合或数组对象
-	 * @return 数组字符串，与集合转字符串格式相同
-	 */
-	public static String arrayToString(Object obj) {
-		if (null == obj) {
-			return null;
-		}
-		if (isArray(obj)) {
-			try {
-				return Arrays.deepToString((Object[]) obj);
-			} catch (Exception e) {
-				final String className = obj.getClass().getComponentType().getName();
-				switch (className) {
-					case "long":
-						return Arrays.toString((long[]) obj);
-					case "int":
-						return Arrays.toString((int[]) obj);
-					case "short":
-						return Arrays.toString((short[]) obj);
-					case "char":
-						return Arrays.toString((char[]) obj);
-					case "byte":
-						return Arrays.toString((byte[]) obj);
-					case "boolean":
-						return Arrays.toString((boolean[]) obj);
-					case "float":
-						return Arrays.toString((float[]) obj);
-					case "double":
-						return Arrays.toString((double[]) obj);
-					default:
-						throw new RuntimeException(e);
-				}
-			}
-		}
-		return obj.toString();
-	}
-
-	/**
 	 * 是否以指定字符串开头，忽略大小写
 	 *
 	 * @param str    被监测字符串
@@ -463,11 +423,8 @@ public class StrUtil {
 		if (count <= 0) {
 			return "";
 		}
-
 		char[] result = new char[count];
-		for (int i = 0; i < count; i++) {
-			result[i] = c;
-		}
+		Arrays.fill(result, c);
 		return new String(result);
 	}
 
