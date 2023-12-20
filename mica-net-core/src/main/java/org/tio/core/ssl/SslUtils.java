@@ -204,9 +204,6 @@ import org.tio.core.intf.Packet;
  */
 public class SslUtils {
 
-	/**
-	 *
-	 */
 	private SslUtils() {
 
 	}
@@ -214,9 +211,9 @@ public class SslUtils {
 	/**
 	 * 是否需要对这个packet进行SSL加密
 	 *
-	 * @param packet
-	 * @param tioConfig
-	 * @return
+	 * @param packet    Packet
+	 * @param tioConfig TioConfig
+	 * @return boolean
 	 */
 	public static boolean needSslEncrypt(Packet packet, TioConfig tioConfig) {
 		return !packet.isSslEncrypted() && tioConfig.sslConfig != null;
@@ -225,8 +222,8 @@ public class SslUtils {
 	/**
 	 * 是否是SSL连接
 	 *
-	 * @param tioConfig
-	 * @return
+	 * @param tioConfig TioConfig
+	 * @return boolean
 	 */
 	public static boolean isSsl(TioConfig tioConfig) {
 		return tioConfig.isSsl();
