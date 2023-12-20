@@ -216,21 +216,19 @@ class Handshaker {
 
 	private static final Logger log = LoggerFactory.getLogger(Handshaker.class);
 
-	@SuppressWarnings("unused")
-	private static final String TAG = "Handshaker";
 	private final ITaskHandler _taskHandler;
 	private final Worker _worker;
 	private boolean _finished;
 	private IHandshakeCompletedListener _hscl;
 	private ISessionClosedListener _sessionClosedListener;
-    private ChannelContext channelContext;
+	private ChannelContext channelContext;
 
 	public Handshaker(Worker worker, ITaskHandler taskHandler, ChannelContext channelContext) {
 		this.channelContext = channelContext;
 		_worker = worker;
 		_taskHandler = taskHandler;
 		_finished = false;
-    }
+	}
 
 	void addCompletedListener(IHandshakeCompletedListener hscl) {
 		_hscl = hscl;
@@ -295,13 +293,13 @@ class Handshaker {
 				_taskHandler.process(new Tasks(_worker, this));
 				break;
 			case NEED_WRAP: // 加密
-				SSLEngineResult w_result = _worker.wrap(new SslVo(), null);
-				if (w_result.getStatus().equals(SSLEngineResult.Status.CLOSED)) {
+				SSLEngineResult wResult = _worker.wrap(new SslVo(), null);
+				if (wResult.getStatus().equals(SSLEngineResult.Status.CLOSED)) {
 					if (null != _sessionClosedListener) {
 						_sessionClosedListener.onSessionClosed();
 					}
 				}
-				if (w_result.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.FINISHED)) {
+				if (wResult.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.FINISHED)) {
 					if (channelContext instanceof ServerChannelContext) {
 						handshakeFinished();
 					}

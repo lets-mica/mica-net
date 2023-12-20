@@ -260,7 +260,7 @@ class Worker {
 			if (log.isErrorEnabled()) {
 				byte[] bs = new byte[cipherText.limit()];
 				System.arraycopy(cipherText.array(), 0, bs, 0, bs.length);
-				log.error(channelContext + ", 解密Error, byte:" + Arrays.toString(bs) + ", string:" + new String(bs) + ", buffer:" + cipherText, e);
+				log.error("{} 解密Error, byte:{}, string:{}, buffer:{}", channelContext, Arrays.toString(bs), new String(bs), cipherText);
 			}
 			throw e;
 		}
@@ -273,16 +273,12 @@ class Worker {
 	 * @throws SSLException
 	 */
 	private SSLEngineResult doWrap() throws SSLException {
-		try {
-			ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
-			ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
-			if (log.isDebugEnabled()) {
-				log.debug("{}, doWrap(加密): plainText:{} to cipherText: {}", channelContext, plainText, cipherText);
-			}
-			return _engine.wrap(plainText, cipherText);
-		} catch (SSLException e) {
-			throw e;
+		ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
+		ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
+		if (log.isDebugEnabled()) {
+			log.debug("{}, doWrap(加密): plainText:{} to cipherText: {}", channelContext, plainText, cipherText);
 		}
+		return _engine.wrap(plainText, cipherText);
 	}
 
 	public void emitPlainData(SSLEngineResult result) {
@@ -382,7 +378,7 @@ class Worker {
 			case BUFFER_OVERFLOW:
 				_buffers.grow(BufferType.IN_PLAIN);
 				if (unprocessedEncryptedData == null) {
-					throw new RuntimeException("Worker.unwrap had " + "buffer_overflow but all data was consumed!!");
+					throw new RuntimeException("Worker.unwrap had buffer_overflow but all data was consumed!!");
 				} else {
 					unwrap(unprocessedEncryptedData);
 				}
@@ -398,12 +394,10 @@ class Worker {
 				_sessionClosedListener.onSessionClosed();
 				break;
 		}
-		if (_buffers.isCacheEmpty() == false && result.getStatus() == SSLEngineResult.Status.OK && result.bytesConsumed() > 0) {
-			// debug("Still data in cahce");
+		if (!_buffers.isCacheEmpty() && result.getStatus() == SSLEngineResult.Status.OK && result.bytesConsumed() > 0) {
 			ByteBuffer byteBuffer = ByteBuffer.allocate(0);
 			result = unwrap(byteBuffer);
 		}
-
 		return result;
 	}
 
