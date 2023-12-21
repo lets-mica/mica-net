@@ -2,6 +2,11 @@
 
 ## 发行版本
 
+### v0.1.8 - 2023-12-24
+- :sparkles: 同步更新 t-io ssl，缓解 wss 频繁刷新时的问题，优化 ssl 代码。
+- :sparkles: `ChannelContext` 采用二进制位标识状态位，预留 isAccepted、setAccepted 和 isBizStatus、setBizStatus 给业务。
+- :sparkles: 添加 -parameters 编译参数。
+
 ### v0.1.7 - 2023-11-26
 - :sparkles: PROXY protocol 支持优化，开启式支持不带 PROXY protocol 报文的连接。
 - :sparkles: 完善 `ByteBufferUtil` 工具，添加 `readUnsignedShort`、`readUnsignedMedium`、`readUnsignedInt` 等方法。
