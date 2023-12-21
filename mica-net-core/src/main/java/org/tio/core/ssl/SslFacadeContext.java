@@ -222,7 +222,6 @@ public class SslFacadeContext {
 
 	public SslFacadeContext(ChannelContext channelContext, SslConfig sslConfig) {
 		this.channelContext = channelContext;
-		this.channelContext.setSslFacadeContext(this);
 		this.isHandshakeCompleted = false;
 		// sslContext
 		this.sslContext = sslConfig.getSslContext();

@@ -290,9 +290,9 @@ public abstract class ChannelContext extends MapPropSupport {
 		init(tioConfig, asynchronousSocketChannel);
 		if (tioConfig.sslConfig != null) {
 			try {
-				SslFacadeContext sslFacadeContext = new SslFacadeContext(this);
+				this.sslFacadeContext = new SslFacadeContext(this);
 				if (tioConfig.isServer()) {
-					sslFacadeContext.beginHandshake();
+					this.sslFacadeContext.beginHandshake();
 				}
 			} catch (Exception e) {
 				log.error("在开始SSL握手时发生了异常", e);
@@ -452,7 +452,6 @@ public abstract class ChannelContext extends MapPropSupport {
 			if (log.isDebugEnabled()) {
 				log.debug("{} 已经发送 {}", this, packet.logstr());
 			}
-
 			//非SSL or SSL已经握手
 			if (this.sslFacadeContext == null || this.sslFacadeContext.isHandshakeCompleted()) {
 				if (tioConfig.getTioListener() != null) {
@@ -583,8 +582,8 @@ public abstract class ChannelContext extends MapPropSupport {
 		this.packetNeededLength = packetNeededLength;
 	}
 
-	public void setSslFacadeContext(SslFacadeContext sslFacadeContext) {
-		this.sslFacadeContext = sslFacadeContext;
+	public SslFacadeContext getSslFacadeContext() {
+		return sslFacadeContext;
 	}
 
 	/**

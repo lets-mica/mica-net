@@ -289,7 +289,6 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 						channelContext.setServerNode(serverNode);
 					}
 				}
-
 				// 不是重连，则是第一次连接
 				if (!isReconnect && channelContext != null) {
 					attachment.setChannelContext(channelContext);
@@ -305,21 +304,16 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 			if (attachment.getCountDownLatch() != null) {
 				attachment.getCountDownLatch().countDown();
 			}
-
 			try {
 				if (channelContext != null) {
 					channelContext.setReconnect(isReconnect);
 					if (SslUtils.isSsl(channelContext.tioConfig)) {
 						if (isConnected) {
-							SslFacadeContext sslFacadeContext = new SslFacadeContext(channelContext);
+							SslFacadeContext sslFacadeContext = channelContext.getSslFacadeContext();
 							sslFacadeContext.beginHandshake();
 						} else {
 							if (tioClientListener != null) {
-								if (isConnected) {
-									channelContext.stat.heartbeatTimeoutCount.set(0);
-									channelContext.setCloseCode(CloseCode.INIT_STATUS);
-								}
-								tioClientListener.onAfterConnected(channelContext, isConnected, isReconnect);
+                                tioClientListener.onAfterConnected(channelContext, false, isReconnect);
 							}
 						}
 					} else {
