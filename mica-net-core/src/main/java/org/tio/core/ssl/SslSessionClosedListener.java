@@ -207,11 +207,8 @@ public class SslSessionClosedListener implements ISessionClosedListener {
 
 	@Override
 	public void onSessionClosed() {
-		if (channelContext.isServer()) {
-			Tio.remove(channelContext, "SSL SessionClosed", CloseCode.SSL_SESSION_CLOSED);
-		} else {
-			Tio.close(channelContext, "SSL SessionClosed", CloseCode.SSL_SESSION_CLOSED);
-		}
+		// 如果是服务端需要 remove
+		Tio.close(channelContext, null, "SSL SessionClosed", channelContext.isServer(), CloseCode.SSL_SESSION_CLOSED);
 	}
 
 }
