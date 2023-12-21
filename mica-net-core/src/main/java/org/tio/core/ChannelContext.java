@@ -587,6 +587,15 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	/**
+	 * 设置 SslFacadeContext 用于动态 ssl 的过程
+	 *
+	 * @param sslFacadeContext sslFacadeContext
+	 */
+	public void setSslFacadeContext(SslFacadeContext sslFacadeContext) {
+		this.sslFacadeContext = sslFacadeContext;
+	}
+
+	/**
 	 * 获取 用户 id
 	 *
 	 * @return 用户 id
