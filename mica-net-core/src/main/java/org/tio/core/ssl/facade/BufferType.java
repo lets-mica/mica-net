@@ -193,7 +193,7 @@
 */
 package org.tio.core.ssl.facade;
 
-public enum BufferType {
+enum BufferType {
 	/* Defines names for SSL related buffers. */
 
 	/**

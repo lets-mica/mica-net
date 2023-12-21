@@ -195,11 +195,11 @@ package org.tio.core.ssl.facade;
 
 import javax.net.ssl.SSLException;
 
-public class Tasks implements ITasks {
+class Tasks implements ITasks {
 	private final Worker worker;
 	private final Handshaker hs;
 
-	public Tasks(Worker worker, Handshaker hs) {
+	Tasks(Worker worker, Handshaker hs) {
 		this.worker = worker;
 		this.hs = hs;
 	}
