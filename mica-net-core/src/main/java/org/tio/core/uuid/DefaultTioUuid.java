@@ -201,17 +201,9 @@ import org.tio.utils.hutool.StrUtil;
  * 2017年6月5日 上午10:31:40
  */
 public class DefaultTioUuid implements TioUuid {
-
-	/**
-	 * @author tanyaowu
-	 */
 	public DefaultTioUuid() {
 	}
 
-	/**
-	 * @return
-	 * @author tanyaowu
-	 */
 	@Override
 	public String uuid() {
 		return StrUtil.getNanoId();

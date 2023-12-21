@@ -210,7 +210,7 @@ public class SeqTioUuid implements TioUuid {
 
 	@Override
 	public String uuid() {
-		return Long.toString(seq.incrementAndGet());
+		return Long.toString(seq.incrementAndGet(), Character.MAX_RADIX);
 	}
 
 }
