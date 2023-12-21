@@ -197,7 +197,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLSession;
-import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 
 class Buffers {
@@ -381,23 +380,14 @@ class Buffers {
 
 	private void resetSize(BufferType t, int size) {
 		ByteBuffer newBuffer = ByteBuffer.allocate(size);
-		try {
-			BufferUtils.copy(get(t), newBuffer);
-			assign(t, newBuffer);
-			//			ByteBuffer ss = get(t);
-			//			log.error("size:{}, newbytebuffer:{}", size, ss);
-		} catch (BufferOverflowException e) {
-			throw e;
-		}
+		BufferUtils.copy(get(t), newBuffer);
+		assign(t, newBuffer);
 	}
 
 	private ByteBuffer growIfNecessary(BufferType t, int size) {
 		// grow if not enough space
 		ByteBuffer b = get(t);
-		//    log.info("growIfNecessary {}, size:{}", b, size);
-		//  System.out.println("Grow " + t + " : " + b + " size=" + size);
 		if (b.position() + size > b.capacity()) {
-			//  System.out.println("Grow");
 			resetSize(t, b.limit() + size);
 		}
 		return get(t);
