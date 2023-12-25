@@ -2,7 +2,7 @@
 
 ## 发行版本
 
-### v0.1.8 - 2023-12-24
+### v0.1.8 - 2023-12-25
 - :sparkles: 同步更新 t-io ssl，缓解 wss 频繁刷新时的问题，优化 ssl 代码。
 - :sparkles: `ChannelContext` 采用二进制位标识状态位，预留 isAccepted、setAccepted 和 isBizStatus、setBizStatus 给业务。
 - :sparkles: 添加 -parameters 编译参数。
