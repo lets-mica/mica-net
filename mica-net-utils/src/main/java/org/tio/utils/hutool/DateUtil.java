@@ -208,6 +208,7 @@ import java.util.Locale;
  * @author tanyaowu
  */
 public class DateUtil {
+	public static final DateTimeFormatter HTTP_DATE_FMT = DateTimeFormatter.ofPattern("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
 
 	/**
 	 *
@@ -291,8 +292,7 @@ public class DateUtil {
 	/**
 	 * 当前时间生成符合http响应头中的Date格式的字符串
 	 *
-	 * @return
-	 * @author tanyaowu
+	 * @return String
 	 */
 	public static String httpDate() {
 		return httpDate(LocalDateTime.now());
@@ -301,12 +301,11 @@ public class DateUtil {
 	/**
 	 * 把date生成符合http响应头中的Date格式的字符串
 	 *
-	 * @param temporal
-	 * @return
-	 * @author tanyaowu
+	 * @param temporal TemporalAccessor
+	 * @return String
 	 */
 	public static String httpDate(TemporalAccessor temporal) {
-		return DateTimeFormatter.ofPattern("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US).format(temporal);
+		return HTTP_DATE_FMT.format(temporal);
 	}
 
 	public static String httpDate(long millis) {
