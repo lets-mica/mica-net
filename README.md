@@ -1,5 +1,5 @@
 # mica-net 网络编程
-[![Mica net Maven release](https://img.shields.io/nexus/r/https/oss.sonatype.org/net.dreamlu/mica-net-core.svg?style=flat-square)](https://mvnrepository.com/artifact/net.dreamlu/mica-net-core)
+[![Mica net Maven release](https://img.shields.io/nexus/r/https/oss.sonatype.org/net.dreamlu/mica-net-core.svg?style=flat-square)](https://central.sonatype.com/artifact/net.dreamlu/mica-net-core/versions)
 [![Mica net Maven snapshots](https://img.shields.io/nexus/s/https/oss.sonatype.org/net.dreamlu/mica-net-core.svg?style=flat-square)](https://oss.sonatype.org/content/repositories/snapshots/net/dreamlu/mica-net-core/)
 
 ## 注意（开发细节）
