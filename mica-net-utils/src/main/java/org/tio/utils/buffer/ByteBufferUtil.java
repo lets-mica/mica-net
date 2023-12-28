@@ -154,6 +154,53 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * 读取3个字节有符号
+	 *
+	 * @param buffer ByteBuffer
+	 * @return int
+	 */
+	public static int readMedium(ByteBuffer buffer) {
+		ByteOrder order = buffer.order();
+		if (ByteOrder.BIG_ENDIAN == order) {
+			return readMediumBE(buffer);
+		} else {
+			return readMediumLE(buffer);
+		}
+	}
+
+	/**
+	 * 读取3个字节有符号，小端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @return int
+	 */
+	public static int readMediumLE(ByteBuffer buffer) {
+		int ret = readUnsignedMediumLE(buffer);
+		// 如果最高位为1，则表示是负数
+		if ((ret & 0x800000) != 0) {
+			// 将最高位之上的位全部设置为1，以保持有符号性质
+			ret |= 0xff000000;
+		}
+		return ret;
+	}
+
+	/**
+	 * 读取3个字节有符号，大端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @return int
+	 */
+	public static int readMediumBE(ByteBuffer buffer) {
+		int ret = readUnsignedMediumBE(buffer);
+		// 如果最高位为1，则表示是负数
+		if ((ret & 0x800000) != 0) {
+			// 将最高位之上的位全部设置为1，以保持有符号性质
+			ret |= 0xff000000;
+		}
+		return ret;
+	}
+
+	/**
 	 * read unsigned 3个字节无符号
 	 *
 	 * @param buffer ByteBuffer
@@ -169,7 +216,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read unsigned 3个字节无符号
+	 * read unsigned 3个字节无符号，小端在前
 	 *
 	 * @param buffer ByteBuffer
 	 * @return int
