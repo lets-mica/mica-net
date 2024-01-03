@@ -554,7 +554,7 @@ public class TioClient {
 			Thread.currentThread().interrupt();
 			log.error(e.getMessage(), e);
 		}
-		log.info("client resource has released");
+		log.info("client resource has released ret:{}", ret);
 		return ret;
 	}
 

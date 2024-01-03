@@ -361,7 +361,7 @@ public class TioServer {
 			Thread.currentThread().interrupt();
 			log.error(e.getMessage(), e);
 		}
-		log.info("{} stopped", this.serverNode);
+		log.info("{} stopped ret:{}", this.serverNode, ret);
 		return ret;
 	}
 
