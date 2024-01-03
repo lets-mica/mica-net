@@ -532,7 +532,6 @@ public class TioClient {
 	public boolean stop() {
 		// 先停止 ack 服务
 		this.taskService.stop();
-		boolean ret = true;
 		// 删除实例
 		tioClientConfig.remove();
 		try {
@@ -546,10 +545,12 @@ public class TioClient {
 			log.error(e1.getMessage(), e1);
 		}
 		tioClientConfig.setStopped(true);
+		boolean ret;
 		try {
-			ret = ret && tioClientConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
+			ret = tioClientConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 			ret = ret && tioClientConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
+			ret = false;
 			Thread.currentThread().interrupt();
 			log.error(e.getMessage(), e);
 		}

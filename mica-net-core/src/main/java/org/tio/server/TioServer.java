@@ -329,7 +329,6 @@ public class TioServer {
 	 */
 	public boolean stop() {
 		isWaitingStop = true;
-		boolean ret = true;
 		// 删除实例
 		tioServerConfig.remove();
 		try {
@@ -353,10 +352,12 @@ public class TioServer {
 			log.error(e1.getMessage(), e1);
 		}
 		tioServerConfig.setStopped(true);
+		boolean ret;
 		try {
-			ret = ret && tioServerConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
+			ret = tioServerConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 			ret = ret && tioServerConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
+			ret = false;
 			Thread.currentThread().interrupt();
 			log.error(e.getMessage(), e);
 		}
