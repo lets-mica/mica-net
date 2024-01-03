@@ -341,6 +341,8 @@ public class TioServer {
 		} catch (Exception e1) {
 			log.error("serverSocketChannel.close()时报错", e1);
 		}
+		// 停止心跳线程
+		tioServerConfig.setStopped(true);
 		try {
 			tioServerConfig.groupExecutor.shutdown();
 		} catch (Exception e1) {
@@ -351,7 +353,6 @@ public class TioServer {
 		} catch (Exception e1) {
 			log.error(e1.getMessage(), e1);
 		}
-		tioServerConfig.setStopped(true);
 		boolean ret;
 		try {
 			ret = tioServerConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
