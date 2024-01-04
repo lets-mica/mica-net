@@ -179,6 +179,9 @@
                 <version>${maven-jar-plugin.version}</version>
                 <configuration>
                     <archive>
+                        <!-- 生成 INDEX.LIST -->
+                        <index>true</index>
+                        <!-- MANIFEST.MF 多生成一些描述信息 -->
                         <manifest>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
