@@ -2,7 +2,7 @@
 
 ## 发行版本
 
-### v0.1.9 - 2024-01-21
+### v0.1.9 - 2024-01-15
 - :sparkles: 服务端和客户端 `stop` 代码优化
 - :sparkles: 完善 ByteBufferUtil，添加 `readMedium`、`readMediumLE`、`readMediumBE`
 - :sparkles: 优化 DateUtil
