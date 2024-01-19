@@ -202,11 +202,12 @@ import org.tio.core.intf.Packet;
  * @author tanyaowu
  */
 public interface PacketConverter {
+
 	/**
-	 * @param packet
+	 * @param packet         packet
 	 * @param channelContext 要发往的channelContext
-	 * @return
-	 * @author tanyaowu
+	 * @return Packet
 	 */
 	Packet convert(Packet packet, ChannelContext channelContext);
+
 }
