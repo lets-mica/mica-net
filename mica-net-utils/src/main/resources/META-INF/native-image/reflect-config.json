@@ -1,0 +1,50 @@
+[
+	{
+		"condition": {
+			"typeReachable": "org.tio.utils.queue.Mapped"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.tio.utils.queue.DataFile"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.tio.utils.queue.Mapped"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.tio.utils.queue.OffsetFile"
+	},
+	{
+		"condition": {
+      "typeReachable": "org.tio.utils.queue.Mapped"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+    "name": "org.tio.utils.queue.Reader"
+	},
+	{
+		"condition": {
+      "typeReachable": "org.tio.utils.queue.Mapped"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+    "name": "org.tio.utils.queue.Writer"
+	}
+]
