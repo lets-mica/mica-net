@@ -335,6 +335,40 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * read n 个字节无符号，大端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @param n      n 个字符
+	 * @return int
+	 */
+	public static long readUnsignedNByteBE(ByteBuffer buffer, int n) {
+		byte[] value = new byte[n];
+		buffer.get(value, 0, n);
+		long ret = 0;
+		for (int i = 0; i < n; i++) {
+			ret |= (long) (value[i] & 0xff) << (8 * (n - i - 1));
+		}
+		return ret;
+	}
+
+	/**
+	 * read n 个字节无符号，小端在前
+	 *
+	 * @param buffer ByteBuffer
+	 * @param n      n 个字符
+	 * @return long
+	 */
+	public static long readUnsignedNByteLE(ByteBuffer buffer, int n) {
+		byte[] value = new byte[n];
+		buffer.get(value, 0, n);
+		long ret = 0;
+		for (int i = 0; i < n; i++) {
+			ret |= (long) (value[i] & 0xff) << (8 * i);
+		}
+		return ret;
+	}
+
+	/**
 	 * read float, 4个字节，小端
 	 *
 	 * @param buffer ByteBuffer

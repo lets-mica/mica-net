@@ -129,4 +129,19 @@ class ByteBufferUtilTest {
 		Assertions.assertEquals(value, intValue);
 	}
 
+	@Test
+	void testNB() {
+		int test = 123456789;
+		ByteBuffer buffer = ByteBuffer.allocate(100);
+		ByteBufferUtil.writeIntBE(buffer, test);
+		buffer.flip();
+		long byteBE = ByteBufferUtil.readUnsignedNByteBE(buffer, 4);
+		Assertions.assertEquals(test, byteBE);
+		buffer.clear();
+		ByteBufferUtil.writeIntLE(buffer, test);
+		buffer.flip();
+		long byteLE = ByteBufferUtil.readUnsignedNByteLE(buffer, 4);
+		Assertions.assertEquals(test, byteLE);
+	}
+
 }
