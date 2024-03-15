@@ -156,6 +156,35 @@ public class HexUtils {
 	}
 
 	/**
+	 * encode Hex
+	 *
+	 * @param data    Data to Hex
+	 * @param charset Charset
+	 * @return bytes as a hex string
+	 */
+	public static String encodeToString(String data, Charset charset) {
+		if (StrUtil.isBlank(data)) {
+			return null;
+		}
+		return encodeToString(data.getBytes(charset), charset);
+	}
+
+	/**
+	 * encode Hex
+	 *
+	 * @param data        Data to Hex
+	 * @param dataCharset Charset
+	 * @param toCharset   Charset
+	 * @return bytes as a hex string
+	 */
+	public static String encodeToString(String data, Charset dataCharset, Charset toCharset) {
+		if (StrUtil.isBlank(data)) {
+			return null;
+		}
+		return encodeToString(data.getBytes(dataCharset), toCharset);
+	}
+
+	/**
 	 * decode Hex
 	 *
 	 * @param data Hex data
@@ -193,6 +222,18 @@ public class HexUtils {
 	/**
 	 * decodeToString Hex
 	 *
+	 * @param data    Data to Hex
+	 * @param charset Charset
+	 * @return bytes as a hex string
+	 */
+	public static String decodeToString(byte[] data, Charset charset) {
+		byte[] decodeBytes = decode(data);
+		return new String(decodeBytes, charset);
+	}
+
+	/**
+	 * decodeToString Hex
+	 *
 	 * @param data Data to Hex
 	 * @return bytes as a hex string
 	 */
@@ -201,6 +242,35 @@ public class HexUtils {
 			return null;
 		}
 		return decodeToString(data.getBytes(DEFAULT_CHARSET));
+	}
+
+	/**
+	 * decodeToString Hex
+	 *
+	 * @param data    Data to Hex
+	 * @param charset Charset
+	 * @return bytes as a hex string
+	 */
+	public static String decodeToString(String data, Charset charset) {
+		if (StrUtil.isBlank(data)) {
+			return null;
+		}
+		return decodeToString(data.getBytes(charset));
+	}
+
+	/**
+	 * decodeToString Hex
+	 *
+	 * @param data        Data to Hex
+	 * @param dataCharset Charset
+	 * @param toCharset   Charset
+	 * @return bytes as a hex string
+	 */
+	public static String decodeToString(String data, Charset dataCharset, Charset toCharset) {
+		if (StrUtil.isBlank(data)) {
+			return null;
+		}
+		return decodeToString(data.getBytes(dataCharset), toCharset);
 	}
 
 	/**
