@@ -163,10 +163,7 @@ public class HexUtils {
 	 * @return bytes as a hex string
 	 */
 	public static String encodeToString(String data, Charset charset) {
-		if (StrUtil.isBlank(data)) {
-			return null;
-		}
-		return encodeToString(data.getBytes(charset), charset);
+		return encodeToString(data, charset, charset);
 	}
 
 	/**
@@ -252,10 +249,7 @@ public class HexUtils {
 	 * @return bytes as a hex string
 	 */
 	public static String decodeToString(String data, Charset charset) {
-		if (StrUtil.isBlank(data)) {
-			return null;
-		}
-		return decodeToString(data.getBytes(charset));
+		return decodeToString(data, charset, charset);
 	}
 
 	/**
