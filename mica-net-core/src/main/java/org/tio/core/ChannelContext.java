@@ -722,6 +722,26 @@ public abstract class ChannelContext extends MapPropSupport {
 		}
 	}
 
+	/**
+	 * 发送消息
+	 *
+	 * @param packet Packet
+	 * @return 发送结果
+	 */
+	public boolean send(Packet packet) {
+		return Tio.send(this, packet);
+	}
+
+	/**
+	 * 发送消息
+	 *
+	 * @param packet Packet
+	 * @return 发送结果
+	 */
+	public boolean bSend(Packet packet) {
+		return Tio.bSend(this, packet);
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
