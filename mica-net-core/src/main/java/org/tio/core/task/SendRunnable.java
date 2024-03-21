@@ -239,18 +239,17 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	 */
 	private ConcurrentLinkedQueue<Packet> forSendAfterSslHandshakeCompleted = null;
 
-	/**
-	 * @param channelContext ChannelContext
-	 * @param executor Executor
-	 * @author tanyaowu
-	 */
 	public SendRunnable(ChannelContext channelContext, Executor executor) {
+		this(channelContext, executor, new ConcurrentLinkedQueue<>());
+	}
+
+	public SendRunnable(ChannelContext channelContext, Executor executor, Queue<Packet> msgQueue) {
 		super(executor);
 		this.channelContext = channelContext;
 		this.tioConfig = channelContext.tioConfig;
 		this.tioHandler = tioConfig.getTioHandler();
 		this.isSsl = SslUtils.isSsl(tioConfig);
-		this.msgQueue = new ConcurrentLinkedQueue<>();
+		this.msgQueue = msgQueue;
 	}
 
 	public Queue<Packet> getForSendAfterSslHandshakeCompleted(boolean forceCreate) {
