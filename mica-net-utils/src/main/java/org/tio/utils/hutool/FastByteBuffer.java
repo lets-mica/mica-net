@@ -248,11 +248,9 @@ public class FastByteBuffer {
 	private void needNewBuffer(int newSize) {
 		int delta = newSize - size;
 		int newBufferSize = Math.max(minChunkLen, delta);
-
 		currentBufferIndex++;
 		currentBuffer = new byte[newBufferSize];
 		offset = 0;
-
 		// add buffer
 		if (currentBufferIndex >= buffers.length) {
 			int newLen = buffers.length << 1;
@@ -304,7 +302,6 @@ public class FastByteBuffer {
 			offset += part;
 			size += part;
 		}
-
 		return this;
 	}
 
@@ -338,11 +335,9 @@ public class FastByteBuffer {
 		if ((currentBuffer == null) || (offset == currentBuffer.length)) {
 			needNewBuffer(size + 1);
 		}
-
 		currentBuffer[offset] = element;
 		offset++;
 		size++;
-
 		return this;
 	}
 
@@ -364,120 +359,205 @@ public class FastByteBuffer {
 	}
 
 	/**
-	 * 输出一个byte类型的数据
+	 * 写出一个 boolean 值，true 为 1，false 为 0
 	 *
-	 * @param b 待输出数值
+	 * @param value boolean value
+	 * @return FastByteBuffer
 	 */
-	public void writeByte(byte b) {
-		this.append(b);
+	public FastByteBuffer writeBoolean(boolean value) {
+		return writeByte(value ? 1 : 0);
 	}
 
 	/**
-	 * 输出一个bytes类型的数据
+	 * 写出一个byte类型的数据
 	 *
-	 * @param bytes 待输出数值
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
 	 */
-	public void writeBytes(byte[] bytes) {
-		this.append(bytes, 0, bytes.length);
+	public FastByteBuffer writeByte(int value) {
+		return this.append((byte) value);
 	}
 
 	/**
-	 * 输出一个bytes类型的数据
+	 * 写出 short，大端模式
 	 *
-	 * @param bytes 待输出数值
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeShortBE(int value) {
+		byte[] bytes = new byte[2];
+		bytes[0] = (byte) (value >>> 8);
+		bytes[1] = (byte) (value);
+		return this.append(bytes, 0, 2);
+	}
+
+	/**
+	 * 写出 short，小端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeShortLE(int value) {
+		byte[] bytes = new byte[2];
+		bytes[0] = (byte) (value);
+		bytes[1] = (byte) (value >>> 8);
+		return this.append(bytes, 0, 2);
+	}
+
+	/**
+	 * 写出 3 个字节，大端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeMediumBE(int value) {
+		byte[] bytes = new byte[3];
+		bytes[0] = (byte) (value >>> 16);
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value);
+		return this.append(bytes, 0, 3);
+	}
+
+	/**
+	 * 写出 3 个字节，小端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeMediumLE(int value) {
+		byte[] bytes = new byte[3];
+		bytes[0] = (byte) (value);
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value >>> 16);
+		return this.append(bytes, 0, 3);
+	}
+
+	/**
+	 * 写出 4 个字节，大端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeIntBE(long value) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte) (value >>> 24);
+		bytes[1] = (byte) (value >>> 16);
+		bytes[2] = (byte) (value >>> 8);
+		bytes[3] = (byte) (value);
+		return this.append(bytes, 0, 4);
+	}
+
+	/**
+	 * 写出 4 个字节，小端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeIntLE(long value) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte) (value);
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value >>> 16);
+		bytes[3] = (byte) (value >>> 24);
+		return this.append(bytes, 0, 4);
+	}
+
+	/**
+	 * 写出 8 个字节，大端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeLongBE(long value) {
+		byte[] bytes = new byte[8];
+		bytes[0] = (byte) (value >>> 56);
+		bytes[1] = (byte) (value >>> 48);
+		bytes[2] = (byte) (value >>> 40);
+		bytes[3] = (byte) (value >>> 32);
+		bytes[4] = (byte) (value >>> 24);
+		bytes[5] = (byte) (value >>> 16);
+		bytes[6] = (byte) (value >>> 8);
+		bytes[7] = (byte) value;
+		return this.append(bytes, 0, 8);
+	}
+
+	/**
+	 * 写出 8 个字节，小端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeLongLE(long value) {
+		byte[] bytes = new byte[8];
+		bytes[0] = (byte) value;
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value >>> 16);
+		bytes[3] = (byte) (value >>> 24);
+		bytes[4] = (byte) (value >>> 32);
+		bytes[5] = (byte) (value >>> 40);
+		bytes[6] = (byte) (value >>> 48);
+		bytes[7] = (byte) (value >>> 56);
+		return this.append(bytes, 0, 8);
+	}
+
+	/**
+	 * 写出单精度浮点
+	 *
+	 * @param value value
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeFloatBE(float value) {
+		return writeIntBE(Float.floatToRawIntBits(value));
+	}
+
+	/**
+	 * 写出单精度浮点
+	 *
+	 * @param value value
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeFloatLE(float value) {
+		return writeIntLE(Float.floatToRawIntBits(value));
+	}
+
+	/**
+	 * 写出双精度浮点
+	 *
+	 * @param value value
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeDoubleBE(double value) {
+		return writeLongBE(Double.doubleToRawLongBits(value));
+	}
+
+	/**
+	 * 写出双精度浮点
+	 *
+	 * @param value value
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeDoubleLE(double value) {
+		return writeLongLE(Double.doubleToRawLongBits(value));
+	}
+
+	/**
+	 * 写出一个bytes类型的数据
+	 *
+	 * @param bytes 待写出数值
+	 */
+	public FastByteBuffer writeBytes(byte[] bytes) {
+		return this.append(bytes, 0, bytes.length);
+	}
+
+	/**
+	 * 写出一个bytes类型的数据
+	 *
+	 * @param bytes 待写出数值
 	 * @param off   off
 	 * @param len   len
 	 */
-	public void writeBytes(byte[] bytes, int off, int len) {
-		this.append(bytes, off, len);
-	}
-
-	/**
-	 * 输出一个short类型的数据，小端模式
-	 *
-	 * @param v short数值
-	 */
-	public void writeShort(short v) {
-		byte[] bytes = new byte[2];
-		bytes[0] = (byte) (v & 0xFF);
-		bytes[1] = (byte) ((v >>> 8) & 0xFF);
-		this.append(bytes, 0, 2);
-	}
-
-	/**
-	 * 输出一个short类型的数据，大端模式
-	 *
-	 * @param v short数值
-	 */
-	public void writeShortBE(short v) {
-		byte[] bytes = new byte[2];
-		bytes[0] = (byte) ((v >>> 8) & 0xFF);
-		bytes[1] = (byte) (v & 0xFF);
-		this.append(bytes, 0, 2);
-	}
-
-	/**
-	 * 输出int数值,占用4个字节，小端模式
-	 *
-	 * @param v int数值
-	 */
-	public void writeInt(int v) {
-		byte[] bytes = new byte[4];
-		bytes[0] = (byte) (v & 0xFF);
-		bytes[1] = (byte) ((v >>> 8) & 0xFF);
-		bytes[2] = (byte) ((v >>> 16) & 0xFF);
-		bytes[3] = (byte) ((v >>> 24) & 0xFF);
-		this.append(bytes, 0, 4);
-	}
-
-	/**
-	 * 输出int数值,占用4个字节，大端模式
-	 *
-	 * @param v int数值
-	 */
-	public void writeIntBE(int v) {
-		byte[] bytes = new byte[4];
-		bytes[0] = (byte) ((v >>> 24) & 0xFF);
-		bytes[1] = (byte) ((v >>> 16) & 0xFF);
-		bytes[2] = (byte) ((v >>> 8) & 0xFF);
-		bytes[3] = (byte) (v & 0xFF);
-		this.append(bytes, 0, 4);
-	}
-
-	/**
-	 * 输出long数值,占用8个字节，小端模式
-	 *
-	 * @param v long数值
-	 */
-	public void writeLong(long v) {
-		byte[] bytes = new byte[8];
-		bytes[0] = (byte) (v & 0xFF);
-		bytes[1] = (byte) ((v >>> 8) & 0xFF);
-		bytes[2] = (byte) ((v >>> 16) & 0xFF);
-		bytes[3] = (byte) ((v >>> 24) & 0xFF);
-		bytes[4] = (byte) ((v >>> 32) & 0xFF);
-		bytes[5] = (byte) ((v >>> 40) & 0xFF);
-		bytes[6] = (byte) ((v >>> 48) & 0xFF);
-		bytes[7] = (byte) ((v >>> 56) & 0xFF);
-		this.append(bytes, 0, 8);
-	}
-
-	/**
-	 * 输出long数值,占用8个字节，大端模式
-	 *
-	 * @param v long数值
-	 */
-	public void writeLongBE(long v) {
-		byte[] bytes = new byte[8];
-		bytes[0] = (byte) ((v >>> 56) & 0xFF);
-		bytes[1] = (byte) ((v >>> 48) & 0xFF);
-		bytes[2] = (byte) ((v >>> 40) & 0xFF);
-		bytes[3] = (byte) ((v >>> 32) & 0xFF);
-		bytes[4] = (byte) ((v >>> 24) & 0xFF);
-		bytes[5] = (byte) ((v >>> 16) & 0xFF);
-		bytes[6] = (byte) ((v >>> 8) & 0xFF);
-		bytes[7] = (byte) (v & 0xFF);
-		this.append(bytes, 0, 8);
+	public FastByteBuffer writeBytes(byte[] bytes, int off, int len) {
+		return this.append(bytes, off, len);
 	}
 
 	/**
@@ -485,7 +565,7 @@ public class FastByteBuffer {
 	 *
 	 * @param num num
 	 */
-	public void writeVarLengthInt(int num) {
+	public FastByteBuffer writeVarLengthInt(int num) {
 		do {
 			int digit = num % 128;
 			num /= 128;
@@ -494,6 +574,58 @@ public class FastByteBuffer {
 			}
 			this.append((byte) digit);
 		} while (num > 0);
+		return this;
+	}
+
+	/**
+	 * 设定指定位置的字节
+	 *
+	 * @param index index
+	 * @param value value
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setByte(int index, int value) {
+		if ((index >= size) || (index < 0)) {
+			throw new IndexOutOfBoundsException();
+		}
+		int ndx = 0;
+		while (true) {
+			byte[] b = buffers[ndx];
+			if (index < b.length) {
+				b[index] = (byte) value;
+				return this;
+			}
+			ndx++;
+			index -= b.length;
+		}
+	}
+
+	/**
+	 * 设置指定 index 的 byte
+	 *
+	 * @param index index
+	 * @param src   src
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setBytes(int index, byte[] src) {
+		return setBytes(index, src, 0, src.length);
+	}
+
+	/**
+	 * 设置字节
+	 *
+	 * @param index    index
+	 * @param src      src
+	 * @param srcIndex srcIndex
+	 * @param length   length
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setBytes(int index, byte[] src, int srcIndex, int length) {
+		if ((index >= size) || (index < 0)) {
+			throw new IndexOutOfBoundsException();
+		}
+		// TODO L.cm 待完善
+		return this;
 	}
 
 	public int size() {
@@ -530,12 +662,13 @@ public class FastByteBuffer {
 	/**
 	 * 重置，用于复用
 	 */
-	public void reset() {
+	public FastByteBuffer reset() {
 		size = 0;
 		offset = 0;
 		currentBufferIndex = -1;
 		currentBuffer = null;
 		buffersCount = 0;
+		return this;
 	}
 
 	/**
