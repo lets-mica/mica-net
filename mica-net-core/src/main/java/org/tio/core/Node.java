@@ -218,7 +218,7 @@ public class Node implements Comparable<Node> {
 		if (Objects.equals(ip, other.getIp()) && Objects.equals(port, other.getPort())) {
 			return 0;
 		} else {
-			return this.toString().compareTo(other.toString());
+			return this.getPeerHost().compareTo(other.getPeerHost());
 		}
 	}
 
@@ -236,7 +236,7 @@ public class Node implements Comparable<Node> {
 
 	@Override
 	public int hashCode() {
-		return getPeerHost().hashCode();
+		return Objects.hash(ip, port);
 	}
 
 	@Override
