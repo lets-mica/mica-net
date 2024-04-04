@@ -72,7 +72,7 @@ public class ClusterMessageEncoder {
 		ByteBuffer buffer = ByteBuffer.allocate(1 + 2 + payload.length);
 		buffer.put(ClusterMessageType.DATA.getType());
 		// 消息内容长度
-		ByteBufferUtil.writeUnsignedShortLE(buffer, payload.length);
+		ByteBufferUtil.writeShortLE(buffer, payload.length);
 		buffer.put(payload);
 		return buffer;
 	}
@@ -92,7 +92,7 @@ public class ClusterMessageEncoder {
 		long messageId = message.getMessageId();
 		buffer.putLong(messageId);
 		// 消息内容长度
-		ByteBufferUtil.writeUnsignedShortLE(buffer, payload.length);
+		ByteBufferUtil.writeShortLE(buffer, payload.length);
 		buffer.put(payload);
 		return buffer;
 	}
@@ -124,7 +124,7 @@ public class ClusterMessageEncoder {
 		buffer.put(ClusterMessageType.JOIN.getType());
 		Node joinMember = message.getJoinMember();
 		// 端口，0到65535
-		ByteBufferUtil.writeUnsignedShortLE(buffer, joinMember.getPort());
+		ByteBufferUtil.writeShortLE(buffer, joinMember.getPort());
 		// ip 或者域名，预定长度为 32，考虑 ipv6（16）和长网址
 		buffer.put(joinMember.getIp().getBytes(StandardCharsets.UTF_8));
 		// 移到结尾

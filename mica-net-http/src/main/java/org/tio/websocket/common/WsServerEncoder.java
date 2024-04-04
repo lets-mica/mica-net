@@ -232,13 +232,13 @@ public class WsServerEncoder {
 			buf = ByteBuffer.allocate(4 + wsBodyLength);
 			buf.put(header0);
 			buf.put((byte) 126);
-			ByteBufferUtil.writeUnsignedShortBE(buf, wsBodyLength);
+			ByteBufferUtil.writeShortBE(buf, wsBodyLength);
 		} else {
 			buf = ByteBuffer.allocate(10 + wsBodyLength);
 			buf.put(header0);
 			buf.put((byte) 127);
 			buf.position(buf.position() + 4);
-			ByteBufferUtil.writeUnsignedIntBE(buf, wsBodyLength);
+			ByteBufferUtil.writeIntBE(buf, wsBodyLength);
 		}
 
 		if (wsBody != null && wsBody.length > 0) {
