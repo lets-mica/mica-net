@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.tio.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * FastByteBuffer 测试
@@ -35,6 +36,41 @@ public class FastByteBufferTest {
 		Assertions.assertEquals(int2, ByteBufferUtil.readIntLE(byteBuffer));
 		Assertions.assertEquals(long1, ByteBufferUtil.readLongBE(byteBuffer));
 		Assertions.assertEquals(long2, ByteBufferUtil.readLongLE(byteBuffer));
+	}
+
+	@Test
+	void test2() {
+		FastByteBuffer buffer = new FastByteBuffer(16);
+		byte[] bytes1 = new byte[16];
+		buffer.append(bytes1);
+		buffer.setBytes(0, new byte[]{1,1});
+		byte[] bytes2 = new byte[16];
+		buffer.append(bytes2);
+		byte[] bytes3 = new byte[16];
+		buffer.append(bytes3);
+		System.out.println(buffer);
+		byte[] bytes4 = new byte[32];
+		Arrays.fill(bytes4, (byte) 8);
+		buffer.setBytes(12, bytes4);
+		System.out.println(buffer);
+	}
+
+	@Test
+	void test3() {
+		FastByteBuffer buffer1 = new FastByteBuffer(32);
+		buffer1.append(new byte[32]);
+		buffer1.setIntBE(0, 1024);
+		buffer1.setLongBE(4, 1024);
+		ByteBuffer byteBuffer = buffer1.toBuffer();
+		int i = ByteBufferUtil.readIntBE(byteBuffer);
+		long l = ByteBufferUtil.readLongBE(byteBuffer);
+		Assertions.assertEquals(i, 1024);
+		Assertions.assertEquals(l, 1024);
+		buffer1.setDoubleBE(12, 1024.1024);
+		byteBuffer = buffer1.toBuffer();
+		ByteBufferUtil.skipBytes(byteBuffer, 12);
+		double v = ByteBufferUtil.readDoubleBE(byteBuffer);
+		Assertions.assertEquals(v, 1024.1024);
 	}
 
 }

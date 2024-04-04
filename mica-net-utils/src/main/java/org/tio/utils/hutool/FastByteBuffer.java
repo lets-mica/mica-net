@@ -601,6 +601,192 @@ public class FastByteBuffer {
 	}
 
 	/**
+	 * 设置 boolean 值，true 为 1，false 为 0
+	 *
+	 * @param index index
+	 * @param value boolean value
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setBoolean(int index, boolean value) {
+		return setByte(index, value ? 1 : 0);
+	}
+
+
+	/**
+	 * 写出 short，大端模式
+	 *
+	 * @param index index
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setShortBE(int index, int value) {
+		byte[] bytes = new byte[2];
+		bytes[0] = (byte) (value >>> 8);
+		bytes[1] = (byte) (value);
+		return this.setBytes(index, bytes, 0, 2);
+	}
+
+	/**
+	 * 写出 short，小端模式
+	 *
+	 * @param index index
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setShortLE(int index, int value) {
+		byte[] bytes = new byte[2];
+		bytes[0] = (byte) (value);
+		bytes[1] = (byte) (value >>> 8);
+		return this.setBytes(index, bytes, 0, 2);
+	}
+
+	/**
+	 * 写出 3 个字节，大端模式
+	 *
+	 * @param index index
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setMediumBE(int index, int value) {
+		byte[] bytes = new byte[3];
+		bytes[0] = (byte) (value >>> 16);
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value);
+		return this.setBytes(index, bytes, 0, 3);
+	}
+
+	/**
+	 * 写出 3 个字节，小端模式
+	 *
+	 * @param index index
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setMediumLE(int index, int value) {
+		byte[] bytes = new byte[3];
+		bytes[0] = (byte) (value);
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value >>> 16);
+		return this.setBytes(index,bytes, 0, 3);
+	}
+
+	/**
+	 * 写出 4 个字节，大端模式
+	 *
+	 * @param index index
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setIntBE(int index, long value) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte) (value >>> 24);
+		bytes[1] = (byte) (value >>> 16);
+		bytes[2] = (byte) (value >>> 8);
+		bytes[3] = (byte) (value);
+		return this.setBytes(index,bytes, 0, 4);
+	}
+
+	/**
+	 * 写出 4 个字节，小端模式
+	 *
+	 * @param index index
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setIntLE(int index, long value) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte) (value);
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value >>> 16);
+		bytes[3] = (byte) (value >>> 24);
+		return this.setBytes(index,bytes, 0, 4);
+	}
+
+	/**
+	 * 写出 8 个字节，大端模式
+	 *
+	 * @param index index
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setLongBE(int index, long value) {
+		byte[] bytes = new byte[8];
+		bytes[0] = (byte) (value >>> 56);
+		bytes[1] = (byte) (value >>> 48);
+		bytes[2] = (byte) (value >>> 40);
+		bytes[3] = (byte) (value >>> 32);
+		bytes[4] = (byte) (value >>> 24);
+		bytes[5] = (byte) (value >>> 16);
+		bytes[6] = (byte) (value >>> 8);
+		bytes[7] = (byte) value;
+		return this.setBytes(index,bytes, 0, 8);
+	}
+
+	/**
+	 * 写出 8 个字节，小端模式
+	 *
+	 * @param index index
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setLongLE(int index, long value) {
+		byte[] bytes = new byte[8];
+		bytes[0] = (byte) value;
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value >>> 16);
+		bytes[3] = (byte) (value >>> 24);
+		bytes[4] = (byte) (value >>> 32);
+		bytes[5] = (byte) (value >>> 40);
+		bytes[6] = (byte) (value >>> 48);
+		bytes[7] = (byte) (value >>> 56);
+		return this.setBytes(index,bytes, 0, 8);
+	}
+
+	/**
+	 * 写出单精度浮点
+	 *
+	 * @param index index
+	 * @param value value
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setFloatBE(int index, float value) {
+		return setIntBE(index, Float.floatToRawIntBits(value));
+	}
+
+	/**
+	 * 写出单精度浮点
+	 *
+	 * @param index index
+	 * @param value value
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setFloatLE(int index, float value) {
+		return setIntLE(index, Float.floatToRawIntBits(value));
+	}
+
+	/**
+	 * 写出双精度浮点
+	 *
+	 * @param index index
+	 * @param value value
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setDoubleBE(int index, double value) {
+		return setLongBE(index, Double.doubleToRawLongBits(value));
+	}
+
+	/**
+	 * 写出双精度浮点
+	 *
+	 * @param index index
+	 * @param value value
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer setDoubleLE(int index, double value) {
+		return setLongLE(index, Double.doubleToRawLongBits(value));
+	}
+
+	/**
 	 * 设置指定 index 的 byte
 	 *
 	 * @param index index
@@ -624,8 +810,23 @@ public class FastByteBuffer {
 		if ((index >= size) || (index < 0)) {
 			throw new IndexOutOfBoundsException();
 		}
-		// TODO L.cm 待完善
-		return this;
+		int ndx = 0;
+		while (true) {
+			byte[] buffer = buffers[ndx];
+			int bufferLength = buffer.length;
+			index = Math.max(index, 0);
+			if (index < bufferLength) {
+				if ((index + length) < bufferLength) {
+					System.arraycopy(src, srcIndex, buffer, index, length);
+					return this;
+				} else {
+					System.arraycopy(src, srcIndex, buffer, index, bufferLength - index);
+					length = index + length - bufferLength;
+				}
+			}
+			ndx++;
+			index -= bufferLength;
+		}
 	}
 
 	public int size() {
