@@ -43,7 +43,7 @@ public class FastByteBufferTest {
 		FastByteBuffer buffer = new FastByteBuffer(16);
 		byte[] bytes1 = new byte[16];
 		buffer.append(bytes1);
-		buffer.setBytes(0, new byte[]{1,1});
+		buffer.setBytes(0, new byte[]{1, 1});
 		byte[] bytes2 = new byte[16];
 		buffer.append(bytes2);
 		byte[] bytes3 = new byte[16];
@@ -74,6 +74,22 @@ public class FastByteBufferTest {
 		ByteBufferUtil.skipBytes(byteBuffer, 12);
 		double v = ByteBufferUtil.readDoubleBE(byteBuffer);
 		Assertions.assertEquals(v, 1024.1024);
+	}
+
+	@Test
+	void test4() {
+		FastByteBuffer buffer1 = new FastByteBuffer(32);
+		buffer1.append(new byte[32]);
+		buffer1.setIntBE(0, -1);
+		buffer1.setShortBE(4, -1);
+		buffer1.setMediumBE(6, -1);
+		ByteBuffer byteBuffer = buffer1.toBuffer();
+		long i = ByteBufferUtil.readUnsignedIntBE(byteBuffer);
+		int s = ByteBufferUtil.readUnsignedShortBE(byteBuffer);
+		int m = ByteBufferUtil.readUnsignedMediumBE(byteBuffer);
+		Assertions.assertEquals(i, 4294967295L);
+		Assertions.assertEquals(s, 65535);
+		Assertions.assertEquals(m, 16777215);
 	}
 
 }

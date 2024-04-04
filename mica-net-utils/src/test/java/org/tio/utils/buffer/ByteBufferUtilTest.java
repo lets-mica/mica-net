@@ -61,7 +61,7 @@ class ByteBufferUtilTest {
 	void testShort() {
 		int value = 65535;
 		ByteBuffer buffer = ByteBuffer.allocate(6);
-		ByteBufferUtil.writeUnsignedShortLE(buffer, value);
+		ByteBufferUtil.writeShortLE(buffer, value);
 		ByteBufferUtil.writeIntBE(buffer, value);
 		buffer.flip();
 		int unsignedShort = ByteBufferUtil.readUnsignedShortLE(buffer);
@@ -74,7 +74,7 @@ class ByteBufferUtilTest {
 	void testShortBE() {
 		int value = 65535;
 		ByteBuffer buffer = ByteBuffer.allocate(6);
-		ByteBufferUtil.writeUnsignedShortBE(buffer, value);
+		ByteBufferUtil.writeShortBE(buffer, value);
 		ByteBufferUtil.writeIntLE(buffer, value);
 		buffer.flip();
 		int unsignedShort = ByteBufferUtil.readUnsignedShortBE(buffer);
@@ -87,7 +87,7 @@ class ByteBufferUtilTest {
 	void testMedium() {
 		int value = 16777215;
 		ByteBuffer buffer = ByteBuffer.allocate(3);
-		ByteBufferUtil.writeUnsignedMediumLE(buffer, value);
+		ByteBufferUtil.writeMediumLE(buffer, value);
 		buffer.flip();
 		int unsignedShort = ByteBufferUtil.readUnsignedMediumLE(buffer);
 		Assertions.assertEquals(value, unsignedShort);
@@ -97,7 +97,7 @@ class ByteBufferUtilTest {
 	void testMediumBE() {
 		int value = 16777215;
 		ByteBuffer buffer = ByteBuffer.allocate(3);
-		ByteBufferUtil.writeUnsignedMediumBE(buffer, value);
+		ByteBufferUtil.writeMediumBE(buffer, value);
 		buffer.flip();
 		int unsignedShort = ByteBufferUtil.readUnsignedMediumBE(buffer);
 		Assertions.assertEquals(value, unsignedShort);
@@ -107,7 +107,7 @@ class ByteBufferUtilTest {
 	void testInt() {
 		long value = 4294967295L;
 		ByteBuffer buffer = ByteBuffer.allocate(12);
-		ByteBufferUtil.writeUnsignedIntLE(buffer, value);
+		ByteBufferUtil.writeIntLE(buffer, value);
 		ByteBufferUtil.writeLongBE(buffer, value);
 		buffer.flip();
 		long unsignedShort = ByteBufferUtil.readUnsignedIntLE(buffer);
@@ -120,7 +120,7 @@ class ByteBufferUtilTest {
 	void testIntBE() {
 		long value = 4294967295L;
 		ByteBuffer buffer = ByteBuffer.allocate(12);
-		ByteBufferUtil.writeUnsignedIntBE(buffer, value);
+		ByteBufferUtil.writeIntBE(buffer, value);
 		ByteBufferUtil.writeLongLE(buffer, value);
 		buffer.flip();
 		long unsignedShort = ByteBufferUtil.readUnsignedIntBE(buffer);

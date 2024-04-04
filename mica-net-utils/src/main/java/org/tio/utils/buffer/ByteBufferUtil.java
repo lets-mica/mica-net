@@ -549,7 +549,7 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param s      数据
 	 */
-	public static void writeShortLE(ByteBuffer buffer, short s) {
+	public static void writeShortLE(ByteBuffer buffer, int s) {
 		byte[] value = new byte[2];
 		value[0] = (byte) s;
 		value[1] = (byte) (s >> 8);
@@ -562,36 +562,10 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param s      数据
 	 */
-	public static void writeShortBE(ByteBuffer buffer, short s) {
+	public static void writeShortBE(ByteBuffer buffer, int s) {
 		byte[] value = new byte[2];
 		value[0] = (byte) (s >> 8);
 		value[1] = (byte) s;
-		buffer.put(value, 0, 2);
-	}
-
-	/**
-	 * 写出 2 个字节的无符号 short
-	 *
-	 * @param buffer ByteBuffer
-	 * @param i      数据
-	 */
-	public static void writeUnsignedShortLE(ByteBuffer buffer, int i) {
-		byte[] value = new byte[2];
-		value[0] = (byte) (i & 0xff);
-		value[1] = (byte) (i >>> 8);
-		buffer.put(value, 0, 2);
-	}
-
-	/**
-	 * 写出 2 个字节的无符号 short，大端模式
-	 *
-	 * @param buffer ByteBuffer
-	 * @param i      数据
-	 */
-	public static void writeUnsignedShortBE(ByteBuffer buffer, int i) {
-		byte[] value = new byte[2];
-		value[0] = (byte) (i >>> 8);
-		value[1] = (byte) (i & 0xff);
 		buffer.put(value, 0, 2);
 	}
 
@@ -601,9 +575,9 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param i      数据
 	 */
-	public static void writeUnsignedMediumLE(ByteBuffer buffer, int i) {
+	public static void writeMediumLE(ByteBuffer buffer, int i) {
 		byte[] value = new byte[3];
-		value[0] = (byte) (i & 0xff);
+		value[0] = (byte) (i);
 		value[1] = (byte) (i >>> 8);
 		value[2] = (byte) (i >>> 16);
 		buffer.put(value, 0, 3);
@@ -615,11 +589,11 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param i      数据
 	 */
-	public static void writeUnsignedMediumBE(ByteBuffer buffer, int i) {
+	public static void writeMediumBE(ByteBuffer buffer, int i) {
 		byte[] value = new byte[3];
 		value[0] = (byte) (i >>> 16);
 		value[1] = (byte) (i >>> 8);
-		value[2] = (byte) (i & 0xff);
+		value[2] = (byte) (i);
 		buffer.put(value, 0, 3);
 	}
 
@@ -629,7 +603,7 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param i      数据
 	 */
-	public static void writeIntLE(ByteBuffer buffer, int i) {
+	public static void writeIntLE(ByteBuffer buffer, long i) {
 		byte[] value = new byte[4];
 		value[0] = (byte) i;
 		value[1] = (byte) (i >> 8);
@@ -644,42 +618,12 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param i      数据
 	 */
-	public static void writeIntBE(ByteBuffer buffer, int i) {
+	public static void writeIntBE(ByteBuffer buffer, long i) {
 		byte[] value = new byte[4];
 		value[0] = (byte) (i >> 24);
 		value[1] = (byte) (i >> 16);
 		value[2] = (byte) (i >> 8);
 		value[3] = (byte) i;
-		buffer.put(value, 0, 4);
-	}
-
-	/**
-	 * 写出 4 个字节的无符号 int
-	 *
-	 * @param buffer ByteBuffer
-	 * @param l      数据
-	 */
-	public static void writeUnsignedIntLE(ByteBuffer buffer, long l) {
-		byte[] value = new byte[4];
-		value[0] = (byte) (l & 0xff);
-		value[1] = (byte) (l >>> 8);
-		value[2] = (byte) (l >>> 16);
-		value[3] = (byte) (l >>> 24);
-		buffer.put(value, 0, 4);
-	}
-
-	/**
-	 * 写出 4 个字节的无符号 int，大端模式
-	 *
-	 * @param buffer ByteBuffer
-	 * @param l      数据
-	 */
-	public static void writeUnsignedIntBE(ByteBuffer buffer, long l) {
-		byte[] value = new byte[4];
-		value[0] = (byte) (l >>> 24);
-		value[1] = (byte) (l >>> 16);
-		value[2] = (byte) (l >>> 8);
-		value[3] = (byte) (l & 0xff);
 		buffer.put(value, 0, 4);
 	}
 
@@ -748,44 +692,6 @@ public class ByteBufferUtil {
 		value[5] = (byte) (l >> 16);
 		value[6] = (byte) (l >> 8);
 		value[7] = (byte) l;
-		buffer.put(value, 0, 8);
-	}
-
-	/**
-	 * 写出 8 个字节的无符号 long
-	 *
-	 * @param buffer ByteBuffer
-	 * @param l      数据
-	 */
-	public static void writeUnsignedLongLE(ByteBuffer buffer, long l) {
-		byte[] value = new byte[8];
-		value[0] = (byte) (l & 0xff);
-		value[1] = (byte) (l >>> 8);
-		value[2] = (byte) (l >>> 16);
-		value[3] = (byte) (l >>> 24);
-		value[4] = (byte) (l >>> 32);
-		value[5] = (byte) (l >>> 40);
-		value[6] = (byte) (l >>> 48);
-		value[7] = (byte) (l >>> 56);
-		buffer.put(value, 0, 8);
-	}
-
-	/**
-	 * 写出 8 个字节的无符号 long，大端模式
-	 *
-	 * @param buffer ByteBuffer
-	 * @param l      数据
-	 */
-	public static void writeUnsignedLongBE(ByteBuffer buffer, long l) {
-		byte[] value = new byte[8];
-		value[0] = (byte) (l >>> 56);
-		value[1] = (byte) (l >>> 48);
-		value[2] = (byte) (l >>> 40);
-		value[3] = (byte) (l >>> 32);
-		value[4] = (byte) (l >>> 24);
-		value[5] = (byte) (l >>> 16);
-		value[6] = (byte) (l >>> 8);
-		value[7] = (byte) (l & 0xff);
 		buffer.put(value, 0, 8);
 	}
 
