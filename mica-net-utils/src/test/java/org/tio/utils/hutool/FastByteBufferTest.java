@@ -48,11 +48,14 @@ public class FastByteBufferTest {
 		buffer.append(bytes2);
 		byte[] bytes3 = new byte[16];
 		buffer.append(bytes3);
-		System.out.println(buffer);
 		byte[] bytes4 = new byte[32];
 		Arrays.fill(bytes4, (byte) 8);
 		buffer.setBytes(12, bytes4);
-		System.out.println(buffer);
+		ByteBuffer byteBuffer = buffer.toBuffer();
+		byte[] bytes = new byte[32];
+		ByteBufferUtil.skipBytes(byteBuffer, 12);
+		byteBuffer.get(bytes);
+		Assertions.assertArrayEquals(bytes, bytes4);
 	}
 
 	@Test
