@@ -539,7 +539,7 @@ public class ByteBufferUtil {
 	 * @param buffer ByteBuffer
 	 * @param s      数据
 	 */
-	public static void writeUnsignedByte(ByteBuffer buffer, short s) {
+	public static void writeByte(ByteBuffer buffer, short s) {
 		buffer.put((byte) s);
 	}
 
