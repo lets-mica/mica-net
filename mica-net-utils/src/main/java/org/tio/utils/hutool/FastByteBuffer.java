@@ -405,6 +405,32 @@ public class FastByteBuffer {
 	}
 
 	/**
+	 * 写出 short，大端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeUShortBE(int value) {
+		byte[] bytes = new byte[2];
+		bytes[0] = (byte) (value >>> 8);
+		bytes[1] = (byte) (value & 0xff);
+		return this.append(bytes, 0, 2);
+	}
+
+	/**
+	 * 写出 short，小端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeUShortLE(int value) {
+		byte[] bytes = new byte[2];
+		bytes[0] = (byte) (value & 0xff);
+		bytes[1] = (byte) (value >>> 8);
+		return this.append(bytes, 0, 2);
+	}
+
+	/**
 	 * 写出 3 个字节，大端模式
 	 *
 	 * @param value 待写出数值
@@ -427,6 +453,34 @@ public class FastByteBuffer {
 	public FastByteBuffer writeMediumLE(int value) {
 		byte[] bytes = new byte[3];
 		bytes[0] = (byte) (value);
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value >>> 16);
+		return this.append(bytes, 0, 3);
+	}
+
+	/**
+	 * 写出 3 个字节，大端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeUMediumBE(int value) {
+		byte[] bytes = new byte[3];
+		bytes[0] = (byte) (value >>> 16);
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value & 0xff);
+		return this.append(bytes, 0, 3);
+	}
+
+	/**
+	 * 写出 3 个字节，小端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeUMediumLE(int value) {
+		byte[] bytes = new byte[3];
+		bytes[0] = (byte) (value & 0xff);
 		bytes[1] = (byte) (value >>> 8);
 		bytes[2] = (byte) (value >>> 16);
 		return this.append(bytes, 0, 3);
@@ -463,6 +517,36 @@ public class FastByteBuffer {
 	}
 
 	/**
+	 * 写出 4 个字节，大端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeUIntBE(long value) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte) (value >>> 24);
+		bytes[1] = (byte) (value >>> 16);
+		bytes[2] = (byte) (value >>> 8);
+		bytes[3] = (byte) (value & 0xff);
+		return this.append(bytes, 0, 4);
+	}
+
+	/**
+	 * 写出 4 个字节，小端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeUIntLE(long value) {
+		byte[] bytes = new byte[4];
+		bytes[0] = (byte) (value & 0xff);
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value >>> 16);
+		bytes[3] = (byte) (value >>> 24);
+		return this.append(bytes, 0, 4);
+	}
+
+	/**
 	 * 写出 8 个字节，大端模式
 	 *
 	 * @param value 待写出数值
@@ -490,6 +574,44 @@ public class FastByteBuffer {
 	public FastByteBuffer writeLongLE(long value) {
 		byte[] bytes = new byte[8];
 		bytes[0] = (byte) value;
+		bytes[1] = (byte) (value >>> 8);
+		bytes[2] = (byte) (value >>> 16);
+		bytes[3] = (byte) (value >>> 24);
+		bytes[4] = (byte) (value >>> 32);
+		bytes[5] = (byte) (value >>> 40);
+		bytes[6] = (byte) (value >>> 48);
+		bytes[7] = (byte) (value >>> 56);
+		return this.append(bytes, 0, 8);
+	}
+
+	/**
+	 * 写出 8 个字节，大端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeULongBE(long value) {
+		byte[] bytes = new byte[8];
+		bytes[0] = (byte) (value >>> 56);
+		bytes[1] = (byte) (value >>> 48);
+		bytes[2] = (byte) (value >>> 40);
+		bytes[3] = (byte) (value >>> 32);
+		bytes[4] = (byte) (value >>> 24);
+		bytes[5] = (byte) (value >>> 16);
+		bytes[6] = (byte) (value >>> 8);
+		bytes[7] = (byte) (value & 0xff);
+		return this.append(bytes, 0, 8);
+	}
+
+	/**
+	 * 写出 8 个字节，小端模式
+	 *
+	 * @param value 待写出数值
+	 * @return FastByteBuffer
+	 */
+	public FastByteBuffer writeULongLE(long value) {
+		byte[] bytes = new byte[8];
+		bytes[0] = (byte) (value & 0xff);
 		bytes[1] = (byte) (value >>> 8);
 		bytes[2] = (byte) (value >>> 16);
 		bytes[3] = (byte) (value >>> 24);
