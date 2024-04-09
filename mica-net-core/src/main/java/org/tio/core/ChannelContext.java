@@ -742,6 +742,33 @@ public abstract class ChannelContext extends MapPropSupport {
 		return Tio.bSend(this, packet);
 	}
 
+	/**
+	 * 获取解码队列目前消息数
+	 *
+	 * @return 数据量
+	 */
+	public int getDecodeQueueSize() {
+		return this.decodeRunnable.getMsgQueueSize();
+	}
+
+	/**
+	 * 获取处理队列目前消息数
+	 *
+	 * @return 数据量
+	 */
+	public int getHandlerQueueSize() {
+		return this.handlerRunnable.getMsgQueueSize();
+	}
+
+	/**
+	 * 获取发送队列目前消息数
+	 *
+	 * @return 数据量
+	 */
+	public int getSendQueueSize() {
+		return this.sendRunnable.getMsgQueueSize();
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {

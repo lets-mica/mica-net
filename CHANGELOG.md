@@ -4,7 +4,7 @@
 
 ### v0.1.10 - 2024-04-13
 - :sparkles: 优化和完善 FastByteBuffer 和 ByteBufferUtil
-- :sparkles: ChannelContext 添加 send 和 bSend
+- :sparkles: ChannelContext 添加 send、bSend 和 getDecodeQueueSize（注意：默认对线程解码会返回-1）、getHandlerQueueSize、getSendQueueSize
 - :sparkles: 完善 HexUtils 工具类
 - :sparkles: 文件队列添加 graalvm 支持
 - :sparkles: 升级 maven-jar-plugin

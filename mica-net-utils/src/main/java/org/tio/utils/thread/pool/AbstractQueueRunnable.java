@@ -244,4 +244,18 @@ public abstract class AbstractQueueRunnable<T> extends AbstractSynRunnable {
 	 * @return Queue
 	 */
 	public abstract Queue<T> getMsgQueue();
+
+	/**
+	 * 获取消息队列中的大小
+	 *
+	 * @return 消息队列大小
+	 */
+	public int getMsgQueueSize() {
+		Queue<T> msgQueue = this.getMsgQueue();
+		if (msgQueue == null) {
+			return -1;
+		}
+		return msgQueue.size();
+	}
+
 }
