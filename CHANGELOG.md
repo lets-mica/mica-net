@@ -2,6 +2,13 @@
 
 ## 发行版本
 
+### v0.1.10 - 2024-04-13
+- :sparkles: 优化和完善 FastByteBuffer 和 ByteBufferUtil
+- :sparkles: ChannelContext 添加 send 和 bSend
+- :sparkles: 完善 HexUtils 工具类
+- :sparkles: 文件队列添加 graalvm 支持
+- :sparkles: 升级 maven-jar-plugin
+
 ### v0.1.9 - 2024-01-15
 - :sparkles: 服务端和客户端 `stop` 代码优化
 - :sparkles: 完善 ByteBufferUtil，添加 `readMedium`、`readMediumLE`、`readMediumBE`
