@@ -29,15 +29,20 @@ public class ClientReConnTask extends TimerTask {
 
 	@Override
 	public void run() {
+		if (channelContext == null) {
+			return;
+		}
 		TioClientConfig tioClientConfig = (TioClientConfig) channelContext.getTioConfig();
 		// 已经停止，跳过
 		if (tioClientConfig.isStopped()) {
 			return;
 		}
 		int connectionSize = tioClientConfig.connections.size();
-		logger.info("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), connectionSize);
+		if (tioClientConfig.debug && logger.isInfoEnabled()) {
+			logger.info("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), connectionSize);
+		}
 		// 未连接的和已经删除的，不需要重新再连
-		if (channelContext == null || channelContext.isRemoved()) {
+		if (channelContext.isRemoved()) {
 			return;
 		}
 		SslFacadeContext sslFacadeContext = channelContext.sslFacadeContext;
