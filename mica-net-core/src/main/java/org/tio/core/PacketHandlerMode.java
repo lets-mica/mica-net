@@ -214,7 +214,7 @@ public enum PacketHandlerMode {
 		this.value = value;
 	}
 
-	public static PacketHandlerMode forNumber(byte value) {
+	public static PacketHandlerMode from(int value) {
 		switch (value) {
 			case 1:
 				return SINGLE_THREAD;

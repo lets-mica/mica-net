@@ -229,7 +229,7 @@ public class TioServerConfig extends TioConfig {
 	private boolean isShared = false;
 
 	/**
-	 * @param tioServerHandler TioServerHandler
+	 * @param tioServerHandler  TioServerHandler
 	 * @param tioServerListener TioServerListener
 	 */
 	public TioServerConfig(TioServerHandler tioServerHandler, TioServerListener tioServerListener) {
@@ -237,8 +237,8 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 * @param name name
-	 * @param tioServerHandler TioServerHandler
+	 * @param name              name
+	 * @param tioServerHandler  TioServerHandler
 	 * @param tioServerListener TioServerListener
 	 */
 	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener) {
@@ -246,10 +246,10 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 * @param tioServerHandler TioServerHandler
+	 * @param tioServerHandler  TioServerHandler
 	 * @param tioServerListener TioServerListener
-	 * @param tioExecutor SynThreadPoolExecutor
-	 * @param groupExecutor ThreadPoolExecutor
+	 * @param tioExecutor       SynThreadPoolExecutor
+	 * @param groupExecutor     ThreadPoolExecutor
 	 */
 	public TioServerConfig(TioServerHandler tioServerHandler, TioServerListener tioServerListener,
 						   SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
@@ -257,11 +257,11 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	/**
-	 * @param name name
-	 * @param tioServerHandler TioServerHandler
+	 * @param name              name
+	 * @param tioServerHandler  TioServerHandler
 	 * @param tioServerListener TioServerListener
-	 * @param tioExecutor SynThreadPoolExecutor
-	 * @param groupExecutor ThreadPoolExecutor
+	 * @param tioExecutor       SynThreadPoolExecutor
+	 * @param groupExecutor     ThreadPoolExecutor
 	 */
 	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener,
 						   SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
@@ -294,6 +294,9 @@ public class TioServerConfig extends TioConfig {
 					Set<ChannelContext> contextSet = TioServerConfig.this.connections;
 					long start1 = 0;
 					int count = 0;
+					long decodeQueueSizeAll = 0;
+					long handlerQueueSizeAll = 0;
+					long sendQueueSizeAll = 0;
 					try {
 						start1 = System.currentTimeMillis();
 						for (ChannelContext channelContext : contextSet) {
@@ -311,6 +314,20 @@ public class TioServerConfig extends TioConfig {
 								log.info("{}, {} ms没有收发消息", channelContext, interval);
 								channelContext.setCloseCode(CloseCode.HEARTBEAT_TIMEOUT);
 								Tio.remove(channelContext, interval + " ms没有收发消息");
+							} else {
+								// 服务端队列数据统计
+								int decodeQueueSize = channelContext.getDecodeQueueSize();
+								if (decodeQueueSize > 0) {
+									decodeQueueSizeAll += decodeQueueSize;
+								}
+								int handlerQueueSize = channelContext.getHandlerQueueSize();
+								if (handlerQueueSize > 0) {
+									handlerQueueSizeAll += handlerQueueSize;
+								}
+								int sendQueueSize = channelContext.getSendQueueSize();
+								if (sendQueueSize > 0) {
+									sendQueueSizeAll += sendQueueSize;
+								}
 							}
 						}
 					} catch (Throwable e) {
@@ -320,25 +337,29 @@ public class TioServerConfig extends TioConfig {
 							if (debug) {
 								StringBuilder builder = new StringBuilder();
 								builder.append(SysConst.CRLF).append(TioServerConfig.this.getName());
-								builder.append("\r\n ├ 当前时间:").append(System.currentTimeMillis());
+								builder.append("\r\n ├ 当前时间 :").append(System.currentTimeMillis());
 								builder.append("\r\n ├ 连接统计");
-								builder.append("\r\n │ \t ├ 共接受过连接数  :").append(((ServerGroupStat) groupStat).accepted.sum());
-								builder.append("\r\n │ \t ├ 当前连接数            :").append(contextSet.size());
-								builder.append("\r\n │ \t └ 关闭过的连接数  :").append(groupStat.closed.sum());
+								builder.append("\r\n │ \t ├ 共接受过连接数 :").append(((ServerGroupStat) groupStat).accepted.sum());
+								builder.append("\r\n │ \t ├ 当前连接数 :").append(contextSet.size());
+								builder.append("\r\n │ \t └ 关闭过的连接数 :").append(groupStat.closed.sum());
 								builder.append("\r\n ├ 消息统计");
-								builder.append("\r\n │ \t ├ 已处理消息  :").append(groupStat.handledPackets.sum());
-								builder.append("\r\n │ \t ├ 已接收消息(packet/byte):").append(groupStat.receivedPackets.sum()).append('/').append(groupStat.receivedBytes.sum());
-								builder.append("\r\n │ \t ├ 已发送消息(packet/byte):").append(groupStat.sentPackets.sum()).append('/').append(groupStat.sentBytes.sum()).append('b');
-								builder.append("\r\n │ \t ├ 平均每次TCP包接收的字节数  :").append(groupStat.getBytesPerTcpReceive());
-								builder.append("\r\n │ \t └ 平均每次TCP包接收的业务包  :").append(groupStat.getPacketsPerTcpReceive());
+								builder.append("\r\n │ \t ├ 已处理消息 :").append(groupStat.handledPackets.sum());
+								builder.append("\r\n │ \t ├ 已接收消息(packet/byte) :").append(groupStat.receivedPackets.sum()).append('/').append(groupStat.receivedBytes.sum());
+								builder.append("\r\n │ \t ├ 已发送消息(packet/byte) :").append(groupStat.sentPackets.sum()).append('/').append(groupStat.sentBytes.sum()).append('b');
+								builder.append("\r\n │ \t ├ 平均每次TCP包接收的字节数 :").append(groupStat.getBytesPerTcpReceive());
+								builder.append("\r\n │ \t └ 平均每次TCP包接收的业务包 :").append(groupStat.getPacketsPerTcpReceive());
 								builder.append("\r\n ├ 节点统计");
 								builder.append("\r\n │ \t ├ clientNodes :").append(TioServerConfig.this.clientNodes.size());
-								builder.append("\r\n │ \t ├ 所有连接               :").append(TioServerConfig.this.connections.size());
-								builder.append("\r\n │ \t ├ 绑定user数         :").append(TioServerConfig.this.users.size());
-								builder.append("\r\n │ \t ├ 绑定token数       :").append(TioServerConfig.this.tokens.size());
+								builder.append("\r\n │ \t ├ 所有连接 :").append(TioServerConfig.this.connections.size());
+								builder.append("\r\n │ \t ├ 绑定user数 :").append(TioServerConfig.this.users.size());
+								builder.append("\r\n │ \t ├ 绑定token数 :").append(TioServerConfig.this.tokens.size());
 								builder.append("\r\n │ \t └ 等待同步消息响应 :").append(TioServerConfig.this.waitingResps.size());
+								builder.append("\r\n ├ 队列统计");
+								builder.append("\r\n │ \t ├ 解码队列总数 :").append(decodeQueueSizeAll);
+								builder.append("\r\n │ \t ├ 处理队列总数 :").append(handlerQueueSizeAll);
+								builder.append("\r\n │ \t └ 发送队列总数 :").append(sendQueueSizeAll);
 								builder.append("\r\n └ 群组");
-								builder.append("\r\n   \t └ groupmap:").append(TioServerConfig.this.groups.size());
+								builder.append("\r\n   \t └ groupmap: ").append(TioServerConfig.this.groups.size());
 								log.warn(builder.toString());
 								long end = System.currentTimeMillis();
 								long iv1 = start1 - start;
