@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v0.1.11 - 2024-04-13
+- :sparkles: 服务端添加队列数据统计。
+- :sparkles: 客户端重连统计日志受 debug 控制。
+
 ### v0.1.10 - 2024-04-13
 - :sparkles: 优化和完善 FastByteBuffer 和 ByteBufferUtil
 - :sparkles: ChannelContext 添加 send、bSend 和 getDecodeQueueSize（注意：默认对线程解码会返回-1）、getHandlerQueueSize、getSendQueueSize
