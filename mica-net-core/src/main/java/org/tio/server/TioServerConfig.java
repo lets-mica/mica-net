@@ -203,6 +203,10 @@ import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.ClientAuth;
 import org.tio.core.ssl.SslConfig;
+import org.tio.core.stat.vo.ConnectStatVo;
+import org.tio.core.stat.vo.MessageStatVo;
+import org.tio.core.stat.vo.NodeStatVo;
+import org.tio.core.stat.vo.StatVo;
 import org.tio.server.intf.TioServerHandler;
 import org.tio.server.intf.TioServerListener;
 import org.tio.utils.SysConst;
@@ -473,6 +477,42 @@ public class TioServerConfig extends TioConfig {
 		return true;
 	}
 
+	/**
+	 * 获取统计数据
+	 *
+	 * @return StatVo
+	 */
+	@Override
+	public StatVo getStat() {
+		StatVo statVo = new StatVo();
+		// 统计信息
+		ServerGroupStat groupStat = (ServerGroupStat) this.groupStat;
+		// 连接信息统计
+		ConnectStatVo connections = new ConnectStatVo();
+		connections.setAccepted(groupStat.accepted.sum());
+		connections.setSize(Tio.getAll(this).size());
+		connections.setClosed(groupStat.closed.sum());
+		statVo.setConnections(connections);
+		// 消息统计
+		MessageStatVo messages = new MessageStatVo();
+		messages.setHandledPackets(groupStat.handledPackets.sum());
+		messages.setHandledBytes(groupStat.handledBytes.sum());
+		messages.setReceivedPackets(groupStat.receivedPackets.sum());
+		messages.setReceivedBytes(groupStat.receivedBytes.sum());
+		messages.setSendPackets(groupStat.sentPackets.sum());
+		messages.setSendBytes(groupStat.sentBytes.sum());
+		messages.setPacketsPerTcpReceive(groupStat.getPacketsPerTcpReceive());
+		messages.setBytesPerTcpReceive(groupStat.getBytesPerTcpReceive());
+		statVo.setMessages(messages);
+		// 节点统计
+		NodeStatVo nodes = new NodeStatVo();
+		nodes.setClientNodes(this.clientNodes.size());
+		nodes.setConnections(this.connections.size());
+		nodes.setUsers(this.users.size());
+		statVo.setNodes(nodes);
+		return statVo;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		return super.equals(o);
@@ -488,6 +528,11 @@ public class TioServerConfig extends TioConfig {
 		return "TioServerConfig [name=" + name + "]";
 	}
 
+	/**
+	 * 共享
+	 *
+	 * @param tioConfig TioServerConfig
+	 */
 	public void share(TioServerConfig tioConfig) {
 		synchronized (TioServerConfig.class) {
 			if (tioConfig == this) {

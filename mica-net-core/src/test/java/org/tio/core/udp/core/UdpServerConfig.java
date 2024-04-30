@@ -3,6 +3,7 @@ package org.tio.core.udp.core;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
+import org.tio.core.stat.vo.StatVo;
 import org.tio.core.udp.core.intf.UdpHandler;
 import org.tio.core.udp.core.intf.UdpListener;
 
@@ -33,5 +34,10 @@ public class UdpServerConfig extends TioConfig {
 	@Override
 	public boolean isServer() {
 		return true;
+	}
+
+	@Override
+	public StatVo getStat() {
+		return null;
 	}
 }

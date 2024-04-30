@@ -196,10 +196,16 @@ package org.tio.client;
 import org.tio.client.intf.TioClientHandler;
 import org.tio.client.intf.TioClientListener;
 import org.tio.core.ChannelContext;
+import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.SslConfig;
+import org.tio.core.stat.GroupStat;
+import org.tio.core.stat.vo.ConnectStatVo;
+import org.tio.core.stat.vo.MessageStatVo;
+import org.tio.core.stat.vo.NodeStatVo;
+import org.tio.core.stat.vo.StatVo;
 import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 import org.tio.utils.timer.TimerTaskService;
@@ -352,6 +358,41 @@ public class TioClientConfig extends TioConfig {
 	@Override
 	public boolean isServer() {
 		return false;
+	}
+
+	/**
+	 * 获取统计数据
+	 *
+	 * @return StatVo
+	 */
+	@Override
+	public StatVo getStat() {
+		StatVo statVo = new StatVo();
+		// 统计信息
+		GroupStat groupStat = this.groupStat;
+		// 连接信息统计
+		ConnectStatVo connections = new ConnectStatVo();
+		connections.setSize(Tio.getAll(this).size());
+		connections.setClosed(groupStat.closed.sum());
+		statVo.setConnections(connections);
+		// 消息统计
+		MessageStatVo messages = new MessageStatVo();
+		messages.setHandledPackets(groupStat.handledPackets.sum());
+		messages.setHandledBytes(groupStat.handledBytes.sum());
+		messages.setReceivedPackets(groupStat.receivedPackets.sum());
+		messages.setReceivedBytes(groupStat.receivedBytes.sum());
+		messages.setSendPackets(groupStat.sentPackets.sum());
+		messages.setSendBytes(groupStat.sentBytes.sum());
+		messages.setPacketsPerTcpReceive(groupStat.getPacketsPerTcpReceive());
+		messages.setBytesPerTcpReceive(groupStat.getBytesPerTcpReceive());
+		statVo.setMessages(messages);
+		// 节点统计
+		NodeStatVo nodes = new NodeStatVo();
+		nodes.setClientNodes(this.clientNodes.size());
+		nodes.setConnections(this.connections.size());
+		nodes.setUsers(this.users.size());
+		statVo.setNodes(nodes);
+		return statVo;
 	}
 
 	@Override

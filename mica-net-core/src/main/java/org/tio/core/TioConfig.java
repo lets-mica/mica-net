@@ -200,6 +200,7 @@ import org.tio.core.intf.*;
 import org.tio.core.maintain.*;
 import org.tio.core.ssl.SslConfig;
 import org.tio.core.stat.GroupStat;
+import org.tio.core.stat.vo.StatVo;
 import org.tio.core.task.CloseRunnable;
 import org.tio.core.uuid.DefaultTioUuid;
 import org.tio.server.TioServerConfig;
@@ -474,10 +475,16 @@ public abstract class TioConfig extends MapPropSupport {
 	/**
 	 * 是服务器端还是客户端
 	 *
-	 * @return
-	 * @author tanyaowu
+	 * @return 是否服务端
 	 */
 	public abstract boolean isServer();
+
+	/**
+	 * 获取统计数据
+	 *
+	 * @return StatVo
+	 */
+	public abstract StatVo getStat();
 
 	public int getReadBufferSize() {
 		return readBufferSize;
