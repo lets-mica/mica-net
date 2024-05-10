@@ -203,9 +203,9 @@ import java.nio.charset.Charset;
  */
 public class HttpConfig {
 	/**
-	 * 头部，最多有多少字节，默认：20K
+	 * 头部，最多有多少字节，默认：24K
 	 */
-	public static final int MAX_LENGTH_OF_HEADER = 1024 * 20;
+	public static final int MAX_LENGTH_OF_HEADER = 1024 * 24;
 	/**
 	 * 头部，每行最大的字节数，默认：8K
 	 */
