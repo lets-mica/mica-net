@@ -15,7 +15,9 @@ public class TestHttpRequestHandler implements HttpRequestHandler {
 		HttpResponse httpResponse = new HttpResponse(packet);
 		httpResponse.setStatus(HttpResponseStatus.C200);
 		byte[] body = packet.getBody();
-		System.out.println(new String(body));
+		if (body != null) {
+			System.out.println(new String(body));
+		}
 		httpResponse.setBody("hello".getBytes(StandardCharsets.UTF_8));
 		return httpResponse;
 	}

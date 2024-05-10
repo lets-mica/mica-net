@@ -281,7 +281,7 @@ public class Cookie {
 					try {
 						cookie.setValue(URLDecoder.decode(cookieMapItem.getValue(), httpConfig.getCharset().name()));
 					} catch (Exception e) {
-						log.error("cookie值解码时异常：" + cookieMapItem.getValue(), e);
+						log.error("cookie值解码时异常：{}", cookieMapItem.getValue(), e);
 					}
 					break;
 			}

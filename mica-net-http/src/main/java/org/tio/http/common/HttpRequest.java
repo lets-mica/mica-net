@@ -532,8 +532,8 @@ public class HttpRequest extends HttpPacket {
 	 */
 	public void setHeaders(Map<String, String> headers) {
 		this.headers = headers;
-		if (headers != null) {
-			parseCookie(httpConfig);
+		if (headers != null && !headers.isEmpty()) {
+			parseCookie();
 		}
 	}
 
@@ -800,19 +800,19 @@ public class HttpRequest extends HttpPacket {
 		return str;
 	}
 
-	public void parseCookie(HttpConfig httpConfig) {
+	public void parseCookie() {
 		String cookieLine = headers.get(HttpConst.RequestHeaderKey.Cookie);
 		if (StrUtil.isNotBlank(cookieLine)) {
-			cookies = new ArrayList<>();
-			cookieMap = new HashMap<>();
+			this.cookies = new ArrayList<>();
+			this.cookieMap = new HashMap<>();
 			Map<String, String> cookieLineMap = Cookie.getEqualMap(cookieLine);
 			Set<Entry<String, String>> set = cookieLineMap.entrySet();
 			for (Entry<String, String> cookieMapEntry : set) {
 				HashMap<String, String> cookieOneMap = new HashMap<>();
 				cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
 				Cookie cookie = Cookie.buildCookie(cookieOneMap, httpConfig);
-				cookies.add(cookie);
-				cookieMap.put(cookie.getName(), cookie);
+				this.cookies.add(cookie);
+				this.cookieMap.put(cookie.getName(), cookie);
 			}
 		}
 	}
