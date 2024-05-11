@@ -2,8 +2,9 @@
 
 ## 发行版本
 
-### v0.1.12 - 2024-05-05
-- :sparkles: 添加 stat vo 方便获取客户端和服务端状态
+### v0.1.12 - 2024-05-11
+- :sparkles: mica-net-http 优化 cookie，调用时再解析
+- :sparkles: mica-net-core 添加 stat vo 方便获取客户端和服务端状态
 
 ### v0.1.11 - 2024-04-13
 - :sparkles: 服务端添加队列数据统计。
