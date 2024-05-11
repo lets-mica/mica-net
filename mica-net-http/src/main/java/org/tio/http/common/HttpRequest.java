@@ -472,11 +472,11 @@ public class HttpRequest extends HttpPacket {
 			return cookieMap;
 		}
 		if (headers == null || headers.isEmpty()) {
-			return null;
+			return Collections.emptyMap();
 		}
 		String cookieLine = headers.get(HttpConst.RequestHeaderKey.Cookie);
 		if (cookieLine == null) {
-			return null;
+			return Collections.emptyMap();
 		}
 		this.cookieMap = new HashMap<>();
 		Map<String, String> cookieLineMap = Cookie.getEqualMap(cookieLine);
