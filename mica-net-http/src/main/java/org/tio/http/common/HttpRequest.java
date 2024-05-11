@@ -225,7 +225,6 @@ public class HttpRequest extends HttpPacket {
 	 * 请求参数
 	 */
 	private Map<String, Object[]> params = new HashMap<>();
-	private List<Cookie> cookies = null;
 	private Map<String, Cookie> cookieMap = null;
 	private int contentLength;
 	private String connection;
@@ -465,39 +464,49 @@ public class HttpRequest extends HttpPacket {
 		this.contentLength = contentLength;
 	}
 
-	public Cookie getCookie(String name) {
-		if (cookieMap == null) {
-			return null;
-		}
-		return cookieMap.get(name);
-	}
-
 	/**
 	 * @return the cookieMap
 	 */
 	public Map<String, Cookie> getCookieMap() {
+		if (cookieMap != null) {
+			return cookieMap;
+		}
+		if (headers == null || headers.isEmpty()) {
+			return null;
+		}
+		String cookieLine = headers.get(HttpConst.RequestHeaderKey.Cookie);
+		if (cookieLine == null) {
+			return null;
+		}
+		this.cookieMap = new HashMap<>();
+		Map<String, String> cookieLineMap = Cookie.getEqualMap(cookieLine);
+		Set<Entry<String, String>> set = cookieLineMap.entrySet();
+		for (Entry<String, String> cookieMapEntry : set) {
+			HashMap<String, String> cookieOneMap = new HashMap<>();
+			cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
+			Cookie cookie = Cookie.buildCookie(cookieOneMap, httpConfig);
+			this.cookieMap.put(cookie.getName(), cookie);
+		}
 		return cookieMap;
-	}
-
-	/**
-	 * @param cookieMap the cookieMap to set
-	 */
-	public void setCookieMap(Map<String, Cookie> cookieMap) {
-		this.cookieMap = cookieMap;
 	}
 
 	/**
 	 * @return the cookies
 	 */
-	public List<Cookie> getCookies() {
-		return cookies;
+	public Collection<Cookie> getCookies() {
+		Map<String, Cookie> cookieMaps = getCookieMap();
+		if (cookieMaps == null) {
+			return Collections.emptyList();
+		}
+		return cookieMaps.values();
 	}
 
-	/**
-	 * @param cookies the cookies to set
-	 */
-	public void setCookies(List<Cookie> cookies) {
-		this.cookies = cookies;
+	public Cookie getCookie(String name) {
+		Map<String, Cookie> cookieMaps = getCookieMap();
+		if (cookieMaps == null) {
+			return null;
+		}
+		return cookieMaps.get(name);
 	}
 
 	/**
@@ -532,9 +541,6 @@ public class HttpRequest extends HttpPacket {
 	 */
 	public void setHeaders(Map<String, String> headers) {
 		this.headers = headers;
-		if (headers != null && !headers.isEmpty()) {
-			parseCookie();
-		}
 	}
 
 	public void removeHeader(String key, String value) {
@@ -800,23 +806,6 @@ public class HttpRequest extends HttpPacket {
 		return str;
 	}
 
-	public void parseCookie() {
-		String cookieLine = headers.get(HttpConst.RequestHeaderKey.Cookie);
-		if (StrUtil.isNotBlank(cookieLine)) {
-			this.cookies = new ArrayList<>();
-			this.cookieMap = new HashMap<>();
-			Map<String, String> cookieLineMap = Cookie.getEqualMap(cookieLine);
-			Set<Entry<String, String>> set = cookieLineMap.entrySet();
-			for (Entry<String, String> cookieMapEntry : set) {
-				HashMap<String, String> cookieOneMap = new HashMap<>();
-				cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
-				Cookie cookie = Cookie.buildCookie(cookieOneMap, httpConfig);
-				this.cookies.add(cookie);
-				this.cookieMap.put(cookie.getName(), cookie);
-			}
-		}
-	}
-
 	public long getCreateTime() {
 		return createTime;
 	}
@@ -829,15 +818,12 @@ public class HttpRequest extends HttpPacket {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.requestLine.toString()).append(SysConst.CRLF);
-
 		if (this.getHeaderString() != null) {
 			sb.append(this.getHeaderString()).append(SysConst.CRLF);
 		}
-
 		if (this.getBodyString() != null) {
 			sb.append(this.getBodyString());
 		}
-
 		return sb.toString();
 	}
 
