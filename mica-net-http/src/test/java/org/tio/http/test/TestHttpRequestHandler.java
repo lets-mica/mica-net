@@ -14,6 +14,7 @@ public class TestHttpRequestHandler implements HttpRequestHandler {
 		for (Cookie cookie : cookies) {
 			System.out.println(cookie.getName() + "\t" + cookie.getValue());
 		}
+		System.out.println(packet.getCookieMap());
 		HttpResponse httpResponse = new HttpResponse(packet);
 		httpResponse.setStatus(HttpResponseStatus.C200);
 		byte[] body = packet.getBody();
