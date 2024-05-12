@@ -212,8 +212,7 @@ public class HexUtils {
 	 * @return bytes as a hex string
 	 */
 	public static String decodeToString(byte[] data) {
-		byte[] decodeBytes = decode(data);
-		return new String(decodeBytes, DEFAULT_CHARSET);
+		return decodeToString(data, DEFAULT_CHARSET);
 	}
 
 	/**
