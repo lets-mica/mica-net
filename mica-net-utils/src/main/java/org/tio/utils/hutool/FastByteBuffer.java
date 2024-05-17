@@ -194,6 +194,9 @@
 package org.tio.utils.hutool;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * 代码移植自<a href="https://github.com/biezhi/blade">blade</a><br>
@@ -578,6 +581,33 @@ public class FastByteBuffer {
 	}
 
 	/**
+	 * 写出文本
+	 *
+	 * @param text 文本
+	 */
+	public void writeString(String text) {
+		writeString(text, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * 写出文本
+	 *
+	 * @param text 文本
+	 */
+	public void writeString(String text, String charset) {
+		writeString(text, Charset.forName(charset));
+	}
+
+	/**
+	 * 写出文本
+	 *
+	 * @param text 文本
+	 */
+	public void writeString(String text, Charset charset) {
+		append(Objects.requireNonNull(text).getBytes(charset));
+	}
+
+	/**
 	 * 设定指定位置的字节
 	 *
 	 * @param index index
@@ -667,7 +697,7 @@ public class FastByteBuffer {
 		bytes[0] = (byte) (value);
 		bytes[1] = (byte) (value >>> 8);
 		bytes[2] = (byte) (value >>> 16);
-		return this.setBytes(index,bytes, 0, 3);
+		return this.setBytes(index, bytes, 0, 3);
 	}
 
 	/**
@@ -683,7 +713,7 @@ public class FastByteBuffer {
 		bytes[1] = (byte) (value >>> 16);
 		bytes[2] = (byte) (value >>> 8);
 		bytes[3] = (byte) (value);
-		return this.setBytes(index,bytes, 0, 4);
+		return this.setBytes(index, bytes, 0, 4);
 	}
 
 	/**
@@ -699,7 +729,7 @@ public class FastByteBuffer {
 		bytes[1] = (byte) (value >>> 8);
 		bytes[2] = (byte) (value >>> 16);
 		bytes[3] = (byte) (value >>> 24);
-		return this.setBytes(index,bytes, 0, 4);
+		return this.setBytes(index, bytes, 0, 4);
 	}
 
 	/**
@@ -719,7 +749,7 @@ public class FastByteBuffer {
 		bytes[5] = (byte) (value >>> 16);
 		bytes[6] = (byte) (value >>> 8);
 		bytes[7] = (byte) value;
-		return this.setBytes(index,bytes, 0, 8);
+		return this.setBytes(index, bytes, 0, 8);
 	}
 
 	/**
@@ -739,7 +769,7 @@ public class FastByteBuffer {
 		bytes[5] = (byte) (value >>> 40);
 		bytes[6] = (byte) (value >>> 48);
 		bytes[7] = (byte) (value >>> 56);
-		return this.setBytes(index,bytes, 0, 8);
+		return this.setBytes(index, bytes, 0, 8);
 	}
 
 	/**
