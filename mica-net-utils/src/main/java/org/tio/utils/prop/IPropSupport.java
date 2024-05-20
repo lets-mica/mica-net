@@ -217,6 +217,17 @@ public interface IPropSupport {
 	<T> T get(String key);
 
 	/**
+	 * 获取属性
+	 *
+	 * @param key key
+	 * @param <T> 泛型
+	 * @return T
+	 */
+	default <T> T get(String key, Function<Object, T> mapper) {
+		return mapper.apply(this.get(key));
+	}
+
+	/**
 	 * 获取并删除
 	 *
 	 * @param key key
@@ -229,6 +240,17 @@ public interface IPropSupport {
 			this.remove(key);
 		}
 		return t;
+	}
+
+	/**
+	 * 获取并删除
+	 *
+	 * @param key key
+	 * @param <T> 泛型
+	 * @return T
+	 */
+	default <T> T getAndRemove(String key, Function<Object, T> mapper) {
+		return mapper.apply(this.get(key));
 	}
 
 	/**
