@@ -217,6 +217,21 @@ public interface IPropSupport {
 	<T> T get(String key);
 
 	/**
+	 * 获取并删除
+	 *
+	 * @param key key
+	 * @param <T> 泛型
+	 * @return T
+	 */
+	default <T> T getAndRemove(String key) {
+		T t = this.get(key);
+		if (t != null) {
+			this.remove(key);
+		}
+		return t;
+	}
+
+	/**
 	 * get 或者生成值
 	 *
 	 * @param key             key
