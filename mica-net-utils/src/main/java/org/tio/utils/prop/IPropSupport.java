@@ -250,7 +250,7 @@ public interface IPropSupport {
 	 * @return T
 	 */
 	default <T> T getAndRemove(String key, Function<Object, T> mapper) {
-		return mapper.apply(this.get(key));
+		return mapper.apply(this.getAndRemove(key));
 	}
 
 	/**
