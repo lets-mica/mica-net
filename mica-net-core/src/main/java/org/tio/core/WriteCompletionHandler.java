@@ -240,10 +240,11 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 	}
 
 	/**
-	 * @param bytesWritten
-	 * @param throwable
-	 * @param writeCompletionVo
-	 * @author tanyaowu
+	 * 处理
+	 *
+	 * @param bytesWritten      bytesWritten
+	 * @param throwable         throwable
+	 * @param writeCompletionVo writeCompletionVo
 	 */
 	public void handle(Integer bytesWritten, Throwable throwable, WriteCompletionVo writeCompletionVo) {
 		ReentrantLock lock = channelContext.writeCompletionHandler.lock;
@@ -251,14 +252,16 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 		try {
 			channelContext.sendRunnable.canSend = true;
 			channelContext.writeCompletionHandler.condition.signal();
-			channelContext.stat.latestTimeOfSentPacket = System.currentTimeMillis();
 			Object attachment = writeCompletionVo.obj;
 			TioConfig tioConfig = channelContext.tioConfig;
 			boolean isSentSuccess = bytesWritten > 0;
 
-			if (isSentSuccess && tioConfig.statOn) {
-				tioConfig.groupStat.sentBytes.add(bytesWritten);
-				channelContext.stat.sentBytes.addAndGet(bytesWritten);
+			if (isSentSuccess) {
+				channelContext.stat.latestTimeOfSentPacket = System.currentTimeMillis();
+				if (tioConfig.statOn) {
+					tioConfig.groupStat.sentBytes.add(bytesWritten);
+					channelContext.stat.sentBytes.addAndGet(bytesWritten);
+				}
 			}
 
 			try {
