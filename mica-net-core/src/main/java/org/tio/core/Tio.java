@@ -429,107 +429,107 @@ public class Tio {
 	/**
 	 * 关闭连接
 	 *
-	 * @param channelContext ChannelContext
+	 * @param context ChannelContext
 	 * @param throwable      Throwable
 	 * @param remark         remark
 	 */
-	public static void close(ChannelContext channelContext, Throwable throwable, String remark) {
-		close(channelContext, throwable, remark, false);
+	public static void close(ChannelContext context, Throwable throwable, String remark) {
+		close(context, throwable, remark, context.isServer());
 	}
 
-	public static void close(ChannelContext channelContext, Throwable throwable, String remark, CloseCode closeCode) {
-		close(channelContext, throwable, remark, false, closeCode);
+	public static void close(ChannelContext context, Throwable throwable, String remark, CloseCode closeCode) {
+		close(context, throwable, remark, context.isServer(), closeCode);
 	}
 
-	public static void close(ChannelContext channelContext, Throwable throwable, String remark, boolean isNeedRemove) {
-		close(channelContext, throwable, remark, isNeedRemove, true);
+	public static void close(ChannelContext context, Throwable throwable, String remark, boolean isNeedRemove) {
+		close(context, throwable, remark, isNeedRemove, true);
 	}
 
-	public static void close(ChannelContext channelContext, Throwable throwable, String remark, boolean isNeedRemove, CloseCode closeCode) {
-		close(channelContext, throwable, remark, isNeedRemove, true, closeCode);
+	public static void close(ChannelContext context, Throwable throwable, String remark, boolean isNeedRemove, CloseCode closeCode) {
+		close(context, throwable, remark, isNeedRemove, true, closeCode);
 	}
 
-	public static void close(ChannelContext channelContext, Throwable throwable, String remark, boolean isNeedRemove, boolean needCloseLock) {
-		close(channelContext, throwable, remark, isNeedRemove, needCloseLock, null);
+	public static void close(ChannelContext context, Throwable throwable, String remark, boolean isNeedRemove, boolean needCloseLock) {
+		close(context, throwable, remark, isNeedRemove, needCloseLock, null);
 	}
 
 	/**
-	 * @param channelContext ChannelContext
+	 * @param context ChannelContext
 	 * @param throwable      Throwable
 	 * @param remark         remark
 	 * @param isNeedRemove   isNeedRemove
 	 * @param needCloseLock  needCloseLock
 	 * @param closeCode      CloseCode
 	 */
-	public static void close(ChannelContext channelContext, Throwable throwable, String remark, boolean isNeedRemove, boolean needCloseLock, CloseCode closeCode) {
-		if (channelContext == null) {
+	public static void close(ChannelContext context, Throwable throwable, String remark, boolean isNeedRemove, boolean needCloseLock, CloseCode closeCode) {
+		if (context == null) {
 			return;
 		}
-		if (channelContext.isWaitingClose()) {
-			log.debug("{} 正在等待被关闭", channelContext);
+		if (context.isWaitingClose()) {
+			log.debug("{} 正在等待被关闭", context);
 			return;
 		}
 
 		//先立即取消各项任务，这样可防止有新的任务被提交进来
-		channelContext.decodeRunnable.setCanceled(true);
-		channelContext.handlerRunnable.setCanceled(true);
-		channelContext.sendRunnable.setCanceled(true);
+		context.decodeRunnable.setCanceled(true);
+		context.handlerRunnable.setCanceled(true);
+		context.sendRunnable.setCanceled(true);
 
 		WriteLock writeLock;
 		if (needCloseLock) {
-			writeLock = channelContext.closeLock.writeLock();
+			writeLock = context.closeLock.writeLock();
 			boolean tryLock = writeLock.tryLock();
 			if (!tryLock) {
 				return;
 			}
-			channelContext.setWaitingClose(true);
+			context.setWaitingClose(true);
 			writeLock.unlock();
 		} else {
-			channelContext.setWaitingClose(true);
+			context.setWaitingClose(true);
 		}
 
 		if (closeCode == null) {
-			if (channelContext.getCloseCode() == CloseCode.INIT_STATUS) {
-				channelContext.setCloseCode(CloseCode.NO_CODE);
+			if (context.getCloseCode() == CloseCode.INIT_STATUS) {
+				context.setCloseCode(CloseCode.NO_CODE);
 			}
 		} else {
-			channelContext.setCloseCode(closeCode);
+			context.setCloseCode(closeCode);
 		}
 
-		if (channelContext.asynchronousSocketChannel != null) {
+		if (context.asynchronousSocketChannel != null) {
 			try {
-				channelContext.asynchronousSocketChannel.shutdownInput();
+				context.asynchronousSocketChannel.shutdownInput();
 			} catch (Throwable e) {
 				//log.error(e.toString(), e);
 			}
 			try {
-				channelContext.asynchronousSocketChannel.shutdownOutput();
+				context.asynchronousSocketChannel.shutdownOutput();
 			} catch (Throwable e) {
 				//log.error(e.toString(), e);
 			}
 			try {
-				channelContext.asynchronousSocketChannel.close();
+				context.asynchronousSocketChannel.close();
 			} catch (Throwable e) {
 				//log.error(e.toString(), e);
 			}
 		}
 
-		channelContext.closeMeta.setRemark(remark);
-		channelContext.closeMeta.setThrowable(throwable);
+		context.closeMeta.setRemark(remark);
+		context.closeMeta.setThrowable(throwable);
 		if (!isNeedRemove) {
-			if (channelContext.isServer()) {
+			if (context.isServer()) {
 				isNeedRemove = true;
 			} else {
-				ClientChannelContext clientChannelContext = (ClientChannelContext) channelContext;
+				ClientChannelContext clientChannelContext = (ClientChannelContext) context;
 				if (!ReconnConf.isNeedReconn(clientChannelContext, false)) { //不需要重连
 					isNeedRemove = true;
 				}
 			}
 		}
-		channelContext.closeMeta.setNeedRemove(isNeedRemove);
+		context.closeMeta.setNeedRemove(isNeedRemove);
 
-		channelContext.tioConfig.closeRunnable.addMsg(channelContext);
-		channelContext.tioConfig.closeRunnable.execute();
+		context.tioConfig.closeRunnable.addMsg(context);
+		context.tioConfig.closeRunnable.execute();
 	}
 
 	/**
