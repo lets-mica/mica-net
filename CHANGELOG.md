@@ -2,6 +2,11 @@
 
 ## 发行版本
 
+### v0.1.12 - 2024-05-25
+- :sparkles: 只在发送成功时更新发送时间
+- :sparkles: 完善 IPropSupport，方便使用，添加  getAndRemove
+- :sparkles: 代码优化和依赖升级
+
 ### v0.1.12 - 2024-05-11
 - :sparkles: mica-net-http 优化 cookie，调用时再解析
 - :sparkles: mica-net-core 添加 stat vo 方便获取客户端和服务端状态
