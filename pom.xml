@@ -167,7 +167,10 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
-                    <compilerArgument>-parameters</compilerArgument>
+                    <parameters>true</parameters>
+                    <fork>true</fork>
+                    <meminitial>512m</meminitial>
+                    <maxmem>512m</maxmem>
                 </configuration>
             </plugin>
             <!-- Source -->
