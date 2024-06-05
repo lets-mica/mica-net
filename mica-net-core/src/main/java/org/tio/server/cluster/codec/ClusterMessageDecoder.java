@@ -55,11 +55,11 @@ public class ClusterMessageDecoder {
 	 */
 	private static ClusterDataMessage decodeDataMessage(ChannelContext ctx, ByteBuffer buffer, int readableLength) {
 		// 消息不够读
-		if (readableLength < 3) {
+		if (readableLength < 4) {
 			return null;
 		}
-		int dataLength = ByteBufferUtil.readUnsignedShortLE(buffer);
-		int messageLength = 3 + dataLength;
+		int dataLength = ByteBufferUtil.readUnsignedMediumLE(buffer);
+		int messageLength = 4 + dataLength;
 		if (readableLength < messageLength) {
 			ctx.setPacketNeededLength(messageLength);
 			return null;
@@ -78,13 +78,13 @@ public class ClusterMessageDecoder {
 	 */
 	private static ClusterSyncMessage decodeSyncMessage(ChannelContext ctx, ByteBuffer buffer, int readableLength) {
 		// 消息不够读
-		if (readableLength < 11) {
+		if (readableLength < 12) {
 			return null;
 		}
 		// 消息 id
 		long messageId = buffer.getLong();
-		int dataLength = ByteBufferUtil.readUnsignedShortLE(buffer);
-		int messageLength = 11 + dataLength;
+		int dataLength = ByteBufferUtil.readUnsignedMediumLE(buffer);
+		int messageLength = 12 + dataLength;
 		if (readableLength < messageLength) {
 			ctx.setPacketNeededLength(messageLength);
 			return null;

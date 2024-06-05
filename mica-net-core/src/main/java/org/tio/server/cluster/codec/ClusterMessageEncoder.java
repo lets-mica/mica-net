@@ -69,10 +69,10 @@ public class ClusterMessageEncoder {
 	 */
 	private static ByteBuffer encodeDataMessage(ClusterDataMessage message) {
 		byte[] payload = message.getPayload();
-		ByteBuffer buffer = ByteBuffer.allocate(1 + 2 + payload.length);
+		ByteBuffer buffer = ByteBuffer.allocate(1 + 3 + payload.length);
 		buffer.put(ClusterMessageType.DATA.getType());
-		// 消息内容长度
-		ByteBufferUtil.writeShortLE(buffer, payload.length);
+		// 消息内容长度，最大支持约支持 16MB
+		ByteBufferUtil.writeMediumLE(buffer, payload.length);
 		buffer.put(payload);
 		return buffer;
 	}
@@ -85,14 +85,14 @@ public class ClusterMessageEncoder {
 	 */
 	private static ByteBuffer encodeSyncMessage(ClusterSyncMessage message) {
 		byte[] payload = message.getPayload();
-		int capacity = 1 + 8 + 2 + payload.length;
+		int capacity = 1 + 8 + 3 + payload.length;
 		ByteBuffer buffer = ByteBuffer.allocate(capacity);
 		buffer.put(ClusterMessageType.SYNC.getType());
 		// 消息id
 		long messageId = message.getMessageId();
 		buffer.putLong(messageId);
-		// 消息内容长度
-		ByteBufferUtil.writeShortLE(buffer, payload.length);
+		// 消息内容长度，最大支持约支持 16MB
+		ByteBufferUtil.writeMediumLE(buffer, payload.length);
 		buffer.put(payload);
 		return buffer;
 	}
