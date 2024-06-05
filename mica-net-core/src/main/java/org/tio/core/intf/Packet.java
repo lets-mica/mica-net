@@ -193,8 +193,6 @@
 */
 package org.tio.core.intf;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tio.utils.SysConst;
 
 import java.nio.ByteBuffer;
@@ -204,14 +202,12 @@ import java.util.concurrent.CountDownLatch;
  * @author tanyaowu
  * 2017年4月1日 上午9:34:59
  */
-public class Packet implements java.io.Serializable, Cloneable {
-	private static final Logger log = LoggerFactory.getLogger(Packet.class);
+public class Packet implements java.io.Serializable {
 	private static final long serialVersionUID = 5275372187150637318L;
 	/**
 	 * 本packet在解码时，消耗的字节数
 	 */
 	private int byteCount = 0;
-	private transient PacketListener packetListener;
 	private Meta meta = null;
 	/**
 	 * 消息是否是另外一台机器通过topic转过来的，如果是就不要死循环地再一次转发啦
@@ -222,6 +218,7 @@ public class Packet implements java.io.Serializable, Cloneable {
 	 * 同步发送时，需要的同步序列号
 	 */
 	private int synSeq = 0;
+	private transient PacketListener packetListener;
 	/**
 	 * 预编码过的bytebuffer，如果此值不为null，框架则会忽略原来的encode()而直接用此值
 	 */
@@ -230,19 +227,6 @@ public class Packet implements java.io.Serializable, Cloneable {
 	 * 是否已经进行ssl加密过
 	 */
 	private boolean isSslEncrypted = false;
-
-	@Override
-	public Packet clone() {
-		try {
-			Packet ret = (Packet) super.clone();
-			ret.setPreEncodedByteBuffer(null);
-			ret.setSslEncrypted(false);
-			return ret;
-		} catch (CloneNotSupportedException e) {
-			log.error(e.getMessage(), e);
-			return null;
-		}
-	}
 
 	/**
 	 * @return the byteCount
