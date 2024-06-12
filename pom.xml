@@ -241,6 +241,25 @@
 
     <profiles>
         <profile>
+            <id>develop</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>aliyun</id>
+                    <name>aliyun</name>
+                    <url>https://maven.aliyun.com/repository/public/</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                </repository>
+            </repositories>
+        </profile>
+        <profile>
             <id>release</id>
             <build>
                 <plugins>
