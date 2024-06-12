@@ -19,7 +19,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
       - name: Publish to the Maven Central Repository
         run: |
-          mvn clean package deploy -pl mica-net-utils,mica-net-core,mica-net-http
+          mvn clean package deploy -P !develop -pl mica-net-utils,mica-net-core,mica-net-http
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
