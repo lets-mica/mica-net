@@ -358,7 +358,7 @@ public class TioClient {
 			try {
 				asynchronousSocketChannel.connect(inetSocketAddress, attachment, connectionCompletionHandler);
 			} catch (Exception e) {
-				// connect 连接事会抛出域名解析等异常
+				// connect 连接会抛出域名解析等异常
 				connectionCompletionHandler.failed(e, attachment);
 			}
 			boolean result = countDownLatch.await(realTimeout, TimeUnit.SECONDS);
@@ -370,7 +370,7 @@ public class TioClient {
 			try {
 				asynchronousSocketChannel.connect(inetSocketAddress, attachment, connectionCompletionHandler);
 			} catch (Exception e) {
-				// connect 连接事会抛出域名解析等异常
+				// connect 连接会抛出域名解析等异常
 				connectionCompletionHandler.failed(e, attachment);
 			}
 			return null;

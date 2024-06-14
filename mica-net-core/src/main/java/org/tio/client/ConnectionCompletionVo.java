@@ -236,7 +236,6 @@ public class ConnectionCompletionVo {
 	public ConnectionCompletionVo(ClientChannelContext channelContext, TioClient tioClient, boolean isReconnect,
 								  AsynchronousSocketChannel asynchronousSocketChannel, Node serverNode,
 								  String bindIp, Integer bindPort) {
-		super();
 		this.channelContext = channelContext;
 		this.tioClient = tioClient;
 		this.isReconnect = isReconnect;
@@ -319,14 +318,14 @@ public class ConnectionCompletionVo {
 	/**
 	 * @return the countDownLatch
 	 */
-	public java.util.concurrent.CountDownLatch getCountDownLatch() {
+	public CountDownLatch getCountDownLatch() {
 		return countDownLatch;
 	}
 
 	/**
 	 * @param countDownLatch the countDownLatch to set
 	 */
-	public void setCountDownLatch(java.util.concurrent.CountDownLatch countDownLatch) {
+	public void setCountDownLatch(CountDownLatch countDownLatch) {
 		this.countDownLatch = countDownLatch;
 	}
 
