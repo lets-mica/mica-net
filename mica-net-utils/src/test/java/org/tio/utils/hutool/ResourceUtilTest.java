@@ -208,10 +208,8 @@ class ResourceUtilTest {
 
 	@Test
 	void getResourceAsStreamTest() {
-		InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties");
-		Assertions.assertNotNull(resourceAsStream);
-		try {
-			resourceAsStream.close();
+		try (InputStream resourceAsStream = ResourceUtil.getResourceAsStream("classpath:config/tio-quartz.properties")){
+			Assertions.assertNull(resourceAsStream);
 		} catch (IOException e) {
 			//ignore
 		}

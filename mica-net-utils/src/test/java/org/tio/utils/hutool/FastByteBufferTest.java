@@ -12,7 +12,7 @@ import java.util.Arrays;
  *
  * @author L.cm
  */
-public class FastByteBufferTest {
+class FastByteBufferTest {
 
 	@Test
 	void test1() {
