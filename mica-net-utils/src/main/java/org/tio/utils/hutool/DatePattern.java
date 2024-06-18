@@ -199,63 +199,64 @@ package org.tio.utils.hutool;
 /**
  * @author tanyaowu
  */
-public class DatePattern {
+public interface DatePattern {
 
 	//-------------------------------------------------------------------------------------------------------------------------------- Normal
 	/**
 	 * 标准日期格式：yyyy-MM-dd
 	 */
-	public static final String NORM_DATE_PATTERN = "yyyy-MM-dd";
+	String NORM_DATE_PATTERN = "yyyy-MM-dd";
 
 	/**
 	 * 标准时间格式：HH:mm:ss
 	 */
-	public static final String NORM_TIME_PATTERN = "HH:mm:ss";
+	String NORM_TIME_PATTERN = "HH:mm:ss";
 
 	/**
 	 * 标准日期时间格式，精确到分：yyyy-MM-dd HH:mm
 	 */
-	public static final String NORM_DATETIME_MINUTE_PATTERN = "yyyy-MM-dd HH:mm";
+	String NORM_DATETIME_MINUTE_PATTERN = "yyyy-MM-dd HH:mm";
 
 	/**
 	 * 标准日期时间格式，精确到秒：yyyy-MM-dd HH:mm:ss
 	 */
-	public static final String NORM_DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+	String NORM_DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
 	/**
 	 * 标准日期时间格式，精确到毫秒：yyyy-MM-dd HH:mm:ss.SSS
 	 */
-	public static final String NORM_DATETIME_MS_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
+	String NORM_DATETIME_MS_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
 
 	//-------------------------------------------------------------------------------------------------------------------------------- Pure
 	/**
 	 * 标准日期格式：yyyyMMdd
 	 */
-	public static final String PURE_DATE_PATTERN = "yyyyMMdd";
+	String PURE_DATE_PATTERN = "yyyyMMdd";
 
 	/**
 	 * 标准日期格式：HHmmss
 	 */
-	public static final String PURE_TIME_PATTERN = "HHmmss";
+	String PURE_TIME_PATTERN = "HHmmss";
 
 	/**
 	 * 标准日期格式：yyyyMMddHHmmss
 	 */
-	public static final String PURE_DATETIME_PATTERN = "yyyyMMddHHmmss";
+	String PURE_DATETIME_PATTERN = "yyyyMMddHHmmss";
 
 	/**
 	 * 标准日期格式：yyyyMMddHHmmssSSS
 	 */
-	public static final String PURE_DATETIME_MS_PATTERN = "yyyyMMddHHmmssSSS";
+	String PURE_DATETIME_MS_PATTERN = "yyyyMMddHHmmssSSS";
 
 	//-------------------------------------------------------------------------------------------------------------------------------- Others
 	/**
 	 * HTTP头中日期时间格式：EEE, dd MMM yyyy HH:mm:ss z
 	 */
-	public static final String HTTP_DATETIME_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z";
+	String HTTP_DATETIME_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z";
 
 	/**
 	 * JDK中日期时间格式：EEE MMM dd HH:mm:ss zzz yyyy
 	 */
-	public static final String JDK_DATETIME_PATTERN = "EEE MMM dd HH:mm:ss zzz yyyy";
+	String JDK_DATETIME_PATTERN = "EEE MMM dd HH:mm:ss zzz yyyy";
+
 }

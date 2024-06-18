@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tio.utils.cache.TimedCache;
 
+import java.util.concurrent.TimeUnit;
+
 class TimedCacheTest {
 
 
@@ -11,7 +13,7 @@ class TimedCacheTest {
 	void timedCacheTest() throws InterruptedException {
 		TimedCache<String, String> timedCache = new TimedCache<>(4);
 		timedCache.put("key1", "value1", 1);//1毫秒过期
-		timedCache.put("key2", "value2", DateUnit.SECOND.getMillis() * 5);//5秒过期
+		timedCache.put("key2", "value2", TimeUnit.SECONDS.toMillis(5));//5秒过期
 		timedCache.put("key3", "value3");//默认过期(4毫秒)
 		timedCache.put("key4", "value4", Long.MAX_VALUE);//永不过期
 		//等待5毫秒
