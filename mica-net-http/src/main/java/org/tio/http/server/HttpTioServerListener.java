@@ -212,23 +212,23 @@ public class HttpTioServerListener implements TioServerListener {
 	}
 
 	@Override
-	public void onAfterSent(ChannelContext channelContext, Packet packet, boolean isSentSuccess) {
+	public void onAfterSent(ChannelContext context, Packet packet, boolean isSentSuccess) {
 		HttpResponse httpResponse = (HttpResponse) packet;
 		HttpRequest request = httpResponse.getHttpRequest();
 		if (request != null) {
 			if (request.httpConfig.compatible1_0) {
 				if (HttpConst.HttpVersion.V1_0.equals(request.requestLine.version)) {
 					if (!HttpConst.RequestHeaderValue.Connection.keep_alive.equals(request.getConnection())) {
-						Tio.remove(channelContext, "http 请求头Connection!=keep-alive：" + request.getRequestLine());
+						Tio.remove(context, "http 请求头Connection!=keep-alive：" + request.getRequestLine());
 					}
 				} else {
 					if (HttpConst.RequestHeaderValue.Connection.close.equals(request.getConnection())) {
-						Tio.remove(channelContext, "http 请求头Connection=close：" + request.getRequestLine());
+						Tio.remove(context, "http 请求头Connection=close：" + request.getRequestLine());
 					}
 				}
 			} else {
 				if (HttpConst.RequestHeaderValue.Connection.close.equals(request.getConnection())) {
-					Tio.remove(channelContext, "http 请求头Connection=close：" + request.getRequestLine());
+					Tio.remove(context, "http 请求头Connection=close：" + request.getRequestLine());
 				}
 			}
 		}

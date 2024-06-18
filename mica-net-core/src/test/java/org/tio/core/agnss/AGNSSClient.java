@@ -1,6 +1,5 @@
 package org.tio.core.agnss;
 
-import org.tio.client.DefaultTioClientListener;
 import org.tio.client.ReconnConf;
 import org.tio.client.TioClient;
 import org.tio.client.TioClientConfig;

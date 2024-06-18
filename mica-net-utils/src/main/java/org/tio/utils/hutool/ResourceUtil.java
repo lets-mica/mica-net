@@ -197,6 +197,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -255,6 +256,49 @@ public class ResourceUtil {
 			return Files.newInputStream(Paths.get(file));
 		} catch (IOException e) {
 			throw new IllegalArgumentException(e);
+		}
+	}
+
+	/**
+	 * 读取 ClassPath 下的资源
+	 *
+	 * @param path 相对于ClassPath路径，可以以classpath:开头
+	 * @return {@link InputStream}资源
+	 */
+	public static String getResourceAsText(String path) {
+		InputStream stream = getResourceAsStream(path);
+		if (stream == null) {
+			return null;
+		}
+		return streamToString(stream);
+	}
+
+	/**
+	 * 获取 file 下的资源做为流
+	 *
+	 * @param file 文件
+	 * @return {@link InputStream}资源
+	 */
+	public static String getFileResourceAsText(String file) {
+		return streamToString(getFileResource(file));
+	}
+
+	/**
+	 * 读取流
+	 *
+	 * @param inputStream InputStream
+	 * @return 字符串
+	 */
+	public static String streamToString(InputStream inputStream) {
+		try (FastByteArrayOutputStream result = new FastByteArrayOutputStream()) {
+			byte[] buffer = new byte[1024 * 4];
+			int length;
+			while ((length = inputStream.read(buffer)) != -1) {
+				result.write(buffer, 0, length);
+			}
+			return result.toString(StandardCharsets.UTF_8);
+		} catch (Exception e) {
+			return null;
 		}
 	}
 
