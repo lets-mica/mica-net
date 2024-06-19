@@ -7,7 +7,7 @@
     {
       "matchPackagePatterns": [
         "^com.alibaba:fastjson$",
-        "^com.alibaba:fastjson2$"
+        "^com.alibaba.fastjson2:fastjson2$"
       ],
       "enabled": false
     }
