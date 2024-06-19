@@ -39,7 +39,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.test.skip>true</maven.test.skip>
         <maven.version>3.8.3</maven.version>
-        <maven-flatten.version>1.2.2</maven-flatten.version>
+        <maven-flatten.version>1.6.0</maven-flatten.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <fastjson.version>1.2.83</fastjson.version>
         <fastjson2.version>2.0.49</fastjson2.version>
