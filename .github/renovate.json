@@ -6,7 +6,8 @@
   "packageRules": [
     {
       "matchPackagePatterns": [
-        "^com.alibaba:fastjson$"
+        "^com.alibaba:fastjson$",
+        "^com.alibaba:fastjson2$"
       ],
       "enabled": false
     }
