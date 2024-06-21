@@ -276,13 +276,12 @@ public class TioServer {
 	private void startHeartbeatTask() {
 		// 启动任务服务
 		this.taskService.start();
-		// 先判断是否取消默认的心跳机制
-		if (serverConfig.heartbeatTimeout <= 0) {
+		// 先判断是否开启心跳检测
+		if (serverConfig.heartbeatTimeout > 0) {
+			this.taskService.addTask(systemTimer -> new ServerHeartbeatTask(systemTimer, serverConfig));
+		} else {
 			log.warn("用户取消了 mica-net 的心跳定时发送功能，请确认是否自定义心跳机制");
-			return;
 		}
-		// 开启默认的心跳任务
-		this.taskService.addTask(systemTimer -> new ServerHeartbeatTask(systemTimer, serverConfig));
 	}
 
 	public void start(String serverIp, int serverPort) throws IOException {
