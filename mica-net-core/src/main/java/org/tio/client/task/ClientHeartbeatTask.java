@@ -62,6 +62,7 @@ public class ClientHeartbeatTask extends TimerTask {
 			return;
 		}
 		Set<ChannelContext> set = clientConfig.connecteds;
+		HeartbeatMode heartbeatMode = clientConfig.getHeartbeatMode();
 		long currTime = System.currentTimeMillis();
 		try {
 			for (ChannelContext entry : set) {
@@ -69,7 +70,6 @@ public class ClientHeartbeatTask extends TimerTask {
 				if (channelContext.isClosed() || channelContext.isRemoved()) {
 					continue;
 				}
-				HeartbeatMode heartbeatMode = clientConfig.getHeartbeatMode();
 				long compareTime = heartbeatMode.getLastTime(channelContext.stat);
 				long interval = currTime - compareTime;
 				if (interval >= clientConfig.heartbeatTimeout / 2) {
