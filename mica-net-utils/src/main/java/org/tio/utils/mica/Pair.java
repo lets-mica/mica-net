@@ -14,31 +14,29 @@
  * limitations under the License.
  */
 
-package org.tio.server.cluster.message;
+package org.tio.utils.mica;
 
 /**
- * 集群 data 消息
+ * Pair
  *
+ * @param <L> 泛型
+ * @param <R> 泛型
  * @author L.cm
  */
-public class ClusterDataMessage extends AbsClusterMessage {
+public class Pair<L, R> {
+	private final L left;
+	private final R right;
 
-	/**
-	 * 消息数据
-	 */
-	private final byte[] payload;
-
-	public ClusterDataMessage(byte[] payload) {
-		this.payload = payload;
+	public Pair(L left, R right) {
+		this.left = left;
+		this.right = right;
 	}
 
-	public byte[] getPayload() {
-		return payload;
+	public L getLeft() {
+		return left;
 	}
 
-	@Override
-	public ClusterMessageType getMessageType() {
-		return ClusterMessageType.DATA;
+	public R getRight() {
+		return right;
 	}
-
 }

@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2019-2029, Dreamlu 卢春梦 (596392912@qq.com & www.dreamlu.net).
+ * <p>
+ * Licensed under the GNU LESSER GENERAL PUBLIC LICENSE 3.0;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.gnu.org/licenses/lgpl.html
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tio.server.cluster.codec;
 
 import org.tio.core.ChannelContext;
@@ -6,6 +22,7 @@ import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 import org.tio.server.cluster.message.*;
 import org.tio.utils.buffer.ByteBufferUtil;
+import org.tio.utils.mica.Pair;
 
 import java.nio.ByteBuffer;
 
@@ -54,12 +71,14 @@ public class ClusterMessageDecoder {
 	 * @return ClusterDataMessage
 	 */
 	private static ClusterDataMessage decodeDataMessage(ChannelContext ctx, ByteBuffer buffer, int readableLength) {
+		Pair<Integer, Integer> dataLengthPair = readDataPacketLength(buffer);
 		// 消息不够读
-		if (readableLength < 4) {
+		if (dataLengthPair == null) {
 			return null;
 		}
-		int dataLength = ByteBufferUtil.readUnsignedMediumLE(buffer);
-		int messageLength = 4 + dataLength;
+		int dataLength = dataLengthPair.getLeft();
+		int dataLengthLength = dataLengthPair.getRight();
+		int messageLength = 1 + dataLengthLength + dataLength;
 		if (readableLength < messageLength) {
 			ctx.setPacketNeededLength(messageLength);
 			return null;
@@ -78,13 +97,19 @@ public class ClusterMessageDecoder {
 	 */
 	private static ClusterSyncMessage decodeSyncMessage(ChannelContext ctx, ByteBuffer buffer, int readableLength) {
 		// 消息不够读
-		if (readableLength < 12) {
+		if (readableLength < 1 + 8) {
 			return null;
 		}
 		// 消息 id
 		long messageId = buffer.getLong();
-		int dataLength = ByteBufferUtil.readUnsignedMediumLE(buffer);
-		int messageLength = 12 + dataLength;
+		Pair<Integer, Integer> dataLengthPair = readDataPacketLength(buffer);
+		// 消息不够读
+		if (dataLengthPair == null) {
+			return null;
+		}
+		int dataLength = dataLengthPair.getLeft();
+		int dataLengthLength = dataLengthPair.getRight();
+		int messageLength = 1 + 8 + dataLengthLength + dataLength;
 		if (readableLength < messageLength) {
 			ctx.setPacketNeededLength(messageLength);
 			return null;
@@ -102,9 +127,10 @@ public class ClusterMessageDecoder {
 	 * @return ClusterSyncAckMessage
 	 */
 	private static ClusterSyncAckMessage decodeSyncAckMessage(ChannelContext ctx, ByteBuffer buffer, int readableLength) {
+		int packetLength = 1 + 8;
 		// 消息不够读
-		if (readableLength < 9) {
-			ctx.setPacketNeededLength(9);
+		if (readableLength < packetLength) {
+			ctx.setPacketNeededLength(packetLength);
 			return null;
 		}
 		// 消息 id
@@ -131,6 +157,23 @@ public class ClusterMessageDecoder {
 		// ip
 		String ip = ByteBufferUtil.readString(buffer, 32);
 		return new ClusterJoinMessage(new Node(ip.trim(), port));
+	}
+
+	private static Pair<Integer, Integer> readDataPacketLength(ByteBuffer buffer) {
+		int remainingLength = 0;
+		int multiplier = 1;
+		short digit;
+		int count = 0;
+		do {
+			if (!buffer.hasRemaining()) {
+				return null;
+			}
+			digit = ByteBufferUtil.readUnsignedByte(buffer);
+			remainingLength += (digit & 127) * multiplier;
+			multiplier *= 128;
+			count++;
+		} while ((digit & 128) != 0 && count < 4);
+		return new Pair<>(remainingLength, count);
 	}
 
 }
