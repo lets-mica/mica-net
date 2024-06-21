@@ -207,6 +207,7 @@ import org.tio.core.stat.vo.ConnectStatVo;
 import org.tio.core.stat.vo.MessageStatVo;
 import org.tio.core.stat.vo.NodeStatVo;
 import org.tio.core.stat.vo.StatVo;
+import org.tio.core.task.HeartbeatDetectionMode;
 import org.tio.server.intf.TioServerHandler;
 import org.tio.server.intf.TioServerListener;
 import org.tio.utils.SysConst;
@@ -303,9 +304,10 @@ public class TioServerConfig extends TioConfig {
 					long sendQueueSizeAll = 0;
 					try {
 						start1 = System.currentTimeMillis();
+						HeartbeatDetectionMode heartbeatDetectionMode = TioServerConfig.this.getHeartbeatDetectionMode();
 						for (ChannelContext channelContext : contextSet) {
 							count++;
-							long compareTime = Math.max(channelContext.stat.latestTimeOfReceivedByte, channelContext.stat.latestTimeOfSentPacket);
+							long compareTime = heartbeatDetectionMode.getLastTime(channelContext.stat);
 							long currTime = System.currentTimeMillis();
 							long interval = currTime - compareTime;
 							boolean needRemove;

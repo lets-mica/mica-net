@@ -25,7 +25,7 @@ import org.tio.client.intf.TioClientHandler;
 import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
 import org.tio.core.intf.Packet;
-import org.tio.core.stat.ChannelStat;
+import org.tio.core.task.HeartbeatDetectionMode;
 import org.tio.utils.timer.Timer;
 import org.tio.utils.timer.TimerTask;
 
@@ -39,18 +39,18 @@ import java.util.Set;
 public class ClientHeartbeatTask extends TimerTask {
 	private static final Logger logger = LoggerFactory.getLogger(ClientHeartbeatTask.class);
 	private final Timer timer;
-	private final TioClientConfig tioClientConfig;
+	private final TioClientConfig clientConfig;
 	private final ClientGroupStat clientGroupStat;
 	private final TioClientHandler tioHandler;
 	private final String id;
 
-	public ClientHeartbeatTask(Timer timer, TioClientConfig tioClientConfig) {
-		super(tioClientConfig.heartbeatTimeout / 3);
+	public ClientHeartbeatTask(Timer timer, TioClientConfig clientConfig) {
+		super(clientConfig.heartbeatTimeout / 3);
 		this.timer = timer;
-		this.tioClientConfig = tioClientConfig;
-		this.clientGroupStat = (ClientGroupStat) tioClientConfig.groupStat;
-		this.tioHandler = tioClientConfig.getTioClientHandler();
-		this.id = tioClientConfig.getId();
+		this.clientConfig = clientConfig;
+		this.clientGroupStat = (ClientGroupStat) clientConfig.groupStat;
+		this.tioHandler = clientConfig.getTioClientHandler();
+		this.id = clientConfig.getId();
 	}
 
 	@Override
@@ -58,10 +58,10 @@ public class ClientHeartbeatTask extends TimerTask {
 		// 1. 添加 task，保持后续执行
 		timer.add(this);
 		// 2. 已经停止，跳过
-		if (tioClientConfig.isStopped()) {
+		if (clientConfig.isStopped()) {
 			return;
 		}
-		Set<ChannelContext> set = tioClientConfig.connecteds;
+		Set<ChannelContext> set = clientConfig.connecteds;
 		long currTime = System.currentTimeMillis();
 		try {
 			for (ChannelContext entry : set) {
@@ -69,22 +69,22 @@ public class ClientHeartbeatTask extends TimerTask {
 				if (channelContext.isClosed() || channelContext.isRemoved()) {
 					continue;
 				}
-				ChannelStat stat = channelContext.stat;
-				long compareTime = Math.max(stat.latestTimeOfReceivedByte, stat.latestTimeOfSentPacket);
+				HeartbeatDetectionMode heartbeatDetectionMode = clientConfig.getHeartbeatDetectionMode();
+				long compareTime = heartbeatDetectionMode.getLastTime(channelContext.stat);
 				long interval = currTime - compareTime;
-				if (interval >= tioClientConfig.heartbeatTimeout / 2) {
+				if (interval >= clientConfig.heartbeatTimeout / 2) {
 					Packet packet = tioHandler.heartbeatPacket(channelContext);
 					if (packet != null) {
 						boolean result = Tio.send(channelContext, packet);
-						if (tioClientConfig.debug && logger.isInfoEnabled()) {
+						if (clientConfig.debug && logger.isInfoEnabled()) {
 							logger.info("{} 发送心跳包 result:{}", channelContext, result);
 						}
 					}
 				}
 			}
 			// 打印连接信息
-			if (tioClientConfig.debug && logger.isInfoEnabled()) {
-				if (tioClientConfig.statOn) {
+			if (clientConfig.debug && logger.isInfoEnabled()) {
+				if (clientConfig.statOn) {
 					logger.info("[{}]: curr:{}, closed:{}, received:({}p)({}b), handled:{}, sent:({}p)({}b)", id, set.size(), clientGroupStat.closed.sum(),
 						clientGroupStat.receivedPackets.sum(), clientGroupStat.receivedBytes.sum(), clientGroupStat.handledPackets.sum(),
 						clientGroupStat.sentPackets.sum(), clientGroupStat.sentBytes.sum());
