@@ -3,6 +3,7 @@ package org.tio.utils.queue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,18 +53,22 @@ final class Writer<E> extends Mapped {
 		}
 		byte[] bytes = mapper.apply(element);
 		if (bytes.length > mds) {
-			throw new RuntimeException("数据超长, max: " + mds + ", cur: " + bytes.length);
+			throw new IllegalArgumentException("数据超长, max: " + mds + ", cur: " + bytes.length);
 		}
+		this.write(bytes);
+	}
+
+	void write(byte[] bytes) {
 		lock.lock();
 		try {
-			write(bytes);
+			writeData(bytes);
 			condition.signalAll();
 		} finally {
 			lock.unlock();
 		}
 	}
 
-	void write(byte[] bytes) {
+	private void writeData(byte[] bytes) {
 		if (data == null) {
 			return; // 停服释放锁时，线程进入本方法后data为空，将导致异常
 		}
@@ -92,7 +97,7 @@ final class Writer<E> extends Mapped {
 			offset = new OffsetFile(newFile, 0, mfs);
 			log.debug("偏移量文件扩容:{}", newFile);
 		} catch (Exception e) {
-			throw new RuntimeException("创建数据偏移量文件映射地址异常", e);
+			throw new IllegalStateException("创建数据偏移量文件映射地址异常", e);
 		}
 	}
 
@@ -106,7 +111,7 @@ final class Writer<E> extends Mapped {
 			data = new DataFile(newFile, 0, mfs);
 			log.debug("数据文件扩容:{}", newFile);
 		} catch (Exception e) {
-			throw new RuntimeException("创建数据文件映射地址异常", e);
+			throw new IllegalStateException("创建数据文件映射地址异常", e);
 		}
 	}
 
@@ -125,7 +130,7 @@ final class Writer<E> extends Mapped {
 		}
 		Path pathname = pathname(path, name, OffsetFile.EXTENSION);
 		if (dataIdx != 0 && Files.notExists(pathname)) {
-			throw new RuntimeException("程序有误,需要读的文件找不到,文件名:" + pathname);
+			throw new FileNotFoundException("程序有误,需要读的文件找不到,文件名:" + pathname);
 		}
 		// 刚好写完上次文件没有扩容的情况
 		if (dataIdx != 0 && dataIdx * 8 % mfs == 0) {
@@ -148,11 +153,11 @@ final class Writer<E> extends Mapped {
 	private DataFile initDataMapped() throws IOException {
 		long name = DataFile.name(path, offsetIdx, mfs);
 		if (name < 0 || offsetIdx - name > mfs || offsetIdx < name) {
-			throw new RuntimeException("文件偏移量异常, 获取的数据文件: " + name + ", 当前需要写入的偏移量: " + offsetIdx);
+			throw new IOException("文件偏移量异常, 获取的数据文件: " + name + ", 当前需要写入的偏移量: " + offsetIdx);
 		}
 		Path pathname = pathname(path, name, DataFile.EXTENSION);
 		if (dataIdx != 0 && Files.notExists(pathname)) {
-			throw new RuntimeException("文件不存在！" + pathname);
+			throw new FileNotFoundException("文件不存在！" + pathname);
 		}
 		maxOffsetIdx = name + mfs;
 		//最大offset减去上个文件最大的offset等于当前文件开始写的offset

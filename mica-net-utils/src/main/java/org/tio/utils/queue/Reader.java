@@ -3,6 +3,7 @@ package org.tio.utils.queue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -99,7 +100,7 @@ final class Reader<E> extends Mapped {
 		}
 		int len = (int) (cur - offsetIdx); // 计算数据长度
 		if (len > mds) {
-			throw new RuntimeException("数据超长！ 最大长度：" + mds + ", 当前长度: " + len);
+			throw new IllegalArgumentException("数据超长！ 最大长度：" + mds + ", 当前长度: " + len);
 		}
 		byte[] buf = new byte[len];
 		data.read(buf, len); // 读数据到buf
@@ -118,7 +119,7 @@ final class Reader<E> extends Mapped {
 			dataName = offsetIdx;
 			log.debug("读取下一个数据文件: {}", nextFile);
 		} catch (Exception e) {
-			throw new RuntimeException("创建读取日志文件映射地址异常", e);
+			throw new IllegalStateException("创建读取日志文件映射地址异常", e);
 		}
 	}
 
@@ -126,7 +127,7 @@ final class Reader<E> extends Mapped {
 		try {
 			Path nextFile = pathname(path, dataIdx, OffsetFile.EXTENSION);
 			if (Files.notExists(nextFile)) {
-				throw new RuntimeException("文件不存在！- " + nextFile);
+				throw new IllegalArgumentException("文件不存在！- " + nextFile);
 			}
 			offset.close();
 			maxDataIdx += mfs / 8;
@@ -136,18 +137,18 @@ final class Reader<E> extends Mapped {
 			offsetName = dataIdx;
 			log.debug("读取下一个偏移量文件:{}", nextFile);
 		} catch (Exception e) {
-			throw new RuntimeException("创建数据偏移量文件映射地址异常", e);
+			throw new IllegalStateException("创建数据偏移量文件映射地址异常", e);
 		}
 	}
 
 	private DataFile initDataMapped() throws IOException {
 		dataName = DataFile.name(path, offsetIdx, mfs);
 		if (dataName < 0 || offsetIdx - dataName > mfs) {
-			throw new RuntimeException("文件偏移量异常, 获取的数据文件: " + dataName + ", 当前需要写入的偏移量: " + offsetIdx);
+			throw new IOException("文件偏移量异常, 获取的数据文件: " + dataName + ", 当前需要写入的偏移量: " + offsetIdx);
 		}
 		Path pathname = pathname(path, dataName, DataFile.EXTENSION);
 		if (dataIdx != 0 && Files.notExists(pathname)) {
-			throw new RuntimeException("文件不存在！" + pathname);
+			throw new FileNotFoundException("文件不存在！" + pathname);
 		}
 		maxOffsetIdx = dataName + mfs;
 		//最大offset减去上个文件最大的offset等于当前文件开始写的offset
@@ -174,7 +175,7 @@ final class Reader<E> extends Mapped {
 		}
 		Path pathname = pathname(path, name, OffsetFile.EXTENSION);
 		if (dataIdx != 0 && Files.notExists(pathname)) {
-			throw new RuntimeException("程序有误,需要读的文件找不到,文件名:" + pathname);
+			throw new FileNotFoundException("程序有误,需要读的文件找不到,文件名:" + pathname);
 		}
 		offsetName = name;
 		if (dataIdx != 0 && dataIdx * 8 % mfs == 0) {

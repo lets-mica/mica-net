@@ -41,6 +41,10 @@ public final class FileQueue<E> {
 		writer.write(element, mapper);
 	}
 
+	public void put(byte[] data) {
+		writer.write(data);
+	}
+
 	public E take(Function<byte[], E> mapper) throws InterruptedException {
 		return reader.take(mapper);
 	}
