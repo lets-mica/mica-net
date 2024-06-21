@@ -196,10 +196,13 @@ package org.tio.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.Node;
+import org.tio.server.task.ServerHeartbeatTask;
 import org.tio.utils.SysConst;
 import org.tio.utils.Version;
 import org.tio.utils.hutool.DateUtil;
 import org.tio.utils.hutool.StrUtil;
+import org.tio.utils.timer.DefaultTimerTaskService;
+import org.tio.utils.timer.TimerTaskService;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -218,26 +221,32 @@ import java.util.concurrent.TimeUnit;
  */
 public class TioServer {
 	private static final Logger log = LoggerFactory.getLogger(TioServer.class);
-	private final TioServerConfig tioServerConfig;
+	private final TioServerConfig serverConfig;
+	private final TimerTaskService taskService;
 	private AsynchronousServerSocketChannel serverSocketChannel;
 	private AsynchronousChannelGroup channelGroup = null;
 	private Node serverNode;
 	private boolean isWaitingStop = false;
 
 	/**
-	 * @param tioServerConfig TioServerConfig
+	 * @param serverConfig TioServerConfig
 	 * @author tanyaowu
 	 * 2017年1月2日 下午5:53:06
 	 */
-	public TioServer(TioServerConfig tioServerConfig) {
-		this.tioServerConfig = tioServerConfig;
+	public TioServer(TioServerConfig serverConfig) {
+		this.serverConfig = serverConfig;
+		this.taskService = getTimerTaskService(serverConfig.getTaskService());
+	}
+
+	private static TimerTaskService getTimerTaskService(TimerTaskService taskService) {
+		return taskService == null ? new DefaultTimerTaskService() : taskService;
 	}
 
 	/**
 	 * @return the tioServerConfig
 	 */
-	public TioServerConfig getTioServerConfig() {
-		return tioServerConfig;
+	public TioServerConfig getServerConfig() {
+		return serverConfig;
 	}
 
 	/**
@@ -261,10 +270,28 @@ public class TioServer {
 		return isWaitingStop;
 	}
 
+	/**
+	 * 定时任务：发心跳
+	 */
+	private void startHeartbeatTask() {
+		// 启动任务服务
+		this.taskService.start();
+		// 先判断是否取消默认的心跳机制
+		if (serverConfig.heartbeatTimeout <= 0) {
+			log.warn("用户取消了 mica-net 的心跳定时发送功能，请确认是否自定义心跳机制");
+			return;
+		}
+		// 开启默认的心跳任务
+		this.taskService.addTask(systemTimer -> new ServerHeartbeatTask(systemTimer, serverConfig));
+	}
+
 	public void start(String serverIp, int serverPort) throws IOException {
 		long start = System.currentTimeMillis();
+		// 启动心跳检测任务
+		startHeartbeatTask();
+		// 启动服务
 		this.serverNode = new Node(serverIp, serverPort);
-		channelGroup = AsynchronousChannelGroup.withThreadPool(tioServerConfig.groupExecutor);
+		channelGroup = AsynchronousChannelGroup.withThreadPool(serverConfig.groupExecutor);
 		serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
 
 		serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
@@ -279,10 +306,10 @@ public class TioServer {
 
 		serverSocketChannel.bind(listenAddress, 0);
 
-		AcceptCompletionHandler acceptCompletionHandler = tioServerConfig.getAcceptCompletionHandler();
+		AcceptCompletionHandler acceptCompletionHandler = serverConfig.getAcceptCompletionHandler();
 		serverSocketChannel.accept(this, acceptCompletionHandler);
 
-		tioServerConfig.startTime = System.currentTimeMillis();
+		serverConfig.startTime = System.currentTimeMillis();
 
 		//下面这段代码有点无聊，写得随意，纯粹是为了打印好看些
 		String baseStr = "|----------------------------------------------------------------------------------------|";
@@ -293,7 +320,7 @@ public class TioServer {
 		int aaLen = baseLen - 3;
 		List<String> infoList = new ArrayList<>();
 		// 打印启动信息
-		infoList.add(StrUtil.fillAfter("TioConfig name", ' ', xxLen) + "| " + tioServerConfig.getName());
+		infoList.add(StrUtil.fillAfter("TioConfig name", ' ', xxLen) + "| " + serverConfig.getName());
 		infoList.add(StrUtil.fillAfter("Mica net version", ' ', xxLen) + "| " + Version.getVersion());
 		infoList.add(StrUtil.fillAfter("Started at", ' ', xxLen) + "| " + DateUtil.formatDateTime(LocalDateTime.now()));
 		infoList.add(StrUtil.fillAfter("Listen on", ' ', xxLen) + "| " + this.serverNode);
@@ -330,7 +357,7 @@ public class TioServer {
 	public boolean stop() {
 		isWaitingStop = true;
 		// 删除实例
-		tioServerConfig.remove();
+		serverConfig.remove();
 		try {
 			channelGroup.shutdownNow();
 		} catch (Exception e) {
@@ -342,21 +369,21 @@ public class TioServer {
 			log.error("serverSocketChannel.close()时报错", e1);
 		}
 		// 停止心跳线程
-		tioServerConfig.setStopped(true);
+		serverConfig.setStopped(true);
 		try {
-			tioServerConfig.groupExecutor.shutdown();
+			serverConfig.groupExecutor.shutdown();
 		} catch (Exception e1) {
 			log.error(e1.getMessage(), e1);
 		}
 		try {
-			tioServerConfig.tioExecutor.shutdown();
+			serverConfig.tioExecutor.shutdown();
 		} catch (Exception e1) {
 			log.error(e1.getMessage(), e1);
 		}
 		boolean ret;
 		try {
-			ret = tioServerConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
-			ret = ret && tioServerConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
+			ret = serverConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
+			ret = ret && serverConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			ret = false;
 			Thread.currentThread().interrupt();

@@ -55,12 +55,13 @@ public class ClientHeartbeatTask extends TimerTask {
 
 	@Override
 	public void run() {
-		// 1. 添加 task，保持后续执行
-		timer.add(this);
-		// 2. 已经停止，跳过
+		// 1. 已经停止，跳过
 		if (clientConfig.isStopped()) {
 			return;
 		}
+		// 2. 添加 task，保持后续执行
+		timer.add(this);
+		// 3. 心跳检测
 		Set<ChannelContext> set = clientConfig.connecteds;
 		HeartbeatMode heartbeatMode = clientConfig.getHeartbeatMode();
 		long currTime = System.currentTimeMillis();

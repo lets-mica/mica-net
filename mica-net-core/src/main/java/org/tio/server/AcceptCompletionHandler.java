@@ -219,7 +219,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	@Override
 	public void completed(AsynchronousSocketChannel asynchronousSocketChannel, TioServer tioServer) {
 		try {
-			TioServerConfig tioServerConfig = tioServer.getTioServerConfig();
+			TioServerConfig tioServerConfig = tioServer.getServerConfig();
 			if (tioServerConfig.statOn) {
 				((ServerGroupStat) tioServerConfig.groupStat).accepted.increment();
 			}
