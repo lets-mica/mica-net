@@ -25,7 +25,7 @@ import org.tio.client.intf.TioClientHandler;
 import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
 import org.tio.core.intf.Packet;
-import org.tio.core.task.HeartbeatDetectionMode;
+import org.tio.core.task.HeartbeatMode;
 import org.tio.utils.timer.Timer;
 import org.tio.utils.timer.TimerTask;
 
@@ -69,8 +69,8 @@ public class ClientHeartbeatTask extends TimerTask {
 				if (channelContext.isClosed() || channelContext.isRemoved()) {
 					continue;
 				}
-				HeartbeatDetectionMode heartbeatDetectionMode = clientConfig.getHeartbeatDetectionMode();
-				long compareTime = heartbeatDetectionMode.getLastTime(channelContext.stat);
+				HeartbeatMode heartbeatMode = clientConfig.getHeartbeatMode();
+				long compareTime = heartbeatMode.getLastTime(channelContext.stat);
 				long interval = currTime - compareTime;
 				if (interval >= clientConfig.heartbeatTimeout / 2) {
 					Packet packet = tioHandler.heartbeatPacket(channelContext);

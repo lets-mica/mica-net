@@ -23,7 +23,7 @@ import org.tio.core.stat.ChannelStat;
  *
  * @author L.cm
  */
-public enum HeartbeatDetectionMode {
+public enum HeartbeatMode {
 
 	/**
 	 * 最后的请求

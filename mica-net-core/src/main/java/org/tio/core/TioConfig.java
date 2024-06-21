@@ -202,7 +202,7 @@ import org.tio.core.ssl.SslConfig;
 import org.tio.core.stat.GroupStat;
 import org.tio.core.stat.vo.StatVo;
 import org.tio.core.task.CloseRunnable;
-import org.tio.core.task.HeartbeatDetectionMode;
+import org.tio.core.task.HeartbeatMode;
 import org.tio.core.uuid.DefaultTioUuid;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.prop.MapPropSupport;
@@ -268,7 +268,7 @@ public abstract class TioConfig extends MapPropSupport {
 	/**
 	 * 心跳检测模式
 	 */
-	private HeartbeatDetectionMode heartbeatDetectionMode = HeartbeatDetectionMode.ALL;
+	private HeartbeatMode heartbeatMode = HeartbeatMode.ALL;
 	/**
 	 * 解码出现异常时，是否打印异常日志
 	 */
@@ -435,12 +435,12 @@ public abstract class TioConfig extends MapPropSupport {
 		this.heartbeatTimeout = heartbeatTimeout;
 	}
 
-	public HeartbeatDetectionMode getHeartbeatDetectionMode() {
-		return heartbeatDetectionMode;
+	public HeartbeatMode getHeartbeatMode() {
+		return heartbeatMode;
 	}
 
-	public void setHeartbeatDetectionMode(HeartbeatDetectionMode heartbeatDetectionMode) {
-		this.heartbeatDetectionMode = heartbeatDetectionMode;
+	public void setHeartbeatMode(HeartbeatMode heartbeatMode) {
+		this.heartbeatMode = heartbeatMode;
 	}
 
 	/**
