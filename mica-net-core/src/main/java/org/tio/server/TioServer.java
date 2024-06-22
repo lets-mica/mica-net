@@ -279,7 +279,7 @@ public class TioServer {
 		// 先判断是否开启心跳检测
 		if (serverConfig.heartbeatTimeout > 0) {
 			this.taskService.addTask(systemTimer -> new ServerHeartbeatTask(systemTimer, serverConfig));
-		} else {
+		} else if (this.serverConfig.isNeedCheckHeartbeat()) {
 			log.warn("用户取消了 mica-net 的心跳定时发送功能，请确认是否自定义心跳机制");
 		}
 	}
