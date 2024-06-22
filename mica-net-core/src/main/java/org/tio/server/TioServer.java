@@ -357,6 +357,8 @@ public class TioServer {
 		isWaitingStop = true;
 		// 删除实例
 		serverConfig.remove();
+		// 停止 taskService
+		this.taskService.stop();
 		try {
 			channelGroup.shutdownNow();
 		} catch (Exception e) {
