@@ -4,6 +4,7 @@
 
 ### v1.0.1 - 2024-06-23
 - :sparkles: 添加心跳检测模式，支持 ALL、LAST_REQ 和 LAST_RESP
+- :sparkles: 服务端心跳改为时间轮
 - :sparkles: 完善 FileQueue 准备使用
 - :sparkles: 添加 NodeSelector，为客户端集群做准备
 - :sparkles: 调试集群，优化集群 data 消息支持的消息长度。
