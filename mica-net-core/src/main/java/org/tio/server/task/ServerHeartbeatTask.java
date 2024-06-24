@@ -69,7 +69,8 @@ public class ServerHeartbeatTask extends TimerTask {
 		long start = System.currentTimeMillis();
 		Set<ChannelContext> contextSet = serverConfig.connections;
 		// keepAlive * keepAliveBackoff * 2 时间作为服务端心跳超时时间
-		long heartbeatTimeout = (long) (serverConfig.heartbeatTimeout * serverConfig.getHeartbeatBackoff());
+		float heartbeatBackoff = serverConfig.getHeartbeatBackoff();
+		long heartbeatTimeout = (long) (serverConfig.heartbeatTimeout * heartbeatBackoff);
 		long start1 = 0;
 		int count = 0;
 		long decodeQueueSizeAll = 0;
@@ -84,7 +85,7 @@ public class ServerHeartbeatTask extends TimerTask {
 				long interval = currTime - compareTime;
 				boolean needRemove;
 				if (channelContext.heartbeatTimeout != null && channelContext.heartbeatTimeout > 0) {
-					needRemove = interval > channelContext.heartbeatTimeout;
+					needRemove = interval > channelContext.heartbeatTimeout * heartbeatBackoff;
 				} else {
 					needRemove = interval > heartbeatTimeout;
 				}
