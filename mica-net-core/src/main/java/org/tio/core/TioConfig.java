@@ -205,7 +205,6 @@ import org.tio.core.task.CloseRunnable;
 import org.tio.core.task.HeartbeatMode;
 import org.tio.core.uuid.DefaultTioUuid;
 import org.tio.server.TioServerConfig;
-import org.tio.utils.prop.MapPropSupport;
 import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
@@ -223,7 +222,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author tanyaowu
  * 2016年10月10日 下午5:25:43
  */
-public abstract class TioConfig extends MapPropSupport {
+public abstract class TioConfig {
 	/**
 	 * 默认的接收数据的buffer size
 	 */

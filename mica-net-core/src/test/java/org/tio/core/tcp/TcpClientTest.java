@@ -18,6 +18,7 @@ public class TcpClientTest {
 		TioClientConfig config = new TioClientConfig(tioHandler, new DefaultTioClientListener());
 		config.setReconnConf(new ReconnConf());
 		TioClient tioClient = new TioClient(config);
+		config.debug = true;
 		ClientChannelContext connect = tioClient.connect(new Node("127.0.0.1", 502));
 		// 示例定时上报消息
 		tioClient.schedule(() -> {
