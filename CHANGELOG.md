@@ -2,14 +2,15 @@
 
 ## 发行版本
 
-### v1.0.1 - 2024-06-23
-- :sparkles: 添加心跳检测模式，支持 ALL、LAST_REQ 和 LAST_RESP
+### v1.0.1 - 2024-06-30
 - :sparkles: 服务端心跳改为时间轮
+- :sparkles: 服务端添加 heartbeatBackoff，默认为：1.0F（保持跟老版本兼容）
+- :sparkles: 添加心跳检测模式，支持 LAST_REQ、LAST_RESP 和 ALL，默认：ALL（保持跟老版本兼容）
 - :sparkles: 完善 FileQueue 准备使用
 - :sparkles: 添加 NodeSelector，为客户端集群做准备
 - :sparkles: 调试集群，优化集群 data 消息支持的消息长度。
 - :sparkles: 升级 github action，优化 maven 配置
-- :sparkles: Add renovate bot 方便升级依赖和插件
+- :sparkles: 添加 renovate bot 方便升级依赖和插件
 
 ### v1.0.0 - 2024-05-25
 - :sparkles: 只在发送成功时更新发送时间
