@@ -221,6 +221,12 @@ public class TioServerConfig extends TioConfig {
     private final AcceptCompletionHandler acceptCompletionHandler;
 	private final TioServerHandler tioServerHandler;
 	private final TioServerListener tioServerListener;
+	/**
+	 * heartbeat 系数，连接超时缺省为连接设置的 heartbeatTimeout * heartbeatBackoff * 2，默认：1.0F
+	 * <p>
+	 * 如果读者想对该值做一些调整，可以在此进行配置。比如设置为 0.75，则变为 keepalive * 1.5。但是该值不得小于 0.5，否则将小于 keepalive 设定的时间。
+	 */
+	private float heartbeatBackoff = 1.0F;
 	private boolean needCheckHeartbeat = true;
 	private boolean isShared = false;
 	/**
@@ -374,6 +380,17 @@ public class TioServerConfig extends TioConfig {
 	@Override
 	public boolean isServer() {
 		return true;
+	}
+
+	public float getHeartbeatBackoff() {
+		return heartbeatBackoff;
+	}
+
+	public void setHeartbeatBackoff(float heartbeatBackoff) {
+		if (heartbeatBackoff < 0.5) {
+			throw new IllegalArgumentException("keepalive backoff must greater than 0.5");
+		}
+		this.heartbeatBackoff = heartbeatBackoff;
 	}
 
 	public boolean isNeedCheckHeartbeat() {

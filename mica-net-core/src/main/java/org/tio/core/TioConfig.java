@@ -264,7 +264,7 @@ public abstract class TioConfig extends MapPropSupport {
 	/**
 	 * 心跳超时时间(单位: 毫秒)，如果用户不希望框架层面做心跳相关工作，请把此值设为0或负数
 	 */
-	public long heartbeatTimeout = 1000L * 120;
+	public long heartbeatTimeout = 60 * 2 * 1000L;
 	/**
 	 * 心跳检测模式
 	 */

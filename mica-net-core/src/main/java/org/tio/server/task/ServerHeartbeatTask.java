@@ -68,7 +68,8 @@ public class ServerHeartbeatTask extends TimerTask {
 		// 心跳检测
 		long start = System.currentTimeMillis();
 		Set<ChannelContext> contextSet = serverConfig.connections;
-		long heartbeatTimeout = serverConfig.heartbeatTimeout;
+		// keepAlive * keepAliveBackoff * 2 时间作为服务端心跳超时时间
+		long heartbeatTimeout = (long) (serverConfig.heartbeatTimeout * serverConfig.getHeartbeatBackoff());
 		long start1 = 0;
 		int count = 0;
 		long decodeQueueSizeAll = 0;
