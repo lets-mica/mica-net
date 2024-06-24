@@ -6,6 +6,7 @@
 - :sparkles: 服务端心跳改为时间轮
 - :sparkles: 服务端添加 `heartbeatBackoff`，默认为：1.0F（保持跟老版本兼容）
 - :sparkles: 添加心跳检测模式 `HeartbeatMode`，支持 LAST_REQ、LAST_RESP 和 ALL，默认：ALL（保持跟老版本兼容）
+- :sparkles: 简化 `TioConfig` 不继承 `MapPropSupport`
 - :sparkles: 完善 `FileQueue` 准备使用
 - :sparkles: 添加 `NodeSelector`，为客户端集群做准备
 - :sparkles: 调试集群，优化集群 data 消息支持的消息长度。
