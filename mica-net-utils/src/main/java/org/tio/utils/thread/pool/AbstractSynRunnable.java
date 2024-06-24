@@ -277,7 +277,7 @@ public abstract class AbstractSynRunnable implements Runnable {
 	}
 
 	/**
-	 * @author tanyaowu
+	 * 执行任务
 	 */
 	public abstract void runTask();
 

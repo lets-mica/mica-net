@@ -202,6 +202,7 @@ import org.tio.core.ChannelContext;
 import org.tio.core.PacketHandlerMode;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.Packet;
+import org.tio.core.intf.TioListener;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.util.Map;
@@ -219,6 +220,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 
 	private final ChannelContext channelContext;
 	private final TioConfig tioConfig;
+	private final TioListener tioListener;
 	private final AtomicLong synFailCount = new AtomicLong();
 	/**
 	 * The msg queue.
@@ -229,6 +231,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 		super(executor);
 		this.channelContext = channelContext;
 		this.tioConfig = channelContext.tioConfig;
+		this.tioListener = this.tioConfig.getTioListener();
 		this.msgQueue = PacketHandlerMode.QUEUE == tioConfig.packetHandlerMode ? new ConcurrentLinkedQueue<>() : null;
 	}
 
@@ -270,9 +273,9 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 				tioConfig.groupStat.handledBytes.add(packet.getByteCount());
 				tioConfig.groupStat.handledPacketCosts.add(iv);
 			}
-			if (tioConfig.getTioListener() != null) {
+			if (tioListener != null) {
 				try {
-					tioConfig.getTioListener().onAfterHandled(channelContext, packet, iv);
+					tioListener.onAfterHandled(channelContext, packet, iv);
 				} catch (Exception e) {
 					log.error(e.getMessage(), e);
 				}

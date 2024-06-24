@@ -427,10 +427,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		return this.getClass().getSimpleName() + ':' + channelContext.toString();
 	}
 
-	/**
-	 * @return
-	 * @author tanyaowu
-	 */
 	@Override
 	public String logstr() {
 		return toString();

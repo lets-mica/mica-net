@@ -199,6 +199,7 @@ import org.tio.client.ClientChannelContext;
 import org.tio.client.ReconnConf;
 import org.tio.client.TioClientConfig;
 import org.tio.core.ChannelContext;
+import org.tio.core.intf.TioListener;
 import org.tio.core.maintain.MaintainUtils;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
@@ -236,14 +237,16 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 				Throwable throwable = channelContext.closeMeta.throwable;
 
 				channelContext.stat.timeClosed = System.currentTimeMillis();
-				if (channelContext.tioConfig.getTioListener() != null) {
+
+				// 监听器
+				TioListener tioListener = channelContext.tioConfig.getTioListener();
+				if (tioListener != null) {
 					try {
-						channelContext.tioConfig.getTioListener().onBeforeClose(channelContext, throwable, remark, isNeedRemove);
+						tioListener.onBeforeClose(channelContext, throwable, remark, isNeedRemove);
 					} catch (Throwable e) {
 						log.error(e.getMessage(), e);
 					}
 				}
-
 				try {
 					if (channelContext.isClosed() && !isNeedRemove) {
 						log.info("{}, {}已经关闭，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark, throwable == null ? "无" : throwable.toString());

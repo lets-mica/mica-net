@@ -202,6 +202,8 @@ import org.tio.core.TioConfig;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.IgnorePacket;
 import org.tio.core.intf.Packet;
+import org.tio.core.intf.TioHandler;
+import org.tio.core.intf.TioListener;
 import org.tio.core.stat.ChannelStat;
 import org.tio.utils.buffer.ByteBufferUtil;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
@@ -222,6 +224,8 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	private static final Logger log = LoggerFactory.getLogger(DecodeRunnable.class);
 	private final ChannelContext channelContext;
 	private final TioConfig tioConfig;
+	private final TioHandler tioHandler;
+	private final TioListener tioListener;
 	/**
 	 * The msg queue.
 	 */
@@ -239,6 +243,8 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 		super(executor);
 		this.channelContext = channelContext;
 		this.tioConfig = channelContext.tioConfig;
+		this.tioHandler = this.tioConfig.getTioHandler();
+		this.tioListener = this.tioConfig.getTioListener();
 		this.msgQueue = tioConfig.useQueueDecode ? new ConcurrentLinkedQueue<>() : null;
 	}
 
@@ -290,7 +296,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 			byteBuffer = ByteBufferUtil.composite(lastByteBuffer, byteBuffer);
 			lastByteBuffer = null;
 		}
-
 		while (true) {
 			try {
 				int initPosition = byteBuffer.position();
@@ -302,11 +307,11 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						log.debug("{}, 解码所需长度:{}", channelContext, channelContext.packetNeededLength);
 					}
 					if (readableLength >= channelContext.packetNeededLength) {
-						packet = tioConfig.getTioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
+						packet = tioHandler.decode(byteBuffer, limit, initPosition, readableLength, channelContext);
 					}
 				} else {
 					try {
-						packet = tioConfig.getTioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
+						packet = tioHandler.decode(byteBuffer, limit, initPosition, readableLength, channelContext);
 					} catch (BufferUnderflowException e) {
 						//数据不够读
 					}
@@ -355,9 +360,9 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						channelContext.stat.receivedPackets.incrementAndGet();
 					}
 
-					if (tioConfig.getTioListener() != null) {
+					if (tioListener != null) {
 						try {
-							tioConfig.getTioListener().onAfterDecoded(channelContext, packet, packetSize);
+							tioListener.onAfterDecoded(channelContext, packet, packetSize);
 						} catch (Throwable e) {
 							log.error(e.getMessage(), e);
 						}
