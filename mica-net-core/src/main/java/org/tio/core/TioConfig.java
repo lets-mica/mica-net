@@ -240,6 +240,10 @@ public abstract class TioConfig extends MapPropSupport {
 	 * 本jvm中所有的TioConfig对象
 	 */
 	public static final Set<TioConfig> ALL_GROUP_CONTEXTS = new HashSet<>();
+	/**
+	 * 默认的超时时间，60 * 2 * 1000
+	 */
+	public static final long DEFAULT_HEARTBEAT_TIMEOUT = 120_000L;
 	private static final AtomicInteger ID_ATOMIC = new AtomicInteger();
 	static Logger log = LoggerFactory.getLogger(TioConfig.class);
 	public final String id;
@@ -264,7 +268,7 @@ public abstract class TioConfig extends MapPropSupport {
 	/**
 	 * 心跳超时时间(单位: 毫秒)，如果用户不希望框架层面做心跳相关工作，请把此值设为0或负数
 	 */
-	public long heartbeatTimeout = 60 * 2 * 1000L;
+	public long heartbeatTimeout = DEFAULT_HEARTBEAT_TIMEOUT;
 	/**
 	 * 心跳检测模式
 	 */
