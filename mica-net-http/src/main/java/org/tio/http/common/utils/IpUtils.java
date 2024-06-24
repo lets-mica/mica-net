@@ -218,7 +218,7 @@ public class IpUtils {
 	/**
 	 * 如果是被代理了，获取客户端ip时，依次从下面这些头部中获取
 	 */
-	private static final String[] HEADER_NAMES_FOR_REALIP = new String[]{"x-forwarded-for", "proxy-client-ip", "wl-proxy-client-ip", "x-real-ip"};
+	private static final String[] HEADER_NAMES_FOR_REAL_IP = new String[]{"x-forwarded-for", "proxy-client-ip", "wl-proxy-client-ip", "x-real-ip"};
 	private static final Pattern IP_PATTERN = Pattern.compile("([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}");
 
 	/**
@@ -266,7 +266,7 @@ public class IpUtils {
 		if (request.httpConfig.isProxied()) {
 			String headerName = null;
 			String ip = null;
-			for (String name : HEADER_NAMES_FOR_REALIP) {
+			for (String name : HEADER_NAMES_FOR_REAL_IP) {
 				headerName = name;
 				ip = request.getHeader(headerName);
 				if (StrUtil.isNotBlank(ip) && !"unknown".equalsIgnoreCase(ip)) {
@@ -303,7 +303,7 @@ public class IpUtils {
 		if (httpConfig.isProxied()) {
 			String headerName = null;
 			String ip = null;
-			for (String name : HEADER_NAMES_FOR_REALIP) {
+			for (String name : HEADER_NAMES_FOR_REAL_IP) {
 				headerName = name;
 				ip = httpHeaders.get(headerName);
 				if (StrUtil.isNotBlank(ip) && !"unknown".equalsIgnoreCase(ip)) {

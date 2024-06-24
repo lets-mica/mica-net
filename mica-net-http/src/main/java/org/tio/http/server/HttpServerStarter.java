@@ -196,7 +196,6 @@ package org.tio.http.server;
 import org.tio.core.TcpConst;
 import org.tio.core.uuid.SeqTioUuid;
 import org.tio.http.common.HttpConfig;
-import org.tio.http.common.TioConfigKey;
 import org.tio.http.common.handler.HttpRequestHandler;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
@@ -253,8 +252,6 @@ public class HttpServerStarter {
 		this.tioServerConfig.setHeartbeatTimeout(1000 * 20L);
 		this.tioServerConfig.setShortConnection(true);
 		this.tioServerConfig.setReadBufferSize(TcpConst.MAX_DATA_LENGTH);
-		this.tioServerConfig.set(TioConfigKey.HTTP_REQ_HANDLER, this.httpRequestHandler);
-
 		this.tioServer = new TioServer(tioServerConfig);
 		this.tioServerConfig.setTioUuid(new SeqTioUuid());
 	}
