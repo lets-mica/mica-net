@@ -68,9 +68,11 @@ public class ServerHeartbeatTask extends TimerTask {
 		// 心跳检测
 		long start = System.currentTimeMillis();
 		Set<ChannelContext> contextSet = serverConfig.connections;
+		// 心跳检测周期
+		long heartbeatPeriod = serverConfig.heartbeatTimeout;
 		// keepAlive * keepAliveBackoff * 2 时间作为服务端心跳超时时间
 		float heartbeatBackoff = serverConfig.getHeartbeatBackoff();
-		long heartbeatTimeout = (long) (serverConfig.heartbeatTimeout * heartbeatBackoff);
+		long heartbeatTimeout = (long) (heartbeatPeriod * heartbeatBackoff);
 		long start1 = 0;
 		int count = 0;
 		long decodeQueueSizeAll = 0;
@@ -143,7 +145,7 @@ public class ServerHeartbeatTask extends TimerTask {
 					long end = System.currentTimeMillis();
 					long iv1 = start1 - start;
 					long iv = end - start1;
-					log.warn("{}, 检查心跳, 共{}个连接, 取锁耗时{}ms, 循环耗时{}ms, 心跳超时时间:{}ms", serverConfig.getName(), count, iv1, iv, heartbeatTimeout);
+					log.warn("{}, 检查心跳, 共{}个连接, 取锁耗时{}ms, 循环耗时{}ms, 心跳检测周期:{}ms, 心跳超时时间:{}ms", serverConfig.getName(), count, iv1, iv, heartbeatPeriod, heartbeatTimeout);
 				}
 			} catch (Throwable e) {
 				log.error(e.getMessage(), e);
