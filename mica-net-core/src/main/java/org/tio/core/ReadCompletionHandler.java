@@ -196,6 +196,7 @@ package org.tio.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext.CloseCode;
+import org.tio.core.intf.TioListener;
 import org.tio.core.utils.TioUtils;
 import org.tio.utils.buffer.ByteBufferUtil;
 
@@ -230,9 +231,10 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 
 			channelContext.stat.latestTimeOfReceivedByte = System.currentTimeMillis();
 
-			if (tioConfig.getTioListener() != null) {
+			TioListener tioListener = tioConfig.getTioListener();
+			if (tioListener != null) {
 				try {
-					tioConfig.getTioListener().onAfterReceivedBytes(channelContext, result);
+					tioListener.onAfterReceivedBytes(channelContext, result);
 				} catch (Exception e) {
 					log.error("", e);
 				}

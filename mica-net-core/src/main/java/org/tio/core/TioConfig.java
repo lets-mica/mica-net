@@ -271,7 +271,7 @@ public abstract class TioConfig {
 	/**
 	 * 心跳检测模式
 	 */
-	private HeartbeatMode heartbeatMode = HeartbeatMode.ALL;
+	private HeartbeatMode heartbeatMode = HeartbeatMode.ANY;
 	/**
 	 * 解码出现异常时，是否打印异常日志
 	 */

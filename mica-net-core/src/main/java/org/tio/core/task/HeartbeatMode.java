@@ -46,12 +46,22 @@ public enum HeartbeatMode {
 	},
 
 	/**
-	 * 请求
+	 * 请求或响应有一个在保活时间内就行
+	 */
+	ANY {
+		@Override
+		public long getLastTime(ChannelStat stat) {
+			return Math.max(stat.latestTimeOfReceivedPacket, stat.latestTimeOfSentPacket);
+		}
+	},
+
+	/**
+	 * 请求和响应都得小于保活时间
 	 */
 	ALL {
 		@Override
 		public long getLastTime(ChannelStat stat) {
-			return Math.max(stat.latestTimeOfReceivedPacket, stat.latestTimeOfSentPacket);
+			return Math.min(stat.latestTimeOfReceivedPacket, stat.latestTimeOfSentPacket);
 		}
 	};
 
