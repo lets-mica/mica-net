@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v1.0.2 - 2024-06-24
+- :sparkles: 优化心跳日志
+- :sparkles: 优化心跳保活策略 `HeartbeatMode`，添加 `ANY`，区分 `ANY` 和 `ALL`，并默认为 `ANY`。
+
 ### v1.0.1 - 2024-06-24
 - :sparkles: 服务端心跳改为时间轮
 - :sparkles: 服务端添加 `heartbeatBackoff`，默认为：1.0F（保持跟老版本兼容）
