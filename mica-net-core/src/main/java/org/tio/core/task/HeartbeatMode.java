@@ -41,7 +41,7 @@ public enum HeartbeatMode {
 	LAST_RESP {
 		@Override
 		public long getLastTime(ChannelStat stat) {
-			return stat.latestTimeOfReceivedByte;
+			return stat.latestTimeOfReceivedPacket;
 		}
 	},
 
@@ -51,7 +51,7 @@ public enum HeartbeatMode {
 	ALL {
 		@Override
 		public long getLastTime(ChannelStat stat) {
-			return Math.max(stat.latestTimeOfReceivedByte, stat.latestTimeOfSentPacket);
+			return Math.max(stat.latestTimeOfReceivedPacket, stat.latestTimeOfSentPacket);
 		}
 	};
 
