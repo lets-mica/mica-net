@@ -48,7 +48,7 @@
         <hutool.version>5.8.28</hutool.version>
         <slf4j.version>2.0.13</slf4j.version>
         <tinylog.version>2.7.0</tinylog.version>
-        <junit-jupiter.version>5.10.2</junit-jupiter.version>
+        <junit-jupiter.version>5.10.3</junit-jupiter.version>
         <annotations.version>24.1.0</annotations.version>
     </properties>
 
