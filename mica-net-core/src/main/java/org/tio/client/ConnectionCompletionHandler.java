@@ -246,12 +246,20 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 		String bindIp = attachment.getBindIp();
 		Integer bindPort = attachment.getBindPort();
 		TioClientListener tioClientListener = tioClientConfig.getTioClientListener();
+		boolean isSsl = SslUtils.isSsl(tioClientConfig);
 		boolean isReconnect = attachment.isReconnect();
 		boolean isConnected = false;
 
 		try {
-			if (throwable == null) {
-				if (isReconnect) {
+			if (throwable == null ) {
+				// ssl 如果是服务端重启，需要重新生成 SSLContext 对象
+				if (isSsl && isReconnect && CloseCode.CLOSED_BY_PEER == channelContext.getCloseCode()) {
+					// 1. 先移除 channelContext
+					tioClientConfig.closeds.remove(channelContext);
+					// 2. 生成新的 channelContext
+					channelContext = new ClientChannelContext(tioClientConfig, asynchronousSocketChannel);
+					channelContext.setServerNode(serverNode);
+				} else if (isReconnect) {
 					channelContext.setAsynchronousSocketChannel(asynchronousSocketChannel);
 					channelContext.handlerRunnable.setCanceled(false);
 					channelContext.sendRunnable.setCanceled(false);
