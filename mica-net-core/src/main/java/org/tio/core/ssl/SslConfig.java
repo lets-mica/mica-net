@@ -198,25 +198,43 @@ import org.tio.utils.hutool.StrUtil;
 
 import javax.net.ssl.*;
 import java.io.InputStream;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
 /**
- * @author tanyaowu
+ * @author tanyaowu、L.cm
  */
 public class SslConfig {
 	private static final String ALGORITHM = "SunX509";
 	private final ClientAuth clientAuth;
-	private final SSLContext sslContext;
+	private final KeyManager[] kms;
+	private final TrustManager[] tms;
 
-	public SslConfig(SSLContext sslContext) {
-		this(ClientAuth.NONE, sslContext);
+	public SslConfig(KeyManager[] kms, TrustManager[] tms) {
+		this(ClientAuth.NONE, kms, tms);
 	}
 
-	public SslConfig(ClientAuth clientAuth, SSLContext sslContext) {
+	public SslConfig(ClientAuth clientAuth, KeyManager[] kms, TrustManager[] tms) {
 		this.clientAuth = clientAuth;
-		this.sslContext = sslContext;
+		this.kms = kms;
+		this.tms = tms;
+	}
+
+	public ClientAuth getClientAuth() {
+		return clientAuth;
+	}
+
+	public SSLContext getSslContext() {
+		try {
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(kms, tms, new SecureRandom());
+			return sslContext;
+		} catch (NoSuchAlgorithmException | KeyManagementException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
 	/**
@@ -243,7 +261,9 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forServer(String keyStoreFile, String keyPasswd, String trustStoreFile, String trustPassword, ClientAuth clientAuth) {
-		return new SslConfig(clientAuth, getSslContext(keyStoreFile, keyPasswd, trustStoreFile, trustPassword));
+		KeyManager[] kms = getKeyManager(keyStoreFile, keyPasswd);
+		TrustManager[] tms = getTrustManager(trustStoreFile, trustPassword);
+		return new SslConfig(clientAuth, kms, tms);
 	}
 
 	/**
@@ -276,7 +296,9 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forServer(InputStream keyStoreInputStream, String keyPasswd, InputStream trustStoreInputStream, String trustPassword, ClientAuth clientAuth) {
-		return new SslConfig(clientAuth, getSslContext(keyStoreInputStream, keyPasswd, trustStoreInputStream, trustPassword));
+		KeyManager[] kms = getKeyManager(keyStoreInputStream, keyPasswd);
+		TrustManager[] tms = getTrustManager(trustStoreInputStream, trustPassword);
+		return new SslConfig(clientAuth, kms, tms);
 	}
 
 	/**
@@ -303,7 +325,9 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forClient(String keyStoreFile, String keyPasswd, String trustStoreFile, String trustPassword) {
-		return new SslConfig(getSslContext(keyStoreFile, keyPasswd, trustStoreFile, trustPassword));
+		KeyManager[] kms = getKeyManager(keyStoreFile, keyPasswd);
+		TrustManager[] tms = getTrustManager(trustStoreFile, trustPassword);
+		return new SslConfig(kms, tms);
 	}
 
 	/**
@@ -312,7 +336,7 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forClient(InputStream trustStoreInputStream, String trustPassword) {
-		return new SslConfig(getSslContext(null, null, trustStoreInputStream, trustPassword));
+		return forClient(null, null, trustStoreInputStream, trustPassword);
 	}
 
 	/**
@@ -321,11 +345,12 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forClient(InputStream keyStoreInputStream, String keyPasswd, InputStream trustStoreInputStream, String trustPassword) {
-		return new SslConfig(getSslContext(keyStoreInputStream, keyPasswd, trustStoreInputStream, trustPassword));
+		KeyManager[] kms = getKeyManager(keyStoreInputStream, keyPasswd);
+		TrustManager[] tms = getTrustManager(trustStoreInputStream, trustPassword);
+		return new SslConfig(kms, tms);
 	}
 
-	public static SSLContext getSslContext(String keyStoreFile, String keyPass,
-										   String trustStoreFile, String trustPass) {
+	public static KeyManager[] getKeyManager(String keyStoreFile, String keyPass) {
 		InputStream keyStoreInputStream;
 		if (keyStoreFile == null) {
 			keyStoreInputStream = null;
@@ -334,6 +359,27 @@ public class SslConfig {
 		} else {
 			keyStoreInputStream = ResourceUtil.getFileResource(keyStoreFile);
 		}
+		return getKeyManager(keyStoreInputStream, keyPass);
+	}
+
+	public static KeyManager[] getKeyManager(InputStream keyStoreInputStream, String keyPass) {
+		if (keyStoreInputStream != null) {
+			try {
+				KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(ALGORITHM);
+				KeyStore keyStore = KeyStore.getInstance("JKS");
+				char[] keyPassChars = keyPass == null ? null : keyPass.toCharArray();
+				keyStore.load(keyStoreInputStream, keyPassChars);
+				keyManagerFactory.init(keyStore, keyPassChars);
+				return keyManagerFactory.getKeyManagers();
+			} catch (Exception e) {
+				throw new IllegalArgumentException(e);
+			}
+		} else {
+			return null;
+		}
+	}
+
+	public static TrustManager[] getTrustManager(String trustStoreFile, String trustPass) {
 		InputStream trustStoreInputStream;
 		if (trustStoreFile == null) {
 			trustStoreInputStream = null;
@@ -342,31 +388,19 @@ public class SslConfig {
 		} else {
 			trustStoreInputStream = ResourceUtil.getFileResource(trustStoreFile);
 		}
-		return getSslContext(keyStoreInputStream, keyPass, trustStoreInputStream, trustPass);
+		return getTrustManager(trustStoreInputStream, trustPass);
 	}
 
-	public static SSLContext getSslContext(InputStream keyStoreInputStream, String keyPass,
-										   InputStream trustInputStream, String trustPass) {
-		try {
-			KeyManager[] kms = null;
-			TrustManager[] tms = null;
-			if (keyStoreInputStream != null) {
-				KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(ALGORITHM);
-				KeyStore keyStore = KeyStore.getInstance("JKS");
-				char[] keyPassChars = keyPass == null ? null : keyPass.toCharArray();
-				keyStore.load(keyStoreInputStream, keyPassChars);
-				keyManagerFactory.init(keyStore, keyPassChars);
-				kms = keyManagerFactory.getKeyManagers();
+	public static TrustManager[] getTrustManager(InputStream trustInputStream, String trustPass) {
+		if (trustInputStream != null) {
+			char[] trustPassChars = trustPass == null ? null : trustPass.toCharArray();
+			try {
+				return getTrustManagers(trustInputStream, trustPassChars);
+			} catch (Exception e) {
+				throw new IllegalArgumentException(e);
 			}
-			if (trustInputStream != null) {
-				char[] trustPassChars = trustPass == null ? null : trustPass.toCharArray();
-				tms = getTrustManagers(trustInputStream, trustPassChars);
-			}
-			SSLContext sslContext = SSLContext.getInstance("TLS");
-			sslContext.init(kms, tms, new SecureRandom());
-			return sslContext;
-		} catch (Exception e) {
-			throw new IllegalArgumentException(e);
+		} else {
+			return null;
 		}
 	}
 
@@ -393,14 +427,6 @@ public class SslConfig {
 			trustManagerFactory.init(keyStore);
 			return trustManagerFactory.getTrustManagers();
 		}
-	}
-
-	public ClientAuth getClientAuth() {
-		return clientAuth;
-	}
-
-	public SSLContext getSslContext() {
-		return sslContext;
 	}
 
 }
