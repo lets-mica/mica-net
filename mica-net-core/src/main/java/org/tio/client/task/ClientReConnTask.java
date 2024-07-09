@@ -37,9 +37,8 @@ public class ClientReConnTask extends TimerTask {
 		if (tioClientConfig.isStopped()) {
 			return;
 		}
-		int connectionSize = tioClientConfig.connections.size();
 		if (tioClientConfig.debug && logger.isInfoEnabled()) {
-			logger.info("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), connectionSize);
+			logger.info("connecteds:{}, closeds:{}, connections:{}", tioClientConfig.connecteds.size(), tioClientConfig.closeds.size(), tioClientConfig.connections.size());
 		}
 		// 未连接的和已经删除的，不需要重新再连
 		if (channelContext.isRemoved()) {
@@ -53,7 +52,7 @@ public class ClientReConnTask extends TimerTask {
 		if (channelContext.isRemoved() || !channelContext.isClosed()) {
 			return;
 		}
-		channelContext.getReconnCount().incrementAndGet();
+		int reConnCount = channelContext.getReconnCount().incrementAndGet();
 		ReentrantReadWriteLock closeLock = channelContext.closeLock;
 		ReentrantReadWriteLock.WriteLock writeLock = closeLock.writeLock();
 		writeLock.lock();
@@ -66,7 +65,7 @@ public class ClientReConnTask extends TimerTask {
 			tioClient.reconnect(channelContext, 2);
 			long end = System.currentTimeMillis();
 			long iv = end - start;
-			logger.error("{}, 第{}次重连,重连耗时:{} ms", channelContext, channelContext.getReconnCount(), iv);
+			logger.error("{}, 第{}次重连,重连耗时:{} ms", channelContext, reConnCount, iv);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		} finally {
