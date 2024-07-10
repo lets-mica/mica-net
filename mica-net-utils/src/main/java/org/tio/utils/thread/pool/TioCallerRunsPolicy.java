@@ -209,8 +209,8 @@ public class TioCallerRunsPolicy extends CallerRunsPolicy {
 	}
 
 	public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
-		log.error(r.getClass().getSimpleName());
 		super.rejectedExecution(r, e);
+		log.error(r.getClass().getSimpleName());
 	}
 
 }
