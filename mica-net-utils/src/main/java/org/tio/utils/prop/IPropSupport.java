@@ -245,8 +245,9 @@ public interface IPropSupport {
 	/**
 	 * 获取并删除
 	 *
-	 * @param key key
-	 * @param <T> 泛型
+	 * @param key    key
+	 * @param mapper Function
+	 * @param <T>    泛型
 	 * @return T
 	 */
 	default <T> T getAndRemove(String key, Function<Object, T> mapper) {
@@ -258,6 +259,7 @@ public interface IPropSupport {
 	 *
 	 * @param key             key
 	 * @param mappingFunction mappingFunction
+	 * @param <V>             泛型
 	 * @return V
 	 */
 	<V> V computeIfAbsent(String key, Function<String, Object> mappingFunction);
@@ -274,7 +276,6 @@ public interface IPropSupport {
 	 * 删除属性
 	 *
 	 * @param key key
-	 * @author: tanyaowu
 	 */
 	void remove(String key);
 
@@ -283,7 +284,6 @@ public interface IPropSupport {
 	 *
 	 * @param key   key
 	 * @param value value
-	 * @author: tanyaowu
 	 */
 	void set(String key, Object value);
 }

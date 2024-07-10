@@ -29,6 +29,7 @@ public interface TimerTaskService {
 	 * 添加 ack 任务
 	 *
 	 * @param consumer timerTask consumer
+	 * @param <T>      泛型
 	 * @return TimerTask
 	 */
 	<T extends TimerTask> T addTask(Function<SystemTimer, T> consumer);

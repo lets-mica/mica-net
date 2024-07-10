@@ -31,7 +31,6 @@ public interface Cache<K extends Serializable, V extends Serializable> extends S
 	 *
 	 * @param key    键
 	 * @param object 缓存的对象
-	 * @see Cache#put(Object, Object, long)
 	 */
 	void put(K key, V object);
 
@@ -54,7 +53,6 @@ public interface Cache<K extends Serializable, V extends Serializable> extends S
 	 *
 	 * @param key 键
 	 * @return 键对应的对象
-	 * @see #get(Object, boolean)
 	 */
 	default V get(K key) {
 		return get(key, true);

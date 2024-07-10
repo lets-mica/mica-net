@@ -202,9 +202,6 @@ import java.util.function.Function;
  */
 public class CollUtil {
 
-	/**
-	 * @author tanyaowu
-	 */
 	private CollUtil() {
 	}
 
@@ -232,6 +229,12 @@ public class CollUtil {
 	 * A temporary workaround for Java 8 specific performance issue JDK-8161372 .<br>
 	 * This class should be removed once we drop Java 8 support.
 	 *
+	 * @param map             map
+	 * @param key             key
+	 * @param mappingFunction Function
+	 * @param <K>             泛型
+	 * @param <V>             泛型
+	 * @return v
 	 * @see <a href="https://bugs.openjdk.java.net/browse/JDK-8161372">https://bugs.openjdk.java.net/browse/JDK-8161372</a>
 	 */
 	public static <K, V> V computeIfAbsent(Map<K, V> map, K key, Function<K, V> mappingFunction) {

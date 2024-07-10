@@ -931,6 +931,7 @@ public class ByteBufferUtil {
 	 * 读取字符串
 	 *
 	 * @param buffer ByteBuffer
+	 * @param count  count
 	 * @return String
 	 */
 	public static String readString(ByteBuffer buffer, int count) {
@@ -940,7 +941,9 @@ public class ByteBufferUtil {
 	/**
 	 * 读取字符串
 	 *
-	 * @param buffer ByteBuffer
+	 * @param buffer  ByteBuffer
+	 * @param count   count
+	 * @param charset Charset
 	 * @return String
 	 */
 	public static String readString(ByteBuffer buffer, int count, Charset charset) {
@@ -1025,6 +1028,7 @@ public class ByteBufferUtil {
 	 * 以16进制 打印 ByteBuffer
 	 *
 	 * @param byteBuffer ByteBuffer
+	 * @return hex String
 	 */
 	public static String hexDump(ByteBuffer byteBuffer) {
 		byte[] data = Arrays.copyOf(byteBuffer.array(), byteBuffer.remaining());
@@ -1035,6 +1039,7 @@ public class ByteBufferUtil {
 	 * 以16进制 打印字节数组
 	 *
 	 * @param bytes byte[]
+	 * @return hex String
 	 */
 	public static String toHexString(final byte[] bytes) {
 		final StringBuilder buffer = new StringBuilder(bytes.length);
