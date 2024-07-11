@@ -202,6 +202,7 @@ import org.tio.utils.Version;
 import org.tio.utils.hutool.DateUtil;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.timer.DefaultTimerTaskService;
+import org.tio.utils.timer.TimerTask;
 import org.tio.utils.timer.TimerTaskService;
 
 import java.io.IOException;
@@ -214,6 +215,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -282,6 +284,81 @@ public class TioServer {
 		} else if (this.serverConfig.isNeedCheckHeartbeat()) {
 			log.warn("用户取消了 mica-net 的心跳定时发送功能，请确认是否自定义心跳机制");
 		}
+	}
+
+	/**
+	 * 添加定时任务
+	 *
+	 * @param command runnable
+	 * @param delay   delay
+	 * @return TimerTask
+	 */
+	public TimerTask schedule(Runnable command, long delay) {
+		return schedule(command, delay, null);
+	}
+
+	/**
+	 * 添加定时任务
+	 *
+	 * @param command  runnable
+	 * @param delay    delay
+	 * @param executor 用于自定义线程池，处理耗时业务
+	 * @return TimerTask
+	 */
+	public TimerTask schedule(Runnable command, long delay, Executor executor) {
+		return this.taskService.addTask((systemTimer -> new TimerTask(delay) {
+			@Override
+			public void run() {
+				try {
+					// 1. 再次添加 任务
+					systemTimer.add(this);
+					// 2. 执行任务
+					if (executor == null) {
+						command.run();
+					} else {
+						executor.execute(command);
+					}
+				} catch (Exception e) {
+					log.error("tio server schedule error", e);
+				}
+			}
+		}));
+	}
+
+	/**
+	 * 添加定时任务，注意：如果抛出异常，会终止后续任务，请自行处理异常
+	 *
+	 * @param command runnable
+	 * @param delay   delay
+	 * @return TimerTask
+	 */
+	public TimerTask scheduleOnce(Runnable command, long delay) {
+		return scheduleOnce(command, delay, null);
+	}
+
+	/**
+	 * 添加定时任务，注意：如果抛出异常，会终止后续任务，请自行处理异常
+	 *
+	 * @param command  runnable
+	 * @param delay    delay
+	 * @param executor 用于自定义线程池，处理耗时业务
+	 * @return TimerTask
+	 */
+	public TimerTask scheduleOnce(Runnable command, long delay, Executor executor) {
+		return this.taskService.addTask((systemTimer -> new TimerTask(delay) {
+			@Override
+			public void run() {
+				try {
+					if (executor == null) {
+						command.run();
+					} else {
+						executor.execute(command);
+					}
+				} catch (Exception e) {
+					log.error("Mqtt server schedule once error", e);
+				}
+			}
+		}));
 	}
 
 	public void start(String serverIp, int serverPort) throws IOException {

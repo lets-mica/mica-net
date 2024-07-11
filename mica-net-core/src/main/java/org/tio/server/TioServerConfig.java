@@ -333,23 +333,11 @@ public class TioServerConfig extends TioConfig {
 		return acceptCompletionHandler;
 	}
 
-	/**
-	 * @return
-	 * @author tanyaowu
-	 * 2016年12月20日 上午11:34:37
-	 * @see org.tio.core.TioConfig#getTioHandler()
-	 */
 	@Override
 	public TioHandler getTioHandler() {
 		return this.getTioServerHandler();
 	}
 
-	/**
-	 * @return
-	 * @author tanyaowu
-	 * 2016年12月20日 上午11:34:37
-	 * @see org.tio.core.TioConfig#getTioListener()
-	 */
 	@Override
 	public TioListener getTioListener() {
 		return getTioServerListener();
