@@ -2,6 +2,11 @@
 
 ## 发行版本
 
+### v1.0.3 - 2024-07-20
+- :sparkles: TioServer 添加 schedule 系列方法
+- :sparkles: 时间轮和其他代码优化。
+- :bug: ssl 如果是服务端重启，需要重新生成 SSLContext 对象
+
 ### v1.0.2 - 2024-06-24
 - :sparkles: 优化心跳日志
 - :sparkles: 优化心跳保活策略 `HeartbeatMode`，添加 `ANY`，区分 `ANY` 和 `ALL`，并默认为 `ANY`。
