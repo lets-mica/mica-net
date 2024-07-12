@@ -18,6 +18,8 @@
 package org.tio.utils.timer;
 
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * TimerTask
  *
@@ -35,11 +37,16 @@ public abstract class TimerTask implements Runnable {
 	protected TimerTaskEntry timerTaskEntry;
 
 	public TimerTask() {
-		this(30000L);
+		// 默认 30s
+		this(30_000L);
 	}
 
 	public TimerTask(long delayMs) {
 		this.delayMs = delayMs;
+	}
+
+	public TimerTask(long duration, TimeUnit unit) {
+		this(unit.toMillis(duration));
 	}
 
 	public void cancel() {

@@ -45,10 +45,14 @@ public class DefaultTimerTaskService implements TimerTaskService {
 	}
 
 	@Override
-	public <T extends TimerTask> T addTask(Function<SystemTimer, T> consumer) {
-		T timerTask = consumer.apply(this.systemTimer);
+	public <T extends TimerTask> T add(T timerTask) {
 		this.systemTimer.add(timerTask);
 		return timerTask;
+	}
+
+	@Override
+	public <T extends TimerTask> T addTask(Function<SystemTimer, T> consumer) {
+		return this.add(consumer.apply(this.systemTimer));
 	}
 
 	@Override

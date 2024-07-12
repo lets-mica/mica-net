@@ -280,7 +280,7 @@ public class ReconnConf {
 					// 添加重连任务
 					TimerTaskService timerTaskService = reconnConf.getTaskService();
 					Objects.requireNonNull(timerTaskService, "ReconnConf timerTaskService is null.");
-					timerTaskService.addTask(systemTimer -> new ClientReConnTask(clientChannelContext, reconnConf));
+					timerTaskService.add(new ClientReConnTask(clientChannelContext, reconnConf));
 				}
 				return true;
 			} else {

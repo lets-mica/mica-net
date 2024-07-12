@@ -10,20 +10,16 @@ import java.util.concurrent.TimeUnit;
 public class SystemTimerTest {
 
 	public static void main(String[] args) throws InterruptedException {
-		SystemTimer systemTimer = new SystemTimer("timer");
-
-		TimingWheelThread timingWheelThread = new TimingWheelThread(systemTimer);
-		timingWheelThread.start();
-
-		System.out.println(System.currentTimeMillis());
-		systemTimer.add(new TimerTask(5) {
+		DefaultTimerTaskService taskService = new DefaultTimerTaskService();
+		taskService.start();
+		taskService.addTask((timer) -> new TimerTask(1, TimeUnit.SECONDS) {
 			@Override
 			public void run() {
-				systemTimer.add(this);
-				System.out.println("hello...");
+				timer.add(this);
+				System.out.println("hello..." + Thread.currentThread().getName());
 			}
 		});
-		System.out.println(System.nanoTime());
-		TimeUnit.MINUTES.sleep(10L);
+		TimeUnit.MINUTES.sleep(1L);
+		taskService.stop();
 	}
 }
