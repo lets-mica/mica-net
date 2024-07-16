@@ -426,8 +426,7 @@ public class HttpConfig {
 	}
 
 	/**
-	 * @param checkHost
-	 * @author tanyaowu
+	 * @param checkHost checkHost
 	 */
 	public void setCheckHost(boolean checkHost) {
 		this.checkHost = checkHost;

@@ -547,6 +547,7 @@ public class FastByteBuffer {
 	 * 写出一个bytes类型的数据
 	 *
 	 * @param bytes 待写出数值
+	 * @return FastByteBuffer
 	 */
 	public FastByteBuffer writeBytes(byte[] bytes) {
 		return this.append(bytes, 0, bytes.length);
@@ -558,6 +559,7 @@ public class FastByteBuffer {
 	 * @param bytes 待写出数值
 	 * @param off   off
 	 * @param len   len
+	 * @return FastByteBuffer
 	 */
 	public FastByteBuffer writeBytes(byte[] bytes, int off, int len) {
 		return this.append(bytes, off, len);
@@ -567,6 +569,7 @@ public class FastByteBuffer {
 	 * 写可变长度整数
 	 *
 	 * @param num num
+	 * @return FastByteBuffer
 	 */
 	public FastByteBuffer writeVarLengthInt(int num) {
 		do {
@@ -592,7 +595,8 @@ public class FastByteBuffer {
 	/**
 	 * 写出文本
 	 *
-	 * @param text 文本
+	 * @param text    文本
+	 * @param charset charset
 	 */
 	public void writeString(String text, String charset) {
 		writeString(text, Charset.forName(charset));
@@ -601,7 +605,8 @@ public class FastByteBuffer {
 	/**
 	 * 写出文本
 	 *
-	 * @param text 文本
+	 * @param text    文本
+	 * @param charset charset
 	 */
 	public void writeString(String text, Charset charset) {
 		append(Objects.requireNonNull(text).getBytes(charset));
@@ -892,6 +897,8 @@ public class FastByteBuffer {
 
 	/**
 	 * 重置，用于复用
+	 *
+	 * @return FastByteBuffer
 	 */
 	public FastByteBuffer reset() {
 		size = 0;

@@ -225,14 +225,14 @@ public class HttpRequestDecoder {
 	}
 
 	/**
-	 * @param buffer
-	 * @param limit
-	 * @param position
-	 * @param readableLength
-	 * @param channelContext
-	 * @param httpConfig
-	 * @return HttpRequest
-	 * @throws TioDecodeException
+	 * @param buffer         buffer
+	 * @param limit          limit
+	 * @param position       position
+	 * @param readableLength readableLength
+	 * @param channelContext channelContext
+	 * @param httpConfig     httpConfig
+	 * @return HttpRequest HttpRequest
+	 * @throws TioDecodeException TioDecodeException
 	 */
 	public static HttpRequest decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext, HttpConfig httpConfig)
 		throws TioDecodeException {
@@ -316,10 +316,10 @@ public class HttpRequestDecoder {
 	}
 
 	/**
-	 * @param params
-	 * @param queryString
-	 * @param charset
-	 * @throws TioDecodeException
+	 * @param params      params
+	 * @param queryString queryString
+	 * @param charset     charset
+	 * @throws TioDecodeException TioDecodeException
 	 */
 	public static void decodeParams(Map<String, Object[]> params, String queryString, Charset charset) throws TioDecodeException {
 		if (StrUtil.isBlank(queryString)) {
@@ -363,12 +363,12 @@ public class HttpRequestDecoder {
 	/**
 	 * 解析消息体
 	 *
-	 * @param httpRequest
-	 * @param firstLine
-	 * @param bodyBytes
-	 * @param channelContext
-	 * @param httpConfig
-	 * @throws TioDecodeException
+	 * @param httpRequest    httpRequest
+	 * @param firstLine      firstLine
+	 * @param bodyBytes      bodyBytes
+	 * @param channelContext channelContext
+	 * @param httpConfig     httpConfig
+	 * @throws TioDecodeException TioDecodeException
 	 */
 	private static void parseBody(HttpRequest httpRequest, RequestLine firstLine, byte[] bodyBytes, ChannelContext channelContext, HttpConfig httpConfig)
 		throws TioDecodeException {
@@ -446,12 +446,12 @@ public class HttpRequestDecoder {
 	/**
 	 * 解析请求头的每一行
 	 *
-	 * @param buffer
-	 * @param headers
-	 * @param hasReceivedHeaderLength
-	 * @param httpConfig
+	 * @param buffer                  buffer
+	 * @param headers                 headers
+	 * @param hasReceivedHeaderLength hasReceivedHeaderLength
+	 * @param httpConfig              httpConfig
 	 * @return 头部是否解析完成，true: 解析完成, false: 没有解析完成
-	 * @throws TioDecodeException
+	 * @throws TioDecodeException TioDecodeException
 	 */
 	public static boolean parseHeaderLine(ByteBuffer buffer, Map<String, String> headers, int hasReceivedHeaderLength, HttpConfig httpConfig) throws TioDecodeException {
 		byte[] allBs = buffer.array();
@@ -545,6 +545,7 @@ public class HttpRequestDecoder {
 	 * @param buffer     GET /tio?value=tanyaowu HTTP/1.1
 	 * @param httpConfig HttpConfig
 	 * @return RequestLine
+	 * @throws TioDecodeException TioDecodeException
 	 */
 	public static RequestLine parseRequestLine(ByteBuffer buffer, HttpConfig httpConfig) throws TioDecodeException {
 		byte[] allBs = buffer.array();
@@ -615,7 +616,9 @@ public class HttpRequestDecoder {
 	 * 解析URLENCODED格式的消息体
 	 * 形如： 【Content-Type : application/x-www-form-urlencoded; charset=UTF-8】
 	 *
-	 * @throws TioDecodeException
+	 * @param bodyString  httpRequest
+	 * @param httpRequest httpRequest
+	 * @throws TioDecodeException TioDecodeException
 	 */
 	private static void parseUrlencoded(HttpRequest httpRequest, String bodyString) throws TioDecodeException {
 		decodeParams(httpRequest.getParams(), bodyString, httpRequest.getCharset());

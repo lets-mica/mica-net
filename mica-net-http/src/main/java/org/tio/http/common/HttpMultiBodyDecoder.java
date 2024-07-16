@@ -220,13 +220,13 @@ public class HttpMultiBodyDecoder {
 	}
 
 	/**
-	 * @param request HttpRequest
-	 * @param firstLine RequestLine
-	 * @param bodyBytes bodyBytes
-	 * @param initboundary initboundary
+	 * @param request        HttpRequest
+	 * @param firstLine      RequestLine
+	 * @param bodyBytes      bodyBytes
+	 * @param initboundary   initboundary
 	 * @param channelContext ChannelContext
-	 * @param httpConfig HttpConfig
-	 * @throws TioDecodeException
+	 * @param httpConfig     HttpConfig
+	 * @throws TioDecodeException TioDecodeException
 	 */
 	public static void decode(HttpRequest request, RequestLine firstLine, byte[] bodyBytes, String initboundary, ChannelContext channelContext, HttpConfig httpConfig)
 		throws TioDecodeException {
@@ -274,7 +274,7 @@ public class HttpMultiBodyDecoder {
 				}
 
 				if (step == Step.BODY) {
-					step = parseBody(multiBodyHeader, request, buffer, boundary, endBoundary, channelContext, httpConfig);
+					step = parseBody(multiBodyHeader, request, buffer, boundary, endBoundary, httpConfig);
 					if (step == Step.END) {
 						break label1;
 					}
@@ -292,17 +292,16 @@ public class HttpMultiBodyDecoder {
 	}
 
 	/**
-	 * @param header Header
-	 * @param request HttpRequest
-	 * @param buffer ByteBuffer
-	 * @param boundary boundary
+	 * @param header      Header
+	 * @param request     HttpRequest
+	 * @param buffer      ByteBuffer
+	 * @param boundary    boundary
 	 * @param endBoundary endBoundary
-	 * @param channelContext channelContext
-	 * @param httpConfig HttpConfig
+	 * @param httpConfig  HttpConfig
 	 * @return Step
 	 * @throws LengthOverflowException 异常
 	 */
-	public static Step parseBody(Header header, HttpRequest request, ByteBuffer buffer, String boundary, String endBoundary, ChannelContext channelContext, HttpConfig httpConfig)
+	public static Step parseBody(Header header, HttpRequest request, ByteBuffer buffer, String boundary, String endBoundary, HttpConfig httpConfig)
 		throws LengthOverflowException, TioDecodeException {
 		int initPosition = buffer.position();
 
@@ -349,9 +348,10 @@ public class HttpMultiBodyDecoder {
 	 * Content-Disposition: form-data; name="end"
 	 * 】
 	 *
-	 * @param lines
-	 * @param header
-	 * @author tanyaowu
+	 * @param lines          lines
+	 * @param header         header
+	 * @param channelContext ChannelContext
+	 * @throws TioDecodeException TioDecodeException
 	 */
 	public static void parseHeader(List<String> lines, Header header, ChannelContext channelContext) throws TioDecodeException {
 		if (lines == null || lines.isEmpty()) {

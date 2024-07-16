@@ -210,9 +210,6 @@ import java.util.Locale;
 public class DateUtil {
 	public static final DateTimeFormatter HTTP_DATE_FMT = DateTimeFormatter.ofPattern("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
 
-	/**
-	 *
-	 */
 	public DateUtil() {
 	}
 
@@ -329,9 +326,9 @@ public class DateUtil {
 	/**
 	 * 两个日期相隔的天数
 	 *
-	 * @param date1
-	 * @param date2
-	 * @return
+	 * @param date1 date1
+	 * @param date2 date2
+	 * @return 天数
 	 */
 	public static int daysBetween(Date date1, Date date2) {
 		long time1 = date1.getTime();

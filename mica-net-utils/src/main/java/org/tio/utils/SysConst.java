@@ -230,11 +230,11 @@ public interface SysConst {
 	 */
 	String STR_EQ = "=";
 	/**
-	 * &
+	 * &amp;
 	 */
 	byte AMP = '&';
 	/**
-	 * &
+	 * &amp;
 	 */
 	String STR_AMP = "&";
 	/**

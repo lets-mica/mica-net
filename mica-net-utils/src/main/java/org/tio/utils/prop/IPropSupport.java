@@ -219,8 +219,9 @@ public interface IPropSupport {
 	/**
 	 * 获取属性
 	 *
-	 * @param key key
-	 * @param <T> 泛型
+	 * @param key    key
+	 * @param mapper mapper
+	 * @param <T>    泛型
 	 * @return T
 	 */
 	default <T> T get(String key, Function<Object, T> mapper) {

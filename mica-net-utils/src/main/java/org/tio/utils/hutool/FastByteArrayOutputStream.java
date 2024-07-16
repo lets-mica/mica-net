@@ -250,7 +250,7 @@ public class FastByteArrayOutputStream extends OutputStream {
 	 * 写出
 	 *
 	 * @param out 输出流
-	 * @throws IORuntimeException IO异常
+	 * @throws IOException IO异常
 	 */
 	public void writeTo(OutputStream out) throws IOException {
 		final int index = buffer.index();

@@ -216,19 +216,17 @@ public class HttpPacket extends Packet {
 	/**
 	 * 获取属性
 	 *
-	 * @param key
-	 * @return
-	 * @author tanyaowu
+	 * @param key key
+	 * @return Object
 	 */
 	public Object getAttribute(String key) {
 		return props.get(key);
 	}
 
 	/**
-	 * @param key
-	 * @param defaultValue
-	 * @return
-	 * @author tanyaowu
+	 * @param key key
+	 * @param defaultValue defaultValue
+	 * @return Object
 	 */
 	public Object getAttribute(String key, Serializable defaultValue) {
 		Serializable ret = props.get(key);
@@ -239,8 +237,7 @@ public class HttpPacket extends Packet {
 	}
 
 	/**
-	 * @param key
-	 * @author tanyaowu
+	 * @param key key
 	 */
 	public void removeAttribute(String key) {
 		props.remove(key);
@@ -249,9 +246,8 @@ public class HttpPacket extends Packet {
 	/**
 	 * 设置属性
 	 *
-	 * @param key
-	 * @param value
-	 * @author tanyaowu
+	 * @param key key
+	 * @param value value
 	 */
 	public void setAttribute(String key, Serializable value) {
 		props.put(key, value);

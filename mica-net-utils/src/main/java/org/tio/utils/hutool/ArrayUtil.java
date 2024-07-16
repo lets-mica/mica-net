@@ -256,16 +256,16 @@ public class ArrayUtil {
 	}
 
 	/**
-	 * @param array
-	 * @param string
-	 * @return
-	 * @author tanyaowu
+	 * join
+	 *
+	 * @param array       array
+	 * @param conjunction conjunction
+	 * @return String
 	 */
 	public static String join(String[] array, String conjunction) {
 		if (null == array) {
 			return null;
 		}
-
 		final StringBuilder sb = new StringBuilder();
 		boolean isFirst = true;
 		for (String item : array) {
@@ -293,9 +293,10 @@ public class ArrayUtil {
 	}
 
 	/**
-	 * @param obj
-	 * @return
-	 * @author tanyaowu
+	 * toString
+	 *
+	 * @param obj obj
+	 * @return String
 	 */
 	public static String toString(Object obj) {
 		if (null == obj) {
@@ -396,6 +397,12 @@ public class ArrayUtil {
 		return (T[]) Array.newInstance(componentType, newSize);
 	}
 
+	/**
+	 * 合并 byte array
+	 *
+	 * @param arrays arrays
+	 * @return byte array
+	 */
 	public static byte[] addAll(byte[]... arrays) {
 		if (arrays.length == 1) {
 			return arrays[0];

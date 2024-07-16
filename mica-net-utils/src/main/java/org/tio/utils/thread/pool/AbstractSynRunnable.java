@@ -216,17 +216,12 @@ public abstract class AbstractSynRunnable implements Runnable {
 	protected ReentrantLock runningLock = new ReentrantLock();
 	private boolean isCanceled = false;
 
-	/**
-	 * Instantiates a new abstract syn runnable.
-	 */
 	protected AbstractSynRunnable(Executor executor) {
 		this.executor = executor;
 	}
 
 	/**
 	 * 把本任务对象提交到线程池去执行
-	 *
-	 * @author tanyaowu
 	 */
 	public void execute() {
 		executor.execute(this);

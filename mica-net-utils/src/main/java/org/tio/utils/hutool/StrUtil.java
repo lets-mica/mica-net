@@ -865,10 +865,11 @@ public class StrUtil {
 	}
 
 	/**
-	 * @param str
-	 * @param separator
-	 * @return
-	 * @author tanyaowu
+	 * split str
+	 *
+	 * @param str str
+	 * @param separator separator
+	 * @return String array
 	 */
 	public static String[] split(String str, String separator) {
 		if (str == null) {
@@ -1251,11 +1252,12 @@ public class StrUtil {
 	}
 
 	/**
-	 * @param type
-	 * @param value
-	 * @return
-	 * @throws Exception
-	 * @author tanyaowu
+	 * convert
+	 *
+	 * @param type type
+	 * @param value value
+	 * @return Object
+	 * @throws Exception Exception
 	 */
 	public static Object convert(Class<?> type, String value) throws Exception {
 		if (type == String.class) {
@@ -1302,11 +1304,12 @@ public class StrUtil {
 	}
 
 	/**
-	 * @param type
-	 * @param values
+	 * convert
+	 *
+	 * @param type type
+	 * @param values values
 	 * @return 返回的也是一个数组
-	 * @throws Exception
-	 * @author tanyaowu
+	 * @throws Exception Exception
 	 */
 	public static Object convert(Class<?> type, String[] values) throws Exception {
 		if (values == null) {

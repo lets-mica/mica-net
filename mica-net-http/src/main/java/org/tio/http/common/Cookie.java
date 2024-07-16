@@ -228,10 +228,9 @@ public class Cookie {
 	 * 创建一个 Cookie
 	 *
 	 * @param domain cookie的受控域
-	 * @param value  名称
+	 * @param name   名称
 	 * @param value  值
 	 * @param maxAge 失效时间,单位秒
-	 * @return Cookie 对象
 	 */
 	public Cookie(String domain, String name, String value, Long maxAge) {
 		setName(name);
@@ -242,16 +241,14 @@ public class Cookie {
 		setHttpOnly(false);
 	}
 
-	/**
-	 * @author tanyaowu
-	 */
 	private Cookie() {
 	}
 
 	/**
 	 * 通过 Map 构建一个 Cookie 对象
 	 *
-	 * @param cookieMap Cookie 属性 Map
+	 * @param cookieMap  Cookie 属性 Map
+	 * @param httpConfig httpConfig
 	 * @return Cookie 对象
 	 */
 	public static Cookie buildCookie(Map<String, String> cookieMap, HttpConfig httpConfig) {

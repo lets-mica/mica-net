@@ -270,7 +270,7 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * 关闭连接
 	 *
-	 * @param remark
+	 * @param remark remark
 	 */
 	public void close(String remark) {
 		closed = true;
@@ -304,9 +304,8 @@ public class HttpRequest extends HttpPacket {
 	}
 
 	/**
-	 * @param newPath
-	 * @return
-	 * @throws Exception
+	 * @param newPath newPath
+	 * @return HttpResponse
 	 */
 	public HttpResponse forward(String newPath) {
 		if (StrUtil.contains(newPath, '?')) {
@@ -348,8 +347,7 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * 获取请求头中的User-Agent字段
 	 *
-	 * @return
-	 * @author: tanyaowu
+	 * @return String
 	 */
 	public String getUserAgent() {
 		return this.headers.get(HttpConst.RequestHeaderKey.User_Agent);
@@ -358,8 +356,7 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * 获取请求头中的host字段，形如：www.t-io.org:8080, www.t-io.org等值
 	 *
-	 * @return
-	 * @author: tanyaowu
+	 * @return String
 	 */
 	public String getHost() {
 		if (host != null) {
@@ -372,8 +369,7 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * 获取真实的客户端ip
 	 *
-	 * @return
-	 * @author tanyaowu
+	 * @return String
 	 */
 	public String getClientIp() {
 		return remote.getIp();
@@ -395,8 +391,7 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * 根据host字段，获取去除端口的纯域名部分的值，形如：www.t-io.org, t-io.org等值
 	 *
-	 * @return
-	 * @author tanyaowu
+	 * @return String
 	 */
 	public String getDomain() {
 		if (domain != null) {
@@ -566,7 +561,7 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * 把类型为数组的参数值转换成Object，相当于是取了数组的第一个值，便于业务开发（因为大部分参数值其实只有一个）
 	 *
-	 * @return
+	 * @return Map
 	 */
 	public Map<String, Object> getParam() {
 		Map<String, Object> paramMap = new HashMap<>();
@@ -594,9 +589,8 @@ public class HttpRequest extends HttpPacket {
 	}
 
 	/**
-	 * @param name
-	 * @return
-	 * @author: tanyaowu
+	 * @param name name
+	 * @return String
 	 */
 	public String getParam(String name) {
 		return (String) getObject(name);
@@ -605,18 +599,16 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * 同getParam(String name)
 	 *
-	 * @param name
-	 * @return
-	 * @author tanyaowu
+	 * @param name name
+	 * @return String
 	 */
 	public String getString(String name) {
 		return getParam(name);
 	}
 
 	/**
-	 * @param name
-	 * @return
-	 * @author tanyaowu
+	 * @param name name
+	 * @return UploadFile
 	 */
 	public UploadFile getUploadFile(String name) {
 		Object[] values = params.get(name);

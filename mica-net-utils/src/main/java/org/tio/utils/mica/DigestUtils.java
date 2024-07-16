@@ -567,6 +567,7 @@ public class DigestUtils {
 	 *
 	 * @param algorithm 算法
 	 * @param text      text
+	 * @param key       key
 	 * @return digest as a hex string
 	 */
 	public static String digestHmacHex(String algorithm, String text, String key) {
@@ -578,6 +579,7 @@ public class DigestUtils {
 	 *
 	 * @param algorithm 算法
 	 * @param bytes     Data to digest
+	 * @param key       key
 	 * @return digest as a hex string
 	 */
 	public static String digestHmacHex(String algorithm, final byte[] bytes, String key) {
@@ -589,6 +591,7 @@ public class DigestUtils {
 	 *
 	 * @param algorithm 算法
 	 * @param bytes     Data to digest
+	 * @param key       key
 	 * @return digest as a byte array
 	 */
 	public static byte[] digestHmac(String algorithm, final byte[] bytes, String key) {
