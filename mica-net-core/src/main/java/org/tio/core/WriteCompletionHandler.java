@@ -290,7 +290,6 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 	 * @param throwable     throwable
 	 * @param packet        packet
 	 * @param isSentSuccess isSentSuccess
-	 * @author tanyaowu
 	 */
 	public void handleOne(Integer result, Throwable throwable, Packet packet, boolean isSentSuccess) {
 		Meta meta = packet.getMeta();
@@ -313,7 +312,6 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 		 *
 		 * @param byteBuffer byteBuffer
 		 * @param obj        obj
-		 * @author tanyaowu
 		 */
 		public WriteCompletionVo(ByteBuffer byteBuffer, Object obj) {
 			this.byteBuffer = byteBuffer; //[pos=0 lim=212 cap=212]
