@@ -191,9 +191,7 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-/**
- *
- */
+
 package org.tio.core.task;
 
 import org.slf4j.Logger;
@@ -239,7 +237,6 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	 * 处理packet
 	 *
 	 * @param packet Packet
-	 * @author tanyaowu
 	 */
 	public void handler(Packet packet) {
 		long start = System.currentTimeMillis();
@@ -283,11 +280,6 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 		}
 	}
 
-	/**
-	 * @author tanyaowu
-	 * 2016年12月5日 下午3:02:49
-	 * @see org.tio.core.SynRunnable.intf.ISynRunnable#runTask()
-	 */
 	@Override
 	public void runTask() {
 		Packet packet;

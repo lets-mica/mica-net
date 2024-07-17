@@ -207,10 +207,6 @@ public class ServerGroupStat extends GroupStat {
 	 */
 	public final LongAdder accepted = new LongAdder();
 
-	/**
-	 * @author tanyaowu
-	 * 2016年12月3日 下午2:29:28
-	 */
 	public ServerGroupStat() {
 	}
 

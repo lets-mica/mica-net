@@ -232,8 +232,6 @@ public class TioServer {
 
 	/**
 	 * @param serverConfig TioServerConfig
-	 * @author tanyaowu
-	 * 2017年1月2日 下午5:53:06
 	 */
 	public TioServer(TioServerConfig serverConfig) {
 		this.serverConfig = serverConfig;
@@ -427,8 +425,7 @@ public class TioServer {
 	}
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * @return 是否停止成功
 	 */
 	public boolean stop() {
 		isWaitingStop = true;

@@ -214,7 +214,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	/**
 	 * @param asynchronousSocketChannel AsynchronousSocketChannel
 	 * @param tioServer                 TioServer
-	 * @author tanyaowu
 	 */
 	@Override
 	public void completed(AsynchronousSocketChannel asynchronousSocketChannel, TioServer tioServer) {
@@ -265,7 +264,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	/**
 	 * @param exc       Throwable
 	 * @param tioServer TioServer
-	 * @author tanyaowu
 	 */
 	@Override
 	public void failed(Throwable exc, TioServer tioServer) {
