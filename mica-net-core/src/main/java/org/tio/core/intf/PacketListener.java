@@ -206,7 +206,6 @@ public interface PacketListener {
 	 * @param packet         Packet
 	 * @param isSentSuccess  isSentSuccess
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	default void onAfterSent(ChannelContext channelContext, Packet packet, boolean isSentSuccess) throws Exception {
 

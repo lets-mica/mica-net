@@ -216,8 +216,7 @@ public class Ids {
 	private final ConcurrentMap<String, ChannelContext> map = new ConcurrentHashMap<>();
 
 	/**
-	 * @param channelContext
-	 * @author tanyaowu
+	 * @param channelContext channelContext
 	 */
 	public void bind(ChannelContext channelContext) {
 		if (channelContext.tioConfig.isShortConnection) {
@@ -251,8 +250,7 @@ public class Ids {
 	}
 
 	/**
-	 * @param channelContext
-	 * @author tanyaowu
+	 * @param channelContext ChannelContext
 	 */
 	public void unbind(ChannelContext channelContext) {
 		if (channelContext.tioConfig.isShortConnection) {

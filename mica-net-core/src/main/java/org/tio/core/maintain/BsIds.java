@@ -221,7 +221,6 @@ public class BsIds {
 	/**
 	 * @param channelContext ChannelContext
 	 * @param bsId           bsId
-	 * @author tanyaowu
 	 */
 	public void bind(ChannelContext channelContext, String bsId) {
 		if (channelContext.tioConfig.isShortConnection) {
@@ -244,7 +243,6 @@ public class BsIds {
 	 * @param tioConfig TioConfig
 	 * @param bsId      bsId
 	 * @return ChannelContext
-	 * @author tanyaowu
 	 */
 	public ChannelContext find(TioConfig tioConfig, String bsId) {
 		if (tioConfig.isShortConnection || StrUtil.isBlank(bsId)) {
@@ -255,7 +253,6 @@ public class BsIds {
 
 	/**
 	 * @param channelContext ChannelContext
-	 * @author tanyaowu
 	 */
 	public void unbind(ChannelContext channelContext) {
 		TioConfig tioConfig = channelContext.tioConfig;

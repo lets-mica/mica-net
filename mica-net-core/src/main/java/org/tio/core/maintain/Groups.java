@@ -271,7 +271,6 @@ public class Groups {
 	 * @param tioConfig TioConfig
 	 * @param groupId   groupId
 	 * @return ChannelContext 集合
-	 * @author tanyaowu
 	 */
 	public Set<ChannelContext> clients(TioConfig tioConfig, String groupId) {
 		if (tioConfig.isShortConnection || StrUtil.isBlank(groupId)) {
@@ -290,9 +289,8 @@ public class Groups {
 	/**
 	 * 某个客户端在哪些组中
 	 *
-	 * @param channelContext
-	 * @return
-	 * @author tanyaowu
+	 * @param channelContext channelContext
+	 * @return set
 	 */
 	public Set<String> groups(ChannelContext channelContext) {
 		TioConfig tioConfig = channelContext.tioConfig;
@@ -305,15 +303,14 @@ public class Groups {
 	/**
 	 * 与所有组解除绑定
 	 *
-	 * @param channelContext
-	 * @author tanyaowu
+	 * @param channelContext ChannelContext
 	 */
 	public void unbind(ChannelContext channelContext) {
 		unbind(channelContext, true);
 	}
 
 	/**
-	 * @param channelContext
+	 * @param channelContext   ChannelContext
 	 * @param callbackListener 是否回调GroupListener
 	 */
 	public void unbind(ChannelContext channelContext, boolean callbackListener) {
@@ -338,8 +335,8 @@ public class Groups {
 	/**
 	 * 与指定组解除绑定
 	 *
-	 * @param groupId
-	 * @param channelContext
+	 * @param groupId        groupId
+	 * @param channelContext ChannelContext
 	 */
 	public void unbind(String groupId, ChannelContext channelContext) {
 		unbind(groupId, channelContext, true);
@@ -348,18 +345,18 @@ public class Groups {
 	/**
 	 * 与指定组解除绑定
 	 *
-	 * @param groupId
-	 * @param channelContext
-	 * @param deleteFromChannelContext
+	 * @param groupId                  groupId
+	 * @param channelContext           ChannelContext
+	 * @param deleteFromChannelContext deleteFromChannelContext
 	 */
 	public void unbind(String groupId, ChannelContext channelContext, boolean deleteFromChannelContext) {
 		unbind(groupId, channelContext, deleteFromChannelContext, true);
 	}
 
 	/**
-	 * @param groupId
-	 * @param channelContext
-	 * @param deleteFromChannelContext
+	 * @param groupId                  groupId
+	 * @param channelContext           ChannelContext
+	 * @param deleteFromChannelContext deleteFromChannelContext
 	 * @param callbackListener         是否回调GroupListener
 	 */
 	public void unbind(String groupId, ChannelContext channelContext, boolean deleteFromChannelContext, boolean callbackListener) {

@@ -207,7 +207,6 @@ public class SynThreadPoolExecutor extends ThreadPoolExecutor {
 	 * @param keepAliveTime   单位: 秒
 	 * @param runnableQueue   runnableQueue
 	 * @param threadFactory   threadFactory
-	 * @author tanyaowu
 	 */
 	public SynThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, BlockingQueue<Runnable> runnableQueue, ThreadFactory threadFactory) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, runnableQueue, threadFactory);

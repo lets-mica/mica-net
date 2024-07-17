@@ -216,7 +216,6 @@ public class ClientNodes {
 	 * @param ip   ip
 	 * @param port port
 	 * @return ChannelContext
-	 * @author tanyaowu
 	 */
 	public ChannelContext find(String ip, int port) {
 		return find(new Node(ip, port));
@@ -225,7 +224,6 @@ public class ClientNodes {
 	/**
 	 * @param node Node
 	 * @return ChannelContext
-	 * @author tanyaowu
 	 */
 	public ChannelContext find(Node node) {
 		return map.get(node);
@@ -233,7 +231,6 @@ public class ClientNodes {
 
 	/**
 	 * @return 数量
-	 * @author tanyaowu
 	 */
 	public int size() {
 		return map.size();
@@ -243,7 +240,6 @@ public class ClientNodes {
 	 * 添加映射
 	 *
 	 * @param channelContext ChannelContext
-	 * @author tanyaowu
 	 */
 	public void put(ChannelContext channelContext) {
 		if (channelContext.tioConfig.isShortConnection) {
@@ -256,7 +252,6 @@ public class ClientNodes {
 	 * Removes映射
 	 *
 	 * @param channelContext ChannelContext
-	 * @author tanyaowu
 	 */
 	public void remove(ChannelContext channelContext) {
 		if (channelContext.tioConfig.isShortConnection) {

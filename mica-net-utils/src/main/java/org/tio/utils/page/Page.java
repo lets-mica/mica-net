@@ -220,7 +220,6 @@ public class Page<T> implements Serializable {
 	 * @param pageNumber pageNumber
 	 * @param pageSize   pageSize
 	 * @param totalRow   totalRow
-	 * @author tanyaowu
 	 */
 	public Page(List<T> list, Integer pageNumber, Integer pageSize, Integer totalRow) {
 		this.list = list;

@@ -201,9 +201,6 @@ import java.util.regex.Pattern;
  */
 public class Validator {
 
-	/**
-	 * @author tanyaowu
-	 */
 	public Validator() {
 	}
 

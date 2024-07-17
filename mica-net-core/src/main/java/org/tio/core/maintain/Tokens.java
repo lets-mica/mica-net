@@ -224,7 +224,6 @@ public class Tokens {
 	 *
 	 * @param token          the token
 	 * @param channelContext the channel context
-	 * @author tanyaowu
 	 */
 	public void bind(String token, ChannelContext channelContext) {
 		if (channelContext.tioConfig.isShortConnection || StrUtil.isBlank(token)) {
@@ -284,8 +283,8 @@ public class Tokens {
 	/**
 	 * 解除tioConfig范围内所有ChannelContext的 token绑定
 	 *
-	 * @param token the token
-	 * @author tanyaowu
+	 * @param tioConfig TioConfig
+	 * @param token     the token
 	 */
 	public void unbind(TioConfig tioConfig, String token) {
 		if (tioConfig.isShortConnection || StrUtil.isBlank(token)) {

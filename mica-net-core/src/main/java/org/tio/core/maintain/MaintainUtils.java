@@ -207,7 +207,6 @@ public class MaintainUtils {
 	 * 彻底删除，不再维护
 	 *
 	 * @param channelContext ChannelContext
-	 * @author tanyaowu
 	 */
 	public static void remove(ChannelContext channelContext) {
 		TioConfig tioConfig = channelContext.tioConfig;
@@ -223,7 +222,6 @@ public class MaintainUtils {
 
 	/**
 	 * @param channelContext ChannelContext
-	 * @author tanyaowu
 	 */
 	public static void close(ChannelContext channelContext) {
 		TioConfig tioConfig = channelContext.tioConfig;

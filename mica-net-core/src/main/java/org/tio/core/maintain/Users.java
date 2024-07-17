@@ -223,7 +223,6 @@ public class Users {
 	 *
 	 * @param userId         the userid
 	 * @param channelContext the channel context
-	 * @author tanyaowu
 	 */
 	public void bind(String userId, ChannelContext channelContext) {
 		// 短链接和 userId 为空，跳出
@@ -284,8 +283,8 @@ public class Users {
 	/**
 	 * 解除tioConfig范围内所有ChannelContext的 userid绑定
 	 *
-	 * @param userId the userid
-	 * @author tanyaowu
+	 * @param tioConfig tioConfig
+	 * @param userId    the userid
 	 */
 	public void unbind(TioConfig tioConfig, String userId) {
 		if (tioConfig.isShortConnection || StrUtil.isBlank(userId)) {

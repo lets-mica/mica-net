@@ -266,7 +266,6 @@ public class DefaultThreadFactory implements ThreadFactory {
 	/**
 	 * @param r Runnable
 	 * @return Thread
-	 * @author tanyaowu
 	 * 2016年11月15日 上午9:07:00
 	 * @see java.util.concurrent.ThreadFactory#newThread(java.lang.Runnable)
 	 */
