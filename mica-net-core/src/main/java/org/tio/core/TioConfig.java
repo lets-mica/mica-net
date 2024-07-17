@@ -337,30 +337,26 @@ public abstract class TioConfig {
 	/**
 	 * 获取TioHandler对象
 	 *
-	 * @return
-	 * @author: tanyaowu
+	 * @return TioHandler
 	 */
 	public abstract TioHandler getTioHandler();
 
 	/**
 	 * 获取TioListener对象
 	 *
-	 * @return
-	 * @author: tanyaowu
+	 * @return TioListener
 	 */
 	public abstract TioListener getTioListener();
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * @return ByteOrder
 	 */
 	public ByteOrder getByteOrder() {
 		return byteOrder;
 	}
 
 	/**
-	 * @param byteOrder
-	 * @author tanyaowu
+	 * @param byteOrder ByteOrder
 	 */
 	public void setByteOrder(ByteOrder byteOrder) {
 		this.byteOrder = byteOrder;
@@ -381,8 +377,7 @@ public abstract class TioConfig {
 	}
 
 	/**
-	 * @return
-	 * @author tanyaowu
+	 * @return id
 	 */
 	public String getId() {
 		return id;
@@ -471,8 +466,7 @@ public abstract class TioConfig {
 	/**
 	 * 是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失
 	 *
-	 * @param useQueueDecode
-	 * @author tanyaowu
+	 * @param useQueueDecode useQueueDecode
 	 */
 	public void setUseQueueDecode(boolean useQueueDecode) {
 		this.useQueueDecode = useQueueDecode;
@@ -481,8 +475,7 @@ public abstract class TioConfig {
 	/**
 	 * 是否用队列发送，可以随时切换
 	 *
-	 * @param useQueueSend
-	 * @author tanyaowu
+	 * @param useQueueSend useQueueSend
 	 */
 	public void setUseQueueSend(boolean useQueueSend) {
 		this.useQueueSend = useQueueSend;

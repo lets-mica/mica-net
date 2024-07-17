@@ -217,7 +217,6 @@ public class ClientChannelContext extends ChannelContext {
 	/**
 	 * @param tioConfig                 TioConfig
 	 * @param asynchronousSocketChannel AsynchronousSocketChannel
-	 * @author tanyaowu
 	 */
 	public ClientChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
 		super(tioConfig, asynchronousSocketChannel);
@@ -236,8 +235,6 @@ public class ClientChannelContext extends ChannelContext {
 	 * @param asynchronousSocketChannel AsynchronousSocketChannel
 	 * @return Node
 	 * @throws IOException IOException
-	 * @author tanyaowu
-	 * 2016年12月6日 下午12:18:08
 	 * @see org.tio.core.ChannelContext#createClientNode(java.nio.channels.AsynchronousSocketChannel)
 	 */
 	@Override
@@ -285,7 +282,6 @@ public class ClientChannelContext extends ChannelContext {
 
 	/**
 	 * @return boolean
-	 * @author tanyaowu
 	 */
 	@Override
 	public boolean isServer() {

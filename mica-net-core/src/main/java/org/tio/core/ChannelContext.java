@@ -283,7 +283,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	 *
 	 * @param tioConfig                 TioConfig
 	 * @param asynchronousSocketChannel AsynchronousSocketChannel
-	 * @author tanyaowu
 	 */
 	public ChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
 		super();
@@ -304,7 +303,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	/**
 	 * 创建一个虚拟ChannelContext，主要用来模拟一些操作，譬如压力测试，真实场景中用得少
 	 *
-	 * @param tioConfig
+	 * @param tioConfig TioConfig
 	 */
 	public ChannelContext(TioConfig tioConfig) {
 		this(tioConfig, tioConfig.getTioUuid().uuid());
@@ -313,9 +312,8 @@ public abstract class ChannelContext extends MapPropSupport {
 	/**
 	 * 创建一个虚拟ChannelContext，主要用来模拟一些操作，譬如压力测试，真实场景中用得少
 	 *
-	 * @param tioConfig
+	 * @param tioConfig TioConfig
 	 * @param id        ChannelContext id
-	 * @author tanyaowu
 	 */
 	public ChannelContext(TioConfig tioConfig, String id) {
 		this.setVirtual(true);
@@ -440,7 +438,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	/**
 	 * @param packet        Packet
 	 * @param isSentSuccess isSentSuccess
-	 * @author tanyaowu
 	 */
 	public void processAfterSent(Packet packet, boolean isSentSuccess) {
 		Meta meta = packet.getMeta();

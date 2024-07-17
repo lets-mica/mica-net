@@ -317,7 +317,7 @@ public class GroupStat implements java.io.Serializable {
 	/**
 	 * 处理消息包耗时，单位：毫秒
 	 *
-	 * @return
+	 * @return LongAdder
 	 */
 	public LongAdder getHandledPacketCosts() {
 		return handledPacketCosts;
@@ -326,7 +326,7 @@ public class GroupStat implements java.io.Serializable {
 	/**
 	 * 处理packet平均耗时，单位：毫秒
 	 *
-	 * @return
+	 * @return 平均耗时
 	 */
 	public double getHandledCostsPerPacket() {
 		if (handledPackets.sum() > 0) {
