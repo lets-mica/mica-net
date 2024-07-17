@@ -226,7 +226,6 @@ public class UdpServer {
 
 	/**
 	 * @throws SocketException SocketException
-	 * @author tanyaowu
 	 */
 	public UdpServer(UdpServerConf udpServerConf) throws SocketException {
 		this.udpServerConf = udpServerConf;

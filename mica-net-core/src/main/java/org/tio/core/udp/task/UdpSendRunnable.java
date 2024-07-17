@@ -214,9 +214,6 @@ public class UdpSendRunnable implements Runnable {
 	private final DatagramSocket datagramSocket;
 	private boolean isStopped = false;
 
-	/**
-	 * @author tanyaowu
-	 */
 	public UdpSendRunnable(LinkedBlockingQueue<DatagramPacket> queue, UdpConf udpConf, DatagramSocket datagramSocket) {
 		this.queue = queue;
 		this.udpConf = udpConf;

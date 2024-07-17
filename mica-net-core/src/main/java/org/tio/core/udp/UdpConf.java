@@ -208,9 +208,6 @@ public class UdpConf {
 	private Node serverNode = null;
 	private Charset charset = StandardCharsets.UTF_8;
 
-	/**
-	 * @author tanyaowu
-	 */
 	public UdpConf(int timeout) {
 		this.setTimeout(timeout);
 	}

@@ -211,9 +211,6 @@ public class UdpPacket {
 	 */
 	private long time = System.currentTimeMillis();
 
-	/**
-	 * @author tanyaowu
-	 */
 	public UdpPacket() {
 	}
 

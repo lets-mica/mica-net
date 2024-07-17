@@ -215,10 +215,6 @@ public class HttpTioServerHandler implements TioServerHandler {
 	protected final HttpConfig httpConfig;
 	private final HttpRequestHandler requestHandler;
 
-	/**
-	 * @author tanyaowu
-	 * 2016年11月18日 上午9:13:15
-	 */
 	public HttpTioServerHandler(HttpConfig httpConfig, HttpRequestHandler requestHandler) {
 		this.httpConfig = httpConfig;
 		this.requestHandler = requestHandler;

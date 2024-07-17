@@ -452,7 +452,7 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * 处理packet平均耗时，单位：毫秒
 	 *
-	 * @return
+	 * @return 均耗时
 	 */
 	public double getHandledCostsPerPacket() {
 		if (handledPackets.get() > 0) {

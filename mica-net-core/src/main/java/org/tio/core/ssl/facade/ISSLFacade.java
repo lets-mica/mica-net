@@ -209,7 +209,7 @@ public interface ISSLFacade {
 	/**
 	 * 开始握手
 	 *
-	 * @throws IOException
+	 * @throws IOException IOException
 	 */
 	void beginHandshake() throws IOException;
 

@@ -201,9 +201,6 @@ import org.tio.core.Node;
  */
 public class UdpClientConf extends UdpConf {
 
-	/**
-	 * @author tanyaowu
-	 */
 	public UdpClientConf(String serverIp, int serverPort, int timeout) {
 		super(timeout);
 		this.setServerNode(new Node(serverIp, serverPort));

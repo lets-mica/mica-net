@@ -352,12 +352,6 @@ public class WsPacket extends Packet {
 		this.wsHasMask = wsHasMask;
 	}
 
-	/**
-	 * @return
-	 * @author tanyaowu
-	 * 2017年2月22日 下午3:15:18
-	 * @see Packet#logstr()
-	 */
 	@Override
 	public String logstr() {
 		return "websocket";

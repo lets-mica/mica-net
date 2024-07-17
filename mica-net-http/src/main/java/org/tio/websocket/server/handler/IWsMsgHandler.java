@@ -213,7 +213,6 @@ public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
 	 * @param channelContext ChannelContext
 	 * @return HttpResponse
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	HttpResponse handshake(HttpRequest httpRequest, HttpResponse httpResponse, ChannelContext channelContext) throws Exception;
 
@@ -224,7 +223,6 @@ public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
 	 * @param httpResponse   HttpResponse
 	 * @param channelContext ChannelContext
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	void onAfterHandshaked(HttpRequest httpRequest, HttpResponse httpResponse, ChannelContext channelContext) throws Exception;
 
@@ -236,7 +234,6 @@ public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
 	 * @param channelContext ChannelContext
 	 * @return 可以是WsResponse、byte[]、ByteBuffer、String或null，如果是null，框架不会回消息
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	Object onBytes(WsRequest wsRequest, byte[] bytes, ChannelContext channelContext) throws Exception;
 
@@ -248,7 +245,6 @@ public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
 	 * @param channelContext ChannelContext
 	 * @return 可以是WsResponse、byte[]、ByteBuffer、String或null，如果是null，框架不会回消息
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	Object onClose(WsRequest wsRequest, byte[] bytes, ChannelContext channelContext) throws Exception;
 
@@ -260,7 +256,6 @@ public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
 	 * @param channelContext ChannelContext
 	 * @return 可以是WsResponse、byte[]、ByteBuffer、String或null，如果是null，框架不会回消息
 	 * @throws Exception Exception
-	 * @author tanyaowu
 	 */
 	Object onText(WsRequest wsRequest, String text, ChannelContext channelContext) throws Exception;
 }

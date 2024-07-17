@@ -242,10 +242,6 @@ public class HttpRequest extends HttpPacket {
 	private boolean closed = false;
 	private Integer forwardCount = null;
 
-	/**
-	 * @author tanyaowu
-	 * 2017年2月22日 下午4:14:40
-	 */
 	public HttpRequest(Node remote) {
 		this.remote = remote;
 	}
@@ -780,9 +776,6 @@ public class HttpRequest extends HttpPacket {
 		this.requestLine = requestLine;
 	}
 
-	/**
-	 * @return
-	 */
 	@Override
 	public String logstr() {
 		String str = "\r\n请求ID_" + getId() + SysConst.CRLF + getHeaderString();

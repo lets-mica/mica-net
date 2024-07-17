@@ -450,7 +450,6 @@ public class WsTioServerHandler implements TioServerHandler {
 	 *
 	 * @param request HttpRequest
 	 * @return HttpResponse
-	 * @author tanyaowu
 	 */
 	public HttpResponse updateWebSocketProtocol(HttpRequest request) {
 		Map<String, String> headers = request.getHeaders();

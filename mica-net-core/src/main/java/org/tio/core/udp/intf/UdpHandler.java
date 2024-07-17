@@ -206,7 +206,6 @@ public interface UdpHandler {
 	/**
 	 * @param udpPacket      UdpPacket
 	 * @param datagramSocket DatagramSocket
-	 * @author tanyaowu
 	 */
 	void handler(UdpPacket udpPacket, DatagramSocket datagramSocket);
 }

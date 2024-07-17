@@ -253,7 +253,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	 *
 	 * @param packet Packet
 	 * @param byteCount byteCount
-	 * @author tanyaowu
 	 */
 	public void handler(Packet packet, int byteCount) {
 		// 包处理方式，默认单线程
@@ -286,7 +285,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	}
 
 	/**
-	 * @author tanyaowu
 	 * 2017年3月21日 下午4:26:39
 	 * @see java.lang.Runnable#run()
 	 */
