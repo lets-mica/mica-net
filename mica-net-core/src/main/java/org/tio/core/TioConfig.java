@@ -307,9 +307,8 @@ public abstract class TioConfig {
 	}
 
 	/**
-	 * @param tioExecutor
-	 * @param groupExecutor
-	 * @author: tanyaowu
+	 * @param tioExecutor   tioExecutor
+	 * @param groupExecutor groupExecutor
 	 */
 	public TioConfig(SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		super();

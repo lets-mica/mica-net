@@ -216,7 +216,7 @@ public interface ISSLFacade {
 	/**
 	 * SSL握手是否已经完成
 	 *
-	 * @return
+	 * @return SSL握手是否已经完成
 	 */
 	boolean isHandshakeCompleted();
 

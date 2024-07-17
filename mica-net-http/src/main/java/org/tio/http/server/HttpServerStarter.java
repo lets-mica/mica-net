@@ -293,8 +293,7 @@ public class HttpServerStarter {
 	}
 
 	/**
-	 * @throws IOException
-	 * @author tanyaowu
+	 * @throws IOException IOException
 	 */
 	public void start() throws IOException {
 		tioServer.start(this.httpConfig.getBindIp(), this.httpConfig.getBindPort());
