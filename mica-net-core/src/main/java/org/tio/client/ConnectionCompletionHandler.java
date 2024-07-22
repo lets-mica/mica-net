@@ -200,6 +200,7 @@ import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.Node;
 import org.tio.core.ReadCompletionHandler;
 import org.tio.core.Tio;
+import org.tio.core.maintain.MaintainUtils;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.ssl.SslUtils;
 
@@ -255,7 +256,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 				// ssl 如果是服务端重启，需要重新生成 SSLContext 对象
 				if (isSsl && isReconnect) {
 					// 1. 先移除 channelContext
-					tioClientConfig.closeds.remove(channelContext);
+					MaintainUtils.remove(channelContext);
 					// 2. 生成新的 channelContext
 					channelContext = new ClientChannelContext(tioClientConfig, asynchronousSocketChannel);
 					channelContext.setServerNode(serverNode);
