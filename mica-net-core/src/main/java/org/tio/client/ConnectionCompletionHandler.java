@@ -216,7 +216,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 	private static final Logger log = LoggerFactory.getLogger(ConnectionCompletionHandler.class);
 
 	/**
-	 * @param result result
+	 * @param result     result
 	 * @param attachment ConnectionCompletionVo
 	 */
 	@Override
@@ -225,7 +225,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 	}
 
 	/**
-	 * @param throwable Throwable
+	 * @param throwable  Throwable
 	 * @param attachment ConnectionCompletionVo
 	 */
 	@Override
@@ -234,9 +234,9 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 	}
 
 	/**
-	 * @param result result
+	 * @param result     result
 	 * @param attachment attachment
-	 * @param throwable Throwable
+	 * @param throwable  Throwable
 	 */
 	private static void handler(Void result, ConnectionCompletionVo attachment, Throwable throwable) {
 		ClientChannelContext channelContext = attachment.getChannelContext();
@@ -247,21 +247,16 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 		String bindIp = attachment.getBindIp();
 		Integer bindPort = attachment.getBindPort();
 		TioClientListener tioClientListener = tioClientConfig.getTioClientListener();
-		boolean isSsl = SslUtils.isSsl(tioClientConfig);
 		boolean isReconnect = attachment.isReconnect();
 		boolean isConnected = false;
 
 		try {
-			if (throwable == null ) {
-				// ssl 如果是服务端重启，需要重新生成 SSLContext 对象
-				if (isSsl && isReconnect) {
-					// 1. 先移除 channelContext
-					MaintainUtils.remove(channelContext);
-					// 2. 生成新的 channelContext
-					channelContext = new ClientChannelContext(tioClientConfig, asynchronousSocketChannel);
-					channelContext.setServerNode(serverNode);
-				} else if (isReconnect) {
+			if (throwable == null) {
+				if (isReconnect) {
+					// 设置异步连接处理器
 					channelContext.setAsynchronousSocketChannel(asynchronousSocketChannel);
+					// ssl 如果是服务端重启，需要重新生成 SSLContext 对象
+					channelContext.setUpSSL();
 					channelContext.handlerRunnable.setCanceled(false);
 					channelContext.sendRunnable.setCanceled(false);
 					tioClientConfig.closeds.remove(channelContext);
@@ -322,7 +317,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 							sslFacadeContext.beginHandshake();
 						} else {
 							if (tioClientListener != null) {
-                                tioClientListener.onAfterConnected(channelContext, false, isReconnect);
+								tioClientListener.onAfterConnected(channelContext, false, isReconnect);
 							}
 						}
 					} else {

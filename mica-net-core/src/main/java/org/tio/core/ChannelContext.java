@@ -287,17 +287,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	public ChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
 		super();
 		init(tioConfig, asynchronousSocketChannel);
-		if (tioConfig.sslConfig != null) {
-			try {
-				this.sslFacadeContext = new SslFacadeContext(this);
-				if (tioConfig.isServer()) {
-					this.sslFacadeContext.beginHandshake();
-				}
-			} catch (Exception e) {
-				log.error("在开始SSL握手时发生了异常", e);
-				Tio.close(this, "在开始SSL握手时发生了异常" + e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
-			}
-		}
+		setUpSSL();
 	}
 
 	/**
@@ -332,6 +322,23 @@ public abstract class ChannelContext extends MapPropSupport {
 
 	public static Node createUnknownNode() {
 		return new Node(UNKNOWN_ADDRESS_IP, UNKNOWN_ADDRESS_PORT_SEQ.incrementAndGet());
+	}
+
+	/**
+	 * 设置 ssl
+	 */
+	public void setUpSSL() {
+		if (tioConfig.sslConfig != null) {
+			try {
+				this.sslFacadeContext = new SslFacadeContext(this);
+				if (tioConfig.isServer()) {
+					this.sslFacadeContext.beginHandshake();
+				}
+			} catch (Exception e) {
+				log.error("在开始SSL握手时发生了异常", e);
+				Tio.close(this, "在开始SSL握手时发生了异常" + e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
+			}
+		}
 	}
 
 	/**
