@@ -17,6 +17,7 @@
 package org.tio.utils.json;
 
 import org.noear.snack.ONode;
+import org.noear.snack.core.Feature;
 import org.noear.snack.core.Options;
 
 import java.util.List;
@@ -41,6 +42,7 @@ public class Snack3JsonAdapter implements JsonAdapter {
 
 	public Snack3JsonAdapter(Options options) {
 		this.options = Objects.requireNonNull(options, "noear Snack3 json options is null.");
+		this.options.add(Feature.EnumUsingName);
 	}
 
 	@Override
