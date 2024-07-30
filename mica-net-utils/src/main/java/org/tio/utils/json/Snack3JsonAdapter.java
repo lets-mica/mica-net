@@ -17,8 +17,10 @@
 package org.tio.utils.json;
 
 import org.noear.snack.ONode;
+import org.noear.snack.core.Options;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * hutool json 适配器
@@ -31,19 +33,29 @@ public class Snack3JsonAdapter implements JsonAdapter {
 	 */
 	public static final String CLAZZ_NAME = "org.noear.snack.ONode";
 
+	private final Options options;
+
+	public Snack3JsonAdapter() {
+		this(Options.def());
+	}
+
+	public Snack3JsonAdapter(Options options) {
+		this.options = Objects.requireNonNull(options, "noear Snack3 json options is null.");
+	}
+
 	@Override
 	public String toJsonString(Object object) {
-		return ONode.load(object).toJson();
+		return ONode.load(object, options).toJson();
 	}
 
 	@Override
 	public <T> T readValue(String json, Class<T> clazz) {
-		return ONode.loadStr(json).toObject(clazz);
+		return ONode.loadStr(json, options).toObject(clazz);
 	}
 
 	@Override
 	public <T> List<T> readList(String json, Class<T> clazz) {
-		return ONode.loadStr(json).toObjectList(clazz);
+		return ONode.loadStr(json, options).toObjectList(clazz);
 	}
 
 }
