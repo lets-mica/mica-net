@@ -57,8 +57,10 @@ public class JsonUtil {
 			defaultJsonAdapter = new FastJson1JsonAdapter();
 		} else if (ClassUtil.isPresent(HuToolJsonAdapter.CLAZZ_NAME)) {
 			defaultJsonAdapter = new HuToolJsonAdapter();
+		} else if (ClassUtil.isPresent(Snack3JsonAdapter.CLAZZ_NAME)) {
+			defaultJsonAdapter = new Snack3JsonAdapter();
 		} else {
-			throw new IllegalArgumentException("Args jsonAdapter is null and there is no available JSON toolkits (Jackson, Fastjson1, Fastjson2, Gson, Hutool-json)");
+			throw new IllegalArgumentException("Args jsonAdapter is null and there is no available JSON toolkits (Jackson, Fastjson1, Fastjson2, Gson, Hutool-json or Snack3)");
 		}
 		JsonUtil.jsonAdapter = defaultJsonAdapter;
 		return defaultJsonAdapter;

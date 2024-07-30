@@ -42,6 +42,11 @@
             <artifactId>gson</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.noear</groupId>
+            <artifactId>snack3</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
