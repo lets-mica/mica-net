@@ -2,6 +2,9 @@
 
 ## 发行版本
 
+### v1.0.5 - 2024-08-01
+- :sparkles: 支持 noear snack3 json
+
 ### v1.0.4 - 2024-07-22
 - :sparkles: TioServer 添加 schedule 系列方法
 - :sparkles: 时间轮和其他代码优化。
