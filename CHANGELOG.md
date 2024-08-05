@@ -2,6 +2,9 @@
 
 ## 发行版本
 
+### v1.0.6 - 2024-08-31
+- :sparkles: 新增 `SSLEngineCustomizer`，用于配置 tls 协议版本和加密套件。
+
 ### v1.0.5 - 2024-08-01
 - :sparkles: 支持 noear snack3 json
 
