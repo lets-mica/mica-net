@@ -197,6 +197,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.ssl.ClientAuth;
+import org.tio.core.ssl.SSLEngineCustomizer;
+import org.tio.core.ssl.SslConfig;
 import org.tio.core.ssl.SslVo;
 import org.tio.utils.buffer.ByteBufferUtil;
 
@@ -205,6 +207,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SSLFacade implements ISSLFacade {
@@ -217,12 +220,12 @@ public class SSLFacade implements ISSLFacade {
 	private final Handshaker _handshaker;
 	private IHandshakeCompletedListener _hcl;
 
-	public SSLFacade(ChannelContext channelContext, SSLContext context, boolean client, ClientAuth clientAuth, ITaskHandler taskHandler) {
+	public SSLFacade(ChannelContext channelContext, SSLContext context, boolean client, SslConfig sslConfig, ITaskHandler taskHandler) {
 		this.channelContext = channelContext;
 		this.isClientMode = client;
 		// Currently there is no support for SSL session reuse,
 		// so no need to take a peerHost or port from the host application
-        SSLEngine engine = makeSSLEngine(context, client, clientAuth);
+        SSLEngine engine = makeSSLEngine(context, client, sslConfig);
 		Buffers buffers = new Buffers(engine.getSession());
 		this._worker = new Worker(engine, buffers, channelContext);
 		this._handshaker = new Handshaker(_worker, taskHandler, channelContext);
@@ -317,7 +320,9 @@ public class SSLFacade implements ISSLFacade {
 		return (_handshaker == null) || _handshaker.isFinished();
 	}
 
-	private SSLEngine makeSSLEngine(SSLContext context, boolean client, ClientAuth clientAuth) {
+	private SSLEngine makeSSLEngine(SSLContext context, boolean client, SslConfig sslConfig) {
+		// 客户端认证模式，用于服务端
+		ClientAuth clientAuth = sslConfig.getClientAuth();
 		SSLEngine engine = context.createSSLEngine();
 		engine.setUseClientMode(client);
 		if (!client) {
@@ -334,6 +339,9 @@ public class SSLFacade implements ISSLFacade {
 					throw new IllegalArgumentException("Unknown auth " + clientAuth);
 			}
 		}
+		// 自定义 SSLEngine 配置
+		Optional.ofNullable(sslConfig.getSslEngineCustomizer())
+			.ifPresent(customizer -> customizer.customize(engine));
 		return engine;
 	}
 

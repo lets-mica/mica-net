@@ -197,6 +197,7 @@ import org.tio.utils.hutool.ResourceUtil;
 import org.tio.utils.hutool.StrUtil;
 
 import javax.net.ssl.*;
+import java.beans.Customizer;
 import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -212,6 +213,7 @@ public class SslConfig {
 	private final ClientAuth clientAuth;
 	private final KeyManager[] kms;
 	private final TrustManager[] tms;
+	private SSLEngineCustomizer sslEngineCustomizer;
 
 	public SslConfig(KeyManager[] kms, TrustManager[] tms) {
 		this(ClientAuth.NONE, kms, tms);
@@ -235,6 +237,14 @@ public class SslConfig {
 		} catch (NoSuchAlgorithmException | KeyManagementException e) {
 			throw new IllegalArgumentException(e);
 		}
+	}
+
+	public SSLEngineCustomizer getSslEngineCustomizer() {
+		return sslEngineCustomizer;
+	}
+
+	public void setSslEngineCustomizer(SSLEngineCustomizer sslEngineCustomizer) {
+		this.sslEngineCustomizer = sslEngineCustomizer;
 	}
 
 	/**
