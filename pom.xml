@@ -35,6 +35,7 @@
         <!-- mica-net version -->
         <revision>1.0.6-SNAPSHOT</revision>
         <java.version>1.8</java.version>
+        <module.name>mica.net</module.name>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.test.skip>true</maven.test.skip>
@@ -207,6 +208,9 @@
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
+                        <manifestEntries>
+                            <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
+                        </manifestEntries>
                         <!-- 生成的jar中，不要包含pom.xml和pom.properties这两个文件 -->
                         <addMavenDescriptor>false</addMavenDescriptor>
                     </archive>
