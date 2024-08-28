@@ -208,6 +208,7 @@
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
+                        <!-- 自动模块名，方便模块化导入 -->
                         <manifestEntries>
                             <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
                         </manifestEntries>
