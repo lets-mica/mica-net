@@ -9,6 +9,7 @@ open module net.dreamlu.mica.net.core {
 	exports org.tio.core.ssl.facade;
 	exports org.tio.core.stat;
 	exports org.tio.core.stat.vo;
+	exports org.tio.core.task;
 	exports org.tio.core.udp;
 	exports org.tio.core.udp.intf;
 	exports org.tio.core.udp.task;
