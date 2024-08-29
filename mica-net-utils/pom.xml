@@ -12,10 +12,6 @@
         <version>${revision}</version>
     </parent>
 
-    <properties>
-        <module.name>mica.net.utils</module.name>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
