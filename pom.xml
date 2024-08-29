@@ -226,7 +226,7 @@
                         <configuration>
                             <jvmVersion>9</jvmVersion>
                             <module>
-                                <moduleInfoFile> ${project.basedir}/src/main/moditect/module-info.java</moduleInfoFile>
+                                <moduleInfoFile>${project.basedir}/src/main/moditect/module-info.java</moduleInfoFile>
                             </module>
                             <!-- Overwrite the previously generated JAR file, if any -->
                             <overwriteExistingFiles>true</overwriteExistingFiles>
