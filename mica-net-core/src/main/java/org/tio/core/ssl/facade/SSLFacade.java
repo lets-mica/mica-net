@@ -197,7 +197,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.ssl.ClientAuth;
-import org.tio.core.ssl.SSLEngineCustomizer;
 import org.tio.core.ssl.SslConfig;
 import org.tio.core.ssl.SslVo;
 import org.tio.utils.buffer.ByteBufferUtil;

@@ -233,11 +233,11 @@ public class WsTioServerHandler implements TioServerHandler {
 	}
 
 	/**
-	 * Selects the first matching supported sub protocol
+	 * Selects the first matching supported sub message
 	 *
 	 * @param requestedSubProtocols 请求中的子协议
 	 * @param subProtocols          系统支持得子协议，注意：不支持 * 通配
-	 * @return First matching supported sub protocol. Null if not found.
+	 * @return First matching supported sub message. Null if not found.
 	 */
 	private static String selectSubProtocol(String requestedSubProtocols, String[] subProtocols) {
 		if (requestedSubProtocols == null || subProtocols == null || subProtocols.length == 0) {

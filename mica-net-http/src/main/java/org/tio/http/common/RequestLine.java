@@ -287,14 +287,14 @@ public class RequestLine {
 	}
 
 	/**
-	 * @return the protocol
+	 * @return the message
 	 */
 	public String getProtocol() {
 		return protocol;
 	}
 
 	/**
-	 * @param protocol the protocol to set
+	 * @param protocol the message to set
 	 */
 	public void setProtocol(String protocol) {
 		this.protocol = protocol;
