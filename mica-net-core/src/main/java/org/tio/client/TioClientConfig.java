@@ -249,7 +249,7 @@ public class TioClientConfig extends TioConfig {
 	 * @param reconnConf  不用框架自动重连，就传null
 	 */
 	public TioClientConfig(TioClientHandler tioHandler, TioClientListener tioListener, ReconnConf reconnConf) {
-		this(tioHandler, tioListener, reconnConf, ThreadUtils.getTioExecutor(2), ThreadUtils.getGroupExecutor(2));
+		this(tioHandler, tioListener, reconnConf, ThreadUtils.getTioExecutor(2), ThreadUtils.getGroupExecutor(4));
 	}
 
 	/**
