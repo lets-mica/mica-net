@@ -221,6 +221,14 @@ public class ThreadUtils {
 	}
 
 	/**
+	 * 清理线程池
+	 */
+	public static void clearThreadPool() {
+		groupExecutor = null;
+		tioExecutor = null;
+	}
+
+	/**
 	 * getGroupExecutor
 	 *
 	 * @return ThreadPoolExecutor
