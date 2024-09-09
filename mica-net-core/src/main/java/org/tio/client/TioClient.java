@@ -217,7 +217,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class TioClient {
 	private static final Logger log = LoggerFactory.getLogger(TioClient.class);
-	private final TioClientConfig tioClientConfig;
+	private final TioClientConfig clientConfig;
 	private final TimerTaskService taskService;
 	private final AsynchronousChannelGroup channelGroup;
 
@@ -226,7 +226,7 @@ public class TioClient {
 	 * @throws IOException IOException
 	 */
 	public TioClient(final TioClientConfig tioClientConfig) throws IOException {
-		this.tioClientConfig = tioClientConfig;
+		this.clientConfig = tioClientConfig;
 		this.taskService = getTimerTaskService(tioClientConfig.getTaskService());
 		this.channelGroup = AsynchronousChannelGroup.withThreadPool(tioClientConfig.groupExecutor);
 		startHeartbeatTask();
@@ -347,7 +347,7 @@ public class TioClient {
 
 		InetSocketAddress inetSocketAddress = new InetSocketAddress(serverNode.getIp(), serverNode.getPort());
 		ConnectionCompletionVo attachment = new ConnectionCompletionVo(initClientChannelContext, this, isReconnect, asynchronousSocketChannel, serverNode, bindIp, bindPort);
-		ConnectionCompletionHandler connectionCompletionHandler = tioClientConfig.getConnectionCompletionHandler();
+		ConnectionCompletionHandler connectionCompletionHandler = clientConfig.getConnectionCompletionHandler();
 		if (isSyn) {
 			Integer realTimeout = timeout;
 			if (realTimeout == null) {
@@ -397,10 +397,20 @@ public class TioClient {
 	}
 
 	/**
-	 * @return the tioClientConfig
+	 * @return the clientConfig
 	 */
+	public TioClientConfig getClientConfig() {
+		return clientConfig;
+	}
+
+	/**
+	 * 获取客户端配置，建议使用 getClientConfig
+	 *
+	 * @return the clientConfig
+	 */
+	@Deprecated
 	public TioClientConfig getTioClientConfig() {
-		return tioClientConfig;
+		return clientConfig;
 	}
 
 	/**
@@ -428,19 +438,19 @@ public class TioClient {
 		// 启动任务服务
 		this.taskService.start();
 		// 先判断是否取消默认的心跳机制
-		if (tioClientConfig.heartbeatTimeout <= 0) {
+		if (clientConfig.heartbeatTimeout <= 0) {
 			log.warn("用户取消了 mica-net 的心跳定时发送功能，请确认是否自定义心跳机制");
 			return;
 		}
 		// 开启默认的心跳任务
-		this.taskService.addTask(systemTimer -> new ClientHeartbeatTask(systemTimer, tioClientConfig));
+		this.taskService.addTask(systemTimer -> new ClientHeartbeatTask(systemTimer, clientConfig));
 	}
 
 	/**
 	 * 启动重连任务
 	 */
 	private void configReConnTask() {
-		final ReconnConf reconnConf = tioClientConfig.getReconnConf();
+		final ReconnConf reconnConf = clientConfig.getReconnConf();
 		if (reconnConf == null || reconnConf.getInterval() <= 0) {
 			return;
 		}
@@ -533,27 +543,30 @@ public class TioClient {
 		// 先停止 ack 服务
 		this.taskService.stop();
 		// 删除实例
-		tioClientConfig.remove();
+		clientConfig.remove();
 		try {
-			tioClientConfig.groupExecutor.shutdown();
+			clientConfig.groupExecutor.shutdown();
 		} catch (Exception e1) {
 			log.error(e1.getMessage(), e1);
 		}
 		try {
-			tioClientConfig.tioExecutor.shutdown();
+			clientConfig.tioExecutor.shutdown();
 		} catch (Exception e1) {
 			log.error(e1.getMessage(), e1);
 		}
-		tioClientConfig.setStopped(true);
+		clientConfig.setStopped(true);
 		boolean ret;
 		try {
-			ret = tioClientConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
-			ret = ret && tioClientConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
+			ret = clientConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
+			ret = ret && clientConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			ret = false;
 			Thread.currentThread().interrupt();
 			log.error(e.getMessage(), e);
 		}
+		// 将对象重置为 null
+		clientConfig.groupExecutor = null;
+		clientConfig.tioExecutor = null;
 		log.info("client resource has released ret:{}", ret);
 		return ret;
 	}

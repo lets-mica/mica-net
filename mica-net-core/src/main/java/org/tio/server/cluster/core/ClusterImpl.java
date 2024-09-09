@@ -157,7 +157,7 @@ public class ClusterImpl implements ClusterApi {
 
 	@Override
 	public boolean send(Node address, byte[] data) {
-		TioClientConfig clientConfig = this.tcpClusterClient.getTioClientConfig();
+		TioClientConfig clientConfig = this.tcpClusterClient.getClientConfig();
 		ChannelContext context = Tio.getByClientNode(clientConfig, address);
 		return Tio.send(context, new ClusterDataMessage(data));
 	}
@@ -165,7 +165,7 @@ public class ClusterImpl implements ClusterApi {
 	@Override
 	public ClusterSyncAckMessage sendSync(Node address, byte[] message) {
 		// context
-		TioClientConfig clientConfig = this.tcpClusterClient.getTioClientConfig();
+		TioClientConfig clientConfig = this.tcpClusterClient.getClientConfig();
 		ChannelContext context = Tio.getByClientNode(clientConfig, address);
 		// messageId
 		long messageId = this.snowflake.nextId();
@@ -179,7 +179,7 @@ public class ClusterImpl implements ClusterApi {
 
 	@Override
 	public void broadcast(byte[] data) {
-		TioClientConfig clientConfig = this.tcpClusterClient.getTioClientConfig();
+		TioClientConfig clientConfig = this.tcpClusterClient.getClientConfig();
 		Set<ChannelContext> contextSet = Tio.getConnecteds(clientConfig);
 		Tio.sendToSet(clientConfig, contextSet, new ClusterDataMessage(data), null);
 	}

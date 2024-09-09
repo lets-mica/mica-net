@@ -200,7 +200,6 @@ import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.Node;
 import org.tio.core.ReadCompletionHandler;
 import org.tio.core.Tio;
-import org.tio.core.maintain.MaintainUtils;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.ssl.SslUtils;
 
@@ -242,7 +241,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 		ClientChannelContext channelContext = attachment.getChannelContext();
 		AsynchronousSocketChannel asynchronousSocketChannel = attachment.getAsynchronousSocketChannel();
 		TioClient tioClient = attachment.getTioClient();
-		TioClientConfig tioClientConfig = tioClient.getTioClientConfig();
+		TioClientConfig tioClientConfig = tioClient.getClientConfig();
 		Node serverNode = attachment.getServerNode();
 		String bindIp = attachment.getBindIp();
 		Integer bindPort = attachment.getBindPort();

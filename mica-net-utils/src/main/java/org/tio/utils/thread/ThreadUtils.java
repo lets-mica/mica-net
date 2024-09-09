@@ -214,18 +214,8 @@ public class ThreadUtils {
 	public static final int MAX_POOL_SIZE_FOR_TIO = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_TIO", Math.max(CORE_POOL_SIZE * 2, 8));
 	public static final int MAX_POOL_SIZE_FOR_GROUP = Integer.getInteger("TIO_MAX_POOL_SIZE_FOR_GROUP", Math.max(CORE_POOL_SIZE * 4, 16));
 	public static final long KEEP_ALIVE_TIME = 0L;
-	private static ThreadPoolExecutor groupExecutor = null;
-	private static SynThreadPoolExecutor tioExecutor = null;
 
 	private ThreadUtils() {
-	}
-
-	/**
-	 * 清理线程池
-	 */
-	public static void clearThreadPool() {
-		groupExecutor = null;
-		tioExecutor = null;
 	}
 
 	/**
@@ -234,20 +224,12 @@ public class ThreadUtils {
 	 * @return ThreadPoolExecutor
 	 */
 	public static ExecutorService getGroupExecutor() {
-		if (groupExecutor != null) {
-			return groupExecutor;
-		}
-		synchronized (ThreadUtils.class) {
-			if (groupExecutor != null) {
-				return groupExecutor;
-			}
-			LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
-			DefaultThreadFactory threadFactory = DefaultThreadFactory.getInstance("tio-group", Thread.MAX_PRIORITY);
-			CallerRunsPolicy callerRunsPolicy = new TioCallerRunsPolicy();
-			groupExecutor = new ThreadPoolExecutor(MAX_POOL_SIZE_FOR_GROUP, MAX_POOL_SIZE_FOR_GROUP, KEEP_ALIVE_TIME, TimeUnit.SECONDS, runnableQueue, threadFactory, callerRunsPolicy);
-			groupExecutor.prestartCoreThread();
-			return groupExecutor;
-		}
+		LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
+		DefaultThreadFactory threadFactory = DefaultThreadFactory.getInstance("tio-group", Thread.MAX_PRIORITY);
+		CallerRunsPolicy callerRunsPolicy = new TioCallerRunsPolicy();
+		ThreadPoolExecutor groupExecutor = new ThreadPoolExecutor(MAX_POOL_SIZE_FOR_GROUP, MAX_POOL_SIZE_FOR_GROUP, KEEP_ALIVE_TIME, TimeUnit.SECONDS, runnableQueue, threadFactory, callerRunsPolicy);
+		groupExecutor.prestartCoreThread();
+		return groupExecutor;
 	}
 
 	/**
@@ -256,20 +238,12 @@ public class ThreadUtils {
 	 * @return SynThreadPoolExecutor
 	 */
 	public static SynThreadPoolExecutor getTioExecutor() {
-		if (tioExecutor != null) {
-			return tioExecutor;
-		}
-		synchronized (ThreadUtils.class) {
-			if (tioExecutor != null) {
-				return tioExecutor;
-			}
-			LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
-			DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("tio-worker", Thread.MAX_PRIORITY);
-			CallerRunsPolicy callerRunsPolicy = new TioCallerRunsPolicy();
-			tioExecutor = new SynThreadPoolExecutor(MAX_POOL_SIZE_FOR_TIO, MAX_POOL_SIZE_FOR_TIO, KEEP_ALIVE_TIME, runnableQueue, defaultThreadFactory, callerRunsPolicy);
-			tioExecutor.prestartCoreThread();
-			return tioExecutor;
-		}
+		LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
+		DefaultThreadFactory defaultThreadFactory = DefaultThreadFactory.getInstance("tio-worker", Thread.MAX_PRIORITY);
+		CallerRunsPolicy callerRunsPolicy = new TioCallerRunsPolicy();
+		SynThreadPoolExecutor tioExecutor = new SynThreadPoolExecutor(MAX_POOL_SIZE_FOR_TIO, MAX_POOL_SIZE_FOR_TIO, KEEP_ALIVE_TIME, runnableQueue, defaultThreadFactory, callerRunsPolicy);
+		tioExecutor.prestartCoreThread();
+		return tioExecutor;
 	}
 
 	/**
