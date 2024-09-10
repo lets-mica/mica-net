@@ -107,7 +107,7 @@ public class ProxyProtocolMessage {
 	@Override
 	public String toString() {
 		return "ProxyProtocolMessage{" +
-			"message='" + protocol + '\'' +
+			"protocol='" + protocol + '\'' +
 			", sourceAddress='" + sourceAddress + '\'' +
 			", destinationAddress='" + destinationAddress + '\'' +
 			", sourcePort=" + sourcePort +

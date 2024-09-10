@@ -271,7 +271,7 @@ public interface HttpConst {
 		 */
 		String X_Requested_With = "x-requested-with";//.toLowerCase();//XMLHttpRequest
 
-		String Sec_Websocket_Protocol = "sec-websocket-message";        //.toLowerCase(); // websocket 子协议
+		String Sec_Websocket_Protocol = "sec-websocket-protocol";        //.toLowerCase(); // websocket 子协议
 	}
 
 	/**

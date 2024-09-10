@@ -42,7 +42,7 @@ public final class ProxyProtocolDecoder {
 	 */
 	private static final int V1_MIN_HEAD_LENGTH = 6;
 	/**
-	 * Maximum possible length of a v1 proxy message header per spec
+	 * Maximum possible length of a v1 proxy protocol header per spec
 	 */
 	private static final int V1_MAX_LENGTH = 108;
 	/**
@@ -58,7 +58,7 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
-	 * 开始 proxy message
+	 * 开始 proxy protocol
 	 *
 	 * @param context ChannelContext
 	 */
@@ -67,7 +67,7 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
-	 * 去掉 proxy message
+	 * 去掉 proxy protocol
 	 *
 	 * @param context ChannelContext
 	 */
@@ -76,7 +76,7 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
-	 * 判断是否开启 proxy message
+	 * 判断是否开启 proxy protocol
 	 *
 	 * @param context ChannelContext
 	 * @return 是否开启
@@ -86,7 +86,7 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
-	 * 解码，如果开启了 proxy message
+	 * 解码，如果开启了 proxy protocol
 	 *
 	 * @param context        ChannelContext
 	 * @param buffer         ByteBuffer
@@ -105,7 +105,7 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
-	 * 解码 proxy message
+	 * 解码 proxy protocol
 	 *
 	 * @param context        ChannelContext
 	 * @param buffer         ByteBuffer
@@ -154,7 +154,7 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
-	 * 解码 proxy message
+	 * 解码 proxy protocol
 	 *
 	 * @param buffer         ByteBuffer
 	 * @param readableLength readableLength
@@ -172,7 +172,7 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
-	 * 解码 proxy message
+	 * 解码 proxy protocol
 	 *
 	 * @param buffer         ByteBuffer
 	 * @param readableLength readableLength
@@ -183,7 +183,7 @@ public final class ProxyProtocolDecoder {
 		int endOfLine = findEndOfLine(buffer);
 		// 判断超长的情况，有可能是半包，多次进入
 		if (endOfLine > V1_MAX_LENGTH || (readableLength > V1_MAX_LENGTH && endOfLine == -1)) {
-			throw new TioDecodeException("Error v1 proxy message, readableLength: " + readableLength);
+			throw new TioDecodeException("Error v1 proxy protocol, readableLength: " + readableLength);
 		}
 		// 有可能半包，所以返回 null
 		if (endOfLine == -1) {
@@ -197,11 +197,11 @@ public final class ProxyProtocolDecoder {
 		String[] parts = header.split(" ");
 		int numParts = parts.length;
 		if (numParts < 1) {
-			throw new TioDecodeException("invalid header: PROXY " + header + " (expected: 'PROXY' and proxied message values)");
+			throw new TioDecodeException("invalid header: PROXY " + header + " (expected: 'PROXY' and proxied protocol values)");
 		}
 		String proxyProtocol = parts[0];
 		if (!"TCP4".equals(proxyProtocol) && !"TCP6".equals(proxyProtocol) && !UNKNOWN.equals(proxyProtocol)) {
-			throw new TioDecodeException("unsupported v1 proxy message: " + proxyProtocol);
+			throw new TioDecodeException("unsupported v1 proxy protocol: " + proxyProtocol);
 		}
 		if (UNKNOWN.equals(proxyProtocol)) {
 			return unknownMsg();
@@ -213,7 +213,7 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
-	 * Proxy message message for 'UNKNOWN' proxied protocols. Per spec, when the proxied message is
+	 * Proxy protocol message for 'UNKNOWN' proxied protocols. Per spec, when the proxied protocol is
 	 * 'UNKNOWN' we must discard all other header values.
 	 */
 	private static ProxyProtocolMessage unknownMsg() {
