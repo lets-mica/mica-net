@@ -2,6 +2,11 @@
 
 ## 发行版本
 
+### v1.0.7 - 2024-09-12
+- :sparkles: `ThreadUtils` 不再将线程池作为静态变量，更好的支持 `stop`。
+- :sparkles: 调整 client 默认线程数配置
+- :sparkles: 优化 `TioCallerRunsPolicy` 异常日志打印
+
 ### v1.0.6 - 2024-08-31
 - :sparkles: 支持模块化，添加 `module-info.java`
 - :sparkles: 新增 `SSLEngineCustomizer`，用于配置 tls 协议版本和加密套件。
