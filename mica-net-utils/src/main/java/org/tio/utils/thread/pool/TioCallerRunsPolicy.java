@@ -195,7 +195,6 @@ package org.tio.utils.thread.pool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.utils.hutool.StrUtil;
 
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
@@ -211,10 +210,7 @@ public class TioCallerRunsPolicy extends CallerRunsPolicy {
 
 	public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
 		super.rejectedExecution(r, e);
-		String simpleName = r.getClass().getSimpleName();
-		if (StrUtil.isNotBlank(simpleName)) {
-			log.error(simpleName);
-		}
+		log.error(r.getClass().getName());
 	}
 
 }
