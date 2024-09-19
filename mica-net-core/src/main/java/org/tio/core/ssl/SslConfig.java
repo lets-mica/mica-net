@@ -197,7 +197,6 @@ import org.tio.utils.hutool.ResourceUtil;
 import org.tio.utils.hutool.StrUtil;
 
 import javax.net.ssl.*;
-import java.beans.Customizer;
 import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
