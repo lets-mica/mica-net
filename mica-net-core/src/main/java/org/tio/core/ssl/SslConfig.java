@@ -269,7 +269,9 @@ public class SslConfig {
 	 * @param keyPasswd    key passwd
 	 * @return SslConfig
 	 */
-	public static SslConfig forServer(String keyStoreFile, String keyPasswd, String trustStoreFile, String trustPassword, ClientAuth clientAuth) {
+	public static SslConfig forServer(String keyStoreFile, String keyPasswd,
+									  String trustStoreFile, String trustPassword,
+									  ClientAuth clientAuth) {
 		KeyManager[] kms = getKeyManager(keyStoreFile, keyPasswd);
 		TrustManager[] tms = getTrustManager(trustStoreFile, trustPassword);
 		return new SslConfig(clientAuth, kms, tms);
@@ -293,6 +295,17 @@ public class SslConfig {
 	 * @param keyPasswd           key passwd
 	 * @return SslConfig
 	 */
+	public static SslConfig forServer(SslCertType certType, InputStream keyStoreInputStream, String keyPasswd) {
+		return forServer(certType, keyStoreInputStream, keyPasswd, ClientAuth.NONE);
+	}
+
+	/**
+	 * 给服务器用的
+	 *
+	 * @param keyStoreInputStream keyStoreInputStream
+	 * @param keyPasswd           key passwd
+	 * @return SslConfig
+	 */
 	public static SslConfig forServer(InputStream keyStoreInputStream, String keyPasswd, ClientAuth clientAuth) {
 		return forServer(keyStoreInputStream, keyPasswd, null, null, clientAuth);
 	}
@@ -304,8 +317,35 @@ public class SslConfig {
 	 * @param keyPasswd           key passwd
 	 * @return SslConfig
 	 */
-	public static SslConfig forServer(InputStream keyStoreInputStream, String keyPasswd, InputStream trustStoreInputStream, String trustPassword, ClientAuth clientAuth) {
-		KeyManager[] kms = getKeyManager(keyStoreInputStream, keyPasswd);
+	public static SslConfig forServer(SslCertType certType, InputStream keyStoreInputStream, String keyPasswd, ClientAuth clientAuth) {
+		return forServer(certType, keyStoreInputStream, keyPasswd, null, null, clientAuth);
+	}
+
+
+	/**
+	 * 给服务器用的
+	 *
+	 * @param keyStoreInputStream keyStoreInputStream
+	 * @param keyPasswd           key passwd
+	 * @return SslConfig
+	 */
+	public static SslConfig forServer(InputStream keyStoreInputStream, String keyPasswd,
+									  InputStream trustStoreInputStream, String trustPassword,
+									  ClientAuth clientAuth) {
+		return forServer(SslCertType.JKS, keyStoreInputStream, keyPasswd, trustStoreInputStream, trustPassword, clientAuth);
+	}
+
+	/**
+	 * 给服务器用的
+	 *
+	 * @param keyStoreInputStream keyStoreInputStream
+	 * @param keyPasswd           key passwd
+	 * @return SslConfig
+	 */
+	public static SslConfig forServer(SslCertType certType, InputStream keyStoreInputStream, String keyPasswd,
+									  InputStream trustStoreInputStream, String trustPassword,
+									  ClientAuth clientAuth) {
+		KeyManager[] kms = getKeyManager(certType, keyStoreInputStream, keyPasswd);
 		TrustManager[] tms = getTrustManager(trustStoreInputStream, trustPassword);
 		return new SslConfig(clientAuth, kms, tms);
 	}
@@ -333,7 +373,8 @@ public class SslConfig {
 	 *
 	 * @return SslConfig
 	 */
-	public static SslConfig forClient(String keyStoreFile, String keyPasswd, String trustStoreFile, String trustPassword) {
+	public static SslConfig forClient(String keyStoreFile, String keyPasswd,
+									  String trustStoreFile, String trustPassword) {
 		KeyManager[] kms = getKeyManager(keyStoreFile, keyPasswd);
 		TrustManager[] tms = getTrustManager(trustStoreFile, trustPassword);
 		return new SslConfig(kms, tms);
@@ -353,13 +394,25 @@ public class SslConfig {
 	 *
 	 * @return SslConfig
 	 */
-	public static SslConfig forClient(InputStream keyStoreInputStream, String keyPasswd, InputStream trustStoreInputStream, String trustPassword) {
-		KeyManager[] kms = getKeyManager(keyStoreInputStream, keyPasswd);
-		TrustManager[] tms = getTrustManager(trustStoreInputStream, trustPassword);
+	public static SslConfig forClient(InputStream keyStoreInputStream, String keyPasswd,
+									  InputStream trustStoreInputStream, String trustPassword) {
+		return forClient(SslCertType.JKS, keyStoreInputStream, keyPasswd, trustStoreInputStream, trustPassword);
+	}
+
+	/**
+	 * 给客户端用的
+	 *
+	 * @return SslConfig
+	 */
+	public static SslConfig forClient(SslCertType certType, InputStream keyStoreInputStream, String keyPasswd,
+									  InputStream trustStoreInputStream, String trustPassword) {
+		KeyManager[] kms = getKeyManager(certType, keyStoreInputStream, keyPasswd);
+		TrustManager[] tms = getTrustManager(certType, trustStoreInputStream, trustPassword);
 		return new SslConfig(kms, tms);
 	}
 
 	public static KeyManager[] getKeyManager(String keyStoreFile, String keyPass) {
+		SslCertType certType = SslCertType.from(keyStoreFile);
 		InputStream keyStoreInputStream;
 		if (keyStoreFile == null) {
 			keyStoreInputStream = null;
@@ -368,14 +421,14 @@ public class SslConfig {
 		} else {
 			keyStoreInputStream = ResourceUtil.getFileResource(keyStoreFile);
 		}
-		return getKeyManager(keyStoreInputStream, keyPass);
+		return getKeyManager(certType, keyStoreInputStream, keyPass);
 	}
 
-	public static KeyManager[] getKeyManager(InputStream keyStoreInputStream, String keyPass) {
+	public static KeyManager[] getKeyManager(SslCertType certType, InputStream keyStoreInputStream, String keyPass) {
 		if (keyStoreInputStream != null) {
 			try {
 				KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(ALGORITHM);
-				KeyStore keyStore = KeyStore.getInstance("JKS");
+				KeyStore keyStore = KeyStore.getInstance(certType.getType());
 				char[] keyPassChars = keyPass == null ? null : keyPass.toCharArray();
 				keyStore.load(keyStoreInputStream, keyPassChars);
 				keyManagerFactory.init(keyStore, keyPassChars);
@@ -389,6 +442,7 @@ public class SslConfig {
 	}
 
 	public static TrustManager[] getTrustManager(String trustStoreFile, String trustPass) {
+		SslCertType certType = SslCertType.from(trustStoreFile);
 		InputStream trustStoreInputStream;
 		if (trustStoreFile == null) {
 			trustStoreInputStream = null;
@@ -397,14 +451,18 @@ public class SslConfig {
 		} else {
 			trustStoreInputStream = ResourceUtil.getFileResource(trustStoreFile);
 		}
-		return getTrustManager(trustStoreInputStream, trustPass);
+		return getTrustManager(certType, trustStoreInputStream, trustPass);
 	}
 
 	public static TrustManager[] getTrustManager(InputStream trustInputStream, String trustPass) {
+		return getTrustManager(SslCertType.JKS, trustInputStream, trustPass);
+	}
+
+	public static TrustManager[] getTrustManager(SslCertType certType, InputStream trustInputStream, String trustPass) {
 		if (trustInputStream != null) {
 			char[] trustPassChars = trustPass == null ? null : trustPass.toCharArray();
 			try {
-				return getTrustManagers(trustInputStream, trustPassChars);
+				return getTrustManagers(certType, trustInputStream, trustPassChars);
 			} catch (Exception e) {
 				throw new IllegalArgumentException(e);
 			}
@@ -413,7 +471,7 @@ public class SslConfig {
 		}
 	}
 
-	private static TrustManager[] getTrustManagers(InputStream trustInputStream, char[] trustPassword) throws Exception {
+	private static TrustManager[] getTrustManagers(SslCertType certType, InputStream trustInputStream, char[] trustPassword) throws Exception {
 		if (trustInputStream == null) {
 			return new TrustManager[]{new X509TrustManager() {
 				@Override
@@ -431,7 +489,7 @@ public class SslConfig {
 			}};
 		} else {
 			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(ALGORITHM);
-			KeyStore keyStore = KeyStore.getInstance("JKS");
+			KeyStore keyStore = KeyStore.getInstance(certType.getType());
 			keyStore.load(trustInputStream, trustPassword);
 			trustManagerFactory.init(keyStore);
 			return trustManagerFactory.getTrustManagers();

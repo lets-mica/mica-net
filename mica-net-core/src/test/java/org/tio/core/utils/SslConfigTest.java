@@ -13,9 +13,14 @@ class SslConfigTest {
 	}
 
 	@Test
-	void testServer() {
+	void testServer1() {
 		SslConfig sslConfig = SslConfig.forServer("classpath:test.jks", "501937");
 		Assertions.assertNotNull(sslConfig);
 	}
 
+	@Test
+	void testServer2() {
+		SslConfig sslConfig = SslConfig.forServer("classpath:generate.pfx", "12345678");
+		Assertions.assertNotNull(sslConfig);
+	}
 }
