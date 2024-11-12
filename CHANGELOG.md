@@ -2,6 +2,9 @@
 
 ## 发行版本
 
+### v1.0.8 - 2024-11-15
+- :sparkles: ssl 支持 `PKCS12` 证书。
+
 ### v1.0.7 - 2024-09-12
 - :sparkles: `ThreadUtils` 不再将线程池作为静态变量，更好的支持 `stop`。
 - :sparkles: 调整 client 默认线程数配置
