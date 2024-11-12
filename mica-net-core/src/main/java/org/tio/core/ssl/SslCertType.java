@@ -19,19 +19,19 @@ public enum SslCertType {
 	/**
 	 * 证书后缀名
 	 */
-	private final String[] exts;
+	private final String[] fileExtensions;
 
-	SslCertType(String type, String[] exts) {
+	SslCertType(String type, String[] fileExtensions) {
 		this.type = type;
-		this.exts = exts;
+		this.fileExtensions = fileExtensions;
 	}
 
 	public String getType() {
 		return type;
 	}
 
-	public String[] getExts() {
-		return exts;
+	public String[] getFileExtensions() {
+		return fileExtensions;
 	}
 
 	/**
@@ -44,7 +44,7 @@ public enum SslCertType {
 			return SslCertType.JKS;
 		}
 		for (SslCertType certType : SslCertType.values()) {
-			String[] exts = certType.getExts();
+			String[] exts = certType.getFileExtensions();
 			for (String ext : exts) {
 				if (fileName.toLowerCase().endsWith(ext)) {
 					return certType;
