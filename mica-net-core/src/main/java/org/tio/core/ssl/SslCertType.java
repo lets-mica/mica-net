@@ -44,9 +44,9 @@ public enum SslCertType {
 			return SslCertType.JKS;
 		}
 		for (SslCertType certType : SslCertType.values()) {
-			String[] exts = certType.getFileExtensions();
-			for (String ext : exts) {
-				if (fileName.toLowerCase().endsWith(ext)) {
+			String[] fileExtensions = certType.getFileExtensions();
+			for (String fileExtension : fileExtensions) {
+				if (fileName.toLowerCase().endsWith(fileExtension)) {
 					return certType;
 				}
 			}

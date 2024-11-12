@@ -213,8 +213,16 @@ public class SslConfig {
 	private final TrustManager[] tms;
 	private SSLEngineCustomizer sslEngineCustomizer;
 
+	public SslConfig(TrustManager[] tms) {
+		this(ClientAuth.NONE, null, tms);
+	}
+
 	public SslConfig(KeyManager[] kms, TrustManager[] tms) {
 		this(ClientAuth.NONE, kms, tms);
+	}
+
+	public SslConfig(ClientAuth clientAuth, TrustManager[] tms) {
+		this(clientAuth, null, tms);
 	}
 
 	public SslConfig(ClientAuth clientAuth, KeyManager[] kms, TrustManager[] tms) {
