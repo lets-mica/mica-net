@@ -208,7 +208,6 @@ import java.security.cert.X509Certificate;
  * @author tanyaowu、L.cm
  */
 public class SslConfig {
-	private static final String ALGORITHM = "SunX509";
 	private final ClientAuth clientAuth;
 	private final KeyManager[] kms;
 	private final TrustManager[] tms;
@@ -427,7 +426,7 @@ public class SslConfig {
 	public static KeyManager[] getKeyManager(SslCertType certType, InputStream keyStoreInputStream, String keyPass) {
 		if (keyStoreInputStream != null) {
 			try {
-				KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(ALGORITHM);
+				KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 				KeyStore keyStore = KeyStore.getInstance(certType.getType());
 				char[] keyPassChars = keyPass == null ? null : keyPass.toCharArray();
 				keyStore.load(keyStoreInputStream, keyPassChars);
@@ -488,7 +487,7 @@ public class SslConfig {
 				}
 			}};
 		} else {
-			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(ALGORITHM);
+			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 			KeyStore keyStore = KeyStore.getInstance(certType.getType());
 			keyStore.load(trustInputStream, trustPassword);
 			trustManagerFactory.init(keyStore);
