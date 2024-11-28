@@ -198,6 +198,7 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ReadCompletionHandler;
 import org.tio.core.ssl.SslUtils;
 import org.tio.server.intf.TioServerListener;
+import org.tio.server.proxy.ProxyProtocolDecoder;
 
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
@@ -234,9 +235,15 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			channelContext.setServerNode(tioServer.getServerNode());
 			boolean isConnected = true;
 			boolean isReconnect = false;
-			TioServerListener serverListener = tioServerConfig.getTioServerListener();
-			if (serverListener != null) {
-				if (!SslUtils.isSsl(channelContext.tioConfig)) {
+			// 如果非 ssl
+			if (!SslUtils.isSsl(channelContext.tioConfig)) {
+				// 判断是否开启代理协议
+				if (tioServerConfig.isProxyProtocolEnabled()) {
+					ProxyProtocolDecoder.enableProxyProtocol(channelContext);
+				}
+				// 监听器
+				TioServerListener serverListener = tioServerConfig.getTioServerListener();
+				if (serverListener != null) {
 					try {
 						serverListener.onAfterConnected(channelContext, isConnected, isReconnect);
 					} catch (Throwable e) {

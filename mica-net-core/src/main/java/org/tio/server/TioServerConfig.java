@@ -218,7 +218,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 2016年10月10日 下午5:51:56
  */
 public class TioServerConfig extends TioConfig {
-    private final AcceptCompletionHandler acceptCompletionHandler;
+	private final AcceptCompletionHandler acceptCompletionHandler;
 	private final TioServerHandler tioServerHandler;
 	private final TioServerListener tioServerListener;
 	/**
@@ -227,8 +227,18 @@ public class TioServerConfig extends TioConfig {
 	 * 如果读者想对该值做一些调整，可以在此进行配置。比如设置为 0.75，则变为 keepalive * 1.5。但是该值不得小于 0.5，否则将小于 keepalive 设定的时间。
 	 */
 	private float heartbeatBackoff = 1.0F;
+	/**
+	 * 是否需要校验心跳
+	 */
 	private boolean needCheckHeartbeat = true;
+	/**
+	 * 多个实例共享连接、客户端列表等数据
+	 */
 	private boolean isShared = false;
+	/**
+	 * 开启代理协议支持
+	 */
+	private boolean proxyProtocolOn = false;
 	/**
 	 * taskService
 	 */
@@ -355,6 +365,18 @@ public class TioServerConfig extends TioConfig {
 	 */
 	public TioServerListener getTioServerListener() {
 		return tioServerListener;
+	}
+
+	public boolean isProxyProtocolEnabled() {
+		return proxyProtocolOn;
+	}
+
+	public void enableProxyProtocol() {
+		enableProxyProtocol(true);
+	}
+
+	public void enableProxyProtocol(boolean enable) {
+		this.proxyProtocolOn = enable;
 	}
 
 	public TimerTaskService getTaskService() {

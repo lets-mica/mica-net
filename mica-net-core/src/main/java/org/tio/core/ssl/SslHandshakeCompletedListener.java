@@ -202,6 +202,8 @@ import org.tio.core.intf.Packet;
 import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.facade.IHandshakeCompletedListener;
 import org.tio.core.task.SendRunnable;
+import org.tio.server.TioServerConfig;
+import org.tio.server.proxy.ProxyProtocolDecoder;
 
 import java.util.Queue;
 
@@ -226,6 +228,13 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 
 		// 获取配置
 		TioConfig tioConfig = channelContext.tioConfig;
+		if (tioConfig.isServer()) {
+			// 判断是否开启代理协议
+			if (((TioServerConfig) tioConfig).isProxyProtocolEnabled()) {
+				ProxyProtocolDecoder.enableProxyProtocol(channelContext);
+			}
+		}
+		// 监听器
 		TioListener tioListener = tioConfig.getTioListener();
 		if (tioListener != null) {
 			try {
