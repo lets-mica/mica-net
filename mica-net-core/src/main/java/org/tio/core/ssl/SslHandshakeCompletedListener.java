@@ -191,16 +191,17 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-/**
- *
- */
+
 package org.tio.core.ssl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
+import org.tio.core.TioConfig;
 import org.tio.core.intf.Packet;
+import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.facade.IHandshakeCompletedListener;
+import org.tio.core.task.SendRunnable;
 
 import java.util.Queue;
 
@@ -223,35 +224,39 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 		log.info("{}, 完成SSL握手", channelContext);
 		channelContext.sslFacadeContext.setHandshakeCompleted(true);
 
-		if (channelContext.tioConfig.getTioListener() != null) {
+		// 获取配置
+		TioConfig tioConfig = channelContext.tioConfig;
+		TioListener tioListener = tioConfig.getTioListener();
+		if (tioListener != null) {
 			try {
-				channelContext.tioConfig.getTioListener().onAfterConnected(channelContext, true, channelContext.isReconnect());
+				tioListener.onAfterConnected(channelContext, true, channelContext.isReconnect());
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}
 
-		Queue<Packet> forSendAfterSslHandshakeCompleted = channelContext.sendRunnable.getForSendAfterSslHandshakeCompleted(false);
+		SendRunnable sendRunnable = channelContext.sendRunnable;
+		Queue<Packet> forSendAfterSslHandshakeCompleted = sendRunnable.getForSendAfterSslHandshakeCompleted(false);
 		if (forSendAfterSslHandshakeCompleted == null || forSendAfterSslHandshakeCompleted.isEmpty()) {
 			return;
 		}
 		if (log.isDebugEnabled()) {
 			log.debug("{} 业务层在SSL握手前就有{}条数据待发送", channelContext, forSendAfterSslHandshakeCompleted.size());
 		}
+		boolean isUseQueueSend = tioConfig.useQueueSend;
 		while (true) {
 			Packet packet = forSendAfterSslHandshakeCompleted.poll();
-			if (packet != null) {
-				if (channelContext.tioConfig.useQueueSend) {
-					channelContext.sendRunnable.addMsg(packet);
-				} else {
-					channelContext.sendRunnable.sendPacket(packet);
-				}
-			} else {
+			if (packet == null) {
 				break;
 			}
+			if (isUseQueueSend) {
+				sendRunnable.addMsg(packet);
+			} else {
+				sendRunnable.sendPacket(packet);
+			}
 		}
-		if (channelContext.tioConfig.useQueueSend) {
-			channelContext.sendRunnable.execute();
+		if (isUseQueueSend) {
+			sendRunnable.execute();
 		}
 	}
 

@@ -197,6 +197,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ReadCompletionHandler;
 import org.tio.core.ssl.SslUtils;
+import org.tio.server.intf.TioServerListener;
 
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
@@ -233,10 +234,11 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			channelContext.setServerNode(tioServer.getServerNode());
 			boolean isConnected = true;
 			boolean isReconnect = false;
-			if (tioServerConfig.getTioServerListener() != null) {
+			TioServerListener serverListener = tioServerConfig.getTioServerListener();
+			if (serverListener != null) {
 				if (!SslUtils.isSsl(channelContext.tioConfig)) {
 					try {
-						tioServerConfig.getTioServerListener().onAfterConnected(channelContext, isConnected, isReconnect);
+						serverListener.onAfterConnected(channelContext, isConnected, isReconnect);
 					} catch (Throwable e) {
 						log.error(e.getMessage(), e);
 					}
@@ -250,7 +252,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 				asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
 			}
 		} catch (Throwable e) {
-			log.error("", e);
+			log.error(e.getMessage(), e);
 		} finally {
 			if (tioServer.isWaitingStop()) {
 				log.info("{}即将关闭服务器，不再接受新请求", tioServer.getServerNode());
