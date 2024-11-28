@@ -228,11 +228,9 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 
 		// 获取配置
 		TioConfig tioConfig = channelContext.tioConfig;
-		if (tioConfig.isServer()) {
-			// 判断是否开启代理协议
-			if (((TioServerConfig) tioConfig).isProxyProtocolEnabled()) {
-				ProxyProtocolDecoder.enableProxyProtocol(channelContext);
-			}
+		// 判断是否开启代理协议
+		if (tioConfig.isServer() && ((TioServerConfig) tioConfig).isProxyProtocolEnabled()) {
+			ProxyProtocolDecoder.enableProxyProtocol(channelContext);
 		}
 		// 监听器
 		TioListener tioListener = tioConfig.getTioListener();
