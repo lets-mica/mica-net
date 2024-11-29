@@ -225,11 +225,8 @@ public class SslFacadeContext {
 		this.isHandshakeCompleted = false;
 		// sslContext
 		this.sslContext = sslConfig.getSslContext();
-		DefaultTaskHandler taskHandler = new DefaultTaskHandler();
-		// 是否客户端模式
-		boolean isClient = !this.channelContext.isServer();
 		// SSLFacade
-		this.sslFacade = new SSLFacade(this.channelContext, this.sslContext, isClient, sslConfig, taskHandler);
+		this.sslFacade = new SSLFacade(this.channelContext, this.sslContext, !this.channelContext.isServer(), sslConfig, new DefaultTaskHandler());
 		this.sslFacade.setHandshakeCompletedListener(new SslHandshakeCompletedListener(this.channelContext));
 		this.sslFacade.setSSLListener(new SslListener(this.channelContext));
 		this.sslFacade.setCloseListener(new SslSessionClosedListener(this.channelContext));
