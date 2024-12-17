@@ -205,6 +205,7 @@ import org.tio.core.intf.Packet;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
 import org.tio.core.stat.ChannelStat;
+import org.tio.server.proxy.ProxyProtocolDecoder;
 import org.tio.utils.buffer.ByteBufferUtil;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
@@ -251,7 +252,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	/**
 	 * 消息处理
 	 *
-	 * @param packet Packet
+	 * @param packet    Packet
 	 * @param byteCount byteCount
 	 */
 	public void handler(Packet packet, int byteCount) {
@@ -280,36 +281,41 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	@Override
 	public void runTask() {
 		while ((newReceivedByteBuffer = msgQueue.poll()) != null) {
-			decode();
+			decodePacket();
 		}
 	}
 
 	/**
 	 * 2017年3月21日 下午4:26:39
+	 *
 	 * @see java.lang.Runnable#run()
 	 */
-	public void decode() {
+	public void decodePacket() {
 		ByteBuffer byteBuffer = newReceivedByteBuffer;
 		if (lastByteBuffer != null) {
 			byteBuffer = ByteBufferUtil.composite(lastByteBuffer, byteBuffer);
 			lastByteBuffer = null;
 		}
+		// 判断是否服务端
+		boolean isServer = tioConfig.isServer();
 		while (true) {
 			try {
 				int initPosition = byteBuffer.position();
 				int limit = byteBuffer.limit();
 				int readableLength = limit - initPosition;
 				Packet packet = null;
-				if (channelContext.packetNeededLength != null) {
+				// 解包需要的包长
+				Integer packetNeededLength = channelContext.packetNeededLength;
+				if (packetNeededLength != null) {
 					if (log.isDebugEnabled()) {
-						log.debug("{}, 解码所需长度:{}", channelContext, channelContext.packetNeededLength);
+						log.debug("{}, 解码所需长度:{}", channelContext, packetNeededLength);
 					}
-					if (readableLength >= channelContext.packetNeededLength) {
-						packet = tioHandler.decode(byteBuffer, limit, initPosition, readableLength, channelContext);
+					if (readableLength >= packetNeededLength) {
+						packet = decodePacket(isServer, byteBuffer, limit, initPosition, readableLength);
 					}
 				} else {
 					try {
-						packet = tioHandler.decode(byteBuffer, limit, initPosition, readableLength, channelContext);
+						packet = decodePacket(isServer, byteBuffer, limit, initPosition, readableLength);
 					} catch (BufferUnderflowException e) {
 						//数据不够读
 					}
@@ -397,6 +403,16 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 				Tio.close(channelContext, e, "解码异常:" + e.getMessage(), CloseCode.DECODE_ERROR);
 				return;
 			}
+		}
+	}
+
+	private Packet decodePacket(boolean isServer, ByteBuffer byteBuffer, int limit, int initPosition, int readableLength) throws TioDecodeException {
+		if (isServer) {
+			return ProxyProtocolDecoder.decodeIfEnable(channelContext, byteBuffer, readableLength, (context, buffer, readableLen) ->
+				tioHandler.decode(buffer, limit, initPosition, readableLen, context)
+			);
+		} else {
+			return tioHandler.decode(byteBuffer, limit, initPosition, readableLength, channelContext);
 		}
 	}
 

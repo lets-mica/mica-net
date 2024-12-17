@@ -247,7 +247,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 					channelContext.decodeRunnable.execute();
 				} else {
 					channelContext.decodeRunnable.setNewReceivedByteBuffer(readByteBuffer);
-					channelContext.decodeRunnable.decode();
+					channelContext.decodeRunnable.decodePacket();
 				}
 			} else {
 				ByteBuffer copiedByteBuffer = null;
