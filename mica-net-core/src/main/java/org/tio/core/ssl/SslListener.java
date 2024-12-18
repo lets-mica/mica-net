@@ -273,7 +273,7 @@ public class SslListener implements ISSLListener {
 				channelContext.decodeRunnable.execute();
 			} else {
 				channelContext.decodeRunnable.setNewReceivedByteBuffer(plainBuffer);
-				channelContext.decodeRunnable.decodePacket();
+				channelContext.decodeRunnable.decode();
 			}
 		} else {
 			if (log.isDebugEnabled()) {

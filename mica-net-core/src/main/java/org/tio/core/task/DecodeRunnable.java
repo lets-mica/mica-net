@@ -281,7 +281,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	@Override
 	public void runTask() {
 		while ((newReceivedByteBuffer = msgQueue.poll()) != null) {
-			decodePacket();
+			decode();
 		}
 	}
 
@@ -290,7 +290,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	 *
 	 * @see java.lang.Runnable#run()
 	 */
-	public void decodePacket() {
+	public void decode() {
 		ByteBuffer byteBuffer = newReceivedByteBuffer;
 		if (lastByteBuffer != null) {
 			byteBuffer = ByteBufferUtil.composite(lastByteBuffer, byteBuffer);
