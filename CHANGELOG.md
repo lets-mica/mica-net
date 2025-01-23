@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v1.0.12 - 2025-01-23
+
+- :sparkles: tcp server 如果非 debug 不开启版本信息等打印，方便支持 Android（Android 下没有 ManagementFactory）
+
 ### v1.0.11 - 2025-01-20
 - :sparkles: tcp 代理协议支持下沉到 mica-net（最终版）
 
