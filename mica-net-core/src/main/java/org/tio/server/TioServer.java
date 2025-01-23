@@ -385,6 +385,11 @@ public class TioServer {
 
 		serverConfig.startTime = System.currentTimeMillis();
 
+		// 如果非调试，不打印下面的信息
+		if (!serverConfig.debug) {
+			return;
+		}
+
 		//下面这段代码有点无聊，写得随意，纯粹是为了打印好看些
 		String baseStr = "|----------------------------------------------------------------------------------------|";
 		int baseLen = baseStr.length();
