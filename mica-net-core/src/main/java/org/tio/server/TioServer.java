@@ -206,8 +206,6 @@ import org.tio.utils.timer.TimerTask;
 import org.tio.utils.timer.TimerTaskService;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousChannelGroup;
@@ -385,36 +383,38 @@ public class TioServer {
 
 		serverConfig.startTime = System.currentTimeMillis();
 
-		// 如果非调试，不打印下面的信息
-		if (!serverConfig.debug) {
-			return;
-		}
-
 		//下面这段代码有点无聊，写得随意，纯粹是为了打印好看些
 		String baseStr = "|----------------------------------------------------------------------------------------|";
 		int baseLen = baseStr.length();
-		StackTraceElement[] ses = Thread.currentThread().getStackTrace();
-		StackTraceElement se = ses[ses.length - 1];
 		int xxLen = 18;
 		int aaLen = baseLen - 3;
+		StackTraceElement[] ses = Thread.currentThread().getStackTrace();
+		StackTraceElement se = ses[ses.length - 1];
 		List<String> infoList = new ArrayList<>();
 		// 打印启动信息
-		infoList.add(StrUtil.fillAfter("TioConfig name", ' ', xxLen) + "| " + serverConfig.getName());
+		String serverConfigName = serverConfig.getName();
+		if (StrUtil.isNotBlank(serverConfigName)) {
+			infoList.add(StrUtil.fillAfter("TioConfig name", ' ', xxLen) + "| " + serverConfig.getName());
+		}
+		// 版本信息
 		infoList.add(StrUtil.fillAfter("Mica net version", ' ', xxLen) + "| " + Version.getVersion());
 		infoList.add(StrUtil.fillAfter("Started at", ' ', xxLen) + "| " + DateUtil.formatDateTime(LocalDateTime.now()));
 		infoList.add(StrUtil.fillAfter("Listen on", ' ', xxLen) + "| " + this.serverNode);
 		infoList.add(StrUtil.fillAfter("Main Class", ' ', xxLen) + "| " + se.getClassName());
-		try {
-			RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-			String runtimeName = runtimeMxBean.getName();
-			String pid = runtimeName.split("@")[0];
-			long startTime = runtimeMxBean.getStartTime();
-			long startCost = System.currentTimeMillis() - startTime;
-			infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
-			infoList.add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
-			infoList.add(StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + pid);
-		} catch (Exception ignore) {
-			// ignore
+		// 如果非调试，不打印下面的信息，兼容 Android
+		if (serverConfig.debug) {
+			try {
+				java.lang.management.RuntimeMXBean runtimeMxBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
+				String runtimeName = runtimeMxBean.getName();
+				String pid = runtimeName.split("@")[0];
+				long startTime = runtimeMxBean.getStartTime();
+				long startCost = System.currentTimeMillis() - startTime;
+				infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
+				infoList.add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
+				infoList.add(StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + pid);
+			} catch (Exception ignore) {
+				// ignore
+			}
 		}
 		// 100
 		StringBuilder printStr = new StringBuilder(SysConst.CRLF + baseStr + SysConst.CRLF);
