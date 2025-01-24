@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v1.0.13 - 2025-01-24
+
+- :sparkles: TioServer 优化打印，更好的支持 Android
+
 ### v1.0.12 - 2025-01-23
 
 - :sparkles: tcp server 如果非 debug 不开启版本信息等打印，方便支持 Android（Android 下没有 ManagementFactory）
