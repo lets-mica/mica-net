@@ -3,7 +3,6 @@ package org.tio.utils.compression;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -14,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 class CompressionTest {
 
 	@Test
-	void test() throws IOException {
+	void test() {
 		String text = "如梦技术——你的编程加油站！";
 		GzipCompression compression = new GzipCompression();
 		byte[] bytes = compression.compress(text.getBytes(StandardCharsets.UTF_8));

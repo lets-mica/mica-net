@@ -16,12 +16,7 @@
 
 package org.tio.utils.compression;
 
-import org.tio.utils.hutool.FastByteArrayOutputStream;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import org.tio.utils.hutool.ZipUtil;
 
 /**
  * gzip 压缩
@@ -29,11 +24,10 @@ import java.util.zip.GZIPOutputStream;
  * @author L.cm
  */
 public class GzipCompression implements Compression {
-	public static final int BUFFER_SIZE = 4096;
 	private final int bufferSize;
 
 	public GzipCompression() {
-		this(BUFFER_SIZE);
+		this(ZipUtil.BUFFER_SIZE);
 	}
 
 	public GzipCompression(int bufferSize) {
@@ -41,34 +35,13 @@ public class GzipCompression implements Compression {
 	}
 
 	@Override
-	public byte[] compress(byte[] buffer) throws IOException {
-		try (FastByteArrayOutputStream outputStream = new FastByteArrayOutputStream();
-			 GZIPOutputStream gzip = new GZIPOutputStream(outputStream);
-			 ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer)
-		) {
-			byte[] buf = new byte[bufferSize];
-			int len;
-			while ((len = inputStream.read(buf)) != -1) {
-				gzip.write(buf, 0, len);
-			}
-			gzip.finish();
-			return outputStream.toByteArray();
-		}
+	public byte[] compress(byte[] buffer) {
+		return ZipUtil.gzip(buffer);
 	}
 
 	@Override
-	public byte[] decompress(byte[] buffer) throws IOException {
-		try (ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer);
-			 GZIPInputStream gzip = new GZIPInputStream(inputStream);
-			 FastByteArrayOutputStream outputStream = new FastByteArrayOutputStream()
-		) {
-			byte[] buf = new byte[bufferSize];
-			int len;
-			while ((len = gzip.read(buf)) > 0) {
-				outputStream.write(buf, 0, len);
-			}
-			return outputStream.toByteArray();
-		}
+	public byte[] decompress(byte[] buffer) {
+		return ZipUtil.unGzip(buffer, bufferSize);
 	}
 
 }
