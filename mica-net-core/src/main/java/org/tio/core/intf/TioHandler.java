@@ -215,7 +215,7 @@ public interface TioHandler {
 	 * @param readableLength ByteBuffer参与本次解码的有效数据（= limit - position）
 	 * @param context        ChannelContext
 	 * @return Packet
-	 * @throws TioDecodeException
+	 * @throws TioDecodeException TioDecodeException
 	 */
 	Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext context) throws TioDecodeException;
 
