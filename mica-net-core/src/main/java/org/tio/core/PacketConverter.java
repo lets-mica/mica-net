@@ -201,6 +201,7 @@ import org.tio.core.intf.Packet;
 /**
  * @author tanyaowu
  */
+@FunctionalInterface
 public interface PacketConverter {
 
 	/**
