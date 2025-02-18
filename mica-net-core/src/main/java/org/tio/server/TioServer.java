@@ -405,10 +405,10 @@ public class TioServer {
 		if (serverConfig.debug) {
 			try {
 				java.lang.management.RuntimeMXBean runtimeMxBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
-				String runtimeName = runtimeMxBean.getName();
-				String pid = runtimeName.split("@")[0];
 				long startTime = runtimeMxBean.getStartTime();
 				long startCost = System.currentTimeMillis() - startTime;
+				String runtimeName = runtimeMxBean.getName();
+				String pid = runtimeName.split("@")[0];
 				infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
 				infoList.add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
 				infoList.add(StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + pid);
