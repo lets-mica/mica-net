@@ -257,10 +257,7 @@ public class IpUtils {
 	 * @return ip
 	 */
 	public static String getRealIp(HttpRequest request) {
-		if (request.httpConfig == null) {
-			return request.getRemote().getIp();
-		}
-		if (request.httpConfig.isProxied()) {
+		if (request.httpConfig != null && request.httpConfig.isProxied()) {
 			return getRealIp(request.channelContext, request.httpConfig, request.getHeaders());
 		} else {
 			return request.getRemote().getIp();
@@ -276,10 +273,7 @@ public class IpUtils {
 	 * @return ip
 	 */
 	public static String getRealIp(ChannelContext channelContext, HttpConfig httpConfig, Map<String, String> httpHeaders) {
-		if (httpConfig == null) {
-			return channelContext.getClientNode().getIp();
-		}
-		if (httpConfig.isProxied()) {
+		if (httpConfig != null && httpConfig.isProxied()) {
 			String headerName = null;
 			String ip = null;
 			for (String name : HEADER_NAMES_FOR_REAL_IP) {
