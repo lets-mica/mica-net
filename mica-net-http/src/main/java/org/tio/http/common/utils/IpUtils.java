@@ -205,8 +205,6 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author tanyaowu
@@ -219,7 +217,6 @@ public class IpUtils {
 	 * 如果是被代理了，获取客户端ip时，依次从下面这些头部中获取
 	 */
 	private static final String[] HEADER_NAMES_FOR_REAL_IP = new String[]{"x-forwarded-for", "proxy-client-ip", "wl-proxy-client-ip", "x-real-ip"};
-	private static final Pattern IP_PATTERN = Pattern.compile("([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}");
 
 	/**
 	 * 获取本机 ip
@@ -248,7 +245,7 @@ public class IpUtils {
 			}
 		}
 
-		if (netip != null && !"".equals(netip)) {
+		if (netip != null && !netip.isEmpty()) {
 			return netip;
 		} else {
 			return localip;
@@ -264,24 +261,7 @@ public class IpUtils {
 			return request.getRemote().getIp();
 		}
 		if (request.httpConfig.isProxied()) {
-			String headerName = null;
-			String ip = null;
-			for (String name : HEADER_NAMES_FOR_REAL_IP) {
-				headerName = name;
-				ip = request.getHeader(headerName);
-				if (StrUtil.isNotBlank(ip) && !"unknown".equalsIgnoreCase(ip)) {
-					break;
-				}
-			}
-			if (StrUtil.isBlank(ip) || "unknown".equalsIgnoreCase(ip)) {
-				headerName = null;
-				ip = request.getRemote().getIp();
-			}
-			if (ip.contains(",")) {
-				log.error("ip[{}], header name:{}", ip, headerName);
-				ip = ip.split(",")[0].trim();
-			}
-			return ip;
+			return getRealIp(request.channelContext, request.httpConfig, request.getHeaders());
 		} else {
 			return request.getRemote().getIp();
 		}
@@ -290,16 +270,15 @@ public class IpUtils {
 	/**
 	 * 获取真实ip
 	 *
-	 * @param channelContext
-	 * @param httpConfig
-	 * @param httpHeaders
+	 * @param channelContext ChannelContext
+	 * @param httpConfig HttpConfig
+	 * @param httpHeaders httpHeaders
 	 * @return ip
 	 */
 	public static String getRealIp(ChannelContext channelContext, HttpConfig httpConfig, Map<String, String> httpHeaders) {
 		if (httpConfig == null) {
 			return channelContext.getClientNode().getIp();
 		}
-
 		if (httpConfig.isProxied()) {
 			String headerName = null;
 			String ip = null;
@@ -324,19 +303,6 @@ public class IpUtils {
 		} else {
 			return channelContext.getClientNode().getIp();
 		}
-	}
-
-	/**
-	 * @param str str
-	 * @return 是否 ip
-	 */
-	public static boolean isIp(String str) {
-		if (str == null || str.length() < 7 || str.length() > 15) {
-			return false;
-		}
-		// 判断IP格式和范围
-		Matcher mat = IP_PATTERN.matcher(str);
-		return mat.find();
 	}
 
 }
