@@ -289,6 +289,8 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 					ReconnConf reconnConf = tioClientConfig.getReconnConf();
 					if (reconnConf != null) {
 						channelContext = new ClientChannelContext(tioClientConfig, asynchronousSocketChannel);
+						channelContext.setBindIp(bindIp);
+						channelContext.setBindPort(bindPort);
 						channelContext.setServerNode(serverNode);
 					}
 				}
