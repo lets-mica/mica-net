@@ -293,36 +293,4 @@ public class HeaderValue {
 		public static final HeaderValue gzip = HeaderValue.from("gzip");
 	}
 
-	public static class Tio_From_Cache extends EnumerableValue {
-		public static final HeaderValue TRUE = HeaderValue.from("true");
-		public static final HeaderValue FALSE = HeaderValue.from("false");
-	}
-
-	public static class Tio_Webpack_Used_Cache extends EnumerableValue {
-		public static final HeaderValue V_1 = HeaderValue.from("1");
-	}
-
-	public static class Content_Type extends EnumerableValue {
-		public static final HeaderValue TEXT_PLAIN_TXT = EnumerableValue.from(MimeType.TEXT_PLAIN_TXT.getType());
-		public static final HeaderValue TEXT_PLAIN_JSON = EnumerableValue.from(MimeType.TEXT_PLAIN_JSON.getType());
-		public static final HeaderValue TEXT_HTML_HTML = EnumerableValue.from(MimeType.TEXT_HTML_HTML.getType());
-		public static final HeaderValue APPLICATION_ACAD_DWG = EnumerableValue.from(MimeType.APPLICATION_ACAD_DWG.getType());
-		public static final HeaderValue DEFAULT_TYPE = EnumerableValue.from("application/octet-stream");
-	}
-
-	public static class Access_Control_Allow_Origin extends EnumerableValue {
-
-	}
-
-	public static class Access_Control_Allow_Headers extends EnumerableValue {
-
-	}
-
-	public static class Access_Control_Allow_Methods extends EnumerableValue {
-
-	}
-
-	public static class Access_Control_Max_Age extends EnumerableValue {
-
-	}
 }
