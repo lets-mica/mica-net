@@ -48,7 +48,7 @@ public abstract class Mapped implements Closeable {
 		if (buffCleaner == null) {
 			ByteBuffer direct = ByteBuffer.allocateDirect(0);
 			try {
-				Field cleanerField =  direct.getClass().getDeclaredField("cleaner");
+				Field cleanerField = direct.getClass().getDeclaredField("cleaner");
 				cleanerField.setAccessible(true);
 				final Object cleaner = cleanerField.get(direct);
 				Method cleanMethod = cleaner.getClass().getDeclaredMethod("clean");

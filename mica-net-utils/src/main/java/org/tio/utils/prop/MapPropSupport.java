@@ -195,8 +195,8 @@ package org.tio.utils.prop;
 
 import org.tio.utils.hutool.CollUtil;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 /**
@@ -204,7 +204,7 @@ import java.util.function.Function;
  * 2017年8月18日 下午5:36:02
  */
 public class MapPropSupport implements IPropSupport {
-	private final ConcurrentMap<String, Object> props = new ConcurrentHashMap<>(8);
+	private final Map<String, Object> props = new ConcurrentHashMap<>(8);
 
 	@Override
 	public void clear() {
