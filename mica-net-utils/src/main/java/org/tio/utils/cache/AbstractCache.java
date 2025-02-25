@@ -1,13 +1,9 @@
 package org.tio.utils.cache;
 
 import org.tio.utils.hutool.CollUtil;
-import org.tio.utils.mica.ExceptionUtils;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
@@ -54,11 +50,12 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	/**
 	 * 命中数，即命中缓存计数
 	 */
-	protected LongAdder hitCount = new LongAdder();
+	protected final LongAdder hitCount = new LongAdder();
 	/**
 	 * 丢失数，即未命中缓存计数
 	 */
-	protected LongAdder missCount = new LongAdder();
+	protected final LongAdder missCount = new LongAdder();
+
 	/**
 	 * 缓存监听
 	 */
@@ -89,15 +86,20 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 		if (timeout != 0) {
 			existCustomTimeout = true;
 		}
-		if (isFull()) {
-			pruneCache();
+		// issue#3618 对于替换的键值对，不做满队列检查和清除
+		if (cacheMap.containsKey(key)) {
+			// 存在相同key，覆盖之
+			cacheMap.put(key, co);
+		} else {
+			if (isFull()) {
+				pruneCache();
+			}
+			cacheMap.put(key, co);
 		}
-		cacheMap.put(key, co);
 	}
 	// ---------------------------------------------------------------- put end
 
 	// ---------------------------------------------------------------- get start
-
 	/**
 	 * @return 命中数
 	 */
@@ -114,6 +116,10 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 
 	@Override
 	public V get(K key, boolean isUpdateLastAccess, Supplier<V> supplier) {
+		return get(key, isUpdateLastAccess, this.timeout, supplier);
+	}
+
+	public V get(K key, boolean isUpdateLastAccess, long timeout, Supplier<V> supplier) {
 		V v = get(key, isUpdateLastAccess);
 		if (null == v && null != supplier) {
 			//每个key单独获取一把锁，降低锁的粒度提高并发能力，see pr#1385@Github
@@ -121,16 +127,13 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 			keyLock.lock();
 			try {
 				// 双重检查锁，防止在竞争锁的过程中已经有其它线程写入
-				final CacheObj<K, V> co = getWithoutLock(key);
-				if (null == co || co.isExpired()) {
-					try {
-						v = supplier.get();
-					} catch (Exception e) {
-						throw ExceptionUtils.unchecked(e);
-					}
-					put(key, v, this.timeout);
-				} else {
-					v = co.get(isUpdateLastAccess);
+				// issue#3686 由于这个方法内的加锁是get独立锁，不和put锁互斥，而put和pruneCache会修改cacheMap，导致在pruneCache过程中get会有并发问题
+				// 因此此处需要使用带全局锁的get获取值
+				v = get(key, isUpdateLastAccess);
+				if (null == v) {
+					// supplier的创建是一个耗时过程，此处创建与全局锁无关，而与key锁相关，这样就保证每个key只创建一个value，且互斥
+					v = supplier.get();
+					put(key, v, timeout);
 				}
 			} finally {
 				keyLock.unlock();
@@ -152,7 +155,6 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	// ---------------------------------------------------------------- get end
 
 	// ---------------------------------------------------------------- prune start
-
 	/**
 	 * 清理实现<br>
 	 * 子类实现此方法时无需加锁
@@ -231,7 +233,7 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	 * @since 5.5.9
 	 */
 	public Set<K> keySet() {
-		return new HashSet<>(this.cacheMap.keySet());
+		return Collections.unmodifiableSet(this.cacheMap.keySet());
 	}
 
 	/**
@@ -242,8 +244,9 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	 * @param cachedObject 被缓存的对象
 	 */
 	protected void onRemove(K key, V cachedObject) {
-		if (null != this.listener) {
-			this.listener.onRemove(key, cachedObject);
+		final CacheListener<K, V> listener = this.listener;
+		if (null != listener) {
+			listener.onRemove(key, cachedObject);
 		}
 	}
 
@@ -251,21 +254,14 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	 * 移除key对应的对象，不加锁
 	 *
 	 * @param key           键
-	 * @param withMissCount 是否计数丢失数
 	 * @return 移除的对象，无返回null
 	 */
-	protected CacheObj<K, V> removeWithoutLock(K key, boolean withMissCount) {
-		final CacheObj<K, V> co = cacheMap.remove(key);
-		if (withMissCount) {
-			// 在丢失计数有效的情况下，移除一般为get时的超时操作，此处应该丢失数+1
-			this.missCount.increment();
-		}
-		return co;
+	protected CacheObj<K, V> removeWithoutLock(K key) {
+		return cacheMap.remove(key);
 	}
 
 	/**
 	 * 获取所有{@link CacheObj}值的{@link Iterator}形式
-	 *
 	 * @return {@link Iterator}
 	 */
 	protected Iterator<CacheObj<K, V>> cacheObjIter() {

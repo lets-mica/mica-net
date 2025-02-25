@@ -73,7 +73,7 @@ public class FIFOCache<K extends Serializable, V extends Serializable> extends R
 		}
 		// 清理结束后依旧是满的，则删除第一个被缓存的对象
 		if (isFull() && null != first) {
-			removeWithoutLock(first.key, false);
+			removeWithoutLock(first.key);
 			onRemove(first.key, first.obj);
 			count++;
 		}
