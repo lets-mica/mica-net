@@ -18,7 +18,7 @@ import java.util.Map;
  * @param <V> 值类型
  * @author Looly
  */
-public class FIFOCache<K extends Serializable, V extends Serializable> extends StampedCache<K, V> {
+public class FIFOCache<K extends Serializable, V extends Serializable> extends ReentrantCache<K, V> {
 	private static final long serialVersionUID = 1L;
 
 	/**

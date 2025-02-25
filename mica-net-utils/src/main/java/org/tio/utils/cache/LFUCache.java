@@ -15,7 +15,7 @@ import java.util.Iterator;
  * @param <V> 值类型
  * @author Looly, jodd
  */
-public class LFUCache<K extends Serializable, V extends Serializable> extends StampedCache<K, V> {
+public class LFUCache<K extends Serializable, V extends Serializable> extends ReentrantCache<K, V> {
 	private static final long serialVersionUID = 1L;
 
 	/**
