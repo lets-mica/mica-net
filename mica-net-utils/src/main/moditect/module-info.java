@@ -7,9 +7,11 @@ open module net.dreamlu.mica.net.utils {
 	requires com.google.gson;
 	requires cn.hutool.json;
 	requires snack3;
+	exports org.tio.utils;
 	exports org.tio.utils.buffer;
 	exports org.tio.utils.cache;
 	exports org.tio.utils.collection;
+	exports org.tio.utils.compression;
 	exports org.tio.utils.hutool;
 	exports org.tio.utils.json;
 	exports org.tio.utils.mica;
