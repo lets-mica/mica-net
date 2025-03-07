@@ -2,6 +2,14 @@
 
 ## 发行版本
 
+### v1.1.0 - 2025-03-07
+
+- :sparkles: 调整 cache 同步最新 hutool
+- :sparkles: 客户端连接时指定端口，重连时仍然指定端口。
+- :sparkles: 简化，删除一些没有用到的代码
+- :sparkles: mica-mqtt 中的 PayloadEncode 下沉到 mica-net
+- :sparkles: mica-mqtt 中的 压缩接口下沉到 mica-net
+
 ### v1.0.13 - 2025-01-24
 
 - :sparkles: TioServer 优化打印，更好的支持 Android
