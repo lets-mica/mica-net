@@ -193,12 +193,8 @@
 */
 package org.tio.http.common;
 
-import org.tio.utils.hutool.CollUtil;
-import org.tio.utils.hutool.StrUtil;
-
 import java.io.UnsupportedEncodingException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Arrays;
 
 /**
  * @author tanyaowu
@@ -233,51 +229,32 @@ public class HeaderValue {
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
-		return result;
+	public boolean equals(Object o) {
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		HeaderValue that = (HeaderValue) o;
+		return value.equals(that.value) && Arrays.equals(bytes, that.bytes);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		HeaderValue other = (HeaderValue) obj;
-		if (value == null) {
-			return other.value == null;
-		} else {
-			return value.equals(other.value);
-		}
+	public int hashCode() {
+		int result = value.hashCode();
+		result = 31 * result + Arrays.hashCode(bytes);
+		return result;
 	}
 
-	public static class EnumerableValue {
-		private static final ConcurrentMap<String, HeaderValue> map = new ConcurrentHashMap<>();
-
-		public static HeaderValue from(String value) {
-			if (StrUtil.isBlank(value)) {
-				return null;
-			}
-			return CollUtil.computeIfAbsent(map, value, HeaderValue::from);
-		}
-	}
-
-	public static class Connection extends EnumerableValue {
+	public static class Connection {
 		public static final HeaderValue keep_alive = HeaderValue.from(HttpConst.ResponseHeaderValue.Connection.keep_alive);
 		public static final HeaderValue close = HeaderValue.from(HttpConst.ResponseHeaderValue.Connection.close);
 		public static final HeaderValue Upgrade = HeaderValue.from(HttpConst.ResponseHeaderValue.Connection.Upgrade);
 	}
 
-	public static class Upgrade extends EnumerableValue {
+	public static class Upgrade {
 		public static final HeaderValue WebSocket = HeaderValue.from(HttpConst.ResponseHeaderValue.Upgrade.WebSocket);
 	}
 
-	public static class Keep_Alive extends EnumerableValue {
+	public static class Keep_Alive {
 		public static final HeaderValue TIMEOUT_10_MAX_20 = HeaderValue.from("timeout=10, max=20");
 	}
 
@@ -289,8 +266,15 @@ public class HeaderValue {
 		public static final HeaderValue SERVER_INFO = HeaderValue.from(HttpConst.SERVER_INFO);
 	}
 
-	public static class Content_Encoding extends EnumerableValue {
+	public static class Content_Encoding {
 		public static final HeaderValue gzip = HeaderValue.from("gzip");
+	}
+
+	public static class Content_Type {
+		public static final HeaderValue TEXT_PLAIN_TXT = HeaderValue.from("text/plain");
+		public static final HeaderValue TEXT_PLAIN_JSON = HeaderValue.from("application/json");
+		public static final HeaderValue TEXT_HTML_HTML = HeaderValue.from("text/html");
+		public static final HeaderValue DEFAULT_TYPE = HeaderValue.from("application/octet-stream");
 	}
 
 }
