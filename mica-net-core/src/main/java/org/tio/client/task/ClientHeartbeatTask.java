@@ -64,21 +64,29 @@ public class ClientHeartbeatTask extends TimerTask {
 		// 3. 心跳检测
 		Set<ChannelContext> set = clientConfig.connecteds;
 		HeartbeatMode heartbeatMode = clientConfig.getHeartbeatMode();
+		// 4. 心跳超时策略
+		HeartbeatTimeoutStrategy timeoutStrategy = clientConfig.getHeartbeatTimeoutStrategy();
 		long currTime = System.currentTimeMillis();
 		try {
 			for (ChannelContext entry : set) {
-				ClientChannelContext channelContext = (ClientChannelContext) entry;
-				if (channelContext.isClosed() || channelContext.isRemoved()) {
+				ClientChannelContext context = (ClientChannelContext) entry;
+				if (context.isClosed() || context.isRemoved()) {
 					continue;
 				}
-				long compareTime = heartbeatMode.getLastTime(channelContext.stat);
+				long compareTime = heartbeatMode.getLastTime(context.stat);
 				long interval = currTime - compareTime;
 				if (interval >= clientConfig.heartbeatTimeout / 2) {
-					Packet packet = tioHandler.heartbeatPacket(channelContext);
-					if (packet != null) {
-						boolean result = Tio.send(channelContext, packet);
-						if (clientConfig.debug && logger.isInfoEnabled()) {
-							logger.info("{} 发送心跳包 result:{}", channelContext, result);
+					if (HeartbeatTimeoutStrategy.CLOSE == timeoutStrategy) {
+						// 心跳超时策略为关闭连接
+						context.setCloseCode(ChannelContext.CloseCode.HEARTBEAT_TIMEOUT);
+						Tio.close(context, interval + "ms 没有收到消息");
+					} else {
+						Packet packet = tioHandler.heartbeatPacket(context);
+						if (packet != null) {
+							boolean result = Tio.send(context, packet);
+							if (clientConfig.debug && logger.isInfoEnabled()) {
+								logger.info("{} 发送心跳包 result:{}", context, result);
+							}
 						}
 					}
 				}

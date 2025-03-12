@@ -195,6 +195,7 @@ package org.tio.client;
 
 import org.tio.client.intf.TioClientHandler;
 import org.tio.client.intf.TioClientListener;
+import org.tio.client.task.HeartbeatTimeoutStrategy;
 import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
 import org.tio.core.TioConfig;
@@ -232,6 +233,10 @@ public class TioClientConfig extends TioConfig {
 	 * taskService
 	 */
 	private TimerTaskService taskService;
+	/**
+	 * 心跳超时策略
+	 */
+	private HeartbeatTimeoutStrategy heartbeatTimeoutStrategy;
 
 	/**
 	 * 不重连
@@ -353,6 +358,14 @@ public class TioClientConfig extends TioConfig {
 
 	public void setTaskService(TimerTaskService taskService) {
 		this.taskService = taskService;
+	}
+
+	public HeartbeatTimeoutStrategy getHeartbeatTimeoutStrategy() {
+		return heartbeatTimeoutStrategy;
+	}
+
+	public void setHeartbeatTimeoutStrategy(HeartbeatTimeoutStrategy heartbeatTimeoutStrategy) {
+		this.heartbeatTimeoutStrategy = heartbeatTimeoutStrategy;
 	}
 
 	@Override
