@@ -236,7 +236,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 				try {
 					tioListener.onAfterReceivedBytes(channelContext, result);
 				} catch (Exception e) {
-					log.error("", e);
+					log.error(e.getMessage(), e);
 				}
 			}
 
@@ -256,7 +256,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 					log.debug("{}, 丢给SslFacade解密:{}", channelContext, copiedByteBuffer);
 					channelContext.sslFacadeContext.getSslFacade().decrypt(copiedByteBuffer);
 				} catch (Exception e) {
-					log.error(channelContext + ", " + e.getMessage() + copiedByteBuffer, e);
+					log.error("{}, {}{}", channelContext, e.getMessage(), copiedByteBuffer, e);
 					Tio.close(channelContext, e, e.getMessage(), CloseCode.SSL_DECRYPT_ERROR);
 				}
 			}
