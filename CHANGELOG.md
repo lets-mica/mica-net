@@ -2,6 +2,15 @@
 
 ## 发行版本
 
+### v1.1.2 - 2025-03-12
+
+- :sparkles: 客户端支持 HeartbeatTimeoutStrategy，心跳超时时，支持发送ping或者断开等待重连。
+- :bug: 修复 ReadCompletionHandler 读取时有可能出现异常
+
+### v1.1.1 - 2025-03-10
+
+- :sparkles: 修复还原 mica-net-http 中部分代码，避免 mica-mqtt 不兼容。
+
 ### v1.1.0 - 2025-03-07
 
 - :sparkles: 调整 cache 同步最新 hutool
