@@ -283,8 +283,13 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 		} else {
 			readByteBuffer = ByteBuffer.allocate(channelContext.getReadBufferSize());
 		}
-
-		channelContext.asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, this);
+		// 读取时有可能出现异常，gitee: https://gitee.com/dromara/mica-mqtt/issues/IBSM9W
+		try {
+			channelContext.asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, this);
+		} catch (Throwable e) {
+			log.error(e.getMessage(), e);
+			failed(e, null);
+		}
 	}
 
 	/**
