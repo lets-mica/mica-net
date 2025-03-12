@@ -76,7 +76,7 @@ public class ClientHeartbeatTask extends TimerTask {
 				long compareTime = heartbeatMode.getLastTime(context.stat);
 				long interval = currTime - compareTime;
 				// 超过一个心跳周期，HeartbeatMode.LAST_RESP 在拔网线会出现这种情况，https://gitee.com/dromara/mica-mqtt/issues/IBSMZ7
-				if (interval > clientConfig.heartbeatTimeout) {
+				if (interval >= clientConfig.heartbeatTimeout) {
 					if (HeartbeatTimeoutStrategy.CLOSE == timeoutStrategy) {
 						// 心跳超时策略为关闭连接
 						context.setCloseCode(ChannelContext.CloseCode.HEARTBEAT_TIMEOUT);
