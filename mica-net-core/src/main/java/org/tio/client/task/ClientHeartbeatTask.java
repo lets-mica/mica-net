@@ -75,20 +75,19 @@ public class ClientHeartbeatTask extends TimerTask {
 				}
 				long compareTime = heartbeatMode.getLastTime(context.stat);
 				long interval = currTime - compareTime;
-				if (interval >= clientConfig.heartbeatTimeout / 2) {
+				// 超过一个心跳周期，HeartbeatMode.LAST_RESP 在拔网线会出现这种情况，https://gitee.com/dromara/mica-mqtt/issues/IBSMZ7
+				if (interval > clientConfig.heartbeatTimeout) {
 					if (HeartbeatTimeoutStrategy.CLOSE == timeoutStrategy) {
 						// 心跳超时策略为关闭连接
 						context.setCloseCode(ChannelContext.CloseCode.HEARTBEAT_TIMEOUT);
 						Tio.close(context, interval + "ms 没有收到消息");
 					} else {
-						Packet packet = tioHandler.heartbeatPacket(context);
-						if (packet != null) {
-							boolean result = Tio.send(context, packet);
-							if (clientConfig.debug && logger.isInfoEnabled()) {
-								logger.info("{} 发送心跳包 result:{}", context, result);
-							}
-						}
+						// 发送心跳
+						sendHeartbeat(context);
 					}
+				} else if (interval >= clientConfig.heartbeatTimeout / 2) {
+					// 超过半个心跳周期，发送心跳
+					sendHeartbeat(context);
 				}
 			}
 			// 打印连接信息
@@ -103,6 +102,21 @@ public class ClientHeartbeatTask extends TimerTask {
 			}
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * 发送心跳包
+	 *
+	 * @param context ChannelContext
+	 */
+	private void sendHeartbeat(ChannelContext context) {
+		Packet packet = tioHandler.heartbeatPacket(context);
+		if (packet != null) {
+			boolean result = Tio.send(context, packet);
+			if (clientConfig.debug && logger.isInfoEnabled()) {
+				logger.info("{} 发送心跳包 result:{}", context, result);
+			}
 		}
 	}
 }
