@@ -79,8 +79,7 @@ public class ClientHeartbeatTask extends TimerTask {
 				if (interval >= clientConfig.heartbeatTimeout) {
 					if (HeartbeatTimeoutStrategy.CLOSE == timeoutStrategy) {
 						// 心跳超时策略为关闭连接
-						context.setCloseCode(ChannelContext.CloseCode.HEARTBEAT_TIMEOUT);
-						Tio.close(context, interval + "ms没有收到消息");
+						Tio.close(context, interval + "ms没有收到消息", ChannelContext.CloseCode.HEARTBEAT_TIMEOUT);
 					} else {
 						// 发送心跳
 						sendHeartbeat(context);
