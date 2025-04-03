@@ -199,6 +199,7 @@ import org.tio.core.Node;
 import org.tio.server.task.ServerHeartbeatTask;
 import org.tio.utils.SysConst;
 import org.tio.utils.Version;
+import org.tio.utils.hutool.ClassUtil;
 import org.tio.utils.hutool.DateUtil;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.timer.DefaultTimerTaskService;
@@ -401,21 +402,8 @@ public class TioServer {
 		infoList.add(StrUtil.fillAfter("Started at", ' ', xxLen) + "| " + DateUtil.formatDateTime(LocalDateTime.now()));
 		infoList.add(StrUtil.fillAfter("Listen on", ' ', xxLen) + "| " + this.serverNode);
 		infoList.add(StrUtil.fillAfter("Main Class", ' ', xxLen) + "| " + se.getClassName());
-		// 如果非调试，不打印下面的信息，兼容 Android
-		if (serverConfig.debug) {
-			try {
-				java.lang.management.RuntimeMXBean runtimeMxBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
-				long startTime = runtimeMxBean.getStartTime();
-				long startCost = System.currentTimeMillis() - startTime;
-				String runtimeName = runtimeMxBean.getName();
-				String pid = runtimeName.split("@")[0];
-				infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
-				infoList.add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
-				infoList.add(StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + pid);
-			} catch (Exception ignore) {
-				// ignore
-			}
-		}
+		// 启动的时间和pid信息
+		startManagementDebugInfo(infoList, xxLen, start);
 		// 100
 		StringBuilder printStr = new StringBuilder(SysConst.CRLF + baseStr + SysConst.CRLF);
 		for (String string : infoList) {
@@ -426,6 +414,31 @@ public class TioServer {
 			log.info(printStr.toString());
 		} else {
 			System.out.println(printStr);
+		}
+	}
+
+	/**
+	 * 启动信息打印
+	 * @param infoList infoList
+	 * @param xxLen xxLen
+	 * @param start start
+	 */
+	private static void startManagementDebugInfo(List<String> infoList, int xxLen, long start) {
+		// Android 中没有 ManagementFactory
+		boolean hasManagementFactory = ClassUtil.isPresent("java.lang.management.ManagementFactory");
+		try {
+			if (hasManagementFactory) {
+				java.lang.management.RuntimeMXBean runtimeMxBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
+				long startTime = runtimeMxBean.getStartTime();
+				long startCost = System.currentTimeMillis() - startTime;
+				String runtimeName = runtimeMxBean.getName();
+				String pid = runtimeName.split("@")[0];
+				infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
+				infoList.add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
+				infoList.add(StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + pid);
+			}
+		} catch (Throwable ignore) {
+			// ignore
 		}
 	}
 
