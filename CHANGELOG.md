@@ -2,6 +2,14 @@
 
 ## 发行版本
 
+### v1.1.5 - 2025-04-12
+
+-  :sparkles: TioServer 更好的支持 Android
+
+### v1.1.4 - 2025-03-14
+
+- :sparkles: 客户端支持 HeartbeatTimeoutStrategy
+
 ### v1.1.2 - 2025-03-12
 
 - :sparkles: 客户端支持 HeartbeatTimeoutStrategy，心跳超时时，支持发送ping或者断开等待重连。
