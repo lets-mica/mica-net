@@ -213,8 +213,8 @@ import java.util.Set;
  * 2017年8月4日 上午9:41:12
  */
 public class HttpResponseEncoder {
-	public static final int HEADER_SERVER_LENGTH = HeaderName.Server.bytes.length + HeaderValue.Server.SERVER_INFO.bytes.length + 3;
-	public static final int HEADER_DATE_LENGTH_1 = HeaderName.Date.bytes.length + 3;
+	public static final int HEADER_SERVER_LENGTH = HeaderName.Server.bytes.length + HeaderValue.Server.SERVER_INFO.bytes.length + 4;
+	public static final int HEADER_DATE_LENGTH_1 = HeaderName.Date.bytes.length + 4;
 	public static final int HEADER_FIXED_LENGTH = HEADER_SERVER_LENGTH + HEADER_DATE_LENGTH_1;
 	private static final Logger log = LoggerFactory.getLogger(HttpResponseEncoder.class);
 
@@ -259,7 +259,7 @@ public class HttpResponseEncoder {
 				cookie.setBytes(bs);
 				headerLength += (bs.length);
 			}
-			headerLength += httpResponse.getCookies().size() * 3; //冒号和\r\n
+			headerLength += httpResponse.getCookies().size() * 4; //冒号空格和\r\n
 		}
 
 		// 时间
@@ -272,11 +272,13 @@ public class HttpResponseEncoder {
 
 		buffer.put(HeaderName.Server.bytes);
 		buffer.put(SysConst.COL);
+		buffer.put(SysConst.SPACE);
 		buffer.put(HeaderValue.Server.SERVER_INFO.bytes);
 		buffer.put(SysConst.CR_LF);
 
 		buffer.put(HeaderName.Date.bytes);
 		buffer.put(SysConst.COL);
+		buffer.put(SysConst.SPACE);
 		buffer.put(httpDateValue.bytes);
 		buffer.put(SysConst.CR_LF);
 
@@ -284,6 +286,7 @@ public class HttpResponseEncoder {
 		for (Entry<HeaderName, HeaderValue> entry : headerSet) {
 			buffer.put(entry.getKey().bytes);
 			buffer.put(SysConst.COL);
+			buffer.put(SysConst.SPACE);
 			buffer.put(entry.getValue().bytes);
 			buffer.put(SysConst.CR_LF);
 		}
@@ -293,6 +296,7 @@ public class HttpResponseEncoder {
 			for (Cookie cookie : httpResponse.getCookies()) {
 				buffer.put(HeaderName.SET_COOKIE.bytes);
 				buffer.put(SysConst.COL);
+				buffer.put(SysConst.SPACE);
 				buffer.put(cookie.getBytes());
 				buffer.put(SysConst.CR_LF);
 			}
