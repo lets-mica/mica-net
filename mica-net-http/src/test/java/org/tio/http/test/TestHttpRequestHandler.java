@@ -10,17 +10,20 @@ public class TestHttpRequestHandler implements HttpRequestHandler {
 
 	@Override
 	public HttpResponse handler(HttpRequest packet) throws Exception {
+		HttpResponse httpResponse = new HttpResponse(packet);
 		Collection<Cookie> cookies = packet.getCookies();
 		for (Cookie cookie : cookies) {
 			System.out.println(cookie.getName() + "\t" + cookie.getValue());
+			httpResponse.addCookie(cookie);
 		}
 		System.out.println(packet.getCookieMap());
-		HttpResponse httpResponse = new HttpResponse(packet);
+
 		httpResponse.setStatus(HttpResponseStatus.C200);
 		byte[] body = packet.getBody();
 		if (body != null) {
 			System.out.println(new String(body));
 		}
+
 		httpResponse.setBody("hello".getBytes(StandardCharsets.UTF_8));
 		return httpResponse;
 	}
