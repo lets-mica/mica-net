@@ -59,7 +59,7 @@ public class ClusterMessageEncoder {
 			case JOIN:
 				return encodeJoinMessage((ClusterJoinMessage) message);
 			default:
-				throw new IllegalArgumentException("展示不支持该集群消息类型");
+				throw new IllegalArgumentException("暂不支持该集群消息类型");
 		}
 	}
 
