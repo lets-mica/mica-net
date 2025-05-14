@@ -2,7 +2,7 @@
 
 ## 发行版本
 
-### v1.1.7 - 2025-05-21
+### v1.1.7 - 2025-05-17
 
 - :sparkles: mica-net-utils json 反序列化支持 java Type，更好的支持泛型。
 
