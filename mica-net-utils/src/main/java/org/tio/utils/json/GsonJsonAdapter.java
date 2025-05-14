@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 
@@ -56,6 +57,11 @@ public class GsonJsonAdapter implements JsonAdapter {
 	@Override
 	public <T> T readValue(String json, Class<T> clazz) {
 		return gson.fromJson(json, clazz);
+	}
+
+	@Override
+	public <T> T readValue(String json, Type type) {
+		return gson.fromJson(json, type);
 	}
 
 	@Override

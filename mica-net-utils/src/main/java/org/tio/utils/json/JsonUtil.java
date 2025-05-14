@@ -18,6 +18,7 @@ package org.tio.utils.json;
 
 import org.tio.utils.hutool.ClassUtil;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -100,6 +101,18 @@ public class JsonUtil {
 	}
 
 	/**
+	 * 将 json 字符串转成对象
+	 *
+	 * @param json  json
+	 * @param type Type
+	 * @param <T>   泛型
+	 * @return 对象
+	 */
+	public static <T> T readValue(String json, Type type) {
+		return getJsonAdapter().readValue(json, type);
+	}
+
+	/**
 	 * 将 json byte array 转成对象
 	 *
 	 * @param json  json
@@ -109,6 +122,18 @@ public class JsonUtil {
 	 */
 	public static <T> T readValue(byte[] json, Class<T> clazz) {
 		return getJsonAdapter().readValue(json, clazz);
+	}
+
+	/**
+	 * 将 json byte array 转成对象
+	 *
+	 * @param json  json
+	 * @param type  Type
+	 * @param <T>   泛型
+	 * @return 对象
+	 */
+	public static  <T> T readValue(byte[] json, Type type) {
+		return getJsonAdapter().readValue(json, type);
 	}
 
 	/**

@@ -20,6 +20,7 @@ import org.noear.snack.ONode;
 import org.noear.snack.core.Feature;
 import org.noear.snack.core.Options;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 
@@ -53,6 +54,11 @@ public class Snack3JsonAdapter implements JsonAdapter {
 	@Override
 	public <T> T readValue(String json, Class<T> clazz) {
 		return ONode.loadStr(json, options).toObject(clazz);
+	}
+
+	@Override
+	public <T> T readValue(String json, Type type) {
+		return ONode.loadStr(json, options).toObject(type);
 	}
 
 	@Override

@@ -18,6 +18,7 @@ package org.tio.utils.json;
 
 import com.alibaba.fastjson.JSON;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -47,8 +48,18 @@ public class FastJson1JsonAdapter implements JsonAdapter {
 	}
 
 	@Override
+	public <T> T readValue(String json, Type type) {
+		return JSON.parseObject(json, type);
+	}
+
+	@Override
 	public <T> T readValue(byte[] json, Class<T> clazz) {
 		return JSON.parseObject(json, clazz);
+	}
+
+	@Override
+	public <T> T readValue(byte[] json, Type type) {
+		return JSON.parseObject(json, type);
 	}
 
 	@Override

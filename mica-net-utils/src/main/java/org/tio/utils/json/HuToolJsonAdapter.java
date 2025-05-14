@@ -19,6 +19,7 @@ package org.tio.utils.json;
 import cn.hutool.json.JSONConfig;
 import cn.hutool.json.JSONUtil;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,6 +52,11 @@ public class HuToolJsonAdapter implements JsonAdapter {
 	@Override
 	public <T> T readValue(String json, Class<T> clazz) {
 		return JSONUtil.parseObj(json, jsonConfig).toBean(clazz);
+	}
+
+	@Override
+	public <T> T readValue(String json, Type type) {
+		return JSONUtil.parseObj(json, jsonConfig).toBean(type);
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.tio.utils.mica.ExceptionUtils;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 
@@ -74,9 +75,27 @@ public class JacksonJsonAdapter implements JsonAdapter {
 	}
 
 	@Override
+	public <T> T readValue(String json, Type type) {
+		try {
+			return objectMapper.readValue(json, getJavaType(type));
+		} catch (IOException e) {
+			throw ExceptionUtils.unchecked(e);
+		}
+	}
+
+	@Override
 	public <T> T readValue(byte[] json, Class<T> clazz) {
 		try {
 			return objectMapper.readValue(json, clazz);
+		} catch (IOException e) {
+			throw ExceptionUtils.unchecked(e);
+		}
+	}
+
+	@Override
+	public <T> T readValue(byte[] json, Type type) {
+		try {
+			return objectMapper.readValue(json, getJavaType(type));
 		} catch (IOException e) {
 			throw ExceptionUtils.unchecked(e);
 		}
@@ -104,4 +123,7 @@ public class JacksonJsonAdapter implements JsonAdapter {
 		}
 	}
 
+	private JavaType getJavaType(Type type) {
+		return objectMapper.getTypeFactory().constructType(type);
+	}
 }

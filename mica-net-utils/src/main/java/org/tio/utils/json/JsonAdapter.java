@@ -16,6 +16,7 @@
 
 package org.tio.utils.json;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -55,6 +56,16 @@ public interface JsonAdapter {
 	<T> T readValue(String json, Class<T> clazz);
 
 	/**
+	 * 将 json 字符串转成对象
+	 *
+	 * @param json  json
+	 * @param type Type
+	 * @param <T>   泛型
+	 * @return 对象
+	 */
+	<T> T readValue(String json, Type type);
+
+	/**
 	 * 将 json byte array 转成对象
 	 *
 	 * @param json  json
@@ -64,6 +75,18 @@ public interface JsonAdapter {
 	 */
 	default <T> T readValue(byte[] json, Class<T> clazz) {
 		return readValue(new String(json), clazz);
+	}
+
+	/**
+	 * 将 json byte array 转成对象
+	 *
+	 * @param json  json
+	 * @param type  Type
+	 * @param <T>   泛型
+	 * @return 对象
+	 */
+	default <T> T readValue(byte[] json, Type type) {
+		return readValue(new String(json), type);
 	}
 
 	/**
