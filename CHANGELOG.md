@@ -2,9 +2,17 @@
 
 ## 发行版本
 
+### v1.1.7 - 2025-05-21
+
+- :sparkles: mica-net-utils json 反序列化支持 java Type，更好的支持泛型。
+
+### v1.1.6 - 2025-04-21
+
+- :sparkles: 调整 http 兼容，http 协议响应头名使用单个 SP（空格）以保持清晰和一致
+
 ### v1.1.5 - 2025-04-12
 
--  :sparkles: TioServer 更好的支持 Android
+- :sparkles: TioServer 更好的支持 Android
 
 ### v1.1.4 - 2025-03-14
 
