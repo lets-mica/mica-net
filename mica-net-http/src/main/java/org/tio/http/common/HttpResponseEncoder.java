@@ -195,8 +195,6 @@ package org.tio.http.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.core.ChannelContext;
-import org.tio.core.TioConfig;
 import org.tio.http.common.utils.HttpGzipUtils;
 import org.tio.utils.SysConst;
 import org.tio.utils.hutool.DateUtil;
@@ -224,11 +222,9 @@ public class HttpResponseEncoder {
 
 	/**
 	 * @param httpResponse   HttpResponse
-	 * @param tioConfig      TioConfig
-	 * @param channelContext ChannelContext
 	 * @return ByteBuffer
 	 */
-	public static ByteBuffer encode(HttpResponse httpResponse, TioConfig tioConfig, ChannelContext channelContext) {
+	public static ByteBuffer encode(HttpResponse httpResponse) {
 		HttpRequest httpRequest = httpResponse.getHttpRequest();
 		int bodyLength = 0;
 		byte[] body = httpResponse.body;
@@ -331,8 +327,8 @@ public class HttpResponseEncoder {
 		if (HttpResponseStatus.C204 == httpResponseStatus) {
 			return false;
 		}
-		HeaderValue headerValue = headers.get(HeaderName.Content_Type);
-		if (HeaderValue.Content_Type.TEXT_EVENT_STREAM.equals(headerValue)) {
+		HeaderValue contentType = headers.get(HeaderName.Content_Type);
+		if (HeaderValue.Content_Type.TEXT_EVENT_STREAM.equals(contentType)) {
 			return false;
 		}
 		return true;

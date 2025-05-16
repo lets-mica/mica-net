@@ -231,8 +231,7 @@ public class HttpTioServerHandler implements TioServerHandler {
 
 	@Override
 	public ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext channelContext) {
-		HttpResponse httpResponse = (HttpResponse) packet;
-		return HttpResponseEncoder.encode(httpResponse, tioConfig, channelContext);
+		return HttpResponseEncoder.encode((HttpResponse) packet);
 	}
 
 	/**

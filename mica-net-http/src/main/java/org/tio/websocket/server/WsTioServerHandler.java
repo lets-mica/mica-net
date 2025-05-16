@@ -340,7 +340,7 @@ public class WsTioServerHandler implements TioServerHandler {
 		if (wsResponse.isHandShake()) {
 			WsSessionContext imSessionContext = channelContext.get(WsSessionContext.WS_SESSION_CONTEXT_KEY);
 			HttpResponse handshakeResponse = imSessionContext.getHandshakeResponse();
-			return HttpResponseEncoder.encode(handshakeResponse, tioConfig, channelContext);
+			return HttpResponseEncoder.encode(handshakeResponse);
 		}
 		return WsServerEncoder.encode(wsResponse);
 	}
