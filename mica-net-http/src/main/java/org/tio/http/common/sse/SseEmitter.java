@@ -37,6 +37,11 @@ public interface SseEmitter<T> {
 	void push(T packet);
 
 	/**
+	 * 主动关闭
+	 */
+	void close();
+
+	/**
 	 * 获取  SseEmitter
 	 *
 	 * @param request  HttpRequest

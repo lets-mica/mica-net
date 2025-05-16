@@ -25,14 +25,17 @@ public class TestHttpRequestHandler implements HttpRequestHandler {
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					while (true) {
+					for (int i = 0; i < 10; i++) {
 						SseChunkedPacket ssePacket = SseEmitter.sseChunkedBuilder()
+							.id(i)
 							.event("message")
 							.data("hello")
 							.build();
 						emitter.push(ssePacket);
 						ThreadUtils.sleep(1000);
 					}
+					emitter.close();
+					System.out.println("emitter--------------close");
 				}
 			}).start();
 			return httpResponse;

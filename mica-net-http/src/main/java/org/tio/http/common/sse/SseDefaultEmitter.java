@@ -35,4 +35,9 @@ public class SseDefaultEmitter implements SseEmitter<SsePacket> {
 	public void push(SsePacket packet) {
 		Tio.send(context, packet);
 	}
+
+	@Override
+	public void close() {
+		Tio.remove(context, "主动关闭 sse 连接");
+	}
 }

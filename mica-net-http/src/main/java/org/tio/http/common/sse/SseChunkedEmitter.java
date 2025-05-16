@@ -42,6 +42,11 @@ public class SseChunkedEmitter implements SseEmitter<SseChunkedPacket> {
 		Tio.send(context, encodedPacket);
 	}
 
+	@Override
+	public void close() {
+		Tio.remove(context, "主动关闭 sse 连接");
+	}
+
 	private static byte[] encodeChunk(byte[] chunkData) {
 		int length = chunkData.length;
 		String chunkSize = Integer.toHexString(length);

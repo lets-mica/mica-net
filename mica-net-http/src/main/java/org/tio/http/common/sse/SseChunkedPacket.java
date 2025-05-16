@@ -76,6 +76,11 @@ public class SseChunkedPacket {
 			return this;
 		}
 
+		public Builder id(long id) {
+			this.id = Long.toString(id);
+			return this;
+		}
+
 		public Builder id(String id) {
 			this.id = id;
 			return this;
