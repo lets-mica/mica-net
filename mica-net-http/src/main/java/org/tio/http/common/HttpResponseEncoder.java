@@ -229,11 +229,11 @@ public class HttpResponseEncoder {
 	 * @return ByteBuffer
 	 */
 	public static ByteBuffer encode(HttpResponse httpResponse, TioConfig tioConfig, ChannelContext channelContext) {
+		HttpRequest httpRequest = httpResponse.getHttpRequest();
 		int bodyLength = 0;
 		byte[] body = httpResponse.body;
 
 		if (body != null) {
-			HttpRequest httpRequest = httpResponse.getHttpRequest();
 			//处理gzip
 			try {
 				HttpGzipUtils.gzip(httpRequest, httpResponse);
@@ -249,7 +249,10 @@ public class HttpResponseEncoder {
 		int respLineLength = httpResponseStatus.responseLineBinary.length;
 
 		Map<HeaderName, HeaderValue> headers = httpResponse.getHeaders();
-		httpResponse.addHeader(HeaderName.Content_Length, HeaderValue.from(Integer.toString(bodyLength)));
+		// 判断是否需要响应报文长度
+		if (isNeedResponseContentLength(httpRequest, httpResponseStatus, headers)) {
+			httpResponse.addHeader(HeaderName.Content_Length, HeaderValue.from(Integer.toString(bodyLength)));
+		}
 		int headerLength = httpResponse.getHeaderByteCount();
 
 		if (httpResponse.getCookies() != null) {
@@ -310,4 +313,29 @@ public class HttpResponseEncoder {
 		buffer.flip();
 		return buffer;
 	}
+
+	/**
+	 * 判断是否需要相应 Content-Length 头
+	 *
+	 * @param httpRequest HttpRequest
+	 * @param httpResponseStatus HttpResponseStatus
+	 * @param headers headers
+	 * @return 是否需要相应 body 长度头
+	 */
+	private static boolean isNeedResponseContentLength(HttpRequest httpRequest,
+												HttpResponseStatus httpResponseStatus,
+												Map<HeaderName, HeaderValue> headers) {
+		if (Method.HEAD == httpRequest.requestLine.method) {
+			return false;
+		}
+		if (HttpResponseStatus.C204 == httpResponseStatus) {
+			return false;
+		}
+		HeaderValue headerValue = headers.get(HeaderName.Content_Type);
+		if (HeaderValue.Content_Type.TEXT_EVENT_STREAM.equals(headerValue)) {
+			return false;
+		}
+		return true;
+	}
+
 }

@@ -209,9 +209,9 @@ public class HeaderName {
 	private static final ConcurrentMap<String, HeaderName> map = new ConcurrentHashMap<>();
 
 	public static final HeaderName SET_COOKIE = HeaderName.from(HttpConst.ResponseHeaderKey.Set_Cookie);
-	public static final HeaderName CONTENT_TYPE = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Type);
-	public static final HeaderName CACHE_CONTROL = HeaderName.from(HttpConst.ResponseHeaderKey.Cache_Control);
-	public static final HeaderName LOCATION = HeaderName.from(HttpConst.ResponseHeaderKey.Location);
+	public static final HeaderName Content_Type = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Type);
+	public static final HeaderName Cache_Control = HeaderName.from(HttpConst.ResponseHeaderKey.Cache_Control);
+	public static final HeaderName Location = HeaderName.from(HttpConst.ResponseHeaderKey.Location);
 	public static final HeaderName Connection = HeaderName.from(HttpConst.ResponseHeaderKey.Connection);
 	public static final HeaderName Keep_Alive = HeaderName.from(HttpConst.ResponseHeaderKey.Keep_Alive);
 	public static final HeaderName Content_Length = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Length);
@@ -219,6 +219,7 @@ public class HeaderName {
 	public static final HeaderName Access_Control_Allow_Headers = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Headers);
 	public static final HeaderName Access_Control_Allow_Methods = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Methods);
 	public static final HeaderName Access_Control_Max_Age = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Max_Age);
+	public static final HeaderName Access_Control_Allow_Credentials = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Credentials);
 	public static final HeaderName Content_Disposition = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Disposition);
 	public static final HeaderName Content_Encoding = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Encoding);
 	public static final HeaderName Date = HeaderName.from(HttpConst.ResponseHeaderKey.Date);
@@ -226,13 +227,9 @@ public class HeaderName {
 	public static final HeaderName Last_Modified = HeaderName.from(HttpConst.ResponseHeaderKey.Last_Modified);
 	public static final HeaderName Refresh = HeaderName.from(HttpConst.ResponseHeaderKey.Refresh);
 	public static final HeaderName Sec_WebSocket_Accept = HeaderName.from(HttpConst.ResponseHeaderKey.Sec_WebSocket_Accept);
+	public static final HeaderName Sec_Websocket_Protocol = HeaderName.from(HttpConst.RequestHeaderKey.Sec_Websocket_Protocol);
 	public static final HeaderName Server = HeaderName.from(HttpConst.ResponseHeaderKey.Server);
 	public static final HeaderName Upgrade = HeaderName.from(HttpConst.ResponseHeaderKey.Upgrade);
-	public static final HeaderName Content_Type = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Type);
-	public static final HeaderName Location = HeaderName.from(HttpConst.ResponseHeaderKey.Location);
-	public static final HeaderName Cache_Control = HeaderName.from(HttpConst.ResponseHeaderKey.Cache_Control);
-	public static final HeaderName Access_Control_Allow_Credentials = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Credentials);
-	public static final HeaderName Sec_Websocket_Protocol = HeaderName.from(HttpConst.RequestHeaderKey.Sec_Websocket_Protocol);
 
 	public final String name;
 	public final byte[] bytes;

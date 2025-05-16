@@ -193,7 +193,7 @@
 */
 package org.tio.http.common;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 /**
@@ -210,7 +210,7 @@ public class HeaderValue {
 		this.bytes = name.getBytes();
 	}
 
-	private HeaderValue(String name, String charset) throws UnsupportedEncodingException {
+	private HeaderValue(String name, Charset charset) {
 		this.value = name;
 		this.bytes = name.getBytes(charset);
 	}
@@ -219,7 +219,7 @@ public class HeaderValue {
 		return new HeaderValue(name);
 	}
 
-	public static HeaderValue from(String name, String charset) throws UnsupportedEncodingException {
+	public static HeaderValue from(String name, Charset charset) {
 		return new HeaderValue(name, charset);
 	}
 
@@ -259,6 +259,7 @@ public class HeaderValue {
 	}
 
 	public static class Cache_Control {
+		public static final HeaderValue no_cache = HeaderValue.from("no-cache");
 		public static final HeaderValue MAX_AGE_60 = HeaderValue.from("max-age:60");
 	}
 
@@ -271,9 +272,10 @@ public class HeaderValue {
 	}
 
 	public static class Content_Type {
-		public static final HeaderValue TEXT_PLAIN_TXT = HeaderValue.from("text/plain");
-		public static final HeaderValue TEXT_PLAIN_JSON = HeaderValue.from("application/json");
-		public static final HeaderValue TEXT_HTML_HTML = HeaderValue.from("text/html");
+		public static final HeaderValue TEXT_PLAIN = HeaderValue.from("text/plain");
+		public static final HeaderValue TEXT_HTML = HeaderValue.from("text/html");
+		public static final HeaderValue TEXT_EVENT_STREAM = HeaderValue.from("text/event-stream");
+		public static final HeaderValue APPLICATION_JSON = HeaderValue.from("application/json");
 		public static final HeaderValue DEFAULT_TYPE = HeaderValue.from("application/octet-stream");
 	}
 

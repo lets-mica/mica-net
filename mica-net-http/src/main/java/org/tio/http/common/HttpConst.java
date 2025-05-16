@@ -308,21 +308,19 @@ public interface HttpConst {
 	}
 
 	interface ResponseHeaderKey {
-		//Set-Cookie: UserID=JohnDoe; Max-Age=3600; Version=1
-		String Set_Cookie = "Set-Cookie".toLowerCase();                        //Set-Cookie: UserID=JohnDoe; Max-Age=3600; Version=1
-		String Content_Length = "Content-Length".toLowerCase();                    //65
-		String Cache_Control = "Cache-Control".toLowerCase();                    //"public, max-age:86400"
-		String Connection = "Connection".toLowerCase();                        //Upgrade,  keep-alive
-		String Keep_Alive = "Keep-Alive".toLowerCase();                        //Keep-Alive:timeout=20
-		String Sec_WebSocket_Accept = "Sec-WebSocket-Accept".toLowerCase();
-		String Upgrade = "Upgrade".toLowerCase();
-		String Access_Control_Allow_Credentials = "Access-Control-Allow-Credentials".toLowerCase();
-
+		String Set_Cookie = "Set-Cookie";                        //Set-Cookie: UserID=JohnDoe; Max-Age=3600; Version=1
+		String Content_Length = "Content-Length";                //65
+		String Cache_Control = "Cache-Control";                  //public, max-age=86400
+		String Connection = "Connection";                        //Upgrade, keep-alive
+		String Keep_Alive = "Keep-Alive";                        //Keep-Alive: timeout=20
+		String Sec_WebSocket_Accept = "Sec-WebSocket-Accept";
+		String Upgrade = "Upgrade";
+		String Access_Control_Allow_Credentials = "Access-Control-Allow-Credentials";
 		/**
 		 * Content-Disposition: attachment;filename=FileName.txt
 		 * 文件下载
 		 */
-		String Content_Disposition = "Content-Disposition".toLowerCase();
+		String Content_Disposition = "Content-Disposition";
 		/**
 		 * 文档的编码（Encode）方法。只有在解码之后才可以得到Content-Type头指定的内容类型。
 		 * 利用gzip压缩文档能够显著地减少HTML文档的下载时间。
@@ -330,29 +328,29 @@ public interface HttpConst {
 		 * 因此，Servlet应该通过查看Accept-Encoding头（即request.getHeader("Accept-Encoding")）检查浏览器是否支持gzip，
 		 * 为支持gzip的浏览器返回经gzip压缩的HTML页面，为其他浏览器返回普通页面。
 		 */
-		String Content_Encoding = "Content-Encoding".toLowerCase();
+		String Content_Encoding = "Content-Encoding";
 		/**
 		 * 表示后面的文档属于什么MIME类型。Servlet默认为text/plain，但通常需要显式地指定为text/html。
 		 * 由于经常要设置Content-Type，因此HttpServletResponse提供了一个专用的方法setContentType。
 		 */
-		String Content_Type = "Content-Type".toLowerCase();
+		String Content_Type = "Content-Type";
 		/**
 		 * 当前的GMT时间。你可以用setDateHeader来设置这个头以避免转换时间格式的麻烦。
 		 */
-		String Date = "Date".toLowerCase();
+		String Date = "Date";
 		/**
 		 * 应该在什么时候认为文档已经过期，从而不再缓存它？
 		 */
-		String Expires = "Expires".toLowerCase();
+		String Expires = "Expires";
 		/**
 		 * 文档的最后改动时间。客户可以通过If-Modified-Since请求头提供一个日期，该请求将被视为一个条件GET，
 		 * 只有改动时间迟于指定时间的文档才会返回，否则返回一个304（Not Modified）状态。Last-Modified也可用setDateHeader方法来设置。
 		 */
-		String Last_Modified = "Last-Modified".toLowerCase();
+		String Last_Modified = "Last-Modified";
 		/**
 		 * 表示客户应当到哪里去提取文档。Location通常不是直接设置的，而是通过HttpServletResponse的sendRedirect方法，该方法同时设置状态代码为302。
 		 */
-		String Location = "Location".toLowerCase();
+		String Location = "Location";
 		/**
 		 * 表示浏览器应该在多少时间之后刷新文档，以秒计。除了刷新当前文档之外，你还可以通过setHeader("Refresh", "5; URL=http://host/path")让浏览器读取指定的页面。
 		 * 注意这种功能通常是通过设置HTML页面HEAD区的＜META HTTP-EQUIV="Refresh" CONTENT="5;URL=http://host/path"＞实现，这是因为，自动刷新或重定向对于那些不能使用CGI或Servlet的HTML编写者十分重要。但是，对于Servlet来说，直接设置Refresh头更加方便。
@@ -361,25 +359,18 @@ public interface HttpConst {
 		 * <p>
 		 * 注意Refresh头不属于HTTP 1.1正式规范的一部分，而是一个扩展，但Netscape和IE都支持它。
 		 */
-		String Refresh = "Refresh".toLowerCase();
+		String Refresh = "Refresh";
 		/**
 		 * 服务器名字。Servlet一般不设置这个值，而是由Web服务器自己设置。
 		 */
-		String Server = "Server".toLowerCase();
-
+		String Server = "Server";
 		/**
-		 *
+		 * 跨域配置相应头
 		 */
-		String Access_Control_Allow_Origin = "Access-Control-Allow-Origin".toLowerCase(); //value: *
-
-		String Access_Control_Allow_Methods = "Access-Control-Allow-Methods".toLowerCase();
-
-		String Access_Control_Max_Age = "Access-Control-Max-Age".toLowerCase();
-		/**
-		 *
-		 */
-		String Access_Control_Allow_Headers = "Access-Control-Allow-Headers".toLowerCase();    //.toLowerCase(); //value: x-requested-with,content-type
-
+		String Access_Control_Allow_Origin = "Access-Control-Allow-Origin";    //value: *
+		String Access_Control_Allow_Methods = "Access-Control-Allow-Methods";
+		String Access_Control_Max_Age = "Access-Control-Max-Age";
+		String Access_Control_Allow_Headers = "Access-Control-Allow-Headers";  //value: x-requested-with,content-type
 	}
 
 	/**
