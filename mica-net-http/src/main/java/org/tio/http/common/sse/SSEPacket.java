@@ -38,8 +38,17 @@ public final class SSEPacket extends Packet {
 	private static final byte[] DATA_BYTES = { 100, 97, 116, 97, 58 };
 
 	private final Charset charset;
-	private final Long eventId;
+	/**
+	 * 事件标识（用于断线续传），是否必须：否
+	 */
+	private final String eventId;
+	/**
+	 * 自定义事件类型（如 progress），是否必须：否
+	 */
 	private final String event;
+	/**
+	 * 事件的实际内容，是否必须：是（除非只发 id）
+	 */
 	private final byte[] data;
 
 	private SSEPacket(Builder builder) {
@@ -57,7 +66,7 @@ public final class SSEPacket extends Packet {
 		// eventId 长度
 		byte[] eventIdBytes = null;
 		if (eventId != null) {
-			eventIdBytes = Long.toString(eventId).getBytes(charset);
+			eventIdBytes = eventId.getBytes(charset);
 			size += 3 + eventIdBytes.length + 2;
 		}
 		// event 长度
@@ -100,7 +109,7 @@ public final class SSEPacket extends Packet {
 
 	public static class Builder {
 		private Charset charset = StandardCharsets.UTF_8;
-		private Long eventId;
+		private String eventId;
 		private String event;
 		private byte[] data;
 
@@ -109,7 +118,7 @@ public final class SSEPacket extends Packet {
 			return this;
 		}
 
-		public Builder eventId(Long eventId) {
+		public Builder eventId(String eventId) {
 			this.eventId = eventId;
 			return this;
 		}
