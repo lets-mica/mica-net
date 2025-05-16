@@ -8,5 +8,12 @@ printf "\n"
 mvn -version
 printf "\n"
 
-## 3. deploy
-mvn clean package deploy -Prelease -pl mica-net-utils,mica-net-core,mica-net-http
+## 3. 环境
+if [ -z $1 ]; then
+    profile="release"
+else
+    profile="$1"
+fi
+
+## 4. deploy
+mvn clean package deploy -P$profile -pl mica-net-utils,mica-net-core,mica-net-http
