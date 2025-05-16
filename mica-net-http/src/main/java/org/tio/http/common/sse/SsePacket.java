@@ -23,13 +23,14 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
- * SSEPacket
+ * Sse 报文
  *
  * @author L.cm
  */
-public final class SSEPacket extends Packet {
+public final class SsePacket extends Packet {
 	/**
 	 * 标记
 	 */
@@ -41,7 +42,7 @@ public final class SSEPacket extends Packet {
 	/**
 	 * 事件标识（用于断线续传），是否必须：否
 	 */
-	private final String eventId;
+	private final String id;
 	/**
 	 * 自定义事件类型（如 progress），是否必须：否
 	 */
@@ -51,10 +52,10 @@ public final class SSEPacket extends Packet {
 	 */
 	private final byte[] data;
 
-	private SSEPacket(Builder builder) {
+	private SsePacket(Builder builder) {
 		super();
 		this.charset = builder.charset;
-		this.eventId = builder.eventId;
+		this.id = builder.id;
 		this.event = builder.event;
 		this.data = builder.data;
 	}
@@ -64,10 +65,10 @@ public final class SSEPacket extends Packet {
 		// 计算报文长度
 		int size = 0;
 		// eventId 长度
-		byte[] eventIdBytes = null;
-		if (eventId != null) {
-			eventIdBytes = eventId.getBytes(charset);
-			size += 3 + eventIdBytes.length + 2;
+		byte[] idBytes = null;
+		if (id != null) {
+			idBytes = id.getBytes(charset);
+			size += 3 + idBytes.length + 2;
 		}
 		// event 长度
 		byte[] eventBytes = null;
@@ -86,9 +87,9 @@ public final class SSEPacket extends Packet {
 		// 浏览器运行环境的字节序（通常为小端序）
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 		// 添加 id
-		if (eventIdBytes != null) {
+		if (idBytes != null) {
 			buffer.put(ID_BYTES);
-			buffer.put(eventIdBytes);
+			buffer.put(idBytes);
 			buffer.put(SysConst.CR_LF);
 		}
 		// 添加 event
@@ -109,7 +110,7 @@ public final class SSEPacket extends Packet {
 
 	public static class Builder {
 		private Charset charset = StandardCharsets.UTF_8;
-		private String eventId;
+		private String id;
 		private String event;
 		private byte[] data;
 
@@ -118,8 +119,8 @@ public final class SSEPacket extends Packet {
 			return this;
 		}
 
-		public Builder eventId(String eventId) {
-			this.eventId = eventId;
+		public Builder id(String id) {
+			this.id = id;
 			return this;
 		}
 
@@ -133,8 +134,13 @@ public final class SSEPacket extends Packet {
 			return this;
 		}
 
-		public SSEPacket build() {
-			return new SSEPacket(this);
+		public Builder data(String data) {
+			this.data = Objects.requireNonNull(data).getBytes(charset);
+			return this;
+		}
+
+		public SsePacket build() {
+			return new SsePacket(this);
 		}
 	}
 }

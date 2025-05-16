@@ -222,6 +222,7 @@ public class HeaderName {
 	public static final HeaderName Access_Control_Allow_Credentials = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Credentials);
 	public static final HeaderName Content_Disposition = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Disposition);
 	public static final HeaderName Content_Encoding = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Encoding);
+	public static final HeaderName Transfer_Encoding = new HeaderName(HttpConst.ResponseHeaderKey.Transfer_Encoding);
 	public static final HeaderName Date = HeaderName.from(HttpConst.ResponseHeaderKey.Date);
 	public static final HeaderName Expires = HeaderName.from(HttpConst.ResponseHeaderKey.Expires);
 	public static final HeaderName Last_Modified = HeaderName.from(HttpConst.ResponseHeaderKey.Last_Modified);

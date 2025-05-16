@@ -1,10 +1,10 @@
 package org.tio.http.test;
 
-import org.tio.core.ChannelContext;
-import org.tio.core.Tio;
 import org.tio.http.common.*;
 import org.tio.http.common.handler.HttpRequestHandler;
-import org.tio.http.common.sse.SSEPacket;
+import org.tio.http.common.sse.SseChunkedEmitter;
+import org.tio.http.common.sse.SseChunkedPacket;
+import org.tio.http.common.sse.SseEmitter;
 import org.tio.utils.thread.ThreadUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -18,21 +18,19 @@ public class TestHttpRequestHandler implements HttpRequestHandler {
 		String path = requestLine.getPath();
 		HttpResponse httpResponse = new HttpResponse(packet);
 		if ("/sse".equals(path)) {
-			httpResponse.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.TEXT_EVENT_STREAM);
-			httpResponse.addHeader(HeaderName.Connection, HeaderValue.Connection.keep_alive);
-			httpResponse.addHeader(HeaderName.Cache_Control, HeaderValue.Cache_Control.no_cache);
+//			SseDefaultEmitter emitter = SseEmitter.getSseEmitter(packet, httpResponse);
+			SseChunkedEmitter emitter = SseEmitter.getSseChunkedEmitter(packet, httpResponse);
+			// 跨域支持
 			httpResponse.addHeader(HeaderName.Access_Control_Allow_Origin, HeaderValue.from("*"));
-
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					while (true) {
-						ChannelContext context = packet.getChannelContext();
-						SSEPacket ssePacket = new SSEPacket.Builder()
+						SseChunkedPacket ssePacket = SseEmitter.sseChunkedBuilder()
 							.event("message")
-							.data("hello".getBytes(StandardCharsets.UTF_8))
+							.data("hello")
 							.build();
-						Tio.send(context, ssePacket);
+						emitter.push(ssePacket);
 						ThreadUtils.sleep(1000);
 					}
 				}

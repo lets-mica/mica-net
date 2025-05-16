@@ -268,7 +268,11 @@ public class HeaderValue {
 	}
 
 	public static class Content_Encoding {
-		public static final HeaderValue gzip = HeaderValue.from("gzip");
+		public static final HeaderValue gzip = HeaderValue.from(HttpConst.ResponseHeaderValue.Encoding.gzip);
+	}
+
+	public static class Transfer_Encoding {
+		public static final HeaderValue chunked = HeaderValue.from(HttpConst.ResponseHeaderValue.Encoding.chunked);
 	}
 
 	public static class Content_Type {

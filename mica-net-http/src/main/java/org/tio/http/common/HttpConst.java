@@ -330,6 +330,10 @@ public interface HttpConst {
 		 */
 		String Content_Encoding = "Content-Encoding";
 		/**
+		 * 分块传输
+		 */
+		String Transfer_Encoding = "Transfer-Encoding";
+		/**
 		 * 表示后面的文档属于什么MIME类型。Servlet默认为text/plain，但通常需要显式地指定为text/html。
 		 * 由于经常要设置Content-Type，因此HttpServletResponse提供了一个专用的方法setContentType。
 		 */
@@ -387,5 +391,11 @@ public interface HttpConst {
 		interface Upgrade {
 			String WebSocket = "WebSocket";
 		}
+
+		interface Encoding {
+			String gzip = "gzip";
+			String chunked = "chunked";
+		}
+
 	}
 }
