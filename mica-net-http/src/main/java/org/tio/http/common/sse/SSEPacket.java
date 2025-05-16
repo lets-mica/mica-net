@@ -30,9 +30,12 @@ import java.nio.charset.StandardCharsets;
  * @author L.cm
  */
 public final class SSEPacket extends Packet {
-	private static final byte[] idBytes = { 105, 100, 58 };
-	private static final byte[] eventBytes = { 101, 118, 101, 110, 116, 58 };
-	private static final byte[] dataBytes = { 100, 97, 116, 97, 58 };
+	/**
+	 * 标记
+	 */
+	private static final byte[] ID_BYTES = { 105, 100, 58 };
+	private static final byte[] EVENT_BYTES = { 101, 118, 101, 110, 116, 58 };
+	private static final byte[] DATA_BYTES = { 100, 97, 116, 97, 58 };
 
 	private final Charset charset;
 	private final Long eventId;
@@ -49,47 +52,50 @@ public final class SSEPacket extends Packet {
 
 	@Override
 	public ByteBuffer getPreEncodedByteBuffer() {
-		ByteBuffer buffer = ByteBuffer.allocate(calculateBufferSize());
-		// 浏览器运行环境的字节序（通常为小端序）
-		buffer.order(ByteOrder.LITTLE_ENDIAN);
-		// Add id
-		if (eventId != null) {
-			buffer.put(idBytes);
-			buffer.put(eventId.toString().getBytes(charset)).put(SysConst.CR_LF);
-		}
-		// Add event
-		if (event != null) {
-			buffer.put(eventBytes).put(event.getBytes(charset)).put(SysConst.CR_LF);
-		}
-		// Add data
-		if (data != null) {
-			buffer.put(dataBytes);
-			buffer.put(data);
-			buffer.put(SysConst.CR_LF);
-
-		}
-		buffer.put(SysConst.CR_LF);
-		buffer.flip();
-		return buffer;
-	}
-
-	private int calculateBufferSize() {
+		// 计算报文长度
 		int size = 0;
-		// id
+		// eventId 长度
+		byte[] eventIdBytes = null;
 		if (eventId != null) {
-			size += 3 + Long.toString(eventId).getBytes(charset).length + 2;
+			eventIdBytes = Long.toString(eventId).getBytes(charset);
+			size += 3 + eventIdBytes.length + 2;
 		}
-		// event
+		// event 长度
+		byte[] eventBytes = null;
 		if (event != null) {
-			size += 6 + event.getBytes(charset).length + 2;
+			eventBytes = event.getBytes(charset);
+			size += 6 + eventBytes.length + 2;
 		}
-		// data
+		// data 长度
 		if (data != null) {
 			size += 5 + 2 + data.length;
 		}
-		// Add extra newline
+		// 换行长度
 		size += SysConst.CR_LF.length;
-		return size;
+		// 构造 ByteBuffer
+		ByteBuffer buffer = ByteBuffer.allocate(size);
+		// 浏览器运行环境的字节序（通常为小端序）
+		buffer.order(ByteOrder.LITTLE_ENDIAN);
+		// 添加 id
+		if (eventIdBytes != null) {
+			buffer.put(ID_BYTES);
+			buffer.put(eventIdBytes);
+			buffer.put(SysConst.CR_LF);
+		}
+		// 添加 event
+		if (eventBytes != null) {
+			buffer.put(EVENT_BYTES);
+			buffer.put(eventBytes);
+			buffer.put(SysConst.CR_LF);
+		}
+		// 添加 data 数据
+		if (data != null) {
+			buffer.put(DATA_BYTES);
+			buffer.put(data);
+			buffer.put(SysConst.CR_LF);
+		}
+		buffer.put(SysConst.CR_LF);
+		return buffer;
 	}
 
 	public static class Builder {
