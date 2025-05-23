@@ -16,6 +16,7 @@
 
 package org.tio.utils.mica;
 
+import org.jetbrains.annotations.Nullable;
 import org.tio.utils.hutool.StrUtil;
 
 import java.nio.charset.Charset;
@@ -118,7 +119,7 @@ public class HexUtils {
 	 * @return bytes as a hex string
 	 */
 	public static String encodeToString(byte[] data, boolean toLowerCase) {
-		return new String(encode(data, toLowerCase), DEFAULT_CHARSET);
+		return new String(encode(data, toLowerCase), StandardCharsets.US_ASCII);
 	}
 
 	/**
@@ -128,6 +129,17 @@ public class HexUtils {
 	 * @return bytes as a hex string
 	 */
 	public static String encodeToString(byte[] data) {
+		return encodeToString(data, true);
+	}
+
+	/**
+	 * encode Hex
+	 *
+	 * @param data Data to Hex
+	 * @return bytes as a hex string
+	 */
+	@Nullable
+	public static String encodeToString(@Nullable String data) {
 		return encodeToString(data, DEFAULT_CHARSET);
 	}
 
@@ -138,47 +150,12 @@ public class HexUtils {
 	 * @param charset Charset
 	 * @return bytes as a hex string
 	 */
-	public static String encodeToString(byte[] data, Charset charset) {
-		return new String(encode(data), charset);
-	}
-
-	/**
-	 * encode Hex
-	 *
-	 * @param data Data to Hex
-	 * @return bytes as a hex string
-	 */
-	public static String encodeToString(String data) {
+	@Nullable
+	public static String encodeToString(@Nullable String data, Charset charset) {
 		if (StrUtil.isBlank(data)) {
 			return null;
 		}
-		return encodeToString(data.getBytes(DEFAULT_CHARSET));
-	}
-
-	/**
-	 * encode Hex
-	 *
-	 * @param data    Data to Hex
-	 * @param charset Charset
-	 * @return bytes as a hex string
-	 */
-	public static String encodeToString(String data, Charset charset) {
-		return encodeToString(data, charset, charset);
-	}
-
-	/**
-	 * encode Hex
-	 *
-	 * @param data        Data to Hex
-	 * @param dataCharset Charset
-	 * @param toCharset   Charset
-	 * @return bytes as a hex string
-	 */
-	public static String encodeToString(String data, Charset dataCharset, Charset toCharset) {
-		if (StrUtil.isBlank(data)) {
-			return null;
-		}
-		return encodeToString(data.getBytes(dataCharset), toCharset);
+		return encodeToString(data.getBytes(charset));
 	}
 
 	/**
@@ -226,7 +203,7 @@ public class HexUtils {
 		if (StrUtil.isBlank(data)) {
 			return null;
 		}
-		return decodeToString(data.getBytes(DEFAULT_CHARSET));
+		return decodeToString(data, DEFAULT_CHARSET);
 	}
 
 	/**
@@ -237,22 +214,10 @@ public class HexUtils {
 	 * @return bytes as a hex string
 	 */
 	public static String decodeToString(String data, Charset charset) {
-		return decodeToString(data, charset, charset);
-	}
-
-	/**
-	 * decodeToString Hex
-	 *
-	 * @param data        Data to Hex
-	 * @param dataCharset Charset
-	 * @param toCharset   Charset
-	 * @return bytes as a hex string
-	 */
-	public static String decodeToString(String data, Charset dataCharset, Charset toCharset) {
 		if (StrUtil.isBlank(data)) {
 			return null;
 		}
-		return decodeToString(data.getBytes(dataCharset), toCharset);
+		return decodeToString(data.getBytes(StandardCharsets.US_ASCII), charset);
 	}
 
 	/**
