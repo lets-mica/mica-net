@@ -78,7 +78,8 @@ public class SseEvent {
 
 	@Override
 	public String toString() {
-		return buf.toString();
+		// 最后一行必须以 \n\n 结尾
+		return buf.append("\n\n").toString();
 	}
 
 }
