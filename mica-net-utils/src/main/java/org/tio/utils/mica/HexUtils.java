@@ -188,21 +188,10 @@ public class HexUtils {
 	 * @return decode hex to bytes
 	 */
 	public static byte[] decode(String data) {
-		return decode(data, DEFAULT_CHARSET);
-	}
-
-	/**
-	 * decode Hex
-	 *
-	 * @param data    Hex data
-	 * @param charset Charset
-	 * @return decode hex to bytes
-	 */
-	public static byte[] decode(String data, Charset charset) {
 		if (StrUtil.isBlank(data)) {
 			return null;
 		}
-		return decode(data.getBytes(charset));
+		return decode(data.getBytes(StandardCharsets.US_ASCII));
 	}
 
 	/**
