@@ -64,9 +64,10 @@ public class SseEvent {
 	public SseEvent data(Object object) {
 		// 如果是多行字符串，则每行前面加上 data:
 		if (object instanceof String) {
-			object = StrUtil.replace((String) object, "\n", "\ndata:");
+			buf.append("data:").append(StrUtil.replace((String) object, "\n", "\ndata:")).append("\n");
+		} else {
+			buf.append("data:").append(object).append("\n");
 		}
-		buf.append("data:").append(object).append("\n");
 		return this;
 	}
 
@@ -74,7 +75,7 @@ public class SseEvent {
 	 * 添加 SSE "comment" 行.
 	 */
 	public SseEvent comment(String comment) {
-		buf.append(":").append(comment.replace("\n", "\n:")).append("\n");
+		buf.append(":").append(StrUtil.replace(comment, "\n", "\n:")).append("\n");
 		return this;
 	}
 
