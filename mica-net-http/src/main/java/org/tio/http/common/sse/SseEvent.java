@@ -75,7 +75,7 @@ public class SseEvent {
 	 * 添加 SSE "comment" 行.
 	 */
 	public SseEvent comment(String comment) {
-		buf.append(":").append(StrUtil.replace(comment, "\n", "\n:")).append('\n');
+		buf.append(':').append(StrUtil.replace(comment, "\n", "\n:")).append('\n');
 		return this;
 	}
 
