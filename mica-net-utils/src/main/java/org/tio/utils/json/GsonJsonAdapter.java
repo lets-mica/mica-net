@@ -66,12 +66,7 @@ public class GsonJsonAdapter implements JsonAdapter {
 
 	@Override
 	public <T> List<T> readList(String json, Class<T> clazz) {
-		return gson.fromJson(json, getListTypeToken(clazz));
-	}
-
-	@SuppressWarnings("unchecked")
-	private static <T> TypeToken<List<T>> getListTypeToken(Class<T> clazz) {
-		return (TypeToken<List<T>>) TypeToken.getParameterized(List.class, clazz);
+		return gson.fromJson(json, TypeToken.getParameterized(List.class, clazz).getType());
 	}
 
 }
