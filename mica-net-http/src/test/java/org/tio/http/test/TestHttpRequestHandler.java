@@ -2,8 +2,7 @@ package org.tio.http.test;
 
 import org.tio.http.common.*;
 import org.tio.http.common.handler.HttpRequestHandler;
-import org.tio.http.common.sse.SseChunkedEmitter;
-import org.tio.http.common.sse.SseChunkedPacket;
+import org.tio.http.common.sse.SseEvent;
 import org.tio.http.common.sse.SseEmitter;
 import org.tio.utils.thread.ThreadUtils;
 
@@ -18,20 +17,18 @@ public class TestHttpRequestHandler implements HttpRequestHandler {
 		String path = requestLine.getPath();
 		HttpResponse httpResponse = new HttpResponse(packet);
 		if ("/sse".equals(path)) {
-//			SseDefaultEmitter emitter = SseEmitter.getSseEmitter(packet, httpResponse);
-			SseChunkedEmitter emitter = SseEmitter.getSseChunkedEmitter(packet, httpResponse);
+			SseEmitter emitter = SseEmitter.getEmitter(packet, httpResponse);
 			// 跨域支持
 			httpResponse.addHeader(HeaderName.Access_Control_Allow_Origin, HeaderValue.from("*"));
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					for (int i = 0; i < 10; i++) {
-						SseChunkedPacket ssePacket = SseEmitter.sseChunkedBuilder()
+						SseEvent sseEvent = new SseEvent()
 							.id(i)
 							.event("message")
-							.data("hello")
-							.build();
-						emitter.push(ssePacket);
+							.data("hello");
+						emitter.push(sseEvent);
 						ThreadUtils.sleep(1000);
 					}
 					emitter.close();

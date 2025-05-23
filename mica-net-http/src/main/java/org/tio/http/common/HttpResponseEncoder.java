@@ -331,6 +331,10 @@ public class HttpResponseEncoder {
 		if (HeaderValue.Content_Type.TEXT_EVENT_STREAM.equals(contentType)) {
 			return false;
 		}
+		HeaderValue transferEncoding = headers.get(HeaderName.Transfer_Encoding);
+		if (HeaderValue.Transfer_Encoding.chunked.equals(transferEncoding)) {
+			return false;
+		}
 		return true;
 	}
 

@@ -16,43 +16,45 @@
 
 package org.tio.http.common.sse;
 
-import org.tio.core.ChannelContext;
+import org.tio.core.Tio;
+import org.tio.core.intf.EncodedPacket;
 import org.tio.http.common.HeaderName;
 import org.tio.http.common.HeaderValue;
 import org.tio.http.common.HttpRequest;
 import org.tio.http.common.HttpResponse;
+import org.tio.utils.SysConst;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * sse 发射器
  *
  * @author L.cm
  */
-public interface SseEmitter<T> {
+public class SseEmitter {
+	private final HttpRequest request;
+
+	SseEmitter(HttpRequest request) {
+		this.request = request;
+	}
 
 	/**
-	 * 发送 sse 包
+	 * 发送 sse 事件
 	 *
-	 * @param packet packet
+	 * @param sseEvent SseEvent
 	 */
-	void push(T packet);
+	public void push(SseEvent sseEvent) {
+		String chunkedString = sseEvent.toString();
+		byte[] chunkedBytes = chunkedString.getBytes(request.getCharset());
+		EncodedPacket encodedPacket = new EncodedPacket(encodeChunk(chunkedBytes));
+		Tio.send(request.channelContext, encodedPacket);
+	}
 
 	/**
 	 * 主动关闭
 	 */
-	void close();
-
-	/**
-	 * 获取  SseEmitter
-	 *
-	 * @param request  HttpRequest
-	 * @param response HttpResponse
-	 * @return SseDefaultEmitter
-	 */
-	static SseDefaultEmitter getSseEmitter(HttpRequest request, HttpResponse response) {
-		response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.TEXT_EVENT_STREAM);
-		response.addHeader(HeaderName.Connection, HeaderValue.Connection.keep_alive);
-		ChannelContext context = request.getChannelContext();
-		return new SseDefaultEmitter(context);
+	public void close() {
+		Tio.remove(request.channelContext, "主动关闭 sse 连接");
 	}
 
 	/**
@@ -62,30 +64,30 @@ public interface SseEmitter<T> {
 	 * @param response HttpResponse
 	 * @return SseChunkedEmitter
 	 */
-	static SseChunkedEmitter getSseChunkedEmitter(HttpRequest request, HttpResponse response) {
+	public static SseEmitter getEmitter(HttpRequest request, HttpResponse response) {
 		response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.TEXT_EVENT_STREAM);
 		response.addHeader(HeaderName.Connection, HeaderValue.Connection.keep_alive);
 		response.addHeader(HeaderName.Transfer_Encoding, HeaderValue.Transfer_Encoding.chunked);
-		ChannelContext context = request.getChannelContext();
-		return new SseChunkedEmitter(context);
+		return new SseEmitter(request);
 	}
 
 	/**
-	 * 新的 sse 构造器
+	 * 编码 chunk 数据
 	 *
-	 * @return SsePacket Builder
+	 * @param chunkData chunk 数据
+	 * @return 编码后的 chunk 数据
 	 */
-	static SsePacket.Builder sseBuilder() {
-		return new SsePacket.Builder();
-	}
+	private static byte[] encodeChunk(byte[] chunkData) {
+		int length = chunkData.length;
+		String chunkSize = Integer.toHexString(length);
+		byte[] chunkSizeBytes = (chunkSize + SysConst.CRLF).getBytes(StandardCharsets.US_ASCII);
 
-	/**
-	 * 新的 sse chunked 构造器
-	 *
-	 * @return SseChunkedPacket Builder
-	 */
-	static SseChunkedPacket.Builder sseChunkedBuilder() {
-		return new SseChunkedPacket.Builder();
+		byte[] chunk = new byte[chunkSizeBytes.length + length + 2];
+
+		System.arraycopy(chunkSizeBytes, 0, chunk, 0, chunkSizeBytes.length);
+		System.arraycopy(chunkData, 0, chunk, chunkSizeBytes.length, length);
+		System.arraycopy(SysConst.CR_LF, 0, chunk, chunkSizeBytes.length + length, 2);
+		return chunk;
 	}
 
 }
