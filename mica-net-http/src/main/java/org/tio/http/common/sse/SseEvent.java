@@ -43,7 +43,7 @@ public class SseEvent {
 	/**
 	 * 添加 SSE "event" 行.
 	 */
-	public SseEvent event(String event) {
+	public SseEvent name(String event) {
 		buf.append("event:").append(event).append("\n");
 		return this;
 	}

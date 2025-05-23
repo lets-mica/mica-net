@@ -26,9 +26,9 @@ public class TestHttpRequestHandler implements HttpRequestHandler {
 					for (int i = 0; i < 10; i++) {
 						SseEvent sseEvent = new SseEvent()
 							.id(i)
-							.event("message")
+							.name("message")
 							.data("hello");
-						emitter.push(sseEvent);
+						emitter.send(sseEvent);
 						ThreadUtils.sleep(1000);
 					}
 					emitter.close();

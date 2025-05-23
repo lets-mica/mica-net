@@ -43,7 +43,7 @@ public class SseEmitter {
 	 *
 	 * @param sseEvent SseEvent
 	 */
-	public void push(SseEvent sseEvent) {
+	public void send(SseEvent sseEvent) {
 		String chunkedString = sseEvent.toString();
 		byte[] chunkedBytes = chunkedString.getBytes(request.getCharset());
 		EncodedPacket encodedPacket = new EncodedPacket(encodeChunk(chunkedBytes));
@@ -51,10 +51,19 @@ public class SseEmitter {
 	}
 
 	/**
+	 * 发送 sse 事件
+	 *
+	 * @param data data
+	 */
+	public void send(Object data) {
+		this.send(new SseEvent().data(data));
+	}
+
+	/**
 	 * 主动关闭
 	 */
 	public void close() {
-		Tio.remove(request.channelContext, "主动关闭 sse 连接");
+		request.close("主动关闭 sse 连接");
 	}
 
 	/**
