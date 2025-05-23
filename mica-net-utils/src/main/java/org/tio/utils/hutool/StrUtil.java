@@ -193,6 +193,8 @@
 */
 package org.tio.utils.hutool;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -281,6 +283,43 @@ public class StrUtil {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Replace all occurrences of a substring within a string with another string.
+	 * @param inString {@code String} to examine
+	 * @param oldPattern {@code String} to replace
+	 * @param newPattern {@code String} to insert
+	 * @return a {@code String} with the replacements
+	 */
+	public static String replace(String inString, String oldPattern, @Nullable String newPattern) {
+		if (isEmpty(inString) || isEmpty(oldPattern) || newPattern == null) {
+			return inString;
+		}
+		int index = inString.indexOf(oldPattern);
+		if (index == -1) {
+			// no occurrence -> can return input as-is
+			return inString;
+		}
+
+		int capacity = inString.length();
+		if (newPattern.length() > oldPattern.length()) {
+			capacity += 16;
+		}
+		StringBuilder sb = new StringBuilder(capacity);
+
+		int pos = 0;  // our position in the old string
+		int patLen = oldPattern.length();
+		while (index >= 0) {
+			sb.append(inString, pos, index);
+			sb.append(newPattern);
+			pos = index + patLen;
+			index = inString.indexOf(oldPattern, pos);
+		}
+
+		// append any characters to the right of a match
+		sb.append(inString, pos, inString.length());
+		return sb.toString();
 	}
 
 	/**

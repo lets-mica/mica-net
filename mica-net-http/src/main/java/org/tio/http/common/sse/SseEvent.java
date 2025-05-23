@@ -16,6 +16,8 @@
 
 package org.tio.http.common.sse;
 
+import org.tio.utils.hutool.StrUtil;
+
 /**
  * sse 报文
  *
@@ -60,11 +62,11 @@ public class SseEvent {
 	 * 添加 SSE "data" 行.
 	 */
 	public SseEvent data(Object object) {
+		// 如果是多行字符串，则每行前面加上 data:
 		if (object instanceof String) {
-			buf.append("data:").append(object).append("\n");
-		} else {
-			buf.append("data:").append(object.toString()).append("\n");
+			object = StrUtil.replace((String) object, "\n", "\ndata:");
 		}
+		buf.append("data:").append(object).append("\n");
 		return this;
 	}
 
