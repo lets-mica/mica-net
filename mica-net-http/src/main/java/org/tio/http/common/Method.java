@@ -201,7 +201,14 @@ public enum Method {
 	/**
 	 * http method
 	 */
-	GET("GET"), POST("POST"), HEAD("HEAD"), PUT("PUT"), TRACE("TRACE"), OPTIONS("OPTIONS"), PATCH("PATCH"), DELETE("DELETE");
+	GET("GET"),
+	POST("POST"),
+	HEAD("HEAD"),
+	PUT("PUT"),
+	TRACE("TRACE"),
+	OPTIONS("OPTIONS"),
+	PATCH("PATCH"),
+	DELETE("DELETE");
 
 	final String value;
 
