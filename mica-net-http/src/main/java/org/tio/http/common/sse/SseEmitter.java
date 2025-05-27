@@ -41,6 +41,47 @@ public class SseEmitter {
 	/**
 	 * 发送 sse 事件
 	 *
+	 * @param data data
+	 */
+	public void send(Object data) {
+		this.send(new SseEvent().data(data));
+	}
+
+	/**
+	 * 发送 sse 事件
+	 *
+	 * @param event event
+	 * @param data  data
+	 */
+	public void send(String event, Object data) {
+		this.send(new SseEvent().name(event).data(data));
+	}
+
+	/**
+	 * 发送 sse 事件
+	 *
+	 * @param id    id
+	 * @param event event
+	 * @param data  data
+	 */
+	public void send(String id, String event, Object data) {
+		this.send(new SseEvent().id(id).name(event).data(data));
+	}
+
+	/**
+	 * 发送 sse 事件
+	 *
+	 * @param id    id
+	 * @param event event
+	 * @param data  data
+	 */
+	public void send(long id, String event, Object data) {
+		this.send(new SseEvent().id(id).name(event).data(data));
+	}
+
+	/**
+	 * 发送 sse 事件
+	 *
 	 * @param sseEvent SseEvent
 	 */
 	public void send(SseEvent sseEvent) {
@@ -48,15 +89,6 @@ public class SseEmitter {
 		byte[] chunkedBytes = chunkedString.getBytes(request.getCharset());
 		EncodedPacket encodedPacket = new EncodedPacket(encodeChunk(chunkedBytes));
 		Tio.send(request.channelContext, encodedPacket);
-	}
-
-	/**
-	 * 发送 sse 事件
-	 *
-	 * @param data data
-	 */
-	public void send(Object data) {
-		this.send(new SseEvent().data(data));
 	}
 
 	/**
