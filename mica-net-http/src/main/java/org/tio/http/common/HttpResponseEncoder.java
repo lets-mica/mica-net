@@ -320,11 +320,8 @@ public class HttpResponseEncoder {
 	private static boolean isNeedResponseContentLength(HttpRequest httpRequest,
 												HttpResponseStatus httpResponseStatus,
 												Map<HeaderName, HeaderValue> headers) {
-		// 注意：有 HttpRequest 为空的情况
-		if (httpRequest == null) {
-			return true;
-		}
-		if (Method.HEAD == httpRequest.requestLine.method) {
+		// 注意：HttpRequest 有为空的情况
+		if (httpRequest != null && Method.HEAD == httpRequest.requestLine.method) {
 			return false;
 		}
 		if (HttpResponseStatus.C204 == httpResponseStatus) {
