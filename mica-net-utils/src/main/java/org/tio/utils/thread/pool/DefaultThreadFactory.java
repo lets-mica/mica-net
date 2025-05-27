@@ -193,46 +193,40 @@
 */
 package org.tio.utils.thread.pool;
 
-import org.tio.utils.hutool.CollUtil;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * 线程池工厂
+ *
  * @author tanyaowu
+ * @author L.cm
  * 2017年4月28日 下午1:30:39
  */
 public class DefaultThreadFactory implements ThreadFactory {
-
-	/**
-	 * The cacheMap of name and thread factory.
-	 */
-	private static final Map<String, DefaultThreadFactory> mapOfNameAndThreadFactory = new HashMap<>();
-
-	/**
-	 * The cacheMap of name and atomic integer.
-	 */
-	private static final Map<String, AtomicInteger> mapOfNameAndAtomicInteger = new HashMap<>();
 	/**
 	 * The thread pool name.
 	 */
-	private String threadPoolName = null;
+	private final String threadPoolName;
+	/**
+	 * The thread pool id.
+	 */
+	private final AtomicInteger threadPoolId;
 	/**
 	 * The priority.
 	 */
-	private int priority = Thread.NORM_PRIORITY;
+	private final int priority;
 
-	/**
-	 * Instantiates a new default thread factory.
-	 */
-	private DefaultThreadFactory() {
-
+	public DefaultThreadFactory(String threadPoolName) {
+		this(threadPoolName, Thread.NORM_PRIORITY);
 	}
 
-	public static DefaultThreadFactory getInstance(String threadName) {
-		return getInstance(threadName, Thread.NORM_PRIORITY);
+	public DefaultThreadFactory(String threadPoolName, int priority) {
+		this.threadPoolName = threadPoolName;
+		this.threadPoolId = new AtomicInteger();
+		this.priority = priority;
 	}
 
 	/**
@@ -243,24 +237,7 @@ public class DefaultThreadFactory implements ThreadFactory {
 	 * @return single INSTANCE of DefaultThreadFactory
 	 */
 	public static DefaultThreadFactory getInstance(String threadName, Integer priority) {
-		return CollUtil.computeIfAbsent(mapOfNameAndThreadFactory, threadName, key -> {
-			DefaultThreadFactory defaultThreadFactory = new DefaultThreadFactory();
-			if (priority != null) {
-				defaultThreadFactory.priority = priority;
-			}
-			defaultThreadFactory.setThreadName(key);
-			mapOfNameAndAtomicInteger.put(key, new AtomicInteger());
-			return defaultThreadFactory;
-		});
-	}
-
-	/**
-	 * Gets the thread pool name.
-	 *
-	 * @return the thread pool name
-	 */
-	public String getThreadPoolName() {
-		return threadPoolName;
+		return new DefaultThreadFactory(threadName, priority);
 	}
 
 	/**
@@ -270,20 +247,11 @@ public class DefaultThreadFactory implements ThreadFactory {
 	 * @see java.util.concurrent.ThreadFactory#newThread(java.lang.Runnable)
 	 */
 	@Override
-	public Thread newThread(Runnable r) {
+	public Thread newThread(@NotNull Runnable r) {
 		Thread thread = new Thread(r);
-		thread.setName(this.getThreadPoolName() + '-' + mapOfNameAndAtomicInteger.get(this.getThreadPoolName()).incrementAndGet());
+		thread.setName(threadPoolName + '-' + threadPoolId.incrementAndGet());
 		thread.setPriority(priority);
 		return thread;
-	}
-
-	/**
-	 * Sets the thread name.
-	 *
-	 * @param threadName the new thread name
-	 */
-	public void setThreadName(String threadName) {
-		this.threadPoolName = threadName;
 	}
 
 }
