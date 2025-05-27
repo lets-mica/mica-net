@@ -4,10 +4,10 @@
 
 ### v1.1.8 - 2025-05-27
 
-- :sparkles: 支持 sse
-- :sparkles: http 响应头 key 不转换成小写
-- :sparkles: 优化 HexUtils hex encode 和 decode 优化字符集
-- :bug: DefaultThreadFactory 不应该共用
+- :sparkles: 新增SSE（Server-Sent Events）支持
+- :sparkles: 优化HTTP响应头处理，保持原始Header Key大小写
+- :sparkles: 优化HexUtils的hex编解码字符集处理逻辑
+- :bug: 修复DefaultThreadFactory实例重复使用问题
 - :hammer: 使用 github action 发布快照版
 
 ### v1.1.7 - 2025-05-17
