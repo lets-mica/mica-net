@@ -230,13 +230,12 @@ public class HttpResponseEncoder {
 		byte[] body = httpResponse.body;
 
 		if (body != null) {
-			//处理gzip
+			// 处理gzip
 			try {
 				HttpGzipUtils.gzip(httpRequest, httpResponse);
 			} catch (Exception e) {
 				log.error(e.toString(), e);
 			}
-
 			body = httpResponse.body;
 			bodyLength = body.length;
 		}
@@ -321,6 +320,10 @@ public class HttpResponseEncoder {
 	private static boolean isNeedResponseContentLength(HttpRequest httpRequest,
 												HttpResponseStatus httpResponseStatus,
 												Map<HeaderName, HeaderValue> headers) {
+		// 注意：有 HttpRequest 为空的情况
+		if (httpRequest == null) {
+			return true;
+		}
 		if (Method.HEAD == httpRequest.requestLine.method) {
 			return false;
 		}
