@@ -2,6 +2,14 @@
 
 ## 发行版本
 
+### v1.1.8 - 2025-05-27
+
+- :sparkles: 支持 sse
+- :sparkles: http 响应头不转换成小写
+- :sparkles: 优化 HexUtils hex encode 和 decode 优化字符集
+- :bug: DefaultThreadFactory 不应该共用
+- :hammer: 使用 github action 发布快照版
+
 ### v1.1.7 - 2025-05-17
 
 - :sparkles: mica-net-utils json 反序列化支持 java Type，更好的支持泛型。
