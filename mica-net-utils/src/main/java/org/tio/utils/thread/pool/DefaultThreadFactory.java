@@ -236,7 +236,7 @@ public class DefaultThreadFactory implements ThreadFactory {
 	 * @param priority   the priority
 	 * @return single INSTANCE of DefaultThreadFactory
 	 */
-	public static DefaultThreadFactory getInstance(String threadName, Integer priority) {
+	public static DefaultThreadFactory getInstance(String threadName, int priority) {
 		return new DefaultThreadFactory(threadName, priority);
 	}
 
