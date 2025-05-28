@@ -573,8 +573,8 @@ public class FastByteBuffer {
 	 */
 	public FastByteBuffer writeVarLengthInt(int num) {
 		do {
-			int digit = num % 128;
-			num /= 128;
+			int digit = num & 0x7F;
+			num >>>= 7;
 			if (num > 0) {
 				digit |= 0x80;
 			}
