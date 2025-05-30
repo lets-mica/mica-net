@@ -123,6 +123,16 @@ public class JacksonJsonAdapter implements JsonAdapter {
 		}
 	}
 
+	@Override
+	public <T> T convertValue(Object fromValue, Class<T> toValueType) {
+		return objectMapper.convertValue(fromValue, toValueType);
+	}
+
+	@Override
+	public <T> T convertValue(Object fromValue, Type toValueType) {
+		return objectMapper.convertValue(fromValue, getJavaType(toValueType));
+	}
+
 	private JavaType getJavaType(Type type) {
 		return objectMapper.getTypeFactory().constructType(type);
 	}

@@ -17,6 +17,7 @@
 package org.tio.utils.json;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONB;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -70,6 +71,16 @@ public class FastJson2JsonAdapter implements JsonAdapter {
 	@Override
 	public <T> List<T> readList(byte[] json, Class<T> clazz) {
 		return JSON.parseArray(json, clazz);
+	}
+
+	@Override
+	public <T> T convertValue(Object fromValue, Class<T> toValueType) {
+		return JSONB.parseObject(JSONB.toBytes(fromValue), toValueType);
+	}
+
+	@Override
+	public <T> T convertValue(Object fromValue, Type toValueType) {
+		return JSONB.parseObject(JSONB.toBytes(fromValue), toValueType);
 	}
 
 }

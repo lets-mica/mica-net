@@ -64,4 +64,14 @@ public class HuToolJsonAdapter implements JsonAdapter {
 		return JSONUtil.parseArray(json, jsonConfig).toList(clazz);
 	}
 
+	@Override
+	public <T> T convertValue(Object fromValue, Class<T> toValueType) {
+		return JSONUtil.parse(fromValue, jsonConfig).toBean(toValueType);
+	}
+
+	@Override
+	public <T> T convertValue(Object fromValue, Type toValueType) {
+		return JSONUtil.parse(fromValue, jsonConfig).toBean(toValueType);
+	}
+
 }

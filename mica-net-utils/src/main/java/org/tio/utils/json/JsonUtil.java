@@ -103,9 +103,9 @@ public class JsonUtil {
 	/**
 	 * 将 json 字符串转成对象
 	 *
-	 * @param json  json
+	 * @param json json
 	 * @param type Type
-	 * @param <T>   泛型
+	 * @param <T>  泛型
 	 * @return 对象
 	 */
 	public static <T> T readValue(String json, Type type) {
@@ -127,12 +127,12 @@ public class JsonUtil {
 	/**
 	 * 将 json byte array 转成对象
 	 *
-	 * @param json  json
-	 * @param type  Type
-	 * @param <T>   泛型
+	 * @param json json
+	 * @param type Type
+	 * @param <T>  泛型
 	 * @return 对象
 	 */
-	public static  <T> T readValue(byte[] json, Type type) {
+	public static <T> T readValue(byte[] json, Type type) {
 		return getJsonAdapter().readValue(json, type);
 	}
 
@@ -160,4 +160,27 @@ public class JsonUtil {
 		return getJsonAdapter().readList(json, clazz);
 	}
 
+	/**
+	 * 对象类型转换
+	 *
+	 * @param fromValue   fromValue
+	 * @param toValueType toValueType
+	 * @param <T>         泛型
+	 * @return 对象
+	 */
+	public static <T> T convertValue(Object fromValue, Class<T> toValueType) {
+		return getJsonAdapter().convertValue(fromValue, toValueType);
+	}
+
+	/**
+	 * 对象类型转换
+	 *
+	 * @param fromValue   fromValue
+	 * @param toValueType toValueType
+	 * @param <T>         泛型
+	 * @return 对象
+	 */
+	public static <T> T convertValue(Object fromValue, Type toValueType) {
+		return getJsonAdapter().convertValue(fromValue, toValueType);
+	}
 }

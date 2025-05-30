@@ -58,9 +58,9 @@ public interface JsonAdapter {
 	/**
 	 * 将 json 字符串转成对象
 	 *
-	 * @param json  json
+	 * @param json json
 	 * @param type Type
-	 * @param <T>   泛型
+	 * @param <T>  泛型
 	 * @return 对象
 	 */
 	<T> T readValue(String json, Type type);
@@ -80,9 +80,9 @@ public interface JsonAdapter {
 	/**
 	 * 将 json byte array 转成对象
 	 *
-	 * @param json  json
-	 * @param type  Type
-	 * @param <T>   泛型
+	 * @param json json
+	 * @param type Type
+	 * @param <T>  泛型
 	 * @return 对象
 	 */
 	default <T> T readValue(byte[] json, Type type) {
@@ -111,4 +111,27 @@ public interface JsonAdapter {
 		return readList(new String(json), clazz);
 	}
 
+	/**
+	 * 对象类型转换
+	 *
+	 * @param fromValue   fromValue
+	 * @param toValueType toValueType
+	 * @param <T>         泛型
+	 * @return 对象
+	 */
+	default <T> T convertValue(Object fromValue, Class<T> toValueType) {
+		return this.readValue(this.toJsonBytes(fromValue), toValueType);
+	}
+
+	/**
+	 * 对象类型转换
+	 *
+	 * @param fromValue   fromValue
+	 * @param toValueType toValueType
+	 * @param <T>         泛型
+	 * @return 对象
+	 */
+	default <T> T convertValue(Object fromValue, Type toValueType) {
+		return this.readValue(this.toJsonBytes(fromValue), toValueType);
+	}
 }

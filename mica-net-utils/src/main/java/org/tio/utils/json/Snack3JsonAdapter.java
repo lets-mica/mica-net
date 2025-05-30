@@ -66,4 +66,14 @@ public class Snack3JsonAdapter implements JsonAdapter {
 		return ONode.loadStr(json, options).toObjectList(clazz);
 	}
 
+	@Override
+	public <T> T convertValue(Object fromValue, Class<T> toValueType) {
+		return ONode.load(fromValue, options).toObject(toValueType);
+	}
+
+	@Override
+	public <T> T convertValue(Object fromValue, Type toValueType) {
+		return ONode.load(fromValue, options).toObject(toValueType);
+	}
+
 }
