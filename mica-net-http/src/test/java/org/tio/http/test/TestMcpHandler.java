@@ -16,10 +16,14 @@ import org.tio.utils.thread.ThreadUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class TestMcpHandler implements HttpRequestHandler {
 	private static final Logger logger = LoggerFactory.getLogger(TestMcpHandler.class);
+	private static ConcurrentMap<String, SseEmitter> sseEmitters = new ConcurrentHashMap<>();
 
 	@Override
 	public HttpResponse handler(HttpRequest request) throws Exception {
@@ -31,18 +35,28 @@ public class TestMcpHandler implements HttpRequestHandler {
 			// 跨域支持
 			httpResponse.addHeader(HeaderName.Access_Control_Allow_Origin, HeaderValue.from("*"));
 			SseEmitter emitter = SseEmitter.getEmitter(request, httpResponse);
+			String uuid = StrUtil.getNanoId();
+			sseEmitters.put(uuid, emitter);
 			new Thread(() -> {
 				ThreadUtils.sleep(1000);
 				// 发送 sse
-				String uuid = StrUtil.getNanoId();
 				emitter.send("endpoint", "/sse/message?sessionId=" + uuid);
 			}).start();
 			return httpResponse;
 		} else if ("/sse/message".equals(path)) {
+			String sessionId = request.getParam("sessionId");
+			SseEmitter emitter = sseEmitters.get(sessionId);
 			JsonRpcMessage jsonRpcMessage = deserializeJsonRpcMessage(request.getBody());
 			System.out.println(jsonRpcMessage);
-			JsonRpcResponse rpcResponse = handleIncomingRequest((JsonRpcRequest) jsonRpcMessage);
-			httpResponse.setBody(JsonUtil.toJsonBytes(rpcResponse));
+			if (jsonRpcMessage instanceof JsonRpcRequest) {
+				JsonRpcResponse rpcResponse = handleIncomingRequest((JsonRpcRequest) jsonRpcMessage);
+				String jsonString = JsonUtil.toJsonString(rpcResponse);
+				System.out.println(jsonString);
+				emitter.send("message", jsonString);
+			} else if (jsonRpcMessage instanceof JsonRpcNotification) {
+				JsonRpcNotification notification = (JsonRpcNotification) jsonRpcMessage;
+				System.out.println(notification);
+			}
 			return httpResponse;
 		}
 		Collection<Cookie> cookies = request.getCookies();
@@ -102,13 +116,14 @@ public class TestMcpHandler implements HttpRequestHandler {
 	 * @return A Mono containing the JSON-RPC response
 	 */
 	private JsonRpcResponse handleIncomingRequest(JsonRpcRequest request) {
-		if (McpSchema.METHOD_INITIALIZE.equals(request.getMethod())) {
+		String method = request.getMethod();
+		if (McpSchema.METHOD_INITIALIZE.equals(method)) {
 			Object params = request.getParams();
 			McpInitializeRequest initializeRequest = JsonUtil.convertValue(params, McpInitializeRequest.class);
 //			this.init(initializeRequest.getCapabilities(), initializeRequest.getClientInfo());
 
 			McpInitializeResult result = new McpInitializeResult();
-			result.setProtocolVersion("1.0.0");
+			result.setProtocolVersion(initializeRequest.getProtocolVersion());
 			McpServerCapabilities serverCapabilities = new McpServerCapabilities();
 			McpLoggingCapabilities logging = new McpLoggingCapabilities();
 			serverCapabilities.setLogging(logging);
@@ -125,7 +140,7 @@ public class TestMcpHandler implements HttpRequestHandler {
 			result.setCapabilities(serverCapabilities);
 
 			McpImplementation implementation = new McpImplementation();
-			implementation.setName("mcp-server");
+			implementation.setName("McpServerTool");
 			implementation.setVersion(McpSchema.LATEST_PROTOCOL_VERSION);
 			result.setServerInfo(implementation);
 
@@ -134,25 +149,39 @@ public class TestMcpHandler implements HttpRequestHandler {
 			jsonRpcResponse.setId(request.getId());
 			jsonRpcResponse.setResult(result);
 			return jsonRpcResponse;
+		} else if (McpSchema.METHOD_PING.equals(method)) {
+			JsonRpcResponse jsonRpcResponse = new JsonRpcResponse();
+			jsonRpcResponse.setJsonrpc(McpSchema.JSONRPC_VERSION);
+			jsonRpcResponse.setId(request.getId());
+			jsonRpcResponse.setResult(Collections.emptyMap());
+			return jsonRpcResponse;
+		} else if (McpSchema.METHOD_TOOLS_LIST.equals(method)) {
+			JsonRpcResponse jsonRpcResponse = new JsonRpcResponse();
+			jsonRpcResponse.setJsonrpc(McpSchema.JSONRPC_VERSION);
+			jsonRpcResponse.setId(request.getId());
+
+			McpTool mcpTool = new McpTool();
+			mcpTool.setName("mqttStatus");
+			mcpTool.setDescription("获取 mqtt 状态");
+
+			McpJsonSchema jsonSchema = new McpJsonSchema();
+			jsonSchema.setType("string");
+			mcpTool.setOutputSchema(jsonSchema);
+
+			McpListToolsResult toolsResult = new McpListToolsResult();
+			toolsResult.setTools(Collections.singletonList(mcpTool));
+			jsonRpcResponse.setResult(toolsResult);
+			return jsonRpcResponse;
+		} else if (McpSchema.METHOD_TOOLS_CALL.equals(method)) {
+			JsonRpcResponse jsonRpcResponse = new JsonRpcResponse();
+			jsonRpcResponse.setJsonrpc(McpSchema.JSONRPC_VERSION);
+			jsonRpcResponse.setId(request.getId());
+
+
+
+			jsonRpcResponse.setResult(Collections.emptyMap());
+			return jsonRpcResponse;
 		}
 		return null;
-//		else {
-//			// TODO handle errors for communication to this session without
-//			// initialization happening first
-//			var handler = this.requestHandlers.get(request.getMethod());
-//			if (handler == null) {
-//				MethodNotFoundError error = getMethodNotFoundError(request.getMethod());
-//				return Mono.just(new McpSchema.JSONRPCResponse(McpSchema.JSONRPC_VERSION, request.getId(), null,
-//					new McpSchema.JSONRPCResponse.JSONRPCError(McpSchema.ErrorCodes.METHOD_NOT_FOUND,
-//						error.getMessage(), error.getData())));
-//			}
-//			resultMono = this.exchangeSink.asMono().flatMap(exchange -> handler.handle(exchange, request.getParams()));
-//		}
-//		return resultMono
-//			.map(result -> new McpSchema.JSONRPCResponse(McpSchema.JSONRPC_VERSION, request.getId(), result, null))
-//			.onErrorResume(error -> Mono.just(new McpSchema.JSONRPCResponse(McpSchema.JSONRPC_VERSION, request.getId(),
-//				null, new McpSchema.JSONRPCResponse.JSONRPCError(McpSchema.ErrorCodes.INTERNAL_ERROR,
-//				error.getMessage(), null)))); // TODO: add error message
-//		// through the data field
 	}
 }
