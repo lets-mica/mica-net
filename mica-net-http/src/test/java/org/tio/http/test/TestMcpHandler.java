@@ -177,9 +177,12 @@ public class TestMcpHandler implements HttpRequestHandler {
 			jsonRpcResponse.setJsonrpc(McpSchema.JSONRPC_VERSION);
 			jsonRpcResponse.setId(request.getId());
 
+			McpCallToolResult toolResult = new McpCallToolResult();
 
+			McpTextContent content = new McpTextContent("mcp sse text from mica-net");
 
-			jsonRpcResponse.setResult(Collections.emptyMap());
+			toolResult.setContent(Collections.singletonList(content));
+			jsonRpcResponse.setResult(toolResult);
 			return jsonRpcResponse;
 		}
 		return null;
