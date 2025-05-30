@@ -202,7 +202,7 @@ import org.tio.utils.hutool.ZipUtil;
  * @author tanyaowu
  * 2017年8月18日 下午5:47:00
  */
-public class HttpGzipUtils {
+public final class HttpGzipUtils {
 	private static final Logger log = LoggerFactory.getLogger(HttpGzipUtils.class);
 
 	private HttpGzipUtils() {
@@ -215,17 +215,14 @@ public class HttpGzipUtils {
 	 * @param response HttpResponse
 	 */
 	public static void gzip(HttpRequest request, HttpResponse response) {
-		if (response == null) {
+		if (request == null || response == null) {
+			log.debug("request 或 response 对象为 null");
 			return;
 		}
-		if (request != null && request.getIsSupportGzip()) {
+		if (request.getIsSupportGzip()) {
 			gzip(response);
-		} else {
-			if (request != null) {
-				log.debug("{}, 不支持gzip, {}", request.getClientIp(), request.getHeader(HttpConst.RequestHeaderKey.User_Agent));
-			} else {
-				log.debug("request对象为空");
-			}
+		} else if (log.isDebugEnabled()) {
+			log.debug("{}, 不支持gzip, {}", request.getClientIp(), request.getHeader(HttpConst.RequestHeaderKey.User_Agent));
 		}
 	}
 
@@ -235,11 +232,8 @@ public class HttpGzipUtils {
 	 * @param response HttpResponse
 	 */
 	public static void gzip(HttpResponse response) {
-		if (response == null) {
-			return;
-		}
-		// 已经gzip过了，就不必再压缩了
-		if (response.isHasGzipped()) {
+		// 如果 response 为 null 或者已经gzip过了，就不必再压缩了
+		if (response == null || response.isHasGzipped()) {
 			return;
 		}
 		byte[] bs = response.getBody();
