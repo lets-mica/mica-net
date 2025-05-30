@@ -225,12 +225,12 @@ public class HttpParseUtils {
 			cs[i] = c;
 		}
 		if (cs.length > 1 && (cs[0] == '"' && cs[i - 1] == '"')) {
-			return String.copyValueOf(cs, 1, i - 2);
+			return new String(cs, 1, i - 2);
 		} else {
 			if (i == cs.length) {
 				return new String(cs);
 			} else {
-				return String.copyValueOf(cs, 0, i);
+				return new String(cs, 0, i);
 			}
 		}
 	}
