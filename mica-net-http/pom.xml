@@ -17,6 +17,12 @@
             <groupId>net.dreamlu</groupId>
             <artifactId>mica-net-core</artifactId>
         </dependency>
+        <!-- test -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

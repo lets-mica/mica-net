@@ -5,6 +5,7 @@ open module net.dreamlu.mica.net.http {
 	exports org.tio.http.common.handler;
 	exports org.tio.http.common.jsonrpc;
 	exports org.tio.http.common.mcp;
+	exports org.tio.http.common.mcp.schema;
 	exports org.tio.http.common.sse;
 	exports org.tio.http.common.utils;
 	exports org.tio.http.server;
