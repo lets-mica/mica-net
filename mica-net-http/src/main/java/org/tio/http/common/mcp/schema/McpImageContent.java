@@ -11,10 +11,15 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_ABSENT)
 public class McpImageContent implements McpContent {
+	private final String type = "image";
 	private List<McpRole> audience;
 	private Double priority;
 	private String data;
 	private String mimeType;
+
+	public String getType() {
+		return type;
+	}
 
 	public List<McpRole> getAudience() {
 		return audience;
@@ -51,7 +56,8 @@ public class McpImageContent implements McpContent {
 	@Override
 	public String toString() {
 		return "McpImageContent{" +
-			"audience=" + audience +
+			"type='" + type + '\'' +
+			", audience=" + audience +
 			", priority=" + priority +
 			", data='" + data + '\'' +
 			", mimeType='" + mimeType + '\'' +

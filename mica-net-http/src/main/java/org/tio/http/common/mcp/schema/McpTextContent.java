@@ -13,6 +13,7 @@ import java.util.List;
 public class McpTextContent implements McpContent {
 	private List<McpRole> audience;
 	private Double priority;
+	private final String type = "text";
 	private String text;
 
 	public McpTextContent() {
@@ -44,6 +45,10 @@ public class McpTextContent implements McpContent {
 		this.priority = priority;
 	}
 
+	public String getType() {
+		return type;
+	}
+
 	public String getText() {
 		return text;
 	}
@@ -57,6 +62,7 @@ public class McpTextContent implements McpContent {
 		return "McpTextContent{" +
 			"audience=" + audience +
 			", priority=" + priority +
+			", type='" + type + '\'' +
 			", text='" + text + '\'' +
 			'}';
 	}

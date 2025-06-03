@@ -205,16 +205,4 @@ public class TestMcpHandler implements HttpRequestHandler {
 		return null;
 	}
 
-	public static void main(String[] args) {
-		McpCallToolResult toolResult = new McpCallToolResult();
-
-		Map<String, Object> json = new HashMap<>();
-		json.put("status", "123123");
-
-		McpTextContent content = new McpTextContent(JsonUtil.toJsonString(json));
-
-		toolResult.setContent(Collections.singletonList(content));
-
-		System.out.println(JsonUtil.toJsonString(toolResult));
-	}
 }
