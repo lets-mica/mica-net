@@ -19,6 +19,7 @@ package org.tio.utils.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.tio.utils.mica.ExceptionUtils;
 
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class JacksonJsonAdapter implements JsonAdapter {
 
 	public JacksonJsonAdapter(ObjectMapper objectMapper) {
 		this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper is null.");
+		this.objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 	}
 
 	@Override

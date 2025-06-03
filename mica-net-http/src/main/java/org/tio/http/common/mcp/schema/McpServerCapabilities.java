@@ -1,5 +1,7 @@
 package org.tio.http.common.mcp.schema;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.Map;
 
 /**
@@ -7,6 +9,7 @@ import java.util.Map;
  *
  * @author L.cm
  */
+@JsonInclude(JsonInclude.Include.NON_ABSENT)
 public class McpServerCapabilities {
 	private Map<String, Object> experimental;
 	private McpLoggingCapabilities logging;

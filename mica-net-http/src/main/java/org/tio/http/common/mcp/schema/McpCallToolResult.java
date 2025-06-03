@@ -1,5 +1,7 @@
 package org.tio.http.common.mcp.schema;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 
 /**
@@ -7,6 +9,7 @@ import java.util.List;
  *
  * @author L.cm
  */
+@JsonInclude(JsonInclude.Include.NON_ABSENT)
 public class McpCallToolResult {
 	private List<McpContent> content;
 	private Boolean isError;

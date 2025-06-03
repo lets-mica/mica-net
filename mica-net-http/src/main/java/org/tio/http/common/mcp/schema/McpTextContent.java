@@ -1,6 +1,7 @@
 package org.tio.http.common.mcp.schema;
 
-import javax.management.relation.Role;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 
 /**
@@ -8,6 +9,7 @@ import java.util.List;
  *
  * @author L.cm
  */
+@JsonInclude(JsonInclude.Include.NON_ABSENT)
 public class McpTextContent implements McpContent {
 	private List<McpRole> audience;
 	private Double priority;
@@ -23,6 +25,30 @@ public class McpTextContent implements McpContent {
 	public McpTextContent(List<McpRole> audience, Double priority, String text) {
 		this.audience = audience;
 		this.priority = priority;
+		this.text = text;
+	}
+
+	public List<McpRole> getAudience() {
+		return audience;
+	}
+
+	public void setAudience(List<McpRole> audience) {
+		this.audience = audience;
+	}
+
+	public Double getPriority() {
+		return priority;
+	}
+
+	public void setPriority(Double priority) {
+		this.priority = priority;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text) {
 		this.text = text;
 	}
 

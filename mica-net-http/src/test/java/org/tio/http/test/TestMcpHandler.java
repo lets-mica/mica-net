@@ -15,9 +15,7 @@ import org.tio.utils.json.JsonUtil;
 import org.tio.utils.thread.ThreadUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -128,11 +126,11 @@ public class TestMcpHandler implements HttpRequestHandler {
 			McpLoggingCapabilities logging = new McpLoggingCapabilities();
 			serverCapabilities.setLogging(logging);
 			McpPromptCapabilities prompts = new McpPromptCapabilities();
-			prompts.setListChanged(true);
+			prompts.setListChanged(false);
 			serverCapabilities.setPrompts(prompts);
 			McpResourceCapabilities resources = new McpResourceCapabilities();
-			resources.setListChanged(true);
-			resources.setSubscribe(true);
+			resources.setListChanged(false);
+			resources.setSubscribe(false);
 			serverCapabilities.setResources(resources);
 			McpToolCapabilities tools = new McpToolCapabilities();
 			tools.setListChanged(true);
@@ -163,10 +161,26 @@ public class TestMcpHandler implements HttpRequestHandler {
 			McpTool mcpTool = new McpTool();
 			mcpTool.setName("mqttStatus");
 			mcpTool.setDescription("获取 mqtt 状态");
+			mcpTool.setReturnDirect(true);
 
-			McpJsonSchema jsonSchema = new McpJsonSchema();
-			jsonSchema.setType("string");
-			mcpTool.setOutputSchema(jsonSchema);
+			McpJsonSchema jsonSchemaIn = new McpJsonSchema();
+			jsonSchemaIn.setType("object");
+			jsonSchemaIn.setProperties(new HashMap<>());
+			jsonSchemaIn.setRequired(new ArrayList<>());
+			mcpTool.setInputSchema(jsonSchemaIn);
+
+			McpJsonSchema jsonSchemaOut = new McpJsonSchema();
+			jsonSchemaOut.setType("object");
+			Map<String, Object> properties = new HashMap<>();
+
+			Map<String, Object> status = new HashMap<>();
+			status.put("type", "string");
+			status.put("description", "mqtt status");
+
+			properties.put("status", status);
+			jsonSchemaOut.setProperties(properties);
+			jsonSchemaOut.setRequired(Collections.singletonList("status"));
+			mcpTool.setOutputSchema(jsonSchemaOut);
 
 			McpListToolsResult toolsResult = new McpListToolsResult();
 			toolsResult.setTools(Collections.singletonList(mcpTool));
@@ -179,12 +193,28 @@ public class TestMcpHandler implements HttpRequestHandler {
 
 			McpCallToolResult toolResult = new McpCallToolResult();
 
-			McpTextContent content = new McpTextContent("mcp sse text from mica-net");
+			Map<String, Object> json = new HashMap<>();
+			json.put("status", "123123");
+
+			McpTextContent content = new McpTextContent(JsonUtil.toJsonString(json));
 
 			toolResult.setContent(Collections.singletonList(content));
 			jsonRpcResponse.setResult(toolResult);
 			return jsonRpcResponse;
 		}
 		return null;
+	}
+
+	public static void main(String[] args) {
+		McpCallToolResult toolResult = new McpCallToolResult();
+
+		Map<String, Object> json = new HashMap<>();
+		json.put("status", "123123");
+
+		McpTextContent content = new McpTextContent(JsonUtil.toJsonString(json));
+
+		toolResult.setContent(Collections.singletonList(content));
+
+		System.out.println(JsonUtil.toJsonString(toolResult));
 	}
 }

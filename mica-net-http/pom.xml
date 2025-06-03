@@ -17,11 +17,11 @@
             <groupId>net.dreamlu</groupId>
             <artifactId>mica-net-core</artifactId>
         </dependency>
-        <!-- test -->
+        <!-- json -->
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <scope>test</scope>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
