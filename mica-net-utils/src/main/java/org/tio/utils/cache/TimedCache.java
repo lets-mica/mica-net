@@ -35,7 +35,17 @@ public class TimedCache<K extends Serializable, V extends Serializable> extends 
 	 * @param ttl 超时（过期）时长，单位毫秒
 	 */
 	public TimedCache(long ttl) {
-		this(ttl, (int) ttl, new HashMap<>());
+		this(ttl, new HashMap<>());
+	}
+
+	/**
+	 * 构造
+	 *
+	 * @param ttl       过期时长，单位为毫秒
+	 * @param map       存储缓存对象的map
+	 */
+	public TimedCache(long ttl, Map<K, CacheObj<K, V>> map) {
+		this(ttl, ttl, map);
 	}
 
 	/**
@@ -44,7 +54,7 @@ public class TimedCache<K extends Serializable, V extends Serializable> extends 
 	 * @param ttl       过期时长，单位为毫秒
 	 * @param cleanupMs 清理周期，单位为毫秒
 	 */
-	public TimedCache(long ttl, int cleanupMs) {
+	public TimedCache(long ttl, long cleanupMs) {
 		this(ttl, cleanupMs, new HashMap<>());
 	}
 
@@ -55,7 +65,7 @@ public class TimedCache<K extends Serializable, V extends Serializable> extends 
 	 * @param cleanupMs 清理周期
 	 * @param map       存储缓存对象的map
 	 */
-	public TimedCache(long ttl, int cleanupMs, Map<K, CacheObj<K, V>> map) {
+	public TimedCache(long ttl, long cleanupMs, Map<K, CacheObj<K, V>> map) {
 		super(map, 0, ttl);
 		this.timerTaskService = new DefaultTimerTaskService();
 		this.timerTaskService.start();
