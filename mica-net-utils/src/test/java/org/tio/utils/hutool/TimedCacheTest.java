@@ -16,8 +16,13 @@ class TimedCacheTest {
 		timedCache.put("key2", "value2", TimeUnit.SECONDS.toMillis(5));//5秒过期
 		timedCache.put("key3", "value3");//默认过期(4毫秒)
 		timedCache.put("key4", "value4", Long.MAX_VALUE);//永不过期
+
 		//等待5毫秒
-		Thread.sleep(5);
+		Thread.sleep(2);
+		String value3 = timedCache.getAndRefresh("key3");
+		//等待5毫秒
+		Thread.sleep(3);
+		Assertions.assertNotNull(value3);
 
 		//5毫秒后由于value2设置了5毫秒过期，因此只有value2被保留下来
 		String value1 = timedCache.get("key1");
@@ -25,8 +30,9 @@ class TimedCacheTest {
 		String value2 = timedCache.get("key2");
 		Assertions.assertEquals("value2", value2);
 
+		Thread.sleep(2);
 		//5毫秒后，由于设置了默认过期，key3只被保留4毫秒，因此为null
-		String value3 = timedCache.get("key3");
+		value3 = timedCache.get("key3");
 		Assertions.assertNull(value3);
 
 		String value3Supplier = timedCache.get("key3", () -> "Default supplier");
