@@ -12,6 +12,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_ABSENT)
 public class McpCallToolResult {
 	private List<McpContent> content;
+	private Object structuredContent;
 	private Boolean isError;
 
 	public List<McpContent> getContent() {
@@ -20,6 +21,14 @@ public class McpCallToolResult {
 
 	public void setContent(List<McpContent> content) {
 		this.content = content;
+	}
+
+	public Object getStructuredContent() {
+		return structuredContent;
+	}
+
+	public void setStructuredContent(Object structuredContent) {
+		this.structuredContent = structuredContent;
 	}
 
 	public Boolean getError() {
@@ -34,6 +43,7 @@ public class McpCallToolResult {
 	public String toString() {
 		return "McpCallToolResult{" +
 			"content=" + content +
+			", structuredContent=" + structuredContent +
 			", isError=" + isError +
 			'}';
 	}

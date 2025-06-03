@@ -199,6 +199,8 @@ public class TestMcpHandler implements HttpRequestHandler {
 			McpTextContent content = new McpTextContent(JsonUtil.toJsonString(json));
 
 			toolResult.setContent(Collections.singletonList(content));
+			toolResult.setStructuredContent(json);
+
 			jsonRpcResponse.setResult(toolResult);
 			return jsonRpcResponse;
 		}
