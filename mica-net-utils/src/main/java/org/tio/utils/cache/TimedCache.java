@@ -10,7 +10,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * 定时缓存<br>
@@ -73,55 +72,6 @@ public class TimedCache<K extends Serializable, V extends Serializable> extends 
 		this.timerTaskService = new DefaultTimerTaskService();
 		this.timerTaskService.start();
 		this.schedulePrune(cleanupMs);
-	}
-
-	/**
-	 * 从缓存中获得对象，当对象不在缓存中或已经过期返回{@code null}
-	 * <p>
-	 * 调用此方法时，会检查上次调用时间，如果与当前时间差值大于超时时间返回{@code null}，否则返回值。
-	 * <p>
-	 * @param key 键
-	 * @return 键对应的对象
-	 */
-	@Override
-	public V get(K key) {
-		return super.get(key, false);
-	}
-
-	/**
-	 * 从缓存中获得对象，当对象不在缓存中或已经过期返回 Supplier 回调产生的对象
-	 * <p>
-	 * 调用此方法时，会检查上次调用时间，如果与当前时间差值大于超时时间返回{@code null}，否则返回值。
-	 * <p>
-	 *
-	 * @param key      键
-	 * @param supplier 如果不存在回调方法，用于生产值对象
-	 * @return 值对象
-	 */
-	@Override
-	public V get(K key, Supplier<V> supplier) {
-		return super.get(key, false, supplier);
-	}
-
-	/**
-	 * 获取并刷新 ttl，每次调用此方法会刷新最后访问时间，也就是说会重新计算超时时间。
-	 *
-	 * @param key key
-	 * @return V 值
-	 */
-	public V getAndRefresh(K key) {
-		return super.get(key, true);
-	}
-
-	/**
-	 * 获取并刷新 ttl，每次调用此方法会刷新最后访问时间，也就是说会重新计算超时时间。
-	 *
-	 * @param key      key
-	 * @param supplier supplier
-	 * @return 值
-	 */
-	public V getAndRefresh(K key, Supplier<V> supplier) {
-		return super.get(key, true, supplier);
 	}
 
 	// ---------------------------------------------------------------- prune

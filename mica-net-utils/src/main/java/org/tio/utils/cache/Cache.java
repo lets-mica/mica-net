@@ -49,13 +49,12 @@ public interface Cache<K extends Serializable, V extends Serializable> extends S
 	 * <p>
 	 * 调用此方法时，会检查上次调用时间，如果与当前时间差值大于超时时间返回{@code null}，否则返回值。
 	 * <p>
-	 * 每次调用此方法会刷新最后访问时间，也就是说会重新计算超时时间。
 	 *
 	 * @param key 键
 	 * @return 键对应的对象
 	 */
 	default V get(K key) {
-		return get(key, true);
+		return get(key, false);
 	}
 
 	/**
@@ -70,7 +69,7 @@ public interface Cache<K extends Serializable, V extends Serializable> extends S
 	 * @return 值对象
 	 */
 	default V get(K key, Supplier<V> supplier) {
-		return get(key, true, supplier);
+		return get(key, false, supplier);
 	}
 
 	/**
@@ -99,6 +98,27 @@ public interface Cache<K extends Serializable, V extends Serializable> extends S
 	 * @return 键对应的对象
 	 */
 	V get(K key, boolean isUpdateLastAccess);
+
+	/**
+	 * 获取并刷新 ttl，每次调用此方法会刷新最后访问时间，也就是说会重新计算超时时间。
+	 *
+	 * @param key key
+	 * @return V 值
+	 */
+	default V getAndRefresh(K key) {
+		return get(key, true);
+	}
+
+	/**
+	 * 获取并刷新 ttl，每次调用此方法会刷新最后访问时间，也就是说会重新计算超时时间。
+	 *
+	 * @param key      key
+	 * @param supplier supplier
+	 * @return 值
+	 */
+	default V getAndRefresh(K key, Supplier<V> supplier) {
+		return get(key, true, supplier);
+	}
 
 	/**
 	 * 从缓存中清理过期对象，清理策略取决于具体实现
