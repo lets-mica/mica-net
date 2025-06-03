@@ -249,7 +249,8 @@ public class HttpServerStarter {
 			name = "Tio Http Server";
 		}
 		this.tioServerConfig = new TioServerConfig(name, httpTioServerHandler, httpTioServerListener, tioExecutor, groupExecutor);
-		this.tioServerConfig.setHeartbeatTimeout(1000 * 20L);
+		// 心跳超时时间，默认 30s
+		this.tioServerConfig.setHeartbeatTimeout(1000 * 30L);
 		this.tioServerConfig.setShortConnection(true);
 		this.tioServerConfig.setReadBufferSize(TcpConst.MAX_DATA_LENGTH);
 		this.tioServer = new TioServer(tioServerConfig);
