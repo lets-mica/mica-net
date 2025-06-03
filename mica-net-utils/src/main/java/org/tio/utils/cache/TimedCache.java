@@ -4,6 +4,8 @@ import org.tio.utils.timer.DefaultTimerTaskService;
 import org.tio.utils.timer.TimerTask;
 import org.tio.utils.timer.TimerTaskService;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,7 +19,7 @@ import java.util.Map;
  * @param <V> 值类型
  * @author Looly, L.cm
  */
-public class TimedCache<K extends Serializable, V extends Serializable> extends ReentrantCache<K, V> {
+public class TimedCache<K extends Serializable, V extends Serializable> extends ReentrantCache<K, V> implements Closeable {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -119,6 +121,14 @@ public class TimedCache<K extends Serializable, V extends Serializable> extends 
 		if (null != this.timerTask) {
 			this.timerTask.cancel();
 		}
+	}
+
+	@Override
+	public void close() throws IOException {
+		// 取消定时任务
+		this.cancelPruneSchedule();
+		// 停止定时任务
+		this.timerTaskService.stop();
 	}
 
 }
