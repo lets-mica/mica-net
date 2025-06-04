@@ -18,6 +18,7 @@ package org.tio.utils.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -50,6 +51,8 @@ public class JacksonJsonAdapter implements JsonAdapter {
 		this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper is null.").copy();
 		this.objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 		this.objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT);
+		// 启用全局忽略未知属性
+		this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
 
 	@Override
