@@ -1,13 +1,10 @@
 package org.tio.http.common.mcp.schema;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 /**
  * mcp 请求回复
  *
  * @author L.cm
  */
-@JsonInclude(JsonInclude.Include.NON_ABSENT)
 public class McpInitializeResult {
 	private String protocolVersion;
 	private McpServerCapabilities capabilities;

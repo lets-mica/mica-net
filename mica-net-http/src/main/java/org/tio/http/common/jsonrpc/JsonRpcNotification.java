@@ -16,8 +16,6 @@
 
 package org.tio.http.common.jsonrpc;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.Map;
 
 /**
@@ -25,7 +23,6 @@ import java.util.Map;
  *
  * @author L.cm
  */
-@JsonInclude(JsonInclude.Include.NON_ABSENT)
 public class JsonRpcNotification implements JsonRpcMessage {
 	private String jsonrpc;
 	private String method;

@@ -16,6 +16,7 @@
 
 package org.tio.utils.json;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,8 +46,10 @@ public class JacksonJsonAdapter implements JsonAdapter {
 	}
 
 	public JacksonJsonAdapter(ObjectMapper objectMapper) {
-		this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper is null.");
+		// 使用传入的 ObjectMapper copy，避免污染源 objectMapper
+		this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper is null.").copy();
 		this.objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+		this.objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT);
 	}
 
 	@Override

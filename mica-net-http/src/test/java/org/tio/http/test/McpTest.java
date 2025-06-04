@@ -16,11 +16,12 @@ public class McpTest {
 
 	public static void main(String[] args) throws IOException {
 		// 测试 json 工具
+		JsonUtil.getJsonAdapter(new JacksonJsonAdapter());
 //		JsonUtil.getJsonAdapter(new FastJson2JsonAdapter());
 //		JsonUtil.getJsonAdapter(new FastJson1JsonAdapter());
 //		JsonUtil.getJsonAdapter(new GsonJsonAdapter());
 //		JsonUtil.getJsonAdapter(new HuToolJsonAdapter());
-		JsonUtil.getJsonAdapter(new Snack3JsonAdapter());
+//		JsonUtil.getJsonAdapter(new Snack3JsonAdapter());
 		// mcp 官方文档地址：https://modelcontextprotocol.io/specification/draft/server/tools
 		// 启动 mcp 服务
 		HttpConfig httpConfig = new HttpConfig(8081);

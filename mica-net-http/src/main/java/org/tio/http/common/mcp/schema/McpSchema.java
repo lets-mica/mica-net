@@ -1,5 +1,10 @@
 package org.tio.http.common.mcp.schema;
 
+/**
+ * mcp 定义
+ *
+ * @author L.cm
+ */
 public interface McpSchema {
 
 	String LATEST_PROTOCOL_VERSION = "2024-11-05";

@@ -1,13 +1,10 @@
 package org.tio.http.common.mcp.schema;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 /**
  * mcp tool
  *
  * @author L.cm
  */
-@JsonInclude(JsonInclude.Include.NON_ABSENT)
 public class McpTool {
 	/**
 	 * 名字
