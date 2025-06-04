@@ -2,6 +2,9 @@ package org.tio.http.test;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tio.core.ChannelContext;
+import org.tio.core.intf.Packet;
+import org.tio.core.intf.PacketListener;
 import org.tio.http.common.*;
 import org.tio.http.common.handler.HttpRequestHandler;
 import org.tio.http.common.jsonrpc.JsonRpcMessage;
@@ -35,11 +38,15 @@ public class TestMcpHandler implements HttpRequestHandler {
 			SseEmitter emitter = SseEmitter.getEmitter(request, httpResponse);
 			String uuid = StrUtil.getNanoId();
 			sseEmitters.put(uuid, emitter);
-			new Thread(() -> {
-				ThreadUtils.sleep(1000);
-				// 发送 sse
-				emitter.send("endpoint", "/sse/message?sessionId=" + uuid);
-			}).start();
+			// 响应包发送后，再发送 sse 回包
+			httpResponse.setPacketListener(new PacketListener() {
+				@Override
+				public void onAfterSent(ChannelContext context, Packet packet, boolean isSentSuccess) throws Exception {
+					if (isSentSuccess) {
+						emitter.send("endpoint", "/sse/message?sessionId=" + uuid);
+					}
+				}
+			});
 			return httpResponse;
 		} else if ("/sse/message".equals(path)) {
 			String sessionId = request.getParam("sessionId");

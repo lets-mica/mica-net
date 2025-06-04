@@ -202,12 +202,12 @@ import org.tio.core.ChannelContext;
 public interface PacketListener {
 
 	/**
-	 * @param channelContext ChannelContext
+	 * @param context ChannelContext
 	 * @param packet         Packet
 	 * @param isSentSuccess  isSentSuccess
 	 * @throws Exception Exception
 	 */
-	default void onAfterSent(ChannelContext channelContext, Packet packet, boolean isSentSuccess) throws Exception {
+	default void onAfterSent(ChannelContext context, Packet packet, boolean isSentSuccess) throws Exception {
 
 	}
 
