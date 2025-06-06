@@ -208,11 +208,11 @@ public interface HttpRequestHandler {
 	/**
 	 * 处理请求
 	 *
-	 * @param packet HttpRequest
+	 * @param request HttpRequest
 	 * @return 可以为 null
 	 * @throws Exception Exception
 	 */
-	HttpResponse handler(HttpRequest packet) throws Exception;
+	HttpResponse handler(HttpRequest request) throws Exception;
 
 	/**
 	 * 响应404

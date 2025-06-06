@@ -12,10 +12,10 @@ import org.tio.http.common.jsonrpc.JsonRpcNotification;
 import org.tio.http.common.jsonrpc.JsonRpcRequest;
 import org.tio.http.common.jsonrpc.JsonRpcResponse;
 import org.tio.http.common.mcp.schema.*;
+import org.tio.http.common.mcp.server.McpRequestHandler;
 import org.tio.http.common.sse.SseEmitter;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.json.JsonUtil;
-import org.tio.utils.thread.ThreadUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -25,6 +25,10 @@ import java.util.concurrent.ConcurrentMap;
 public class TestMcpHandler implements HttpRequestHandler {
 	private static final Logger logger = LoggerFactory.getLogger(TestMcpHandler.class);
 	private static ConcurrentMap<String, SseEmitter> sseEmitters = new ConcurrentHashMap<>();
+	static Map<String, McpRequestHandler<?>> requestHandlers = new HashMap<>();
+	static {
+		requestHandlers.put(McpSchema.METHOD_PING, (exchange, params) -> Collections.emptyMap());
+	}
 
 	@Override
 	public HttpResponse handler(HttpRequest request) throws Exception {

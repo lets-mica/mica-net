@@ -12,12 +12,12 @@ import java.util.Collection;
 public class TestHttpRequestHandler implements HttpRequestHandler {
 
 	@Override
-	public HttpResponse handler(HttpRequest packet) throws Exception {
-		RequestLine requestLine = packet.getRequestLine();
+	public HttpResponse handler(HttpRequest request) throws Exception {
+		RequestLine requestLine = request.getRequestLine();
 		String path = requestLine.getPath();
-		HttpResponse httpResponse = new HttpResponse(packet);
+		HttpResponse httpResponse = new HttpResponse(request);
 		if ("/sse".equals(path)) {
-			SseEmitter emitter = SseEmitter.getEmitter(packet, httpResponse);
+			SseEmitter emitter = SseEmitter.getEmitter(request, httpResponse);
 			// 跨域支持
 			httpResponse.addHeader(HeaderName.Access_Control_Allow_Origin, HeaderValue.from("*"));
 			new Thread(new Runnable() {
@@ -37,15 +37,15 @@ public class TestHttpRequestHandler implements HttpRequestHandler {
 			}).start();
 			return httpResponse;
 		}
-		Collection<Cookie> cookies = packet.getCookies();
+		Collection<Cookie> cookies = request.getCookies();
 		for (Cookie cookie : cookies) {
 			System.out.println(cookie.getName() + "\t" + cookie.getValue());
 			httpResponse.addCookie(cookie);
 		}
-		System.out.println(packet.getCookieMap());
+		System.out.println(request.getCookieMap());
 
 		httpResponse.setStatus(HttpResponseStatus.C200);
-		byte[] body = packet.getBody();
+		byte[] body = request.getBody();
 		if (body != null) {
 			System.out.println(new String(body));
 		}
