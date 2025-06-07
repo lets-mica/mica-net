@@ -50,7 +50,7 @@
         <snack3.version>3.2.133</snack3.version>
         <slf4j.version>2.0.17</slf4j.version>
         <tinylog.version>2.7.0</tinylog.version>
-        <junit-jupiter.version>5.13.0</junit-jupiter.version>
+        <junit-jupiter.version>5.13.1</junit-jupiter.version>
         <annotations.version>26.0.2</annotations.version>
     </properties>
 
