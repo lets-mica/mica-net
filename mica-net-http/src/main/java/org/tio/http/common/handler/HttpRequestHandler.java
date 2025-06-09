@@ -193,10 +193,7 @@
 */
 package org.tio.http.common.handler;
 
-import org.tio.http.common.HttpConfig;
-import org.tio.http.common.HttpRequest;
-import org.tio.http.common.HttpResponse;
-import org.tio.http.common.RequestLine;
+import org.tio.http.common.*;
 
 /**
  * http请求处理者
@@ -205,6 +202,7 @@ import org.tio.http.common.RequestLine;
  * 2017年8月30日 上午9:22:50
  */
 public interface HttpRequestHandler {
+
 	/**
 	 * 处理请求
 	 *
@@ -222,7 +220,11 @@ public interface HttpRequestHandler {
 	 * @return HttpResponse
 	 * @throws Exception Exception
 	 */
-	HttpResponse resp404(HttpRequest request, RequestLine requestLine) throws Exception;
+	default HttpResponse resp404(HttpRequest request, RequestLine requestLine) throws Exception {
+		HttpResponse httpResponse = new HttpResponse(request);
+		httpResponse.setStatus(HttpResponseStatus.C404);
+		return httpResponse;
+	}
 
 	/**
 	 * 响应500
@@ -233,7 +235,11 @@ public interface HttpRequestHandler {
 	 * @return HttpResponse
 	 * @throws Exception Exception
 	 */
-	HttpResponse resp500(HttpRequest request, RequestLine requestLine, Throwable throwable) throws Exception;
+	default HttpResponse resp500(HttpRequest request, RequestLine requestLine, Throwable throwable) throws Exception {
+		HttpResponse httpResponse = new HttpResponse(request);
+		httpResponse.setStatus(HttpResponseStatus.C500);
+		return httpResponse;
+	}
 
 	/**
 	 * 获取 HttpConfig

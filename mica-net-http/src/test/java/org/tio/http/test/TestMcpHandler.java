@@ -85,21 +85,6 @@ public class TestMcpHandler implements HttpRequestHandler {
 		return httpResponse;
 	}
 
-	@Override
-	public HttpResponse resp404(HttpRequest request, RequestLine requestLine) throws Exception {
-		HttpResponse httpResponse = new HttpResponse(request);
-		httpResponse.setStatus(HttpResponseStatus.C404);
-		return httpResponse;
-	}
-
-	@Override
-	public HttpResponse resp500(HttpRequest request, RequestLine requestLine, Throwable throwable) throws Exception {
-		HttpResponse httpResponse = new HttpResponse(request);
-		httpResponse.setStatus(HttpResponseStatus.C500);
-		httpResponse.setBody(throwable.getMessage().getBytes(StandardCharsets.UTF_8));
-		return httpResponse;
-	}
-
 	public static JsonRpcMessage deserializeJsonRpcMessage(byte[] requestBody) {
 		Map<String, Object> map = JsonUtil.readValue(requestBody, Map.class);
 
