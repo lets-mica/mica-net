@@ -1,6 +1,7 @@
 package org.tio.http.test;
 
 import org.tio.http.common.HttpConfig;
+import org.tio.http.common.mcp.server.McpServer;
 import org.tio.http.server.HttpServerStarter;
 import org.tio.utils.json.*;
 
@@ -25,7 +26,9 @@ public class McpTest {
 		// mcp 官方文档地址：https://modelcontextprotocol.io/specification/draft/server/tools
 		// 启动 mcp 服务
 		HttpConfig httpConfig = new HttpConfig(8081);
-		TestMcpHandler mcpHandler = new TestMcpHandler();
+
+		McpServer mcpServer = new McpServer();
+		TestMcpHandler mcpHandler = new TestMcpHandler(mcpServer);
 		HttpServerStarter httpServerStarter = new HttpServerStarter(httpConfig, mcpHandler);
 		httpServerStarter.start();
 	}
