@@ -1,7 +1,5 @@
 package org.tio.http.common.mcp.schema;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 /**
