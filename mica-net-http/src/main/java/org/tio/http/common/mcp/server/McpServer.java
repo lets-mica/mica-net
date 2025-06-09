@@ -16,6 +16,8 @@ import org.tio.utils.json.JsonUtil;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 public class McpServer {
 	private static final Logger log = LoggerFactory.getLogger(McpServer.class);
@@ -35,6 +37,11 @@ public class McpServer {
 	public static final String DEFAULT_MESSAGE_ENDPOINT = DEFAULT_SSE_ENDPOINT + "/message";
 
 	/**
+	 * 默认的服务信息
+	 */
+	private static final McpImplementation DEFAULT_SERVER_INFO = new McpImplementation("mcp-server", "1.0.0");
+
+	/**
 	 * Map of active client sessions, keyed by session ID.
 	 */
 	private final ConcurrentHashMap<String, McpServerSession> sessions = new ConcurrentHashMap<>();
@@ -49,6 +56,374 @@ public class McpServer {
 	public McpServer(String sseEndpoint, String messageEndpoint) {
 		this.sseEndpoint = Objects.requireNonNull(sseEndpoint, "SSE endpoint must not be null");
 		this.messageEndpoint = Objects.requireNonNull(messageEndpoint, "Message endpoint must not be null");
+	}
+
+
+	private McpImplementation serverInfo = DEFAULT_SERVER_INFO;
+	private McpServerCapabilities serverCapabilities;
+
+	/**
+	 * The Model Context Protocol (MCP) allows servers to expose tools that can be
+	 * invoked by language models. Tools enable models to interact with external
+	 * systems, such as querying databases, calling APIs, or performing computations.
+	 * Each tool is uniquely identified by a name and includes metadata describing its
+	 * schema.
+	 */
+	private final List<McpToolSpecification> tools = new ArrayList<>();
+
+	/**
+	 * The Model Context Protocol (MCP) provides a standardized way for servers to
+	 * expose resources to clients. Resources allow servers to share data that
+	 * provides context to language models, such as files, database schemas, or
+	 * application-specific information. Each resource is uniquely identified by a
+	 * URI.
+	 */
+	private final Map<String, McpResourceSpecification> resources = new HashMap<>();
+
+	private final Map<String, McpResourceTemplateSpecification> resourceTemplates = new HashMap<>();
+
+	/**
+	 * The Model Context Protocol (MCP) provides a standardized way for servers to
+	 * expose prompt templates to clients. Prompts allow servers to provide structured
+	 * messages and instructions for interacting with language models. Clients can
+	 * discover available prompts, retrieve their contents, and provide arguments to
+	 * customize them.
+	 */
+	private final Map<String, McpPromptSpecification> prompts = new HashMap<>();
+
+	private final List<BiConsumer<McpServerExchange, List<McpRoot>>> rootsChangeHandlers = new ArrayList<>();
+
+	/**
+	 * Sets the server implementation information that will be shared with clients
+	 * during connection initialization. This helps with version compatibility,
+	 * debugging, and server identification.
+	 * @param serverInfo The server implementation details including name and version.
+	 * Must not be null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if serverInfo is null
+	 */
+	public McpServer serverInfo(McpImplementation serverInfo) {
+		Objects.requireNonNull(serverInfo, "Server info must not be null");
+		this.serverInfo = serverInfo;
+		return this;
+	}
+
+	/**
+	 * Sets the server implementation information using name and version strings. This
+	 * is a convenience method alternative to
+	 * {@link #serverInfo(McpImplementation)}.
+	 * @param name The server name. Must not be null or empty.
+	 * @param version The server version. Must not be null or empty.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if name or version is null or empty
+	 * @see #serverInfo(McpImplementation)
+	 */
+	public McpServer serverInfo(String name, String version) {
+		if (StrUtil.isBlank(name)) {
+			throw new IllegalArgumentException("Server info name must not be blank");
+		}
+		if (StrUtil.isBlank(version)) {
+			throw new IllegalArgumentException("Server info version must not be blank");
+		}
+		this.serverInfo = new McpImplementation(name, version);
+		return this;
+	}
+
+	/**
+	 * Sets the server capabilities that will be advertised to clients during
+	 * connection initialization. Capabilities define what features the server
+	 * supports, such as:
+	 * <ul>
+	 * <li>Tool execution
+	 * <li>Resource access
+	 * <li>Prompt handling
+	 * </ul>
+	 * @param serverCapabilities The server capabilities configuration. Must not be
+	 * null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if serverCapabilities is null
+	 */
+	public McpServer capabilities(McpServerCapabilities serverCapabilities) {
+		Objects.requireNonNull(serverCapabilities, "Server capabilities must not be null");
+		this.serverCapabilities = serverCapabilities;
+		return this;
+	}
+
+	/**
+	 * Adds a single tool with its implementation handler to the server. This is a
+	 * convenience method for registering individual tools without creating a
+	 * {@link McpToolSpecification} explicitly.
+	 *
+	 * <p>
+	 * Example usage: <pre>{@code
+	 * .tool(
+	 *     new Tool("calculator", "Performs calculations", schema),
+	 *     (exchange, args) -> new CallToolResult("Result: " + calculate(args))
+	 * )
+	 * }</pre>
+	 * @param tool The tool definition including name, description, and schema. Must
+	 * not be null.
+	 * @param handler The function that implements the tool's logic. Must not be null.
+	 * The function's first argument is an {@link McpServerExchange} upon which
+	 * the server can interact with the connected client. The second argument is the
+	 * list of arguments passed to the tool.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if tool or handler is null
+	 */
+	public McpServer tool(McpTool tool,
+						  BiFunction<McpServerExchange, Map<String, Object>, McpCallToolResult> handler) {
+		Objects.requireNonNull(tool, "Tool must not be null");
+		Objects.requireNonNull(handler, "Handler must not be null");
+		this.tools.add(new McpToolSpecification(tool, handler));
+		return this;
+	}
+
+	/**
+	 * Adds multiple tools with their handlers to the server using a List. This method
+	 * is useful when tools are dynamically generated or loaded from a configuration
+	 * source.
+	 * @param toolSpecifications The list of tool specifications to add. Must not be
+	 * null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if toolSpecifications is null
+	 * @see #tools(McpToolSpecification...)
+	 */
+	public McpServer tools(List<McpToolSpecification> toolSpecifications) {
+		Objects.requireNonNull(toolSpecifications, "Tool handlers list must not be null");
+		this.tools.addAll(toolSpecifications);
+		return this;
+	}
+
+	/**
+	 * Adds multiple tools with their handlers to the server using varargs. This
+	 * method provides a convenient way to register multiple tools inline.
+	 *
+	 * <p>
+	 * Example usage: <pre>{@code
+	 * .tools(
+	 *     new ToolSpecification(calculatorTool, calculatorHandler),
+	 *     new ToolSpecification(weatherTool, weatherHandler),
+	 *     new ToolSpecification(fileManagerTool, fileManagerHandler)
+	 * )
+	 * }</pre>
+	 * @param toolSpecifications The tool specifications to add. Must not be null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if toolSpecifications is null
+	 * @see #tools(List)
+	 */
+	public McpServer tools(McpToolSpecification... toolSpecifications) {
+		Objects.requireNonNull(toolSpecifications, "Tool handlers list must not be null");
+		this.tools.addAll(Arrays.asList(toolSpecifications));
+		return this;
+	}
+
+	/**
+	 * Registers multiple resources with their handlers using a Map. This method is
+	 * useful when resources are dynamically generated or loaded from a configuration
+	 * source.
+	 * @param resourceSpecifications Map of resource name to specification. Must not
+	 * be null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if resourceSpecifications is null
+	 * @see #resources(McpResourceSpecification...)
+	 */
+	public McpServer resources(
+		Map<String, McpResourceSpecification> resourceSpecifications) {
+		Objects.requireNonNull(resourceSpecifications, "Resource handlers map must not be null");
+		this.resources.putAll(resourceSpecifications);
+		return this;
+	}
+
+	/**
+	 * Registers multiple resources with their handlers using a List. This method is
+	 * useful when resources need to be added in bulk from a collection.
+	 * @param resourceSpecifications List of resource specifications. Must not be
+	 * null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if resourceSpecifications is null
+	 * @see #resources(McpResourceSpecification...)
+	 */
+	public McpServer resources(List<McpResourceSpecification> resourceSpecifications) {
+		Objects.requireNonNull(resourceSpecifications, "Resource handlers list must not be null");
+		for (McpResourceSpecification resource : resourceSpecifications) {
+			this.resources.put(resource.getResource().getUri(), resource);
+		}
+		return this;
+	}
+
+	/**
+	 * Registers multiple resources with their handlers using varargs. This method
+	 * provides a convenient way to register multiple resources inline.
+	 *
+	 * <p>
+	 * Example usage: <pre>{@code
+	 * .resources(
+	 *     new ResourceSpecification(fileResource, fileHandler),
+	 *     new ResourceSpecification(dbResource, dbHandler),
+	 *     new ResourceSpecification(apiResource, apiHandler)
+	 * )
+	 * }</pre>
+	 * @param resourceSpecifications The resource specifications to add. Must not be
+	 * null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if resourceSpecifications is null
+	 */
+	public McpServer resources(McpResourceSpecification... resourceSpecifications) {
+		Objects.requireNonNull(resourceSpecifications, "Resource handlers list must not be null");
+		for (McpResourceSpecification resource : resourceSpecifications) {
+			this.resources.put(resource.getResource().getUri(), resource);
+		}
+		return this;
+	}
+
+	/**
+	 * Sets the resource templates that define patterns for dynamic resource access.
+	 * Templates use URI patterns with placeholders that can be filled at runtime.
+	 *
+	 * <p>
+	 * Example usage: <pre>{@code
+	 * .resourceTemplates(
+	 *     new ResourceTemplate("file://{path}", "Access files by path"),
+	 *     new ResourceTemplate("db://{table}/{id}", "Access database records")
+	 * )
+	 * }</pre>
+	 * @param resourceTemplates List of resource templates. If null, clears existing
+	 * templates.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if resourceTemplates is null.
+	 * @see #resourceTemplates(List<McpResourceTemplateSpecification>...)
+	 */
+	public McpServer resourceTemplates(List<McpResourceTemplateSpecification> resourceTemplates) {
+		Objects.requireNonNull(resourceTemplates, "Resource templates must not be null");
+		for (McpResourceTemplateSpecification resource : resourceTemplates) {
+			this.resourceTemplates.put(resource.getResource().getUriTemplate(), resource);
+		}
+		return this;
+	}
+
+	/**
+	 * Sets the resource templates using varargs for convenience. This is an
+	 * alternative to {@link #resourceTemplates(List)}.
+	 * @param resourceTemplates The resource templates to set.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if resourceTemplates is null
+	 * @see #resourceTemplates(List)
+	 */
+	public McpServer resourceTemplates(McpResourceTemplateSpecification... resourceTemplates) {
+		Objects.requireNonNull(resourceTemplates, "Resource templates must not be null");
+		for (McpResourceTemplateSpecification resource : resourceTemplates) {
+			this.resourceTemplates.put(resource.getResource().getUriTemplate(), resource);
+		}
+		return this;
+	}
+
+	/**
+	 * Registers multiple prompts with their handlers using a Map. This method is
+	 * useful when prompts are dynamically generated or loaded from a configuration
+	 * source.
+	 *
+	 * <p>
+	 * Example usage: <pre>{@code
+	 * Map<String, PromptSpecification> prompts = new HashMap<>();
+	 * prompts.put("analysis", new PromptSpecification(
+	 *     new Prompt("analysis", "Code analysis template"),
+	 *     (exchange, request) -> new GetPromptResult(generateAnalysisPrompt(request))
+	 * ));
+	 * .prompts(prompts)
+	 * }</pre>
+	 * @param prompts Map of prompt name to specification. Must not be null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if prompts is null
+	 */
+	public McpServer prompts(Map<String, McpPromptSpecification> prompts) {
+		Objects.requireNonNull(prompts, "Prompts map must not be null");
+		this.prompts.putAll(prompts);
+		return this;
+	}
+
+	/**
+	 * Registers multiple prompts with their handlers using a List. This method is
+	 * useful when prompts need to be added in bulk from a collection.
+	 * @param prompts List of prompt specifications. Must not be null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if prompts is null
+	 * @see #prompts(McpPromptSpecification...)
+	 */
+	public McpServer prompts(List<McpPromptSpecification> prompts) {
+		Objects.requireNonNull(prompts, "Prompts list must not be null");
+		for (McpPromptSpecification prompt : prompts) {
+			this.prompts.put(prompt.getPrompt().getName(), prompt);
+		}
+		return this;
+	}
+
+	/**
+	 * Registers multiple prompts with their handlers using varargs. This method
+	 * provides a convenient way to register multiple prompts inline.
+	 *
+	 * <p>
+	 * Example usage: <pre>{@code
+	 * .prompts(
+	 *     new PromptSpecification(analysisPrompt, analysisHandler),
+	 *     new PromptSpecification(summaryPrompt, summaryHandler),
+	 *     new PromptSpecification(reviewPrompt, reviewHandler)
+	 * )
+	 * }</pre>
+	 * @param prompts The prompt specifications to add. Must not be null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if prompts is null
+	 */
+	public McpServer prompts(McpPromptSpecification... prompts) {
+		Objects.requireNonNull(prompts, "Prompts list must not be null");
+		for (McpPromptSpecification prompt : prompts) {
+			this.prompts.put(prompt.getPrompt().getName(), prompt);
+		}
+		return this;
+	}
+
+	/**
+	 * Registers a consumer that will be notified when the list of roots changes. This
+	 * is useful for updating resource availability dynamically, such as when new
+	 * files are added or removed.
+	 * @param handler The handler to register. Must not be null. The function's first
+	 * argument is an {@link McpServerExchange} upon which the server can interact
+	 * with the connected client. The second argument is the list of roots.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if consumer is null
+	 */
+	public McpServer rootsChangeHandler(BiConsumer<McpServerExchange, List<McpRoot>> handler) {
+		Objects.requireNonNull(handler, "Consumer must not be null");
+		this.rootsChangeHandlers.add(handler);
+		return this;
+	}
+
+	/**
+	 * Registers multiple consumers that will be notified when the list of roots
+	 * changes. This method is useful when multiple consumers need to be registered at
+	 * once.
+	 * @param handlers The list of handlers to register. Must not be null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if consumers is null
+	 * @see #rootsChangeHandler(BiConsumer)
+	 */
+	public McpServer rootsChangeHandlers(List<BiConsumer<McpServerExchange, List<McpRoot>>> handlers) {
+		Objects.requireNonNull(handlers, "Handlers list must not be null");
+		this.rootsChangeHandlers.addAll(handlers);
+		return this;
+	}
+
+	/**
+	 * Registers multiple consumers that will be notified when the list of roots
+	 * changes using varargs. This method provides a convenient way to register
+	 * multiple consumers inline.
+	 * @param handlers The handlers to register. Must not be null.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if consumers is null
+	 * @see #rootsChangeHandlers(List)
+	 */
+	public McpServer rootsChangeHandlers(BiConsumer<McpServerExchange, List<McpRoot>>... handlers) {
+		Objects.requireNonNull(handlers, "Handlers list must not be null");
+		return this.rootsChangeHandlers(Arrays.asList(handlers));
 	}
 
 	/**
@@ -142,8 +517,7 @@ public class McpServer {
 	private static JsonRpcResponse handleIncomingRequest(JsonRpcRequest request) {
 		String method = request.getMethod();
 		if (McpSchema.METHOD_INITIALIZE.equals(method)) {
-			Object params = request.getParams();
-			McpInitializeRequest initializeRequest = JsonUtil.convertValue(params, McpInitializeRequest.class);
+			McpInitializeRequest initializeRequest = JsonUtil.convertValue(request.getParams(), McpInitializeRequest.class);
 //			this.init(initializeRequest.getCapabilities(), initializeRequest.getClientInfo());
 
 			McpInitializeResult result = new McpInitializeResult();
