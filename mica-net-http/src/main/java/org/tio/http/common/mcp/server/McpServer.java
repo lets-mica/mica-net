@@ -421,7 +421,8 @@ public class McpServer {
 	 * @throws IllegalArgumentException if consumers is null
 	 * @see #rootsChangeHandlers(List)
 	 */
-	public McpServer rootsChangeHandlers(BiConsumer<McpServerExchange, List<McpRoot>>... handlers) {
+	@SafeVarargs
+	public final McpServer rootsChangeHandlers(BiConsumer<McpServerExchange, List<McpRoot>>... handlers) {
 		Objects.requireNonNull(handlers, "Handlers list must not be null");
 		return this.rootsChangeHandlers(Arrays.asList(handlers));
 	}
@@ -514,14 +515,16 @@ public class McpServer {
 	 * @param request The incoming JSON-RPC request
 	 * @return A Mono containing the JSON-RPC response
 	 */
-	private static JsonRpcResponse handleIncomingRequest(JsonRpcRequest request) {
+	private JsonRpcResponse handleIncomingRequest(JsonRpcRequest request) {
 		String method = request.getMethod();
 		if (McpSchema.METHOD_INITIALIZE.equals(method)) {
 			McpInitializeRequest initializeRequest = JsonUtil.convertValue(request.getParams(), McpInitializeRequest.class);
 //			this.init(initializeRequest.getCapabilities(), initializeRequest.getClientInfo());
 
 			McpInitializeResult result = new McpInitializeResult();
+			// 设置协议版本
 			result.setProtocolVersion(initializeRequest.getProtocolVersion());
+
 			McpServerCapabilities serverCapabilities = new McpServerCapabilities();
 			McpLoggingCapabilities logging = new McpLoggingCapabilities();
 			serverCapabilities.setLogging(logging);
@@ -536,11 +539,8 @@ public class McpServer {
 			tools.setListChanged(true);
 			serverCapabilities.setTools(tools);
 			result.setCapabilities(serverCapabilities);
-
-			McpImplementation implementation = new McpImplementation();
-			implementation.setName("McpServerTool");
-			implementation.setVersion(McpSchema.LATEST_PROTOCOL_VERSION);
-			result.setServerInfo(implementation);
+			// 服务信息
+			result.setServerInfo(serverInfo);
 
 			JsonRpcResponse jsonRpcResponse = new JsonRpcResponse();
 			jsonRpcResponse.setJsonrpc(McpSchema.JSONRPC_VERSION);

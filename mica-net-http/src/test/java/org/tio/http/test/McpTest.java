@@ -28,6 +28,8 @@ public class McpTest {
 		HttpConfig httpConfig = new HttpConfig(8081);
 
 		McpServer mcpServer = new McpServer();
+//		mcpServer.tool()
+
 		TestMcpHandler mcpHandler = new TestMcpHandler(mcpServer);
 		HttpServerStarter httpServerStarter = new HttpServerStarter(httpConfig, mcpHandler);
 		httpServerStarter.start();
