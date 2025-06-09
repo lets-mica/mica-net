@@ -203,9 +203,9 @@ public interface ChannelContextFilter {
 	/**
 	 * 过滤ChannelContext
 	 *
-	 * @param channelContext ChannelContext
+	 * @param context ChannelContext
 	 * @return false: 排除此channelContext, true: 不排除
 	 */
-	boolean filter(ChannelContext channelContext);
+	boolean filter(ChannelContext context);
 
 }

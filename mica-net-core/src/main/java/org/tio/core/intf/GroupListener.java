@@ -204,22 +204,22 @@ public interface GroupListener {
 	/**
 	 * 绑定群组后回调该方法
 	 *
-	 * @param channelContext ChannelContext
-	 * @param group          group
+	 * @param context ChannelContext
+	 * @param group   group
 	 * @throws Exception Exception
 	 */
-	default void onAfterBind(ChannelContext channelContext, String group) throws Exception {
+	default void onAfterBind(ChannelContext context, String group) throws Exception {
 
 	}
 
 	/**
 	 * 解绑群组后回调该方法
 	 *
-	 * @param channelContext ChannelContext
-	 * @param group          group
+	 * @param context ChannelContext
+	 * @param group   group
 	 * @throws Exception Exception
 	 */
-	default void onAfterUnbind(ChannelContext channelContext, String group) throws Exception {
+	default void onAfterUnbind(ChannelContext context, String group) throws Exception {
 
 	}
 

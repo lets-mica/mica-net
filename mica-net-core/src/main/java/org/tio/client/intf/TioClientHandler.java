@@ -206,8 +206,9 @@ public interface TioClientHandler extends TioHandler {
 	/**
 	 * 创建心跳包
 	 *
+	 * @param context ChannelContext
 	 * @return Packet
 	 */
-	Packet heartbeatPacket(ChannelContext channelContext);
+	Packet heartbeatPacket(ChannelContext context);
 
 }

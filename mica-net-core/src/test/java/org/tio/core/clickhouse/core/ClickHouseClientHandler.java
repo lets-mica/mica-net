@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 
 public class ClickHouseClientHandler implements TioClientHandler  {
 	@Override
-	public Packet heartbeatPacket(ChannelContext channelContext) {
+	public Packet heartbeatPacket(ChannelContext context) {
 		return PingMessage.INSTANCE;
 	}
 

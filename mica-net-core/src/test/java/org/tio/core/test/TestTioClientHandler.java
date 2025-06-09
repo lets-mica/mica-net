@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class TestTioClientHandler implements TioClientHandler {
 	@Override
-	public Packet heartbeatPacket(ChannelContext channelContext) {
+	public Packet heartbeatPacket(ChannelContext context) {
 		ByteBuffer buffer = ByteBuffer.allocate(11);
 		buffer.put("AdTest255".getBytes(StandardCharsets.UTF_8));
 		buffer.put(SysConst.CR);

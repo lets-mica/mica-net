@@ -19,7 +19,7 @@ public class AGNSSClientHandler implements TioClientHandler {
 	}
 
 	@Override
-	public Packet heartbeatPacket(ChannelContext channelContext) {
+	public Packet heartbeatPacket(ChannelContext context) {
 		// 自定义心跳包
 		return null;
 	}

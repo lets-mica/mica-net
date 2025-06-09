@@ -205,10 +205,10 @@ import org.tio.core.intf.Packet;
 public interface PacketConverter {
 
 	/**
-	 * @param packet         packet
-	 * @param channelContext 要发往的channelContext
+	 * @param packet  packet
+	 * @param context 要发往的channelContext
 	 * @return Packet
 	 */
-	Packet convert(Packet packet, ChannelContext channelContext);
+	Packet convert(Packet packet, ChannelContext context);
 
 }
