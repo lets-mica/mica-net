@@ -199,6 +199,7 @@ import org.tio.core.ChannelContext;
  * @author tanyaowu
  * 2017年5月8日 下午1:14:08
  */
+@FunctionalInterface
 public interface PacketListener {
 
 	/**
@@ -207,8 +208,6 @@ public interface PacketListener {
 	 * @param isSentSuccess  isSentSuccess
 	 * @throws Exception Exception
 	 */
-	default void onAfterSent(ChannelContext context, Packet packet, boolean isSentSuccess) throws Exception {
-
-	}
+	void onAfterSent(ChannelContext context, Packet packet, boolean isSentSuccess) throws Exception;
 
 }
