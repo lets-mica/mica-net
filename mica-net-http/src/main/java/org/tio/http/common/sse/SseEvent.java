@@ -66,7 +66,7 @@ public class SseEvent {
 		if (object instanceof String) {
 			buf.append("data:").append(StrUtil.replace((String) object, "\n", "\ndata:")).append('\n');
 		} else {
-			buf.append("data:").append(object).append("\n");
+			buf.append("data:").append(object).append('\n');
 		}
 		return this;
 	}
