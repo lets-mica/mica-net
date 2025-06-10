@@ -3,7 +3,6 @@ package org.tio.http.test;
 import org.tio.http.common.HttpConfig;
 import org.tio.http.common.mcp.schema.*;
 import org.tio.http.common.mcp.server.McpServer;
-import org.tio.http.common.mcp.server.McpServerExchange;
 import org.tio.http.server.HttpServerStarter;
 import org.tio.utils.json.*;
 
@@ -12,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 /**
  * http 测试

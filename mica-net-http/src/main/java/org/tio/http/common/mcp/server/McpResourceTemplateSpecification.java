@@ -8,10 +8,10 @@ import java.util.function.BiFunction;
 
 public class McpResourceTemplateSpecification {
 	private final McpResourceTemplate resource;
-	private final BiFunction<McpServerExchange, McpReadResourceRequest, McpReadResourceResult> readHandler;
+	private final BiFunction<McpServer, McpReadResourceRequest, McpReadResourceResult> readHandler;
 
 	public McpResourceTemplateSpecification(McpResourceTemplate resource,
-											BiFunction<McpServerExchange, McpReadResourceRequest, McpReadResourceResult> readHandler) {
+											BiFunction<McpServer, McpReadResourceRequest, McpReadResourceResult> readHandler) {
 		this.resource = resource;
 		this.readHandler = readHandler;
 	}
@@ -20,7 +20,7 @@ public class McpResourceTemplateSpecification {
 		return resource;
 	}
 
-	public BiFunction<McpServerExchange, McpReadResourceRequest, McpReadResourceResult> getReadHandler() {
+	public BiFunction<McpServer, McpReadResourceRequest, McpReadResourceResult> getReadHandler() {
 		return readHandler;
 	}
 }

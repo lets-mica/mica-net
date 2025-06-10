@@ -19,6 +19,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
+/**
+ * mcp 服务
+ *
+ * @author L.cm
+ */
 public class McpServer {
 	private static final Logger log = LoggerFactory.getLogger(McpServer.class);
 	/**
@@ -91,7 +96,7 @@ public class McpServer {
 	 */
 	private final Map<String, McpPromptSpecification> prompts = new HashMap<>();
 
-	private final List<BiConsumer<McpServerExchange, List<McpRoot>>> rootsChangeHandlers = new ArrayList<>();
+	private final List<BiConsumer<McpServer, List<McpRoot>>> rootsChangeHandlers = new ArrayList<>();
 
 	/**
 	 * Sets the server implementation information that will be shared with clients
@@ -168,14 +173,14 @@ public class McpServer {
 	 * @param tool    The tool definition including name, description, and schema. Must
 	 *                not be null.
 	 * @param handler The function that implements the tool's logic. Must not be null.
-	 *                The function's first argument is an {@link McpServerExchange} upon which
+	 *                The function's first argument is an {@link McpServer} upon which
 	 *                the server can interact with the connected client. The second argument is the
 	 *                list of arguments passed to the tool.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if tool or handler is null
 	 */
 	public McpServer tool(McpTool tool,
-						  BiFunction<McpServerExchange, Map<String, Object>, McpCallToolResult> handler) {
+						  BiFunction<McpServer, Map<String, Object>, McpCallToolResult> handler) {
 		Objects.requireNonNull(tool, "Tool must not be null");
 		Objects.requireNonNull(handler, "Handler must not be null");
 		this.tools.add(new McpToolSpecification(tool, handler));
@@ -401,12 +406,12 @@ public class McpServer {
 	 * files are added or removed.
 	 *
 	 * @param handler The handler to register. Must not be null. The function's first
-	 *                argument is an {@link McpServerExchange} upon which the server can interact
+	 *                argument is an {@link McpServer} upon which the server can interact
 	 *                with the connected client. The second argument is the list of roots.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if consumer is null
 	 */
-	public McpServer rootsChangeHandler(BiConsumer<McpServerExchange, List<McpRoot>> handler) {
+	public McpServer rootsChangeHandler(BiConsumer<McpServer, List<McpRoot>> handler) {
 		Objects.requireNonNull(handler, "Consumer must not be null");
 		this.rootsChangeHandlers.add(handler);
 		return this;
@@ -422,7 +427,7 @@ public class McpServer {
 	 * @throws IllegalArgumentException if consumers is null
 	 * @see #rootsChangeHandler(BiConsumer)
 	 */
-	public McpServer rootsChangeHandlers(List<BiConsumer<McpServerExchange, List<McpRoot>>> handlers) {
+	public McpServer rootsChangeHandlers(List<BiConsumer<McpServer, List<McpRoot>>> handlers) {
 		Objects.requireNonNull(handlers, "Handlers list must not be null");
 		this.rootsChangeHandlers.addAll(handlers);
 		return this;
@@ -439,7 +444,7 @@ public class McpServer {
 	 * @see #rootsChangeHandlers(List)
 	 */
 	@SafeVarargs
-	public final McpServer rootsChangeHandlers(BiConsumer<McpServerExchange, List<McpRoot>>... handlers) {
+	public final McpServer rootsChangeHandlers(BiConsumer<McpServer, List<McpRoot>>... handlers) {
 		Objects.requireNonNull(handlers, "Handlers list must not be null");
 		return this.rootsChangeHandlers(Arrays.asList(handlers));
 	}
@@ -586,7 +591,7 @@ public class McpServer {
 				McpTool tool = toolSpecification.getTool();
 				if (tool.getName().equals(name)) {
 					Map<String, Object> toolArguments = getCallToolArguments(callToolRequest.getArguments());
-					toolResult = toolSpecification.getCall().apply(null, toolArguments);
+					toolResult = toolSpecification.getCall().apply(this, toolArguments);
 					break;
 				}
 			}

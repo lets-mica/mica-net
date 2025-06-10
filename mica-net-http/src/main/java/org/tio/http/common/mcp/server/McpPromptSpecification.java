@@ -13,9 +13,9 @@ import java.util.function.BiFunction;
  */
 public class McpPromptSpecification {
 	private final McpPrompt prompt;
-	private final BiFunction<McpServerExchange, McpGetPromptRequest, McpGetPromptResult> promptHandler;
+	private final BiFunction<McpServer, McpGetPromptRequest, McpGetPromptResult> promptHandler;
 
-	public McpPromptSpecification(McpPrompt prompt, BiFunction<McpServerExchange, McpGetPromptRequest, McpGetPromptResult> promptHandler) {
+	public McpPromptSpecification(McpPrompt prompt, BiFunction<McpServer, McpGetPromptRequest, McpGetPromptResult> promptHandler) {
 		this.prompt = prompt;
 		this.promptHandler = promptHandler;
 	}
@@ -24,7 +24,7 @@ public class McpPromptSpecification {
 		return prompt;
 	}
 
-	public BiFunction<McpServerExchange, McpGetPromptRequest, McpGetPromptResult> getPromptHandler() {
+	public BiFunction<McpServer, McpGetPromptRequest, McpGetPromptResult> getPromptHandler() {
 		return promptHandler;
 	}
 }

@@ -6,11 +6,16 @@ import org.tio.http.common.mcp.schema.McpTool;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+/**
+ * mcp tool 定义
+ *
+ * @author L.cm
+ */
 public class McpToolSpecification {
 	private final McpTool tool;
-	private final BiFunction<McpServerExchange, Map<String, Object>, McpCallToolResult> call;
+	private final BiFunction<McpServer, Map<String, Object>, McpCallToolResult> call;
 
-	public McpToolSpecification(McpTool tool, BiFunction<McpServerExchange, Map<String, Object>, McpCallToolResult> call) {
+	public McpToolSpecification(McpTool tool, BiFunction<McpServer, Map<String, Object>, McpCallToolResult> call) {
 		this.tool = tool;
 		this.call = call;
 	}
@@ -19,7 +24,7 @@ public class McpToolSpecification {
 		return tool;
 	}
 
-	public BiFunction<McpServerExchange, Map<String, Object>, McpCallToolResult> getCall() {
+	public BiFunction<McpServer, Map<String, Object>, McpCallToolResult> getCall() {
 		return call;
 	}
 }
