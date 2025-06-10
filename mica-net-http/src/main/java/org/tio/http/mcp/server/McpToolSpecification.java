@@ -13,9 +13,9 @@ import java.util.function.BiFunction;
  */
 public class McpToolSpecification {
 	private final McpTool tool;
-	private final BiFunction<McpServer, Map<String, Object>, McpCallToolResult> call;
+	private final BiFunction<McpServerSession, Map<String, Object>, McpCallToolResult> call;
 
-	public McpToolSpecification(McpTool tool, BiFunction<McpServer, Map<String, Object>, McpCallToolResult> call) {
+	public McpToolSpecification(McpTool tool, BiFunction<McpServerSession, Map<String, Object>, McpCallToolResult> call) {
 		this.tool = tool;
 		this.call = call;
 	}
@@ -24,7 +24,7 @@ public class McpToolSpecification {
 		return tool;
 	}
 
-	public BiFunction<McpServer, Map<String, Object>, McpCallToolResult> getCall() {
+	public BiFunction<McpServerSession, Map<String, Object>, McpCallToolResult> getCall() {
 		return call;
 	}
 }

@@ -19,12 +19,12 @@ public class McpResourceSpecification {
 	/**
 	 * The function that handles resource read requests.
 	 */
-	private BiFunction<McpServer, McpReadResourceRequest, McpReadResourceResult> readHandler;
+	private BiFunction<McpServerSession, McpReadResourceRequest, McpReadResourceResult> readHandler;
 
 	public McpResourceSpecification() {
 	}
 
-	public McpResourceSpecification(McpResource resource, BiFunction<McpServer, McpReadResourceRequest, McpReadResourceResult> readHandler) {
+	public McpResourceSpecification(McpResource resource, BiFunction<McpServerSession, McpReadResourceRequest, McpReadResourceResult> readHandler) {
 		this.resource = resource;
 		this.readHandler = readHandler;
 	}
@@ -37,11 +37,11 @@ public class McpResourceSpecification {
 		this.resource = resource;
 	}
 
-	public BiFunction<McpServer, McpReadResourceRequest, McpReadResourceResult> getReadHandler() {
+	public BiFunction<McpServerSession, McpReadResourceRequest, McpReadResourceResult> getReadHandler() {
 		return readHandler;
 	}
 
-	public void setReadHandler(BiFunction<McpServer, McpReadResourceRequest, McpReadResourceResult> readHandler) {
+	public void setReadHandler(BiFunction<McpServerSession, McpReadResourceRequest, McpReadResourceResult> readHandler) {
 		this.readHandler = readHandler;
 	}
 }
