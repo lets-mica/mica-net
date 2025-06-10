@@ -519,25 +519,12 @@ public class McpServer {
 		String method = request.getMethod();
 		if (McpSchema.METHOD_INITIALIZE.equals(method)) {
 			McpInitializeRequest initializeRequest = JsonUtil.convertValue(request.getParams(), McpInitializeRequest.class);
-//			this.init(initializeRequest.getCapabilities(), initializeRequest.getClientInfo());
 
 			McpInitializeResult result = new McpInitializeResult();
 			// 设置协议版本
 			result.setProtocolVersion(initializeRequest.getProtocolVersion());
 
-			McpServerCapabilities serverCapabilities = new McpServerCapabilities();
-			McpLoggingCapabilities logging = new McpLoggingCapabilities();
-			serverCapabilities.setLogging(logging);
-			McpPromptCapabilities prompts = new McpPromptCapabilities();
-			prompts.setListChanged(false);
-			serverCapabilities.setPrompts(prompts);
-			McpResourceCapabilities resources = new McpResourceCapabilities();
-			resources.setListChanged(false);
-			resources.setSubscribe(false);
-			serverCapabilities.setResources(resources);
-			McpToolCapabilities tools = new McpToolCapabilities();
-			tools.setListChanged(true);
-			serverCapabilities.setTools(tools);
+			// 服务信息
 			result.setCapabilities(serverCapabilities);
 			// 服务信息
 			result.setServerInfo(serverInfo);
@@ -558,32 +545,14 @@ public class McpServer {
 			jsonRpcResponse.setJsonrpc(McpSchema.JSONRPC_VERSION);
 			jsonRpcResponse.setId(request.getId());
 
-			McpTool mcpTool = new McpTool();
-			mcpTool.setName("mqttStatus");
-			mcpTool.setDescription("获取 mqtt 状态");
-			mcpTool.setReturnDirect(true);
-
-			McpJsonSchema jsonSchemaIn = new McpJsonSchema();
-			jsonSchemaIn.setType("object");
-			jsonSchemaIn.setProperties(new HashMap<>());
-			jsonSchemaIn.setRequired(new ArrayList<>());
-			mcpTool.setInputSchema(jsonSchemaIn);
-
-			McpJsonSchema jsonSchemaOut = new McpJsonSchema();
-			jsonSchemaOut.setType("object");
-			Map<String, Object> properties = new HashMap<>();
-
-			Map<String, Object> status = new HashMap<>();
-			status.put("type", "string");
-			status.put("description", "mqtt status");
-
-			properties.put("status", status);
-			jsonSchemaOut.setProperties(properties);
-			jsonSchemaOut.setRequired(Collections.singletonList("status"));
-			mcpTool.setOutputSchema(jsonSchemaOut);
-
 			McpListToolsResult toolsResult = new McpListToolsResult();
-			toolsResult.setTools(Collections.singletonList(mcpTool));
+
+			List<McpTool> tools = new ArrayList<>();
+			for (McpToolSpecification toolSpecification : this.tools) {
+				tools.add(toolSpecification.getTool());
+			}
+
+			toolsResult.setTools(tools);
 			jsonRpcResponse.setResult(toolsResult);
 			return jsonRpcResponse;
 		} else if (McpSchema.METHOD_TOOLS_CALL.equals(method)) {
@@ -591,16 +560,21 @@ public class McpServer {
 			jsonRpcResponse.setJsonrpc(McpSchema.JSONRPC_VERSION);
 			jsonRpcResponse.setId(request.getId());
 
-			McpCallToolResult toolResult = new McpCallToolResult();
+			// 参数转换
+			McpCallToolRequest callToolRequest = JsonUtil.convertValue(request.getParams(), McpCallToolRequest.class);
+			String name = callToolRequest.getName();
+			Object arguments = callToolRequest.getArguments();
+			McpCallToolResult toolResult = null;
+			for (McpToolSpecification toolSpecification : this.tools) {
+				McpTool tool = toolSpecification.getTool();
+				if (tool.getName().equals(name)) {
+					toolResult = toolSpecification.getCall().apply(null, new HashMap<>());
+				}
+			}
 
-			Map<String, Object> json = new HashMap<>();
-			json.put("status", "123123");
-
-			McpTextContent content = new McpTextContent(JsonUtil.toJsonString(json));
-
-			toolResult.setContent(Collections.singletonList(content));
-			toolResult.setStructuredContent(json);
-
+			if (toolResult == null) {
+				throw new IllegalArgumentException("Cannot find tool with name " + name);
+			}
 			jsonRpcResponse.setResult(toolResult);
 			return jsonRpcResponse;
 		}

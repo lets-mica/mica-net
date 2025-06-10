@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class McpCallToolRequest implements McpRequest {
 	private String name;
-	private Map<String, Object> arguments;
+	private Object arguments;
 
 	public String getName() {
 		return name;
@@ -19,11 +19,11 @@ public class McpCallToolRequest implements McpRequest {
 		this.name = name;
 	}
 
-	public Map<String, Object> getArguments() {
+	public Object getArguments() {
 		return arguments;
 	}
 
-	public void setArguments(Map<String, Object> arguments) {
+	public void setArguments(Object arguments) {
 		this.arguments = arguments;
 	}
 

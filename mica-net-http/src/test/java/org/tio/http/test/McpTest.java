@@ -1,11 +1,18 @@
 package org.tio.http.test;
 
 import org.tio.http.common.HttpConfig;
+import org.tio.http.common.mcp.schema.*;
 import org.tio.http.common.mcp.server.McpServer;
+import org.tio.http.common.mcp.server.McpServerExchange;
 import org.tio.http.server.HttpServerStarter;
 import org.tio.utils.json.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
 
 /**
  * http 测试
@@ -28,7 +35,59 @@ public class McpTest {
 		HttpConfig httpConfig = new HttpConfig(8081);
 
 		McpServer mcpServer = new McpServer();
-//		mcpServer.tool()
+
+		McpServerCapabilities serverCapabilities = new McpServerCapabilities();
+		McpLoggingCapabilities logging = new McpLoggingCapabilities();
+		serverCapabilities.setLogging(logging);
+		McpPromptCapabilities prompts = new McpPromptCapabilities();
+		prompts.setListChanged(false);
+		serverCapabilities.setPrompts(prompts);
+		McpResourceCapabilities resources = new McpResourceCapabilities();
+		resources.setListChanged(false);
+		resources.setSubscribe(false);
+		serverCapabilities.setResources(resources);
+		McpToolCapabilities tools = new McpToolCapabilities();
+		tools.setListChanged(true);
+		serverCapabilities.setTools(tools);
+		mcpServer.capabilities(serverCapabilities);
+
+		McpTool mcpTool = new McpTool();
+		mcpTool.setName("mqttStatus");
+		mcpTool.setDescription("获取 mqtt 状态");
+		mcpTool.setReturnDirect(true);
+
+		McpJsonSchema jsonSchemaIn = new McpJsonSchema();
+		jsonSchemaIn.setType("object");
+		jsonSchemaIn.setProperties(new HashMap<>());
+		jsonSchemaIn.setRequired(new ArrayList<>());
+		mcpTool.setInputSchema(jsonSchemaIn);
+
+		McpJsonSchema jsonSchemaOut = new McpJsonSchema();
+		jsonSchemaOut.setType("object");
+		Map<String, Object> properties = new HashMap<>();
+
+		Map<String, Object> status = new HashMap<>();
+		status.put("type", "string");
+		status.put("description", "mqtt status");
+
+		properties.put("status", status);
+		jsonSchemaOut.setProperties(properties);
+		jsonSchemaOut.setRequired(Collections.singletonList("status"));
+		mcpTool.setOutputSchema(jsonSchemaOut);
+
+		mcpServer.tool(mcpTool, (mcpServerExchange, requestMap) -> {
+			McpCallToolResult toolResult = new McpCallToolResult();
+
+			Map<String, Object> json = new HashMap<>();
+			json.put("status", "123123");
+
+			McpTextContent content = new McpTextContent(JsonUtil.toJsonString(json));
+
+			toolResult.setContent(Collections.singletonList(content));
+			toolResult.setStructuredContent(json);
+
+			return toolResult;
+		});
 
 		TestMcpHandler mcpHandler = new TestMcpHandler(mcpServer);
 		HttpServerStarter httpServerStarter = new HttpServerStarter(httpConfig, mcpHandler);
