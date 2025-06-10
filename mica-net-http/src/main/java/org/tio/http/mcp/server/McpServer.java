@@ -457,13 +457,13 @@ public class McpServer {
 	 */
 	public HttpResponse sseEndpoint(HttpRequest request) {
 		HttpResponse httpResponse = new HttpResponse(request);
-		// 保存 session
+		// 构造 sse
 		SseEmitter emitter = SseEmitter.getEmitter(request, httpResponse);
-		String sessionId = StrUtil.getNanoId();
-		sessions.put(sessionId, new McpServerSession(sessionId, emitter));
 		// 响应包发送后，再发送 sse 回包
 		httpResponse.setPacketListener((context, packet, isSentSuccess) -> {
 			if (isSentSuccess) {
+				String sessionId = StrUtil.getNanoId();
+				sessions.put(sessionId, new McpServerSession(sessionId, emitter));
 				emitter.send(ENDPOINT_EVENT_TYPE, messageEndpoint + "?sessionId=" + sessionId);
 			}
 		});
