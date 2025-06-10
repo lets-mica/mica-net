@@ -1,8 +1,8 @@
 package org.tio.http.test;
 
 import org.tio.http.common.HttpConfig;
-import org.tio.http.common.mcp.schema.*;
-import org.tio.http.common.mcp.server.McpServer;
+import org.tio.http.mcp.schema.*;
+import org.tio.http.mcp.server.McpServer;
 import org.tio.http.server.HttpServerStarter;
 import org.tio.utils.json.*;
 

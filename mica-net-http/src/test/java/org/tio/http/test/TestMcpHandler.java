@@ -4,7 +4,7 @@ import org.tio.http.common.HttpRequest;
 import org.tio.http.common.HttpResponse;
 import org.tio.http.common.RequestLine;
 import org.tio.http.common.handler.HttpRequestHandler;
-import org.tio.http.common.mcp.server.McpServer;
+import org.tio.http.mcp.server.McpServer;
 
 import java.nio.charset.StandardCharsets;
 

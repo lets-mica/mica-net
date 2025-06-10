@@ -2,8 +2,8 @@ package org.tio.http.test;
 
 import org.tio.http.common.*;
 import org.tio.http.common.handler.HttpRequestHandler;
-import org.tio.http.common.sse.SseEvent;
-import org.tio.http.common.sse.SseEmitter;
+import org.tio.http.sse.SseEvent;
+import org.tio.http.sse.SseEmitter;
 import org.tio.utils.thread.ThreadUtils;
 
 import java.nio.charset.StandardCharsets;
