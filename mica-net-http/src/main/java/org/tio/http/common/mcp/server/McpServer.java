@@ -97,8 +97,9 @@ public class McpServer {
 	 * Sets the server implementation information that will be shared with clients
 	 * during connection initialization. This helps with version compatibility,
 	 * debugging, and server identification.
+	 *
 	 * @param serverInfo The server implementation details including name and version.
-	 * Must not be null.
+	 *                   Must not be null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if serverInfo is null
 	 */
@@ -112,7 +113,8 @@ public class McpServer {
 	 * Sets the server implementation information using name and version strings. This
 	 * is a convenience method alternative to
 	 * {@link #serverInfo(McpImplementation)}.
-	 * @param name The server name. Must not be null or empty.
+	 *
+	 * @param name    The server name. Must not be null or empty.
 	 * @param version The server version. Must not be null or empty.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if name or version is null or empty
@@ -138,8 +140,9 @@ public class McpServer {
 	 * <li>Resource access
 	 * <li>Prompt handling
 	 * </ul>
+	 *
 	 * @param serverCapabilities The server capabilities configuration. Must not be
-	 * null.
+	 *                           null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if serverCapabilities is null
 	 */
@@ -161,12 +164,13 @@ public class McpServer {
 	 *     (exchange, args) -> new CallToolResult("Result: " + calculate(args))
 	 * )
 	 * }</pre>
-	 * @param tool The tool definition including name, description, and schema. Must
-	 * not be null.
+	 *
+	 * @param tool    The tool definition including name, description, and schema. Must
+	 *                not be null.
 	 * @param handler The function that implements the tool's logic. Must not be null.
-	 * The function's first argument is an {@link McpServerExchange} upon which
-	 * the server can interact with the connected client. The second argument is the
-	 * list of arguments passed to the tool.
+	 *                The function's first argument is an {@link McpServerExchange} upon which
+	 *                the server can interact with the connected client. The second argument is the
+	 *                list of arguments passed to the tool.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if tool or handler is null
 	 */
@@ -182,8 +186,9 @@ public class McpServer {
 	 * Adds multiple tools with their handlers to the server using a List. This method
 	 * is useful when tools are dynamically generated or loaded from a configuration
 	 * source.
+	 *
 	 * @param toolSpecifications The list of tool specifications to add. Must not be
-	 * null.
+	 *                           null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if toolSpecifications is null
 	 * @see #tools(McpToolSpecification...)
@@ -206,6 +211,7 @@ public class McpServer {
 	 *     new ToolSpecification(fileManagerTool, fileManagerHandler)
 	 * )
 	 * }</pre>
+	 *
 	 * @param toolSpecifications The tool specifications to add. Must not be null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if toolSpecifications is null
@@ -221,8 +227,9 @@ public class McpServer {
 	 * Registers multiple resources with their handlers using a Map. This method is
 	 * useful when resources are dynamically generated or loaded from a configuration
 	 * source.
+	 *
 	 * @param resourceSpecifications Map of resource name to specification. Must not
-	 * be null.
+	 *                               be null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if resourceSpecifications is null
 	 * @see #resources(McpResourceSpecification...)
@@ -237,8 +244,9 @@ public class McpServer {
 	/**
 	 * Registers multiple resources with their handlers using a List. This method is
 	 * useful when resources need to be added in bulk from a collection.
+	 *
 	 * @param resourceSpecifications List of resource specifications. Must not be
-	 * null.
+	 *                               null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if resourceSpecifications is null
 	 * @see #resources(McpResourceSpecification...)
@@ -263,8 +271,9 @@ public class McpServer {
 	 *     new ResourceSpecification(apiResource, apiHandler)
 	 * )
 	 * }</pre>
+	 *
 	 * @param resourceSpecifications The resource specifications to add. Must not be
-	 * null.
+	 *                               null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if resourceSpecifications is null
 	 */
@@ -287,8 +296,9 @@ public class McpServer {
 	 *     new ResourceTemplate("db://{table}/{id}", "Access database records")
 	 * )
 	 * }</pre>
+	 *
 	 * @param resourceTemplates List of resource templates. If null, clears existing
-	 * templates.
+	 *                          templates.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if resourceTemplates is null.
 	 * @see #resourceTemplates(List<McpResourceTemplateSpecification>...)
@@ -304,6 +314,7 @@ public class McpServer {
 	/**
 	 * Sets the resource templates using varargs for convenience. This is an
 	 * alternative to {@link #resourceTemplates(List)}.
+	 *
 	 * @param resourceTemplates The resource templates to set.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if resourceTemplates is null
@@ -331,6 +342,7 @@ public class McpServer {
 	 * ));
 	 * .prompts(prompts)
 	 * }</pre>
+	 *
 	 * @param prompts Map of prompt name to specification. Must not be null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if prompts is null
@@ -344,6 +356,7 @@ public class McpServer {
 	/**
 	 * Registers multiple prompts with their handlers using a List. This method is
 	 * useful when prompts need to be added in bulk from a collection.
+	 *
 	 * @param prompts List of prompt specifications. Must not be null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if prompts is null
@@ -369,6 +382,7 @@ public class McpServer {
 	 *     new PromptSpecification(reviewPrompt, reviewHandler)
 	 * )
 	 * }</pre>
+	 *
 	 * @param prompts The prompt specifications to add. Must not be null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if prompts is null
@@ -385,9 +399,10 @@ public class McpServer {
 	 * Registers a consumer that will be notified when the list of roots changes. This
 	 * is useful for updating resource availability dynamically, such as when new
 	 * files are added or removed.
+	 *
 	 * @param handler The handler to register. Must not be null. The function's first
-	 * argument is an {@link McpServerExchange} upon which the server can interact
-	 * with the connected client. The second argument is the list of roots.
+	 *                argument is an {@link McpServerExchange} upon which the server can interact
+	 *                with the connected client. The second argument is the list of roots.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if consumer is null
 	 */
@@ -401,6 +416,7 @@ public class McpServer {
 	 * Registers multiple consumers that will be notified when the list of roots
 	 * changes. This method is useful when multiple consumers need to be registered at
 	 * once.
+	 *
 	 * @param handlers The list of handlers to register. Must not be null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if consumers is null
@@ -416,6 +432,7 @@ public class McpServer {
 	 * Registers multiple consumers that will be notified when the list of roots
 	 * changes using varargs. This method provides a convenient way to register
 	 * multiple consumers inline.
+	 *
 	 * @param handlers The handlers to register. Must not be null.
 	 * @return This builder instance for method chaining
 	 * @throws IllegalArgumentException if consumers is null
@@ -442,7 +459,7 @@ public class McpServer {
 		// 响应包发送后，再发送 sse 回包
 		httpResponse.setPacketListener((context, packet, isSentSuccess) -> {
 			if (isSentSuccess) {
-				emitter.send(ENDPOINT_EVENT_TYPE,  messageEndpoint + "?sessionId=" + sessionId);
+				emitter.send(ENDPOINT_EVENT_TYPE, messageEndpoint + "?sessionId=" + sessionId);
 			}
 		});
 		return httpResponse;
@@ -512,6 +529,7 @@ public class McpServer {
 
 	/**
 	 * Handles an incoming JSON-RPC request by routing it to the appropriate handler.
+	 *
 	 * @param request The incoming JSON-RPC request
 	 * @return A Mono containing the JSON-RPC response
 	 */
@@ -563,12 +581,13 @@ public class McpServer {
 			// 参数转换
 			McpCallToolRequest callToolRequest = JsonUtil.convertValue(request.getParams(), McpCallToolRequest.class);
 			String name = callToolRequest.getName();
-			Object arguments = callToolRequest.getArguments();
 			McpCallToolResult toolResult = null;
 			for (McpToolSpecification toolSpecification : this.tools) {
 				McpTool tool = toolSpecification.getTool();
 				if (tool.getName().equals(name)) {
-					toolResult = toolSpecification.getCall().apply(null, new HashMap<>());
+					Map<String, Object> toolArguments = getCallToolArguments(callToolRequest.getArguments());
+					toolResult = toolSpecification.getCall().apply(null, toolArguments);
+					break;
 				}
 			}
 
@@ -579,5 +598,24 @@ public class McpServer {
 			return jsonRpcResponse;
 		}
 		return null;
+	}
+
+	/**
+	 * 解析 call tool 参数
+	 *
+	 * @param arguments arguments
+	 * @return 参数 map
+	 */
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> getCallToolArguments(Object arguments) {
+		if (arguments == null) {
+			return null;
+		} else if (arguments instanceof Map) {
+			return (Map<String, Object>) arguments;
+		} else if (arguments instanceof String && StrUtil.isBlank((String) arguments)) {
+			return null;
+		} else {
+			return JsonUtil.convertValue(arguments, Map.class);
+		}
 	}
 }

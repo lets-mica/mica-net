@@ -1,7 +1,5 @@
 package org.tio.http.common.mcp.schema;
 
-import java.util.Map;
-
 /**
  * mcp call tool 请求
  *
