@@ -482,10 +482,16 @@ public class McpServer {
 		HttpResponse response = new HttpResponse(request);
 		if (StrUtil.isBlank(sessionId)) {
 			response.setStatus(HttpResponseStatus.C404);
-			log.error("Session ID missing in message endpoint");
+			response.setBody("Session ID missing in message endpoint".getBytes());
 			return response;
 		}
 		McpServerSession session = sessions.get(sessionId);
+		if (session == null) {
+			response.setStatus(HttpResponseStatus.C404);
+			response.setBody("Session is null".getBytes());
+			log.error("Session is null sessionId:{}", sessionId);
+			return response;
+		}
 		JsonRpcMessage jsonRpcMessage = deserializeJsonRpcMessage(request.getBody());
 		if (jsonRpcMessage instanceof JsonRpcRequest) {
 			JsonRpcResponse rpcResponse = handleIncomingRequest((JsonRpcRequest) jsonRpcMessage);
@@ -512,24 +518,6 @@ public class McpServer {
 
 	public String getSseEndpoint() {
 		return sseEndpoint;
-	}
-
-	private static JsonRpcMessage deserializeJsonRpcMessage(byte[] requestBody) {
-		Map<String, Object> map = JsonUtil.readValue(requestBody, Map.class);
-
-		String jsonText = new String(requestBody);
-		log.debug("Received JSON message: {}", jsonText);
-
-		// Determine message type based on specific JSON structure
-		if (map.containsKey("method") && map.containsKey("id")) {
-			return JsonUtil.convertValue(map, JsonRpcRequest.class);
-		} else if (map.containsKey("method") && !map.containsKey("id")) {
-			return JsonUtil.convertValue(map, JsonRpcNotification.class);
-		} else if (map.containsKey("result") || map.containsKey("error")) {
-			return JsonUtil.convertValue(map, JsonRpcResponse.class);
-		} else {
-			throw new IllegalArgumentException("Cannot deserialize JsonRpcMessage: " + jsonText);
-		}
 	}
 
 	/**
@@ -603,6 +591,29 @@ public class McpServer {
 			return jsonRpcResponse;
 		}
 		return null;
+	}
+
+	/**
+	 * 解码消息
+	 *
+	 * @param requestBody requestBody
+	 * @return JsonRpcMessage
+	 */
+	@SuppressWarnings("unchecked")
+	private static JsonRpcMessage deserializeJsonRpcMessage(byte[] requestBody) {
+		Map<String, Object> map = JsonUtil.readValue(requestBody, Map.class);
+		String jsonText = new String(requestBody);
+		log.debug("Received JSON message: {}", jsonText);
+		// Determine message type based on specific JSON structure
+		if (map.containsKey("method") && map.containsKey("id")) {
+			return JsonUtil.convertValue(map, JsonRpcRequest.class);
+		} else if (map.containsKey("method") && !map.containsKey("id")) {
+			return JsonUtil.convertValue(map, JsonRpcNotification.class);
+		} else if (map.containsKey("result") || map.containsKey("error")) {
+			return JsonUtil.convertValue(map, JsonRpcResponse.class);
+		} else {
+			throw new IllegalArgumentException("Cannot deserialize JsonRpcMessage: " + jsonText);
+		}
 	}
 
 	/**
