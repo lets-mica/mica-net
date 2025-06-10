@@ -219,12 +219,12 @@ public interface IWsSubProtocolsMsgHandler {
 	/**
 	 * 解析子编码
 	 *
-	 * @param packet         Packet
-	 * @param tioConfig      TioConfig
-	 * @param channelContext ChannelContext
+	 * @param packet    Packet
+	 * @param tioConfig TioConfig
+	 * @param context   ChannelContext
 	 * @return Packet
 	 */
-	default WsResponse encodeSubProtocol(Packet packet, TioConfig tioConfig, ChannelContext channelContext) {
+	default WsResponse encodeSubProtocol(Packet packet, TioConfig tioConfig, ChannelContext context) {
 		return null;
 	}
 
