@@ -3,11 +3,18 @@ package org.tio.http.mcp.schema;
 /**
  * mcp 定义
  *
+ * <p>
+ *     <a href="https://modelcontextprotocol.io/specification/2025-03-26">mcp 协议地址</a>
+ * </p>
+ *
  * @author L.cm
  */
 public interface McpSchema {
 
-	String LATEST_PROTOCOL_VERSION = "2024-11-05";
+	/**
+	 * 最后的协议版本
+	 */
+	String LATEST_PROTOCOL_VERSION = "2025-03-26";
 
 	String JSONRPC_VERSION = "2.0";
 
