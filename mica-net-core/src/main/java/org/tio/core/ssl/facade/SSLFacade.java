@@ -268,8 +268,7 @@ public class SSLFacade implements ISSLFacade {
 			if (log.isDebugEnabled()) {
 				log.debug("{}, 准备SSL加密:{}, 明文:{}", channelContext, channelContext.getId() + " _" + seq, sslVo);
 			}
-
-			SSLEngineResult result = _worker.wrap(sslVo, sslVo.getByteBuffer());
+			SSLEngineResult result = _worker.wrap(sslVo, src);
 			if (log.isDebugEnabled()) {
 				log.debug("{}, 完成SSL加密:{}, 明文:{}, 结果:{}", channelContext, channelContext.getId() + " _" + seq, sslVo, result);
 			}
