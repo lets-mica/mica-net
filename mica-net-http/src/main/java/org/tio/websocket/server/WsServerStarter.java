@@ -202,6 +202,7 @@ import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 import org.tio.websocket.server.handler.IWsMsgHandler;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -234,7 +235,7 @@ public class WsServerStarter {
 
 	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, TioUuid tioUuid, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		this.wsServerConfig = wsServerConfig;
-		this.wsMsgHandler = wsMsgHandler;
+		this.wsMsgHandler = Objects.requireNonNull(wsMsgHandler);
 		this.wsTioServerHandler = new WsTioServerHandler(wsServerConfig, wsMsgHandler);
 		this.wsTioServerListener = new WsTioServerListener();
 		this.tioServerConfig = new TioServerConfig("Tio Websocket Server", wsTioServerHandler, wsTioServerListener, tioExecutor, groupExecutor);

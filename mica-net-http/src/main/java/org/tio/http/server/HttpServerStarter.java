@@ -204,6 +204,7 @@ import org.tio.utils.thread.ThreadUtils;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -248,7 +249,7 @@ public class HttpServerStarter {
 			groupExecutor = ThreadUtils.getGroupExecutor();
 		}
 		this.httpConfig = httpConfig;
-		this.httpRequestHandler = requestHandler;
+		this.httpRequestHandler = Objects.requireNonNull(requestHandler);
 		this.httpTioServerHandler = new HttpTioServerHandler(httpConfig, requestHandler);
 		this.httpTioServerListener = new HttpTioServerListener();
 		String name = httpConfig.getName();
