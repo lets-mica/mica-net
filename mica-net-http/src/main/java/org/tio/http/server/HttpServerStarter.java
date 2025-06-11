@@ -215,7 +215,7 @@ public class HttpServerStarter {
 	private final HttpTioServerListener httpTioServerListener;
 	private final TioServerConfig tioServerConfig;
 	private final TioServer tioServer;
-	private HttpRequestHandler httpRequestHandler;
+	private final HttpRequestHandler httpRequestHandler;
 
 	/**
 	 * @param bindPort     bindPort
@@ -264,6 +264,17 @@ public class HttpServerStarter {
 		this.tioServer = new TioServer(tioServerConfig);
 	}
 
+	public TioServer getTioServer() {
+		return tioServer;
+	}
+
+	/**
+	 * @return the tioServerConfig
+	 */
+	public TioServerConfig getTioServerConfig() {
+		return tioServerConfig;
+	}
+
 	/**
 	 * @return the httpConfig
 	 */
@@ -273,10 +284,6 @@ public class HttpServerStarter {
 
 	public HttpRequestHandler getHttpRequestHandler() {
 		return httpRequestHandler;
-	}
-
-	public void setHttpRequestHandler(HttpRequestHandler requestHandler) {
-		this.httpRequestHandler = requestHandler;
 	}
 
 	/**
@@ -294,13 +301,6 @@ public class HttpServerStarter {
 	}
 
 	/**
-	 * @return the tioServerConfig
-	 */
-	public TioServerConfig getTioServerConfig() {
-		return tioServerConfig;
-	}
-
-	/**
 	 * @throws IOException IOException
 	 */
 	public void start() throws IOException {
@@ -309,10 +309,6 @@ public class HttpServerStarter {
 
 	public void stop() {
 		tioServer.stop();
-	}
-
-	public TioServer getTioServer() {
-		return tioServer;
 	}
 
 }

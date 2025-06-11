@@ -249,6 +249,13 @@ public class WsServerStarter {
 	}
 
 	/**
+	 * @return the tioServerConfig
+	 */
+	public TioServerConfig getTioServerConfig() {
+		return tioServerConfig;
+	}
+
+	/**
 	 * @return the wsServerConfig
 	 */
 	public HttpConfig getWsServerConfig() {
@@ -274,13 +281,6 @@ public class WsServerStarter {
 	 */
 	public WsTioServerListener getWsTioServerListener() {
 		return wsTioServerListener;
-	}
-
-	/**
-	 * @return the tioServerConfig
-	 */
-	public TioServerConfig getTioServerConfig() {
-		return tioServerConfig;
 	}
 
 	public void start() throws IOException {
