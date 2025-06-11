@@ -218,6 +218,14 @@ public class HttpServerStarter {
 	private HttpRequestHandler httpRequestHandler;
 
 	/**
+	 * @param bindPort     bindPort
+	 * @param requestHandler HttpRequestHandler
+	 */
+	public HttpServerStarter(int bindPort, HttpRequestHandler requestHandler) {
+		this(new HttpConfig(bindPort), requestHandler, null, null);
+	}
+
+	/**
 	 * @param httpConfig     HttpConfig
 	 * @param requestHandler HttpRequestHandler
 	 */
@@ -241,7 +249,6 @@ public class HttpServerStarter {
 		}
 		this.httpConfig = httpConfig;
 		this.httpRequestHandler = requestHandler;
-		this.httpConfig.setHttpRequestHandler(this.httpRequestHandler);
 		this.httpTioServerHandler = new HttpTioServerHandler(httpConfig, requestHandler);
 		this.httpTioServerListener = new HttpTioServerListener();
 		String name = httpConfig.getName();
@@ -253,8 +260,8 @@ public class HttpServerStarter {
 		this.tioServerConfig.setHeartbeatTimeout(1000 * 30L);
 		this.tioServerConfig.setShortConnection(true);
 		this.tioServerConfig.setReadBufferSize(TcpConst.MAX_DATA_LENGTH);
-		this.tioServer = new TioServer(tioServerConfig);
 		this.tioServerConfig.setTioUuid(new SeqTioUuid());
+		this.tioServer = new TioServer(tioServerConfig);
 	}
 
 	/**

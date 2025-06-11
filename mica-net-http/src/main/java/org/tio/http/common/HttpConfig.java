@@ -193,8 +193,6 @@
 */
 package org.tio.http.common;
 
-import org.tio.http.common.handler.HttpRequestHandler;
-
 import java.nio.charset.Charset;
 
 /**
@@ -281,7 +279,6 @@ public class HttpConfig {
 	private String bindIp = null;
 	private String serverInfo = HttpConst.SERVER_INFO;
 	private Charset charset = HttpConst.CHARSET;
-	private HttpRequestHandler httpRequestHandler;
 	/**
 	 * ip被拉黑时，服务器给的响应，如果是null，服务器会直接断开连接
 	 */
@@ -355,20 +352,6 @@ public class HttpConfig {
 	 */
 	public void setServerInfo(String serverInfo) {
 		this.serverInfo = serverInfo;
-	}
-
-	/**
-	 * @return the httpRequestHandler
-	 */
-	public HttpRequestHandler getHttpRequestHandler() {
-		return httpRequestHandler;
-	}
-
-	/**
-	 * @param httpRequestHandler the httpRequestHandler to set
-	 */
-	public void setHttpRequestHandler(HttpRequestHandler httpRequestHandler) {
-		this.httpRequestHandler = httpRequestHandler;
 	}
 
 	public String getContextPath() {
