@@ -287,4 +287,8 @@ public class WsServerStarter {
 		tioServer.start(wsServerConfig.getBindIp(), wsServerConfig.getBindPort());
 	}
 
+	public boolean stop() {
+		return tioServer.stop();
+	}
+
 }
