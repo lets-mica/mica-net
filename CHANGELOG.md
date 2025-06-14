@@ -4,12 +4,12 @@
 
 ### v1.1.9 - 2025-06-15
 
-- :sparkles: 优化 sse 包发送时机，移动 sse 包目录。
-- :sparkles: 调整 Cache get 方法，更加符合使用习惯。
-- :sparkles: 内置 jsonrpc java bean，开发 mcp server。
-- :sparkles: JsonUtil 添加类型转换 convertValue 方法。
-- :sparkles: 调整 jackson 默认配置。
-- :sparkles: 代码优化详见： netty: https://github.com/netty/netty/pull/15227
+- :sparkles: 优化SSE包发送时机，调整SSE包目录结构
+- :sparkles: 重构Cache获取方法（Cache.get），优化使用体验
+- :sparkles: 内置JSON-RPC Java Bean支持，完成MCP Server基础开发
+- :sparkles: JsonUtil新增类型转换方法convertValue，支持灵活类型转换
+- :sparkles: 调整Jackson默认配置，优化序列化/反序列化行为
+- :sparkles: 代码优化参考Netty PR：https://github.com/netty/netty/pull/15227
 
 ### v1.1.8 - 2025-05-27
 
