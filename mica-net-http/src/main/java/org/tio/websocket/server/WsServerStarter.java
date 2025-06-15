@@ -196,6 +196,7 @@ package org.tio.websocket.server;
 import org.tio.core.intf.TioUuid;
 import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.http.common.HttpConfig;
+import org.tio.server.IServer;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
@@ -209,7 +210,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author tanyaowu
  * 2017年7月30日 上午9:45:54
  */
-public class WsServerStarter {
+public class WsServerStarter implements IServer {
 	private final HttpConfig wsServerConfig;
 	private final IWsMsgHandler wsMsgHandler;
 	private final WsTioServerHandler wsTioServerHandler;
@@ -217,12 +218,12 @@ public class WsServerStarter {
 	private final TioServerConfig tioServerConfig;
 	private final TioServer tioServer;
 
-	public WsServerStarter(int port, IWsMsgHandler wsMsgHandler) throws IOException {
-		this(port, wsMsgHandler, null, null);
+	public WsServerStarter(IWsMsgHandler wsMsgHandler) throws IOException {
+		this(wsMsgHandler, null, null);
 	}
 
-	public WsServerStarter(int port, IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) throws IOException {
-		this(new HttpConfig(port), wsMsgHandler, tioExecutor, groupExecutor);
+	public WsServerStarter(IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) throws IOException {
+		this(new HttpConfig(), wsMsgHandler, tioExecutor, groupExecutor);
 	}
 
 	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler) throws IOException {
@@ -284,10 +285,12 @@ public class WsServerStarter {
 		return wsTioServerListener;
 	}
 
-	public void start() throws IOException {
-		tioServer.start(wsServerConfig.getBindIp(), wsServerConfig.getBindPort());
+	@Override
+	public void start(String serverIp, int serverPort) throws IOException {
+		tioServer.start(serverIp, serverPort);
 	}
 
+	@Override
 	public boolean stop() {
 		return tioServer.stop();
 	}

@@ -30,7 +30,7 @@ public class McpTest {
 //		JsonUtil.getJsonAdapter(new Snack3JsonAdapter());
 		// mcp 官方文档地址：https://modelcontextprotocol.io/specification/draft/server/tools
 		// 启动 mcp 服务
-		HttpConfig httpConfig = new HttpConfig(8081);
+		HttpConfig httpConfig = new HttpConfig();
 
 		McpServer mcpServer = new McpServer();
 
@@ -89,7 +89,7 @@ public class McpTest {
 
 		TestMcpHandler mcpHandler = new TestMcpHandler(mcpServer);
 		HttpServerStarter httpServerStarter = new HttpServerStarter(httpConfig, mcpHandler);
-		httpServerStarter.start();
+		httpServerStarter.start(null, 8080);
 	}
 
 }

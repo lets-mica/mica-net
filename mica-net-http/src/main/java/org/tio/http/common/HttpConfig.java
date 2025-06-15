@@ -233,10 +233,6 @@ public class HttpConfig {
 	 */
 	public static final int MAX_FORWARD_COUNT = 10;
 	/**
-	 * 监听端口
-	 */
-	private final int bindPort;
-	/**
 	 * 访问路径前缀，譬如"/api"
 	 */
 	private final String contextPath;
@@ -273,10 +269,6 @@ public class HttpConfig {
 	 * 是否拼接http request header value
 	 */
 	private boolean appendRequestHeaderString = false;
-	/**
-	 * 127.0.0.1
-	 */
-	private String bindIp = null;
 	private String serverInfo = HttpConst.SERVER_INFO;
 	private Charset charset = HttpConst.CHARSET;
 	/**
@@ -290,40 +282,17 @@ public class HttpConfig {
 	private boolean pageInClasspath = false;
 	private String name = null;
 
-	public HttpConfig(int bindPort) {
-		this(bindPort, null);
+	public HttpConfig() {
+		this(null);
 	}
 
 	/**
 	 * HttpConfig
 	 *
-	 * @param bindPort    bindPort
 	 * @param contextPath contextPath
 	 */
-	public HttpConfig(int bindPort, String contextPath) {
-		this.bindPort = bindPort;
+	public HttpConfig(String contextPath) {
 		this.contextPath = contextPath == null ? "" : contextPath;
-	}
-
-	/**
-	 * @return the bindIp
-	 */
-	public String getBindIp() {
-		return bindIp;
-	}
-
-	/**
-	 * @param bindIp the bindIp to set
-	 */
-	public void setBindIp(String bindIp) {
-		this.bindIp = bindIp;
-	}
-
-	/**
-	 * @return the bindPort
-	 */
-	public int getBindPort() {
-		return bindPort;
 	}
 
 	/**

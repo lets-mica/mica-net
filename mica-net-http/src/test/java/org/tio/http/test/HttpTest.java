@@ -13,10 +13,10 @@ import java.io.IOException;
 public class HttpTest {
 
 	public static void main(String[] args) throws IOException {
-		HttpConfig httpConfig = new HttpConfig(8080);
+		HttpConfig httpConfig = new HttpConfig();
 		TestHttpRequestHandler requestHandler = new TestHttpRequestHandler();
 		HttpServerStarter httpServerStarter = new HttpServerStarter(httpConfig, requestHandler);
-		httpServerStarter.start();
+		httpServerStarter.start(null, 8080);
 	}
 
 }

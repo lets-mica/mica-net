@@ -220,7 +220,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author tanyaowu
  */
-public class TioServer {
+public class TioServer implements IServer {
 	private static final Logger log = LoggerFactory.getLogger(TioServer.class);
 	private final TioServerConfig serverConfig;
 	private final TimerTaskService taskService;
@@ -358,6 +358,7 @@ public class TioServer {
 		}));
 	}
 
+	@Override
 	public void start(String serverIp, int serverPort) throws IOException {
 		long start = System.currentTimeMillis();
 		// 启动心跳检测任务
@@ -419,9 +420,10 @@ public class TioServer {
 
 	/**
 	 * 启动信息打印
+	 *
 	 * @param infoList infoList
-	 * @param xxLen xxLen
-	 * @param start start
+	 * @param xxLen    xxLen
+	 * @param start    start
 	 */
 	private static void startManagementDebugInfo(List<String> infoList, int xxLen, long start) {
 		// Android 中没有 ManagementFactory
@@ -445,6 +447,7 @@ public class TioServer {
 	/**
 	 * @return 是否停止成功
 	 */
+	@Override
 	public boolean stop() {
 		isWaitingStop = true;
 		// 删除实例

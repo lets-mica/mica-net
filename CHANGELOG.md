@@ -4,6 +4,7 @@
 
 ### v1.1.9 - 2025-06-15
 
+- :sparkles: 抽象 IServer
 - :sparkles: 优化SSE包发送时机，调整SSE包目录结构
 - :sparkles: 重构Cache获取方法（Cache.get），优化使用体验
 - :sparkles: 内置JSON-RPC Java Bean支持，完成MCP Server基础开发
