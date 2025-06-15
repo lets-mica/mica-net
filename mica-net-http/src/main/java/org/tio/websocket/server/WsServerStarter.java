@@ -193,7 +193,6 @@
 */
 package org.tio.websocket.server;
 
-import org.tio.core.intf.TioUuid;
 import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.http.common.HttpConfig;
 import org.tio.server.IServer;
@@ -218,30 +217,26 @@ public class WsServerStarter implements IServer {
 	private final TioServerConfig tioServerConfig;
 	private final TioServer tioServer;
 
-	public WsServerStarter(IWsMsgHandler wsMsgHandler) throws IOException {
+	public WsServerStarter(IWsMsgHandler wsMsgHandler) {
 		this(wsMsgHandler, null, null);
 	}
 
-	public WsServerStarter(IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) throws IOException {
+	public WsServerStarter(IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		this(new HttpConfig(), wsMsgHandler, tioExecutor, groupExecutor);
 	}
 
-	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler) throws IOException {
+	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler) {
 		this(wsServerConfig, wsMsgHandler, null, null);
 	}
 
-	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) throws IOException {
-		this(wsServerConfig, wsMsgHandler, new SnowflakeTioUuid(), tioExecutor, groupExecutor);
-	}
-
-	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, TioUuid tioUuid, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		this.wsServerConfig = wsServerConfig;
 		this.wsMsgHandler = Objects.requireNonNull(wsMsgHandler);
 		this.wsTioServerHandler = new WsTioServerHandler(wsServerConfig, wsMsgHandler);
 		this.wsTioServerListener = new WsTioServerListener();
 		this.tioServerConfig = new TioServerConfig("Tio Websocket Server", wsTioServerHandler, wsTioServerListener, tioExecutor, groupExecutor);
 		this.tioServerConfig.setHeartbeatTimeout(0);
-		this.tioServerConfig.setTioUuid(tioUuid);
+		this.tioServerConfig.setTioUuid(new SnowflakeTioUuid());
 		this.tioServerConfig.setReadBufferSize(1024 * 30);
 		this.tioServer = new TioServer(tioServerConfig);
 	}

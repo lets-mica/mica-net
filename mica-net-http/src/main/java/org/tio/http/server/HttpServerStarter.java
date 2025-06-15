@@ -240,8 +240,7 @@ public class HttpServerStarter implements IServer {
 	 * @param tioExecutor    SynThreadPoolExecutor
 	 * @param groupExecutor  ThreadPoolExecutor
 	 */
-	public HttpServerStarter(HttpConfig httpConfig, HttpRequestHandler requestHandler,
-							 SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
+	public HttpServerStarter(HttpConfig httpConfig, HttpRequestHandler requestHandler, SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		if (tioExecutor == null) {
 			tioExecutor = ThreadUtils.getTioExecutor();
 		}
