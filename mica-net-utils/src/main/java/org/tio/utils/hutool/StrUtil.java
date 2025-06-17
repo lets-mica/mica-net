@@ -287,7 +287,8 @@ public class StrUtil {
 
 	/**
 	 * Replace all occurrences of a substring within a string with another string.
-	 * @param inString {@code String} to examine
+	 *
+	 * @param inString   {@code String} to examine
 	 * @param oldPattern {@code String} to replace
 	 * @param newPattern {@code String} to insert
 	 * @return a {@code String} with the replacements
@@ -555,10 +556,7 @@ public class StrUtil {
 	 * @return 是否为数组对象，如果为{@code null} 返回false
 	 */
 	private static boolean isArray(Object obj) {
-		if (null == obj) {
-			return false;
-		}
-		return obj.getClass().isArray();
+		return ArrayUtil.isArray(obj);
 	}
 
 	/**
@@ -906,7 +904,7 @@ public class StrUtil {
 	/**
 	 * split str
 	 *
-	 * @param str str
+	 * @param str       str
 	 * @param separator separator
 	 * @return String array
 	 */
@@ -1293,7 +1291,7 @@ public class StrUtil {
 	/**
 	 * convert
 	 *
-	 * @param type type
+	 * @param type  type
 	 * @param value value
 	 * @return Object
 	 * @throws Exception Exception
@@ -1345,7 +1343,7 @@ public class StrUtil {
 	/**
 	 * convert
 	 *
-	 * @param type type
+	 * @param type   type
 	 * @param values values
 	 * @return 返回的也是一个数组
 	 * @throws Exception Exception
@@ -1559,30 +1557,43 @@ public class StrUtil {
 	}
 
 	/**
-	 * 一个小巧、安全、URL友好、21 位的字符串ID生成器，62 进制，只包含数字、大写、小写字母
+	 * 生成 uuid
+	 *
+	 * @return uuid
+	 */
+	public static String getUUId() {
+		return getId(ThreadLocalRandom.current(), 32, 36);
+	}
+
+	/**
+	 * 一个小巧、安全、URL友好、21 位的字符串ID生成器，64 进制，只包含数字、大写、小写字母
 	 *
 	 * @return NanoId
 	 */
 	public static String getNanoId() {
-		Random random = ThreadLocalRandom.current();
-		long lsb = random.nextLong();
-		long msb = random.nextLong();
-		byte[] buf = new byte[21];
-		int radix = 62;
-		formatUnsignedLong(lsb, radix, buf, 14, 7);
-		formatUnsignedLong(msb, radix, buf, 10, 4);
-		formatUnsignedLong(msb >>> 16, radix, buf, 6, 4);
-		formatUnsignedLong(msb >>> 32, radix, buf, 0, 6);
-		return new String(buf);
+		return getId(ThreadLocalRandom.current(), 21, 62);
 	}
 
-	private static void formatUnsignedLong(long val, int radix, byte[] buf, int offset, int len) {
-		int charPos = offset + len;
+	/**
+	 * 获取一个生成的随机 id，同长度比 uuid 冲突概率更小得多
+	 *
+	 * @param random Random
+	 * @param len    为了减少冲突，len 需要大于7，实际尽量设置在10~16或以上。
+	 * @param radix  radix，36 包含字母和数字，62 包含大写字母
+	 * @return id 字符串
+	 */
+	public static String getId(Random random, int len, int radix) {
+		if (len < 8) {
+			throw new IllegalArgumentException("为了减少冲突，len 需要大于7，实际尽量设置在10~16或以上。");
+		}
+		byte[] randomBytes = new byte[len];
+		random.nextBytes(randomBytes);
 		int mask = radix - 1;
-		do {
-			buf[--charPos] = DIGITS[((int) val) & mask];
-			val >>>= 4;
-		} while (charPos > offset);
+		for (int i = 0; i < len; i++) {
+			int value = randomBytes[i] & 0xff;
+			randomBytes[i] = DIGITS[value % mask];
+		}
+		return new String(randomBytes, StandardCharsets.ISO_8859_1);
 	}
 
 }
