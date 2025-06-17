@@ -1557,12 +1557,12 @@ public class StrUtil {
 	}
 
 	/**
-	 * 生成 uuid
+	 * 生成 uuid，32位，16进制
 	 *
 	 * @return uuid
 	 */
 	public static String getUUId() {
-		return getId(ThreadLocalRandom.current(), 32, 36);
+		return getId(ThreadLocalRandom.current(), 32, 16);
 	}
 
 	/**
