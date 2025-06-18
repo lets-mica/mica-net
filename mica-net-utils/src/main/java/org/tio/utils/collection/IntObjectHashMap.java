@@ -184,7 +184,7 @@ public class IntObjectHashMap<V> implements IntObjectMap<V> {
 
 	@Override
 	public void clear() {
-		Arrays.fill(keys, (int) 0);
+		Arrays.fill(keys, 0);
 		Arrays.fill(values, null);
 		size = 0;
 	}
@@ -365,7 +365,7 @@ public class IntObjectHashMap<V> implements IntObjectMap<V> {
 	 * Returns the hash code for the key.
 	 */
 	private static int hashCode(int key) {
-		return (int) key;
+		return key;
 	}
 
 	/**
