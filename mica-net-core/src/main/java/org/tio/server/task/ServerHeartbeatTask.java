@@ -29,6 +29,7 @@ import org.tio.utils.SysConst;
 import org.tio.utils.timer.Timer;
 import org.tio.utils.timer.TimerTask;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
@@ -118,7 +119,7 @@ public class ServerHeartbeatTask extends TimerTask {
 				if (serverConfig.debug && log.isWarnEnabled()) {
 					StringBuilder builder = new StringBuilder();
 					builder.append(SysConst.CRLF).append(serverConfig.getName());
-					builder.append("\r\n ├ 当前时间 :").append(System.currentTimeMillis());
+					builder.append("\r\n ├ 当前时间 :").append(LocalDateTime.now());
 					builder.append("\r\n ├ 连接统计");
 					builder.append("\r\n │ \t ├ 共接受过连接数 :").append(((ServerGroupStat) groupStat).accepted.sum());
 					builder.append("\r\n │ \t ├ 当前连接数 :").append(contextSet.size());
