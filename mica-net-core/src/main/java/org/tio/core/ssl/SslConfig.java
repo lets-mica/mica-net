@@ -202,6 +202,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 /**
@@ -367,6 +368,21 @@ public class SslConfig {
 	}
 
 	/**
+	 * 给客户端用的，crt 证书
+	 *
+	 * @return SslConfig
+	 */
+	public static SslConfig forClient(String crtFile) {
+		InputStream crtInputStream;
+		if (StrUtil.startWithIgnoreCase(crtFile, "classpath:")) {
+			crtInputStream = ResourceUtil.getResourceAsStream(crtFile);
+		} else {
+			crtInputStream = ResourceUtil.getFileResource(crtFile);
+		}
+		return new SslConfig(getCrtTrustManagers(crtInputStream));
+	}
+
+	/**
 	 * 给客户端用的
 	 *
 	 * @return SslConfig
@@ -385,6 +401,15 @@ public class SslConfig {
 		KeyManager[] kms = getKeyManager(keyStoreFile, keyPasswd);
 		TrustManager[] tms = getTrustManager(trustStoreFile, trustPassword);
 		return new SslConfig(kms, tms);
+	}
+
+	/**
+	 * 给客户端用的，crt 证书
+	 *
+	 * @return SslConfig
+	 */
+	public static SslConfig forClient(InputStream crtInputStream) {
+		return new SslConfig(getCrtTrustManagers(crtInputStream));
 	}
 
 	/**
@@ -503,4 +528,27 @@ public class SslConfig {
 		}
 	}
 
+	/**
+	 * crt 证书配置
+	 *
+	 * @return TrustManager 数组
+	 */
+	private static TrustManager[] getCrtTrustManagers(InputStream crtInputStream) {
+		try {
+			// 创建一个新的 KeyStore 实例
+			KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+			// 初始化空的KeyStore
+			keyStore.load(null, null);
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			X509Certificate cert = (X509Certificate) cf.generateCertificate(crtInputStream);
+			// 将证书添加到KeyStore中
+			keyStore.setCertificateEntry("Certificate", cert);
+			// 初始化TrustManagerFactory
+			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			trustManagerFactory.init(keyStore);
+			return trustManagerFactory.getTrustManagers();
+		} catch (Exception e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
 }

@@ -9,6 +9,10 @@ import org.tio.utils.hutool.StrUtil;
  */
 public enum SslCertType {
 
+	/**
+	 * crt 证书，ca 证书，没有密钥
+	 */
+	CRT("CRT", new String[]{".crt"}),
 	JKS("JKS", new String[]{".jks", ".keystore"}),
 	PKCS12("PKCS12", new String[]{".p12", ".pfx"});
 

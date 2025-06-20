@@ -40,7 +40,7 @@ class SslConfigTest {
 		InputStream certInputStream = ResourceUtil.getResourceAsStream("classpath:x.crt");
 		X509Certificate cert = (X509Certificate) cf.generateCertificate(certInputStream);
 		// 将证书添加到KeyStore中
-		keyStore.setCertificateEntry("MicaNet", cert);
+		keyStore.setCertificateEntry("Certificate", cert);
 		// 初始化TrustManagerFactory
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init(keyStore);
