@@ -6,6 +6,8 @@
 
 - :sparkles: 客户端支持 crt 证书，使用 `SslConfig.forClient("classpath:x.crt")` 即可。
 - :sparkles: 优化心跳日志中的当前时间格式，更加友好，方便查看。
+- :sparkles: JacksonJsonAdapter 注册模块。
+- :sparkles: StrUtil 添加 getUUId 方法，优化 getNanoId。
 
 ### v1.1.10 - 2025-06-15
 
