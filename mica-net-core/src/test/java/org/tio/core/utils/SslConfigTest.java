@@ -49,7 +49,7 @@ class SslConfigTest {
 	}
 
 	@Test
-	void testServer4() throws Exception {
+	void testServer4() {
 		SslConfig sslConfig = SslConfig.forClient("classpath:x.crt");
 		Assertions.assertNotNull(sslConfig);
 	}
