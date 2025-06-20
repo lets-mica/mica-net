@@ -47,4 +47,10 @@ class SslConfigTest {
 		SslConfig sslConfig = new SslConfig(trustManagerFactory.getTrustManagers());
 		Assertions.assertNotNull(sslConfig);
 	}
+
+	@Test
+	void testServer4() throws Exception {
+		SslConfig sslConfig = SslConfig.forClient("classpath:x.crt");
+		Assertions.assertNotNull(sslConfig);
+	}
 }
