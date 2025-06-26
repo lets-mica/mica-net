@@ -195,7 +195,6 @@ package org.tio.websocket.server;
 
 import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.http.common.HttpConfig;
-import org.tio.server.IServer;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
@@ -209,7 +208,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author tanyaowu
  * 2017年7月30日 上午9:45:54
  */
-public class WsServerStarter implements IServer {
+public class WsServerStarter {
 	private final HttpConfig wsServerConfig;
 	private final IWsMsgHandler wsMsgHandler;
 	private final WsTioServerHandler wsTioServerHandler;
@@ -280,12 +279,10 @@ public class WsServerStarter implements IServer {
 		return wsTioServerListener;
 	}
 
-	@Override
 	public void start(String serverIp, int serverPort) throws IOException {
 		tioServer.start(serverIp, serverPort);
 	}
 
-	@Override
 	public boolean stop() {
 		return tioServer.stop();
 	}

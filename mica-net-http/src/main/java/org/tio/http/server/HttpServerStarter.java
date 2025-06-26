@@ -197,7 +197,6 @@ import org.tio.core.TcpConst;
 import org.tio.core.uuid.SeqTioUuid;
 import org.tio.http.common.HttpConfig;
 import org.tio.http.common.handler.HttpRequestHandler;
-import org.tio.server.IServer;
 import org.tio.server.TioServer;
 import org.tio.server.TioServerConfig;
 import org.tio.utils.hutool.StrUtil;
@@ -211,7 +210,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * @author tanyaowu
  */
-public class HttpServerStarter implements IServer {
+public class HttpServerStarter {
 	private final HttpConfig httpConfig;
 	private final HttpTioServerHandler httpTioServerHandler;
 	private final HttpTioServerListener httpTioServerListener;
@@ -300,12 +299,10 @@ public class HttpServerStarter implements IServer {
 		return httpTioServerListener;
 	}
 
-	@Override
 	public void start(String serverIp, int serverPort) throws IOException {
 		tioServer.start(serverIp, serverPort);
 	}
 
-	@Override
 	public boolean stop() {
 		return tioServer.stop();
 	}

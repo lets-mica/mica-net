@@ -220,7 +220,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author tanyaowu
  */
-public class TioServer implements IServer {
+public class TioServer {
 	private static final Logger log = LoggerFactory.getLogger(TioServer.class);
 	private final TioServerConfig serverConfig;
 	private AsynchronousServerSocketChannel serverSocketChannel;
@@ -351,7 +351,6 @@ public class TioServer implements IServer {
 		}));
 	}
 
-	@Override
 	public void start(String serverIp, int serverPort) throws IOException {
 		long start = System.currentTimeMillis();
 		// 配置 time task
@@ -458,7 +457,6 @@ public class TioServer implements IServer {
 	/**
 	 * @return 是否停止成功
 	 */
-	@Override
 	public boolean stop() {
 		isWaitingStop = true;
 		// 删除实例
