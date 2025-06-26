@@ -223,9 +223,9 @@ import java.util.concurrent.TimeUnit;
 public class TioServer implements IServer {
 	private static final Logger log = LoggerFactory.getLogger(TioServer.class);
 	private final TioServerConfig serverConfig;
-	private final TimerTaskService taskService;
 	private AsynchronousServerSocketChannel serverSocketChannel;
 	private AsynchronousChannelGroup channelGroup = null;
+	private TimerTaskService taskService;
 	private Node serverNode;
 	private boolean isWaitingStop = false;
 
@@ -234,11 +234,6 @@ public class TioServer implements IServer {
 	 */
 	public TioServer(TioServerConfig serverConfig) {
 		this.serverConfig = serverConfig;
-		this.taskService = getTimerTaskService(serverConfig.getTaskService());
-	}
-
-	private static TimerTaskService getTimerTaskService(TimerTaskService taskService) {
-		return taskService == null ? new DefaultTimerTaskService() : taskService;
 	}
 
 	/**
@@ -273,8 +268,6 @@ public class TioServer implements IServer {
 	 * 定时任务：发心跳
 	 */
 	private void startHeartbeatTask() {
-		// 启动任务服务
-		this.taskService.start();
 		// 先判断是否开启心跳检测
 		if (serverConfig.heartbeatTimeout > 0) {
 			this.taskService.addTask(systemTimer -> new ServerHeartbeatTask(systemTimer, serverConfig));
@@ -361,6 +354,10 @@ public class TioServer implements IServer {
 	@Override
 	public void start(String serverIp, int serverPort) throws IOException {
 		long start = System.currentTimeMillis();
+		// 配置 time task
+		this.taskService = getTimerTaskService(this.serverConfig);
+		// 启动任务服务
+		this.taskService.start();
 		// 启动心跳检测任务
 		startHeartbeatTask();
 		// 启动服务
@@ -416,6 +413,20 @@ public class TioServer implements IServer {
 		} else {
 			System.out.println(printStr);
 		}
+	}
+
+	/**
+	 * 获取 time task 服务
+	 *
+	 * @param serverConfig TioServerConfig
+	 * @return TimerTaskService
+	 */
+	private static TimerTaskService getTimerTaskService(TioServerConfig serverConfig) {
+		TimerTaskService timerTaskService = serverConfig.getTaskService();
+		if (timerTaskService == null) {
+			timerTaskService = new DefaultTimerTaskService();
+		}
+		return timerTaskService;
 	}
 
 	/**
