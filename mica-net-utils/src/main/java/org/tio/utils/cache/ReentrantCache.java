@@ -1,7 +1,9 @@
 package org.tio.utils.cache;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -71,7 +73,14 @@ public abstract class ReentrantCache<K extends Serializable, V extends Serializa
 	public void clear() {
 		lock.lock();
 		try {
-			super.clear();
+			// 获取所有键的副本
+			Set<K> keys = new HashSet<>(cacheMap.keySet());
+			for (K key : keys) {
+				CacheObj<K, V> co = removeWithoutLock(key);
+				if (co != null) {
+					onRemove(co.key, co.obj); // 触发资源释放
+				}
+			}
 		} finally {
 			lock.unlock();
 		}

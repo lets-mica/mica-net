@@ -28,15 +28,15 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	/**
 	 * 数据实际存储 map
 	 */
-	private final Map<K, CacheObj<K, V>> cacheMap;
+	protected final Map<K, CacheObj<K, V>> cacheMap;
 	/**
 	 * 返回缓存容量，{@code 0}表示无大小限制
 	 */
-	private final int capacity;
+	protected final int capacity;
 	/**
 	 * 缓存失效时长， {@code 0} 表示无限制，单位毫秒
 	 */
-	private final long timeout;
+	protected final long timeout;
 
 	/**
 	 * 写的时候每个key一把锁，降低锁的粒度
@@ -87,7 +87,9 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 			existCustomTimeout = true;
 		}
 		// issue#3618 对于替换的键值对，不做满队列检查和清除
-		if (cacheMap.containsKey(key)) {
+		final CacheObj<K, V> oldObj = cacheMap.get(key);
+		if (oldObj != null) {
+			onRemove(oldObj.key, oldObj.obj);
 			// 存在相同key，覆盖之
 			cacheMap.put(key, co);
 		} else {

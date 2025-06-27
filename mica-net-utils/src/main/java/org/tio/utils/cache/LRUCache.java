@@ -31,6 +31,17 @@ public class LRUCache<K extends Serializable, V extends Serializable> extends Re
 	}
 
 	/**
+	 * 构造<br>
+	 * 默认无超时
+	 *
+	 * @param capacity 容量
+	 * @param listener cache 监听器
+	 */
+	public LRUCache(int capacity, CacheListener<K, V> listener) {
+		this(capacity, 0, listener);
+	}
+
+	/**
 	 * 构造
 	 *
 	 * @param capacity 容量
