@@ -2,6 +2,12 @@
 
 ## 发行版本
 
+### v1.1.11 - 2025-07-20
+
+- :sparkles: mica-net-core TioServer、WsServerStarter、HttpServerStarter 调整启动代码
+- :sparkles: mica-net-core 还是删除 IServer，mqtt 的多协议处理自行去处理
+- :sparkles: mica-net-utils 同步 hutool cache 最新代码
+
 ### v1.1.11 - 2025-06-20
 
 - :sparkles: 客户端支持 crt 证书，使用 `SslConfig.forClient("classpath:x.crt")` 即可。
