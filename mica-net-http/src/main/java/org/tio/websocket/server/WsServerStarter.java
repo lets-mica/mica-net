@@ -246,7 +246,7 @@ public class WsServerStarter {
 		this.tioServerConfig.setHeartbeatTimeout(0);
 		this.tioServerConfig.setTioUuid(new SnowflakeTioUuid());
 		this.tioServerConfig.setReadBufferSize(1024 * 30);
-		this.tioServer = new TioServer(tioServerConfig, serverNode);
+		this.tioServer = new TioServer(serverNode, tioServerConfig);
 	}
 
 	public TioServer getTioServer() {

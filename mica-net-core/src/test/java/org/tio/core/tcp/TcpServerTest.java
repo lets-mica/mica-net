@@ -17,7 +17,7 @@ public class TcpServerTest {
 		// 配置
 		TioServerConfig config = new TioServerConfig(serverHandler, new DefaultTioServerListener());
 		config.debug = true;
-		TioServer tioServer = new TioServer(config, 502);
+		TioServer tioServer = new TioServer(502, config);
 		tioServer.start();
 	}
 

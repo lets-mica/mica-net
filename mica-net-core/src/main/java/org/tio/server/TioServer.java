@@ -223,24 +223,24 @@ import java.util.concurrent.TimeUnit;
  */
 public class TioServer {
 	private static final Logger log = LoggerFactory.getLogger(TioServer.class);
-	private final TioServerConfig serverConfig;
 	private final Node serverNode;
+	private final TioServerConfig serverConfig;
 	private AsynchronousServerSocketChannel serverSocketChannel;
 	private AsynchronousChannelGroup channelGroup = null;
 	private TimerTaskService taskService;
 	private boolean isWaitingStop = false;
 
-	public TioServer(TioServerConfig serverConfig, int port) {
-		this(serverConfig, null, port);
+	public TioServer(int port, TioServerConfig serverConfig) {
+		this(null, port, serverConfig);
 	}
 
-	public TioServer(TioServerConfig serverConfig, String ip, int port) {
-		this(serverConfig, new Node(ip, port));
+	public TioServer(String ip, int port, TioServerConfig serverConfig) {
+		this(new Node(ip, port), serverConfig);
 	}
 
-	public TioServer(TioServerConfig serverConfig, Node serverNode) {
-		this.serverConfig = Objects.requireNonNull(serverConfig, "TioServerConfig 不能为 null");
+	public TioServer(Node serverNode, TioServerConfig serverConfig) {
 		this.serverNode = Objects.requireNonNull(serverNode, "serverNode 不能为 null");
+		this.serverConfig = Objects.requireNonNull(serverConfig, "TioServerConfig 不能为 null");
 	}
 
 	/**

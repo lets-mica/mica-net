@@ -281,7 +281,7 @@ public class HttpServerStarter {
 		this.tioServerConfig.setShortConnection(true);
 		this.tioServerConfig.setReadBufferSize(TcpConst.MAX_DATA_LENGTH);
 		this.tioServerConfig.setTioUuid(new SeqTioUuid());
-		this.tioServer = new TioServer(tioServerConfig, serverNode);
+		this.tioServer = new TioServer(serverNode, tioServerConfig);
 	}
 
 	public TioServer getTioServer() {
