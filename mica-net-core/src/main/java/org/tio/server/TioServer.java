@@ -316,7 +316,7 @@ public class TioServer {
 						executor.execute(command);
 					}
 				} catch (Exception e) {
-					log.error("tio server schedule error", e);
+					log.error("mica-net server schedule error", e);
 				}
 			}
 		}));
@@ -352,7 +352,7 @@ public class TioServer {
 						executor.execute(command);
 					}
 				} catch (Exception e) {
-					log.error("Mqtt server schedule once error", e);
+					log.error("mica-net server schedule once error", e);
 				}
 			}
 		}));
