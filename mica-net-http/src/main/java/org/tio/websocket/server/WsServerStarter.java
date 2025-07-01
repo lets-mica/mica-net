@@ -193,6 +193,7 @@
 */
 package org.tio.websocket.server;
 
+import org.tio.core.Node;
 import org.tio.core.uuid.SnowflakeTioUuid;
 import org.tio.http.common.HttpConfig;
 import org.tio.server.TioServer;
@@ -216,19 +217,27 @@ public class WsServerStarter {
 	private final TioServerConfig tioServerConfig;
 	private final TioServer tioServer;
 
-	public WsServerStarter(IWsMsgHandler wsMsgHandler) {
-		this(wsMsgHandler, null, null);
+	public WsServerStarter(int port, IWsMsgHandler wsMsgHandler) {
+		this(null, port, wsMsgHandler);
 	}
 
-	public WsServerStarter(IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
-		this(new HttpConfig(), wsMsgHandler, tioExecutor, groupExecutor);
+	public WsServerStarter(String ip, int port, IWsMsgHandler wsMsgHandler) {
+		this(new Node(ip, port), wsMsgHandler);
 	}
 
-	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler) {
-		this(wsServerConfig, wsMsgHandler, null, null);
+	public WsServerStarter(Node serverNode, IWsMsgHandler wsMsgHandler) {
+		this(serverNode, wsMsgHandler, null, null);
 	}
 
-	public WsServerStarter(HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+	public WsServerStarter(Node serverNode, HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler) {
+		this(serverNode, wsServerConfig, wsMsgHandler, null, null);
+	}
+
+	public WsServerStarter(Node serverNode, IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+		this(serverNode, new HttpConfig(), wsMsgHandler, tioExecutor, groupExecutor);
+	}
+
+	public WsServerStarter(Node serverNode, HttpConfig wsServerConfig, IWsMsgHandler wsMsgHandler, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		this.wsServerConfig = wsServerConfig;
 		this.wsMsgHandler = Objects.requireNonNull(wsMsgHandler);
 		this.wsTioServerHandler = new WsTioServerHandler(wsServerConfig, wsMsgHandler);
@@ -237,7 +246,7 @@ public class WsServerStarter {
 		this.tioServerConfig.setHeartbeatTimeout(0);
 		this.tioServerConfig.setTioUuid(new SnowflakeTioUuid());
 		this.tioServerConfig.setReadBufferSize(1024 * 30);
-		this.tioServer = new TioServer(tioServerConfig);
+		this.tioServer = new TioServer(tioServerConfig, serverNode);
 	}
 
 	public TioServer getTioServer() {
@@ -279,8 +288,8 @@ public class WsServerStarter {
 		return wsTioServerListener;
 	}
 
-	public void start(String serverIp, int serverPort) throws IOException {
-		tioServer.start(serverIp, serverPort);
+	public void start() throws IOException {
+		tioServer.start();
 	}
 
 	public boolean stop() {

@@ -125,8 +125,8 @@ public class ClusterImpl implements ClusterApi {
 		TioServerConfig serverConfig = new TioServerConfig(
 			name, serverHandler, new ClusterTcpServerListener(), tioExecutor, groupExecutor
 		);
-		this.tcpClusterServer = new TioServer(serverConfig);
-		this.tcpClusterServer.start("0.0.0.0", config.getPort());
+		this.tcpClusterServer = new TioServer(serverConfig, config.getPort());
+		this.tcpClusterServer.start();
 	}
 
 	private void startClusterTcpClient() throws Exception {

@@ -1,10 +1,10 @@
 package org.tio.http.test;
 
-import org.tio.http.common.HttpConfig;
 import org.tio.http.mcp.schema.*;
 import org.tio.http.mcp.server.McpServer;
 import org.tio.http.server.HttpServerStarter;
-import org.tio.utils.json.*;
+import org.tio.utils.json.JacksonJsonAdapter;
+import org.tio.utils.json.JsonUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,7 +14,6 @@ import java.util.Map;
 
 /**
  * http 测试
- *
  *
  * @author L.cm
  */
@@ -30,8 +29,6 @@ public class McpTest {
 //		JsonUtil.getJsonAdapter(new Snack3JsonAdapter());
 		// mcp 官方文档地址：https://modelcontextprotocol.io/specification/draft/server/tools
 		// 启动 mcp 服务
-		HttpConfig httpConfig = new HttpConfig();
-
 		McpServer mcpServer = new McpServer();
 
 		McpServerCapabilities serverCapabilities = new McpServerCapabilities();
@@ -88,8 +85,8 @@ public class McpTest {
 		});
 
 		TestMcpHandler mcpHandler = new TestMcpHandler(mcpServer);
-		HttpServerStarter httpServerStarter = new HttpServerStarter(httpConfig, mcpHandler);
-		httpServerStarter.start(null, 8080);
+		HttpServerStarter httpServerStarter = new HttpServerStarter(8080, mcpHandler);
+		httpServerStarter.start();
 	}
 
 }

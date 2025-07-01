@@ -193,6 +193,7 @@
 */
 package org.tio.http.server;
 
+import org.tio.core.Node;
 import org.tio.core.TcpConst;
 import org.tio.core.uuid.SeqTioUuid;
 import org.tio.http.common.HttpConfig;
@@ -219,27 +220,47 @@ public class HttpServerStarter {
 	private final HttpRequestHandler httpRequestHandler;
 
 	/**
+	 * @param port           port
 	 * @param requestHandler HttpRequestHandler
 	 */
-	public HttpServerStarter(HttpRequestHandler requestHandler) {
-		this(new HttpConfig(), requestHandler, null, null);
+	public HttpServerStarter(int port, HttpRequestHandler requestHandler) {
+		this(new Node(null, port), new HttpConfig(), requestHandler, null, null);
 	}
 
 	/**
+	 * @param ip             ip
+	 * @param port           port
+	 * @param requestHandler HttpRequestHandler
+	 */
+	public HttpServerStarter(String ip, int port, HttpRequestHandler requestHandler) {
+		this(new Node(ip, port), new HttpConfig(), requestHandler, null, null);
+	}
+
+	/**
+	 * @param serverNode     serverNode
+	 * @param requestHandler HttpRequestHandler
+	 */
+	public HttpServerStarter(Node serverNode, HttpRequestHandler requestHandler) {
+		this(serverNode, new HttpConfig(), requestHandler, null, null);
+	}
+
+	/**
+	 * @param serverNode     serverNode
 	 * @param httpConfig     HttpConfig
 	 * @param requestHandler HttpRequestHandler
 	 */
-	public HttpServerStarter(HttpConfig httpConfig, HttpRequestHandler requestHandler) {
-		this(httpConfig, requestHandler, null, null);
+	public HttpServerStarter(Node serverNode, HttpConfig httpConfig, HttpRequestHandler requestHandler) {
+		this(serverNode, httpConfig, requestHandler, null, null);
 	}
 
 	/**
+	 * @param serverNode     serverNode
 	 * @param httpConfig     HttpConfig
 	 * @param requestHandler HttpRequestHandler
 	 * @param tioExecutor    SynThreadPoolExecutor
 	 * @param groupExecutor  ThreadPoolExecutor
 	 */
-	public HttpServerStarter(HttpConfig httpConfig, HttpRequestHandler requestHandler, SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
+	public HttpServerStarter(Node serverNode, HttpConfig httpConfig, HttpRequestHandler requestHandler, SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		if (tioExecutor == null) {
 			tioExecutor = ThreadUtils.getTioExecutor();
 		}
@@ -260,7 +281,7 @@ public class HttpServerStarter {
 		this.tioServerConfig.setShortConnection(true);
 		this.tioServerConfig.setReadBufferSize(TcpConst.MAX_DATA_LENGTH);
 		this.tioServerConfig.setTioUuid(new SeqTioUuid());
-		this.tioServer = new TioServer(tioServerConfig);
+		this.tioServer = new TioServer(tioServerConfig, serverNode);
 	}
 
 	public TioServer getTioServer() {
@@ -299,8 +320,8 @@ public class HttpServerStarter {
 		return httpTioServerListener;
 	}
 
-	public void start(String serverIp, int serverPort) throws IOException {
-		tioServer.start(serverIp, serverPort);
+	public void start() throws IOException {
+		tioServer.start();
 	}
 
 	public boolean stop() {

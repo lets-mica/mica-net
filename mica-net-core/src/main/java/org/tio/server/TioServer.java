@@ -214,6 +214,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -223,17 +224,23 @@ import java.util.concurrent.TimeUnit;
 public class TioServer {
 	private static final Logger log = LoggerFactory.getLogger(TioServer.class);
 	private final TioServerConfig serverConfig;
+	private final Node serverNode;
 	private AsynchronousServerSocketChannel serverSocketChannel;
 	private AsynchronousChannelGroup channelGroup = null;
 	private TimerTaskService taskService;
-	private Node serverNode;
 	private boolean isWaitingStop = false;
 
-	/**
-	 * @param serverConfig TioServerConfig
-	 */
-	public TioServer(TioServerConfig serverConfig) {
-		this.serverConfig = serverConfig;
+	public TioServer(TioServerConfig serverConfig, int port) {
+		this(serverConfig, null, port);
+	}
+
+	public TioServer(TioServerConfig serverConfig, String ip, int port) {
+		this(serverConfig, new Node(ip, port));
+	}
+
+	public TioServer(TioServerConfig serverConfig, Node serverNode) {
+		this.serverConfig = Objects.requireNonNull(serverConfig, "TioServerConfig 不能为 null");
+		this.serverNode = Objects.requireNonNull(serverNode, "serverNode 不能为 null");
 	}
 
 	/**
@@ -351,7 +358,7 @@ public class TioServer {
 		}));
 	}
 
-	public void start(String serverIp, int serverPort) throws IOException {
+	public void start() throws IOException {
 		long start = System.currentTimeMillis();
 		// 配置 time task
 		this.taskService = getTimerTaskService(this.serverConfig);
@@ -359,19 +366,18 @@ public class TioServer {
 		this.taskService.start();
 		// 启动心跳检测任务
 		startHeartbeatTask();
-		// 启动服务
-		this.serverNode = new Node(serverIp, serverPort);
 		channelGroup = AsynchronousChannelGroup.withThreadPool(serverConfig.groupExecutor);
 		serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
 
 		serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
 		serverSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
 
+		String serverIp = serverNode.getIp();
 		InetSocketAddress listenAddress;
 		if (StrUtil.isBlank(serverIp)) {
-			listenAddress = new InetSocketAddress(serverPort);
+			listenAddress = new InetSocketAddress(serverNode.getPort());
 		} else {
-			listenAddress = new InetSocketAddress(serverIp, serverPort);
+			listenAddress = new InetSocketAddress(serverIp, serverNode.getPort());
 		}
 
 		serverSocketChannel.bind(listenAddress, 0);
