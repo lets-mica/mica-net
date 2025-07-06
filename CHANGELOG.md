@@ -2,7 +2,7 @@
 
 ## 发行版本
 
-### v1.1.11 - 2025-07-20
+### v1.1.12 - 2025-07-06
 
 - :sparkles: mica-net-core TioServer、WsServerStarter、HttpServerStarter 调整启动代码
 - :sparkles: mica-net-core 还是删除 IServer，mqtt 的多协议处理自行去处理
