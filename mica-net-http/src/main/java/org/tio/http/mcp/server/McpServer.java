@@ -59,10 +59,9 @@ public class McpServer {
 	}
 
 	public McpServer(String sseEndpoint, String messageEndpoint) {
-		this.sseEndpoint = Objects.requireNonNull(sseEndpoint, "SSE endpoint must not be null");
-		this.messageEndpoint = Objects.requireNonNull(messageEndpoint, "Message endpoint must not be null");
+		this.sseEndpoint = StrUtil.isBlank(sseEndpoint) ? DEFAULT_SSE_ENDPOINT : sseEndpoint;
+		this.messageEndpoint = StrUtil.isBlank(messageEndpoint) ? DEFAULT_MESSAGE_ENDPOINT : messageEndpoint;
 	}
-
 
 	private McpImplementation serverInfo = DEFAULT_SERVER_INFO;
 	private McpServerCapabilities serverCapabilities;
@@ -498,7 +497,7 @@ public class McpServer {
 			session.sendMessage(rpcResponse);
 		} else if (jsonRpcMessage instanceof JsonRpcNotification) {
 			JsonRpcNotification notification = (JsonRpcNotification) jsonRpcMessage;
-			System.out.println(notification);
+			log.info("JsonRpcNotification:{}", notification);
 		}
 		return response;
 	}
