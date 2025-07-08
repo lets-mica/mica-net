@@ -33,7 +33,7 @@
 
     <properties>
         <!-- mica-net version -->
-        <revision>1.1.12</revision>
+        <revision>1.1.13-SNAPSHOT</revision>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
