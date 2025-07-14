@@ -480,13 +480,13 @@ public class McpServer {
 		String sessionId = request.getParam("sessionId");
 		HttpResponse response = new HttpResponse(request);
 		if (StrUtil.isBlank(sessionId)) {
-			response.setStatus(HttpResponseStatus.C404);
+			response.setStatus(HttpResponseStatus.C400);
 			response.setBody("Session ID missing in message endpoint".getBytes());
 			return response;
 		}
 		McpServerSession session = sessions.get(sessionId);
 		if (session == null) {
-			response.setStatus(HttpResponseStatus.C404);
+			response.setStatus(HttpResponseStatus.C400);
 			response.setBody("Session is null".getBytes());
 			log.error("Session is null sessionId:{}", sessionId);
 			return response;
