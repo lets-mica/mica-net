@@ -217,9 +217,8 @@ public interface HttpRequestHandler {
 	 *
 	 * @param request HttpRequest
 	 * @return HttpResponse
-	 * @throws Exception Exception
 	 */
-	default HttpResponse resp404(HttpRequest request) throws Exception {
+	default HttpResponse resp404(HttpRequest request) {
 		HttpResponse httpResponse = new HttpResponse(request);
 		httpResponse.setStatus(HttpResponseStatus.C404);
 		return httpResponse;
@@ -230,9 +229,8 @@ public interface HttpRequestHandler {
 	 *
 	 * @param request HttpRequest
 	 * @return HttpResponse
-	 * @throws Exception Exception
 	 */
-	default HttpResponse resp500(HttpRequest request) throws Exception {
+	default HttpResponse resp500(HttpRequest request) {
 		HttpResponse httpResponse = new HttpResponse(request);
 		httpResponse.setStatus(HttpResponseStatus.C500);
 		return httpResponse;
