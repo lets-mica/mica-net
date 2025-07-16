@@ -272,10 +272,6 @@ public class HttpConfig {
 	private String serverInfo = HttpConst.SERVER_INFO;
 	private Charset charset = HttpConst.CHARSET;
 	/**
-	 * ip被拉黑时，服务器给的响应，如果是null，服务器会直接断开连接
-	 */
-	private HttpResponse respForBlackIp = null;
-	/**
 	 * 是否被代理
 	 */
 	private boolean isProxied = false;
@@ -367,14 +363,6 @@ public class HttpConfig {
 	 */
 	public void setMaxLengthOfMultiBody(int maxLengthOfMultiBody) {
 		this.maxLengthOfMultiBody = maxLengthOfMultiBody;
-	}
-
-	public HttpResponse getRespForBlackIp() {
-		return respForBlackIp;
-	}
-
-	public void setRespForBlackIp(HttpResponse respForBlackIp) {
-		this.respForBlackIp = respForBlackIp;
 	}
 
 	/**
