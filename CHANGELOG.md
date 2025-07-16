@@ -2,6 +2,14 @@
 
 ## 发行版本
 
+### v1.1.14 - 2025-07-19
+
+- :sparkles: mica-net-http 兼容 protobuf 消息。
+
+### v1.1.13 - 2025-07-10
+
+- :sparkles: mica-net-http 优化 mcp server 配置，兼容 sse 端点参数为空
+
 ### v1.1.12 - 2025-07-06
 
 - :sparkles: mica-net-core TioServer、WsServerStarter、HttpServerStarter 调整启动代码
