@@ -221,7 +221,7 @@ public interface HttpConst {
 		/**
 		 * 请求内容格式
 		 */
-		URLENCODED, MULTIPART, TEXT
+		URLENCODED, MULTIPART, TEXT, PROTOBUF
 	}
 
 	interface HttpVersion {
@@ -299,6 +299,10 @@ public interface HttpConst {
 			 * 普通的key-value
 			 */
 			String application_x_www_form_urlencoded = "application/x-www-form-urlencoded";
+			/**
+			 * protobuf 请求
+			 */
+			String application_x_protobuf = "application/x-protobuf";
 		}
 
 		interface Accept {

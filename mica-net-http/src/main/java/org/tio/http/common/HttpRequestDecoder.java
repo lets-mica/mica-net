@@ -372,12 +372,14 @@ public class HttpRequestDecoder {
 	 */
 	private static void parseBody(HttpRequest httpRequest, RequestLine firstLine, byte[] bodyBytes, ChannelContext channelContext, HttpConfig httpConfig)
 		throws TioDecodeException {
+		httpRequest.setBody(bodyBytes);
+
 		parseBodyFormat(httpRequest, httpRequest.getHeaders());
 		RequestBodyFormat bodyFormat = httpRequest.getBodyFormat();
 
-		httpRequest.setBody(bodyBytes);
-
 		switch (bodyFormat) {
+			case PROTOBUF:
+				break;
 			case MULTIPART:
 				if (log.isDebugEnabled()) {
 					String bodyString;
@@ -430,6 +432,8 @@ public class HttpRequestDecoder {
 			httpRequest.setBodyFormat(RequestBodyFormat.TEXT);
 		} else if (contentType.startsWith(HttpConst.RequestHeaderValue.Content_Type.multipart_form_data)) {
 			httpRequest.setBodyFormat(RequestBodyFormat.MULTIPART);
+		} else if (contentType.startsWith(HttpConst.RequestHeaderValue.Content_Type.application_x_protobuf)) {
+			httpRequest.setBodyFormat(RequestBodyFormat.PROTOBUF);
 		} else {
 			httpRequest.setBodyFormat(RequestBodyFormat.URLENCODED);
 		}
