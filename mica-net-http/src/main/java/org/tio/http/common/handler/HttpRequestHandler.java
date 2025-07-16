@@ -215,12 +215,11 @@ public interface HttpRequestHandler {
 	/**
 	 * 响应404
 	 *
-	 * @param request     HttpRequest
-	 * @param requestLine RequestLine
+	 * @param request HttpRequest
 	 * @return HttpResponse
 	 * @throws Exception Exception
 	 */
-	default HttpResponse resp404(HttpRequest request, RequestLine requestLine) throws Exception {
+	default HttpResponse resp404(HttpRequest request) throws Exception {
 		HttpResponse httpResponse = new HttpResponse(request);
 		httpResponse.setStatus(HttpResponseStatus.C404);
 		return httpResponse;
@@ -229,13 +228,11 @@ public interface HttpRequestHandler {
 	/**
 	 * 响应500
 	 *
-	 * @param request     HttpRequest
-	 * @param requestLine RequestLine
-	 * @param throwable   Throwable
+	 * @param request HttpRequest
 	 * @return HttpResponse
 	 * @throws Exception Exception
 	 */
-	default HttpResponse resp500(HttpRequest request, RequestLine requestLine, Throwable throwable) throws Exception {
+	default HttpResponse resp500(HttpRequest request) throws Exception {
 		HttpResponse httpResponse = new HttpResponse(request);
 		httpResponse.setStatus(HttpResponseStatus.C500);
 		return httpResponse;
