@@ -219,9 +219,7 @@ public interface HttpRequestHandler {
 	 * @return HttpResponse
 	 */
 	default HttpResponse resp404(HttpRequest request) {
-		HttpResponse httpResponse = new HttpResponse(request);
-		httpResponse.setStatus(HttpResponseStatus.C404);
-		return httpResponse;
+		return respStatus(request, HttpResponseStatus.C404);
 	}
 
 	/**
@@ -231,8 +229,18 @@ public interface HttpRequestHandler {
 	 * @return HttpResponse
 	 */
 	default HttpResponse resp500(HttpRequest request) {
+		return respStatus(request, HttpResponseStatus.C500);
+	}
+
+	/**
+	 * 响应状态码
+	 *
+	 * @param request HttpRequest
+	 * @return HttpResponse
+	 */
+	default HttpResponse respStatus(HttpRequest request, HttpResponseStatus status) {
 		HttpResponse httpResponse = new HttpResponse(request);
-		httpResponse.setStatus(HttpResponseStatus.C500);
+		httpResponse.setStatus(status);
 		return httpResponse;
 	}
 
