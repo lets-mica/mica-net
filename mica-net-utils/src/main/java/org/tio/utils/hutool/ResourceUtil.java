@@ -207,7 +207,7 @@ import java.nio.file.Paths;
  * @author looly
  */
 public class ResourceUtil {
-	private static final String CLASSPATH_PRE = "classpath:";
+	public static final String CLASSPATH_PRE = "classpath:";
 
 	/**
 	 * 获取ClassPath绝对路径
