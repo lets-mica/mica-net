@@ -296,11 +296,51 @@ public class HttpResponse extends HttpPacket {
 		return headers;
 	}
 
-	public void addHeader(HeaderName key, HeaderValue value) {
-		headers.put(key, value);
-		headerByteCount += (key.bytes.length + value.bytes.length + 4); //冒号空格和\r\n
+	/**
+	 * 添加响应头
+	 *
+	 * @param name  headerName
+	 * @param value headerValue
+	 */
+	public void addHeader(String name, Object value) {
+		if (value == null) {
+			return;
+		}
+		HeaderName headerName = HeaderName.from(Objects.requireNonNull(name, "Header name is null"));
+		String headerValue = value instanceof CharSequence ? value.toString() : String.valueOf(value);
+		this.addHeader(headerName, HeaderValue.from(headerValue));
 	}
 
+	/**
+	 * 批量添加请求头
+	 *
+	 * @param headers headers
+	 */
+	public void addHeader(Map<String, Object> headers) {
+		if (headers != null) {
+			Set<Entry<String, Object>> set = headers.entrySet();
+			for (Entry<String, Object> entry : set) {
+				this.addHeader(entry.getKey(), entry.getValue());
+			}
+		}
+	}
+
+	/**
+	 * 添加响应头
+	 *
+	 * @param name  headerName
+	 * @param value headerValue
+	 */
+	public void addHeader(HeaderName name, HeaderValue value) {
+		headers.put(name, value);
+		headerByteCount += (name.bytes.length + value.bytes.length + 4); //冒号空格和\r\n
+	}
+
+	/**
+	 * 批量添加请求头
+	 *
+	 * @param headers headers
+	 */
 	public void addHeaders(Map<HeaderName, HeaderValue> headers) {
 		if (headers != null) {
 			Set<Entry<HeaderName, HeaderValue>> set = headers.entrySet();
