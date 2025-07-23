@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v1.1.15 - 2025-07-23
+
+- :sparkles: client bindPort 支持 0（随机可用端口）
+
 ### v1.1.14 - 2025-07-22
 
 - :sparkles: mica-net-http 兼容 protobuf 消息。
