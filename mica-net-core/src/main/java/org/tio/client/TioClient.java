@@ -333,7 +333,8 @@ public class TioClient {
 		asynchronousSocketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
 
 		InetSocketAddress bind = null;
-		if (bindPort != null && bindPort > 0) {
+		// bindPort 为 0 时是随机端口
+		if (bindPort != null && bindPort >= 0) {
 			if (StrUtil.isBlank(bindIp)) {
 				bind = new InetSocketAddress(bindPort);
 			} else {
