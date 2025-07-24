@@ -201,6 +201,7 @@ import org.tio.http.common.*;
  * @author tanyaowu
  * 2017年8月30日 上午9:22:50
  */
+@FunctionalInterface
 public interface HttpRequestHandler {
 
 	/**
