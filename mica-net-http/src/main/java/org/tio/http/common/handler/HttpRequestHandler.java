@@ -218,7 +218,7 @@ public interface HttpRequestHandler {
 	 * @param request HttpRequest
 	 * @return HttpResponse
 	 */
-	default HttpResponse resp404(HttpRequest request) {
+	default HttpResponse resp404(HttpRequest request, RequestLine requestLine) {
 		return respStatus(request, HttpResponseStatus.C404);
 	}
 
@@ -228,7 +228,7 @@ public interface HttpRequestHandler {
 	 * @param request HttpRequest
 	 * @return HttpResponse
 	 */
-	default HttpResponse resp500(HttpRequest request) {
+	default HttpResponse resp500(HttpRequest request, RequestLine requestLine, Throwable throwable) {
 		return respStatus(request, HttpResponseStatus.C500);
 	}
 
@@ -254,10 +254,4 @@ public interface HttpRequestHandler {
 		return request.getHttpConfig();
 	}
 
-	/**
-	 * 清空静态资源缓存，如果没有缓存，可以不处理
-	 */
-	default void clearStaticResCache() {
-
-	}
 }

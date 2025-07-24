@@ -242,14 +242,14 @@ public class HttpTioServerHandler implements TioServerHandler {
 	}
 
 	@Override
-	public void handler(Packet packet, ChannelContext channelContext) throws Exception {
+	public void handler(Packet packet, ChannelContext context) throws Exception {
 		HttpRequest request = (HttpRequest) packet;
 		HttpResponse httpResponse = requestHandler.handler(request);
 		if (httpResponse != null) {
-			Tio.send(channelContext, httpResponse);
+			Tio.send(context, httpResponse);
 		} else {
 			if (log.isInfoEnabled()) {
-				log.info("{}, {}, handler return null, request line: {}", channelContext.tioConfig.getName(), channelContext, request.getRequestLine());
+				log.info("{}, {}, handler return null, request line: {}", context.tioConfig.getName(), context, request.getRequestLine());
 			}
 			request.close("handler return null");
 		}
