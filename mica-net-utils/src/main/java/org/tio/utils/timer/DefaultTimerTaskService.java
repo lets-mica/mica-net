@@ -16,6 +16,7 @@
 
 package org.tio.utils.timer;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 /**
@@ -26,6 +27,7 @@ import java.util.function.Function;
 public class DefaultTimerTaskService implements TimerTaskService {
 	private final SystemTimer systemTimer;
 	private final TimingWheelThread timingWheelThread;
+	private final AtomicBoolean started = new AtomicBoolean(false);
 
 	public DefaultTimerTaskService() {
 		this(1000L, 60);
@@ -57,13 +59,15 @@ public class DefaultTimerTaskService implements TimerTaskService {
 
 	@Override
 	public void start() {
-		if (!timingWheelThread.isStarted()) {
+		// 确保多次调用只启动一次
+		if (started.compareAndSet(false, true) && !timingWheelThread.isStarted()) {
 			timingWheelThread.start();
 		}
 	}
 
 	@Override
 	public void stop() {
+		started.set(false);
 		timingWheelThread.shutdown();
 		systemTimer.shutdown();
 	}
