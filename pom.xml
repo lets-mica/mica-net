@@ -40,7 +40,7 @@
         <maven.test.skip>true</maven.test.skip>
         <maven-compiler.version>3.14.0</maven-compiler.version>
         <maven-source.version>3.3.1</maven-source.version>
-        <maven-flatten.version>1.7.1</maven-flatten.version>
+        <maven-flatten.version>1.7.2</maven-flatten.version>
         <maven-jar.version>3.4.2</maven-jar.version>
         <fastjson.version>1.2.83</fastjson.version>
         <fastjson2.version>2.0.52</fastjson2.version>
