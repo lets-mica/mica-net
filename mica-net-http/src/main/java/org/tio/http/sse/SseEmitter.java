@@ -17,7 +17,7 @@
 package org.tio.http.sse;
 
 import org.tio.core.Tio;
-import org.tio.core.intf.EncodedPacket;
+import org.tio.core.intf.Packet;
 import org.tio.http.common.HeaderName;
 import org.tio.http.common.HeaderValue;
 import org.tio.http.common.HttpRequest;
@@ -88,8 +88,8 @@ public class SseEmitter {
 	public void send(SseEvent sseEvent) {
 		String chunkedString = sseEvent.toString();
 		byte[] chunkedBytes = chunkedString.getBytes(request.getCharset());
-		EncodedPacket encodedPacket = new EncodedPacket(encodeChunk(chunkedBytes));
-		Tio.send(request.channelContext, encodedPacket);
+		Packet ssePacket = new SsePacket(encodeChunk(chunkedBytes));
+		Tio.send(request.channelContext, ssePacket);
 	}
 
 	/**
@@ -119,7 +119,7 @@ public class SseEmitter {
 	 * @param chunkData chunk 数据
 	 * @return 编码后的 chunk 数据
 	 */
-	private static byte[] encodeChunk(byte[] chunkData) {
+	private static ByteBuffer encodeChunk(byte[] chunkData) {
 		int length = chunkData.length;
 		String chunkSize = Integer.toHexString(length);
 		byte[] chunkSizeBytes = chunkSize.getBytes(StandardCharsets.US_ASCII);
@@ -132,7 +132,7 @@ public class SseEmitter {
 		buffer.put(chunkData);
 		buffer.put(SysConst.CR_LF);
 
-		return buffer.array();
+		return buffer;
 	}
 
 }
