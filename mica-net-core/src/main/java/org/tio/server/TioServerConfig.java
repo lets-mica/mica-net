@@ -222,6 +222,10 @@ public class TioServerConfig extends TioConfig {
 	private final TioServerHandler tioServerHandler;
 	private final TioServerListener tioServerListener;
 	/**
+	 * 服务端 backlog
+	 */
+	private int backlog = 1024;
+	/**
 	 * heartbeat 系数，连接超时缺省为连接设置的 heartbeatTimeout * heartbeatBackoff * 2，默认：1.0F
 	 * <p>
 	 * 如果读者想对该值做一些调整，可以在此进行配置。比如设置为 0.75，则变为 keepalive * 1.5。但是该值不得小于 0.5，否则将小于 keepalive 设定的时间。
@@ -390,6 +394,14 @@ public class TioServerConfig extends TioConfig {
 	@Override
 	public boolean isServer() {
 		return true;
+	}
+
+	public int getBacklog() {
+		return backlog;
+	}
+
+	public void setBacklog(int backlog) {
+		this.backlog = backlog;
 	}
 
 	public float getHeartbeatBackoff() {
