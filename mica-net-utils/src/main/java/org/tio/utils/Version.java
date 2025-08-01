@@ -21,7 +21,7 @@ package org.tio.utils;
  *
  * @author L.cm
  */
-public class Version {
+public final class Version {
 	private static final String PROJECT_VERSION = "${project.version}";
 
 	private Version() {

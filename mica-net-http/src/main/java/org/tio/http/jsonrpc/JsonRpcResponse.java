@@ -27,8 +27,6 @@ public class JsonRpcResponse implements JsonRpcMessage {
 	private Object result;
 	private JsonRpcError error;
 
-
-
 	@Override
 	public String getJsonrpc() {
 		return jsonrpc;
