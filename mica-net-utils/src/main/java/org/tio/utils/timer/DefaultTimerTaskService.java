@@ -60,7 +60,7 @@ public class DefaultTimerTaskService implements TimerTaskService {
 	@Override
 	public void start() {
 		// 确保多次调用只启动一次
-		if (started.compareAndSet(false, true) && !timingWheelThread.isStarted()) {
+		if (started.compareAndSet(false, true)) {
 			timingWheelThread.start();
 		}
 	}

@@ -48,10 +48,6 @@ public class TimingWheelThread extends Thread {
 		this.setDaemon(false);
 	}
 
-	public boolean isStarted() {
-		return isStarted;
-	}
-
 	public boolean isShutdownInitiated() {
 		return shutdownInitiated.getCount() == 0;
 	}
