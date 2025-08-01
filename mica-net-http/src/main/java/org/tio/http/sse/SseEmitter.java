@@ -24,6 +24,7 @@ import org.tio.http.common.HttpRequest;
 import org.tio.http.common.HttpResponse;
 import org.tio.utils.SysConst;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -121,14 +122,17 @@ public class SseEmitter {
 	private static byte[] encodeChunk(byte[] chunkData) {
 		int length = chunkData.length;
 		String chunkSize = Integer.toHexString(length);
-		byte[] chunkSizeBytes = (chunkSize + SysConst.CRLF).getBytes(StandardCharsets.US_ASCII);
+		byte[] chunkSizeBytes = chunkSize.getBytes(StandardCharsets.US_ASCII);
+		int crlfLength = SysConst.CR_LF.length;
 
-		byte[] chunk = new byte[chunkSizeBytes.length + length + 2];
+		// 计算总容量：chunkSize长度 + CRLF长度 + 数据长度 + 结尾CRLF长度
+		ByteBuffer buffer = ByteBuffer.allocate(chunkSizeBytes.length + crlfLength + length + crlfLength);
+		buffer.put(chunkSizeBytes);
+		buffer.put(SysConst.CR_LF);
+		buffer.put(chunkData);
+		buffer.put(SysConst.CR_LF);
 
-		System.arraycopy(chunkSizeBytes, 0, chunk, 0, chunkSizeBytes.length);
-		System.arraycopy(chunkData, 0, chunk, chunkSizeBytes.length, length);
-		System.arraycopy(SysConst.CR_LF, 0, chunk, chunkSizeBytes.length + length, 2);
-		return chunk;
+		return buffer.array();
 	}
 
 }
