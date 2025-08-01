@@ -215,6 +215,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -427,11 +428,7 @@ public class TioServer {
 	 * @return TimerTaskService
 	 */
 	private static TimerTaskService getTimerTaskService(TioServerConfig serverConfig) {
-		TimerTaskService timerTaskService = serverConfig.getTaskService();
-		if (timerTaskService == null) {
-			timerTaskService = new DefaultTimerTaskService();
-		}
-		return timerTaskService;
+		return Optional.ofNullable(serverConfig.getTaskService()).orElseGet(DefaultTimerTaskService::new);
 	}
 
 	/**
