@@ -448,8 +448,9 @@ public class SslConfig {
 		try {
 			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 			KeyStore keyStore = null;
-			char[] keyPassChars = keyPass == null ? null : keyPass.toCharArray();
+			char[] keyPassChars = null;
 			if (keyStoreInputStream != null) {
+				keyPassChars = keyPass == null ? null : keyPass.toCharArray();
 				keyStore = KeyStore.getInstance(certType.getType());
 				try (InputStream inputStream = keyStoreInputStream) {
 					keyStore.load(inputStream, keyPassChars);
