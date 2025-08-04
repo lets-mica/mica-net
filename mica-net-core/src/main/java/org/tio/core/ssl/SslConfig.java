@@ -194,7 +194,6 @@
 package org.tio.core.ssl;
 
 import org.tio.utils.hutool.ResourceUtil;
-import org.tio.utils.hutool.StrUtil;
 
 import javax.net.ssl.*;
 import java.io.InputStream;
@@ -204,6 +203,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Objects;
 
 /**
  * @author tanyaowu、L.cm
@@ -445,19 +445,20 @@ public class SslConfig {
 	}
 
 	public static KeyManager[] getKeyManager(SslCertType certType, InputStream keyStoreInputStream, String keyPass) {
-		if (keyStoreInputStream != null) {
-			try (InputStream inputStream = keyStoreInputStream) {
-				KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				KeyStore keyStore = KeyStore.getInstance(certType.getType());
-				char[] keyPassChars = keyPass == null ? null : keyPass.toCharArray();
-				keyStore.load(inputStream, keyPassChars);
-				keyManagerFactory.init(keyStore, keyPassChars);
-				return keyManagerFactory.getKeyManagers();
-			} catch (Exception e) {
-				throw new IllegalArgumentException(e);
+		try {
+			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+			KeyStore keyStore = null;
+			char[] keyPassChars = keyPass == null ? null : keyPass.toCharArray();
+			if (keyStoreInputStream != null) {
+				keyStore = KeyStore.getInstance(certType.getType());
+				try (InputStream inputStream = keyStoreInputStream) {
+					keyStore.load(inputStream, keyPassChars);
+				}
 			}
-		} else {
-			return null;
+			keyManagerFactory.init(keyStore, keyPassChars);
+			return keyManagerFactory.getKeyManagers();
+		} catch (Exception e) {
+			throw new IllegalArgumentException(e);
 		}
 	}
 
@@ -472,40 +473,20 @@ public class SslConfig {
 	}
 
 	public static TrustManager[] getTrustManager(SslCertType certType, InputStream trustInputStream, String trustPass) {
-		if (trustInputStream == null) {
-			return null;
-		} else {
-			char[] trustPassChars = trustPass == null ? null : trustPass.toCharArray();
-			return getTrustManagers(certType, trustInputStream, trustPassChars);
-		}
-	}
-
-	private static TrustManager[] getTrustManagers(SslCertType certType, InputStream trustInputStream, char[] trustPassword) {
-		if (trustInputStream == null) {
-			return new TrustManager[]{new X509TrustManager() {
-				@Override
-				public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
+		try {
+			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			KeyStore keyStore = null;
+			if (trustInputStream != null) {
+				keyStore = KeyStore.getInstance(certType.getType());
+				char[] trustPassChars = trustPass == null ? null : trustPass.toCharArray();
+				try (InputStream inputStream = trustInputStream) {
+					keyStore.load(inputStream, trustPassChars);
 				}
-
-				@Override
-				public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
-				}
-
-				@Override
-				public X509Certificate[] getAcceptedIssuers() {
-					return new X509Certificate[0];
-				}
-			}};
-		} else {
-			try (InputStream inputStream = trustInputStream) {
-				TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-				KeyStore keyStore = KeyStore.getInstance(certType.getType());
-				keyStore.load(inputStream, trustPassword);
-				trustManagerFactory.init(keyStore);
-				return trustManagerFactory.getTrustManagers();
-			} catch (Exception e) {
-				throw new IllegalArgumentException(e);
 			}
+			trustManagerFactory.init(keyStore);
+			return trustManagerFactory.getTrustManagers();
+		} catch (Exception e) {
+			throw new IllegalArgumentException(e);
 		}
 	}
 
@@ -515,9 +496,7 @@ public class SslConfig {
 	 * @return TrustManager 数组
 	 */
 	private static TrustManager[] getCrtTrustManagers(InputStream crtInputStream) {
-		if (crtInputStream == null) {
-			return null;
-		}
+		Objects.requireNonNull(crtInputStream, "crt 证书不能为 null");
 		try (InputStream inputStream = crtInputStream) {
 			// 创建一个新的 KeyStore 实例
 			KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -535,4 +514,5 @@ public class SslConfig {
 			throw new IllegalArgumentException(e);
 		}
 	}
+
 }

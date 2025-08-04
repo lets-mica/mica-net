@@ -5,9 +5,15 @@ import org.junit.jupiter.api.Test;
 import org.tio.core.ssl.SslConfig;
 import org.tio.utils.hutool.ResourceUtil;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
@@ -53,4 +59,17 @@ class SslConfigTest {
 		SslConfig sslConfig = SslConfig.forClient("classpath:x.crt");
 		Assertions.assertNotNull(sslConfig);
 	}
+
+	@Test
+	void testServer5() throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+		keyManagerFactory.init(null, null);
+		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+		trustManagerFactory.init((KeyStore) null);
+		KeyManager[] keyManagers = keyManagerFactory.getKeyManagers();
+		TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+		Assertions.assertNotNull(keyManagers);
+		Assertions.assertNotNull(trustManagers);
+	}
+
 }
