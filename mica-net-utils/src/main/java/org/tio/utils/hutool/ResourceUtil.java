@@ -210,6 +210,22 @@ public class ResourceUtil {
 	public static final String CLASSPATH_PRE = "classpath:";
 
 	/**
+	 * 获取 classpath 或者 file 绝对路径下的资源
+	 *
+	 * @param path 路径
+	 * @return 资源
+	 */
+	public static InputStream getClasspathOrFileResource(String path) {
+		if (StrUtil.isBlank(path)) {
+			return null;
+		} else if (StrUtil.startWithIgnoreCase(path, ResourceUtil.CLASSPATH_PRE)) {
+			return ResourceUtil.getResourceAsStream(path);
+		} else {
+			return ResourceUtil.getFileResource(path);
+		}
+	}
+
+	/**
 	 * 获取ClassPath绝对路径
 	 *
 	 * @param path classpath路径
