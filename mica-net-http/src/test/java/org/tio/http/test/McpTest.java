@@ -85,7 +85,7 @@ public class McpTest {
 		});
 
 		TestMcpHandler mcpHandler = new TestMcpHandler(mcpServer);
-		HttpServerStarter httpServerStarter = new HttpServerStarter(8080, mcpHandler);
+		HttpServerStarter httpServerStarter = new HttpServerStarter(18083, mcpHandler);
 		httpServerStarter.start();
 	}
 
