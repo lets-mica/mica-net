@@ -374,7 +374,7 @@ public class SslConfig {
 	 */
 	public static SslConfig forClient(String crtFile) {
 		InputStream crtInputStream;
-		if (StrUtil.startWithIgnoreCase(crtFile, "classpath:")) {
+		if (StrUtil.startWithIgnoreCase(crtFile, ResourceUtil.CLASSPATH_PRE)) {
 			crtInputStream = ResourceUtil.getResourceAsStream(crtFile);
 		} else {
 			crtInputStream = ResourceUtil.getFileResource(crtFile);
@@ -448,7 +448,7 @@ public class SslConfig {
 		InputStream keyStoreInputStream;
 		if (keyStoreFile == null) {
 			keyStoreInputStream = null;
-		} else if (StrUtil.startWithIgnoreCase(keyStoreFile, "classpath:")) {
+		} else if (StrUtil.startWithIgnoreCase(keyStoreFile, ResourceUtil.CLASSPATH_PRE)) {
 			keyStoreInputStream = ResourceUtil.getResourceAsStream(keyStoreFile);
 		} else {
 			keyStoreInputStream = ResourceUtil.getFileResource(keyStoreFile);
@@ -478,7 +478,7 @@ public class SslConfig {
 		InputStream trustStoreInputStream;
 		if (trustStoreFile == null) {
 			trustStoreInputStream = null;
-		} else if (StrUtil.startWithIgnoreCase(trustStoreFile, "classpath:")) {
+		} else if (StrUtil.startWithIgnoreCase(trustStoreFile, ResourceUtil.CLASSPATH_PRE)) {
 			trustStoreInputStream = ResourceUtil.getResourceAsStream(trustStoreFile);
 		} else {
 			trustStoreInputStream = ResourceUtil.getFileResource(trustStoreFile);
