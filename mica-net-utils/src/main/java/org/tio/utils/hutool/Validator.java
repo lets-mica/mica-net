@@ -211,7 +211,7 @@ public class Validator {
 	 * @param value   值
 	 * @return 是否匹配正则
 	 */
-	public static boolean isMactch(Pattern pattern, String value) {
+	public static boolean isMatch(Pattern pattern, String value) {
 		if (value == null || pattern == null) {
 			// 提供null的字符串为不匹配
 			return false;
