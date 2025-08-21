@@ -54,8 +54,7 @@ public class StrTemplateParser {
 	 */
 	private void parseTemplate(String template) {
 		if (template == null || template.isEmpty()) {
-			literals.add("");
-			return;
+			throw new IllegalArgumentException("模板字符串不能为空");
 		}
 
 		int start = 0;
