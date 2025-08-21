@@ -17,6 +17,7 @@
 package org.tio.utils.mica;
 
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -41,9 +42,12 @@ class StrTemplateParserTest {
 
 	@Test
 	void testParseTemplateAndGetVariables_EmptyTemplate() {
-		StrTemplateParser parser = new StrTemplateParser("");
-		Map<String, String> result = parser.getVariables("");
-		assertTrue(result.isEmpty());
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			new StrTemplateParser(null);
+		});
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			new StrTemplateParser("");
+		});
 	}
 
 	@Test
