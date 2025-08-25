@@ -98,48 +98,37 @@ public class StrTemplateParser {
 	 * @return 变量映射，解析失败时返回空Map
 	 */
 	public Map<String, String> getVariables(String input) {
-		// 预检查：长度不匹配时快速失败
 		if (input == null || literals.isEmpty()) {
 			return Collections.emptyMap();
 		}
 
-		// 预估容量，减少HashMap扩容
 		Map<String, String> result = new LinkedHashMap<>(variables.size());
-		int currentPos;
-		// 校验第一个固定文本
-		String firstLiteral = literals.get(0);
-		if (!input.startsWith(firstLiteral)) {
+		int pos = 0;
+
+		// 首段校验
+		if (!input.startsWith(literals.get(0))) {
 			return Collections.emptyMap();
 		}
-		currentPos = firstLiteral.length();
+		pos += literals.get(0).length();
+		// 逐变量解析
+		for (int varIdx = 0; varIdx < variables.size(); varIdx++) {
+			String literal = literals.get(varIdx + 1);   // 当前变量后的固定文本
 
-		// 优化：缓存literals.size()以避免重复计算
-		int literalsSize = literals.size();
-
-		// 遍历后续固定文本来提取变量
-		for (int i = 1; i < literalsSize; i++) {
-			String literal = literals.get(i);
-			int literalPos = input.indexOf(literal, currentPos);
-
-			if (literalPos == -1) {
-				// 未找到固定文本
-				return Collections.emptyMap();
+			String value;
+			if (literal.isEmpty()) {                     // 末尾空串：直接取剩余全部
+				value = input.substring(pos);
+				pos = input.length();
+			} else {                                     // 普通情况：按字面量切分
+				int next = input.indexOf(literal, pos);
+				if (next == -1) {
+					return Collections.emptyMap();       // 匹配失败
+				}
+				value = input.substring(pos, next);
+				pos = next + literal.length();
 			}
-
-			// 提取变量值 - 优化：避免不必要的字符串创建
-			if (literalPos >= currentPos) {
-				String varValue = input.substring(currentPos, literalPos);
-				result.put(variables.get(i - 1), varValue);
-			} else {
-				// 空变量值
-				result.put(variables.get(i - 1), "");
-			}
-
-			currentPos = literalPos + literal.length();
+			result.put(variables.get(varIdx), value);
 		}
-
-		// 校验末尾是否匹配
-		return (currentPos == input.length()) ? result : Collections.emptyMap();
+		return pos == input.length() ? result : Collections.emptyMap();
 	}
 
 }

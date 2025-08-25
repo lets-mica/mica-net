@@ -68,7 +68,7 @@ class StrTemplateParserTest {
 	void testParse() {
 		StrTemplateParser parser = new StrTemplateParser("/abc/${name}");
 		Map<String, String> result = parser.getVariables("/abc/Dreamluxx");
-		assertEquals("name", result.get("Dreamluxx"));
+		assertEquals("Dreamluxx", result.get("name"));
 	}
 
 	@Test
