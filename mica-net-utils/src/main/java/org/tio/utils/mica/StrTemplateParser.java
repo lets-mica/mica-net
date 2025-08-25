@@ -127,7 +127,7 @@ public class StrTemplateParser {
 			}
 
 			// 提取变量值 - 优化：避免不必要的字符串创建
-			if (literalPos > currentPos) {
+			if (literalPos >= currentPos) {
 				String varValue = input.substring(currentPos, literalPos);
 				result.put(variables.get(i - 1), varValue);
 			} else {
