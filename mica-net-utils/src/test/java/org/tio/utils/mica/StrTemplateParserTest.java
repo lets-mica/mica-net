@@ -41,6 +41,58 @@ class StrTemplateParserTest {
 	}
 
 	@Test
+	void testParseTemplateAndGetVariables_StartVariable() {
+		StrTemplateParser parser = new StrTemplateParser("${name}abc");
+		Map<String, String> result = parser.getVariables("Dreamluabc");
+		assertEquals(1, result.size());
+		assertEquals("Dreamlu", result.get("name"));
+	}
+
+	@Test
+	void testParseTemplateAndGetVariables_MiddleVariable() {
+		StrTemplateParser parser = new StrTemplateParser("abc${name}def");
+		Map<String, String> result = parser.getVariables("abcDreamludef");
+		assertEquals(1, result.size());
+		assertEquals("Dreamlu", result.get("name"));
+	}
+
+	@Test
+	void testParseTemplateAndGetVariables_EndVariable() {
+		StrTemplateParser parser = new StrTemplateParser("abc${name}");
+		Map<String, String> result = parser.getVariables("abcDreamlu");
+		assertEquals(1, result.size());
+		assertEquals("Dreamlu", result.get("name"));
+	}
+
+	@Test
+	void testParseTemplateAndGetVariables_StartAndMiddleVariable() {
+		StrTemplateParser parser = new StrTemplateParser("${name}abc${age}");
+		Map<String, String> result = parser.getVariables("Dreamluabc30");
+		assertEquals(2, result.size());
+		assertEquals("Dreamlu", result.get("name"));
+		assertEquals("30", result.get("age"));
+	}
+
+	@Test
+	void testParseTemplateAndGetVariables_MiddleAndEndVariable() {
+		StrTemplateParser parser = new StrTemplateParser("abc${name}def${age}");
+		Map<String, String> result = parser.getVariables("abcDreamludef30");
+		assertEquals(2, result.size());
+		assertEquals("Dreamlu", result.get("name"));
+		assertEquals("30", result.get("age"));
+	}
+
+	@Test
+	void testParseTemplateAndGetVariables_AllPositionsVariable() {
+		StrTemplateParser parser = new StrTemplateParser("${name}abc${age}def${like}");
+		Map<String, String> result = parser.getVariables("Dreamluabc30defHello");
+		assertEquals(3, result.size());
+		assertEquals("Dreamlu", result.get("name"));
+		assertEquals("30", result.get("age"));
+		assertEquals("Hello", result.get("like"));
+	}
+
+	@Test
 	void testParseTemplateAndGetVariables_EmptyTemplate() {
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			new StrTemplateParser(null);
