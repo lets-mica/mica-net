@@ -72,6 +72,14 @@ class StrTemplateParserTest {
 	}
 
 	@Test
+	void testParse_EmptyVariableValue() {
+		StrTemplateParser parser = new StrTemplateParser("${xxx}/abc/${name}");
+		Map<String, String> result = parser.getVariables("xxx/abc/Dreamluxx");
+		assertEquals("xxx", result.get("xxx"));
+		assertEquals("Dreamluxx", result.get("name"));
+	}
+
+	@Test
 	void testParseTemplateAndGetVariables_EmptyVariableValue() {
 		StrTemplateParser parser = new StrTemplateParser("a${x}b${y}c");
 		Map<String, String> result = parser.getVariables("abc");
