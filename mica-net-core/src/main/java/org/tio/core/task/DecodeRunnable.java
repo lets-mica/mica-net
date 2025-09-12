@@ -344,6 +344,10 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						if (channelStat.decodeFailCount > tioConfig.maxDecodeFailCount) {
 							int per = readableLength / channelStat.decodeFailCount;
 							if (per < Math.min(channelContext.getReadBufferSize() / 2, 256)) {
+								// 打印报文结构
+								String hexDump = ByteBufferUtil.hexDump(lastByteBuffer);
+								log.error("{} 连续解码{}次都不成功，参与解码的数据长度共{}字节，报文结构：\n{}", channelContext, channelStat.decodeFailCount, readableLength, hexDump);
+								// 抛出解码异常
 								String str = "连续解码" + channelStat.decodeFailCount + "次都不成功，" +
 									"参与解码的数据长度共" + readableLength + "字节，";
 								if (channelContext.packetNeededLength != null) {
