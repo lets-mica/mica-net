@@ -344,7 +344,12 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 						if (channelStat.decodeFailCount > tioConfig.maxDecodeFailCount) {
 							int per = readableLength / channelStat.decodeFailCount;
 							if (per < Math.min(channelContext.getReadBufferSize() / 2, 256)) {
-								String str = "连续解码" + channelStat.decodeFailCount + "次都不成功，并且平均每次接收到的数据为" + per + "字节，有慢攻击的嫌疑";
+								String str = "连续解码" + channelStat.decodeFailCount + "次都不成功，" +
+									"参与解码的数据长度共" + readableLength + "字节，";
+								if (channelContext.packetNeededLength != null) {
+									str += "解码所需长度" + channelContext.packetNeededLength + "字节，";
+								}
+								str += "并且平均每次接收到的数据为" + per + "字节，有慢攻击的嫌疑";
 								throw new TioDecodeException(str);
 							}
 						}
