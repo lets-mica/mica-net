@@ -334,29 +334,21 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 					if (log.isDebugEnabled()) {
 						log.debug("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount, readableLength);
 					}
-					if (channelStat.decodeFailCount > 5) {
-						if (channelContext.packetNeededLength == null) {
-							if (log.isDebugEnabled()) {
-								log.debug("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount, readableLength);
-							}
-						}
+					if (channelStat.decodeFailCount > tioConfig.maxDecodeFailCount) {
+						// 打印报文结构，方便定位问题
+						String hexDump = ByteBufferUtil.hexDump(lastByteBuffer);
+						log.error("{} 连续解码{}次都不成功，参与解码的数据长度共{}字节，报文结构：\n{}", channelContext, channelStat.decodeFailCount, readableLength, hexDump);
 						// 检查慢包攻击
-						if (channelStat.decodeFailCount > tioConfig.maxDecodeFailCount) {
-							int per = readableLength / channelStat.decodeFailCount;
-							if (per < Math.min(channelContext.getReadBufferSize() / 2, 256)) {
-								// 打印报文结构
-								String hexDump = ByteBufferUtil.hexDump(lastByteBuffer);
-								log.error("{} 连续解码{}次都不成功，参与解码的数据长度共{}字节，报文结构：\n{}", channelContext, channelStat.decodeFailCount, readableLength, hexDump);
-								// 抛出解码异常
-								String str = "连续解码" + channelStat.decodeFailCount + "次都不成功，" +
-									"参与解码的数据长度共" + readableLength + "字节，";
-								if (channelContext.packetNeededLength != null) {
-									str += "解码所需长度" + channelContext.packetNeededLength + "字节，";
-								}
-								str += "并且平均每次接收到的数据为" + per + "字节，有慢攻击的嫌疑";
-								throw new TioDecodeException(str);
-							}
+						int per = readableLength / channelStat.decodeFailCount;
+						// 构造异常信息
+						String str = "连续解码" + channelStat.decodeFailCount + "次都不成功，" +
+							"参与解码的数据长度共" + readableLength + "字节，";
+						if (channelContext.packetNeededLength != null) {
+							str += "解码所需长度" + channelContext.packetNeededLength + "字节，";
 						}
+						str += "并且平均每次接收到的数据为" + per + "字节，有慢攻击的嫌疑";
+						// 抛出解码异常
+						throw new TioDecodeException(str);
 					}
 					return;
 				} else {
