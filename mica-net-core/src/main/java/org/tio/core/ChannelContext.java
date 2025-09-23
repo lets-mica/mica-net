@@ -197,6 +197,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
+import org.tio.core.intf.PacketListener;
+import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.stat.ChannelStat;
 import org.tio.core.task.DecodeRunnable;
@@ -458,9 +460,10 @@ public abstract class ChannelContext extends MapPropSupport {
 			}
 			//非SSL or SSL已经握手
 			if (this.sslFacadeContext == null || this.sslFacadeContext.isHandshakeCompleted()) {
-				if (tioConfig.getTioListener() != null) {
+				TioListener tioListener = tioConfig.getTioListener();
+				if (tioListener != null) {
 					try {
-						tioConfig.getTioListener().onAfterSent(this, packet, isSentSuccess);
+						tioListener.onAfterSent(this, packet, isSentSuccess);
 					} catch (Exception e) {
 						log.error(e.getMessage(), e);
 					}
@@ -473,9 +476,10 @@ public abstract class ChannelContext extends MapPropSupport {
 		} catch (Throwable e) {
 			log.error(e.getMessage(), e);
 		}
-		if (packet.getPacketListener() != null) {
+		PacketListener packetListener = packet.getPacketListener();
+		if (packetListener != null) {
 			try {
-				packet.getPacketListener().onAfterSent(this, packet, isSentSuccess);
+				packetListener.onAfterSent(this, packet, isSentSuccess);
 			} catch (Throwable e) {
 				log.error(e.getMessage(), e);
 			}
