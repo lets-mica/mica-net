@@ -2,6 +2,52 @@
 
 ## 发行版本
 
+### v1.1.21 - 2025-09-27
+
+- :sparkles: 优化慢包攻击检测逻辑
+- :arrow_up: 更新依赖：com.google.code.gson:gson 到 v2.13.2
+- :arrow_up: 更新依赖：org.jetbrains:annotations 到 v26.0.2-1
+- :arrow_up: 更新依赖：org.noear:snack3 到 v3.2.139
+- :arrow_up: 更新依赖：com.fasterxml.jackson.core:jackson-databind 到 v2.20.0
+- :arrow_up: 更新依赖：cn.hutool:hutool-json 到 v5.8.40
+- :arrow_up: 更新 Maven 插件版本
+
+### v1.1.20 - 2025-08-25
+
+- :sparkles: 版本更新
+
+### v1.1.19 - 2025-08-21
+
+- :sparkles: 添加字符串模板解析工具
+- :sparkles: 优化模板解析逻辑
+- :sparkles: 添加字符串模板解析的单元测试
+- :sparkles: 修正拼写错误，将方法名 isMactch 更正为 isMatch
+- :sparkles: 为 Pair 类添加 toString 方法
+- :bug: 修复 SSL配置中的密钥密码处理逻辑
+- :sparkles: 重构 SslConfig 类的证书处理逻辑
+- :sparkles: 重构 SslConfig 类中的资源加载方法
+- :arrow_up: 更新依赖：actions/setup-java 到 v5
+- :arrow_up: 更新依赖：actions/checkout 到 v5
+
+### v1.1.18 - 2025-08-03
+
+- :sparkles: 服务端添加 backlog 配置项
+- :sparkles: 重构 SseEmitter 类
+- :sparkles: 优化 SseEmitter 的 chunk 编码性能
+- :sparkles: 优化计时器任务服务启动逻辑
+- :sparkles: 优化 TimerTaskService 的获取逻辑
+- :arrow_up: 更新依赖：org.noear:snack3 到 v3.2.137
+- :arrow_up: 更新依赖：org.codehaus.mojo:flatten-maven-plugin 到 v1.7.2
+
+### v1.1.17 - 2025-07-27
+
+- :sparkles: 版本更新
+
+### v1.1.16 - 2025-07-24
+
+- :sparkles: 代码优化
+- :sparkles: 添加 NetUtil，用于读取网卡的 ip
+
 ### v1.1.15 - 2025-07-23
 
 - :sparkles: client bindPort 支持 0（随机可用端口）
