@@ -34,7 +34,7 @@ import java.util.Objects;
  *
  * @author L.cm
  */
-public class JacksonJsonAdapter implements JsonAdapter {
+public class Jackson2JsonAdapter implements JsonAdapter {
 	/**
 	 * 类名
 	 */
@@ -42,11 +42,11 @@ public class JacksonJsonAdapter implements JsonAdapter {
 
 	private final ObjectMapper objectMapper;
 
-	public JacksonJsonAdapter() {
+	public Jackson2JsonAdapter() {
 		this(new ObjectMapper());
 	}
 
-	public JacksonJsonAdapter(ObjectMapper objectMapper) {
+	public Jackson2JsonAdapter(ObjectMapper objectMapper) {
 		// 使用传入的 ObjectMapper copy，避免污染源 objectMapper
 		this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper is null.").copy();
 		// 注册模块

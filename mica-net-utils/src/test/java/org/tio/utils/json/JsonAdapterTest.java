@@ -12,7 +12,7 @@ import java.util.Map;
  * @author L.cm
  */
 class JsonAdapterTest {
-	private static final JacksonJsonAdapter jacksonJsonAdapter = new JacksonJsonAdapter();
+	private static final Jackson2JsonAdapter jacksonJsonAdapter = new Jackson2JsonAdapter();
 	private static final FastJson2JsonAdapter fastJson2JsonAdapter = new FastJson2JsonAdapter();
 	private static final GsonJsonAdapter gsonJsonAdapter = new GsonJsonAdapter();
 	private static final FastJson1JsonAdapter fastJson1JsonAdapter = new FastJson1JsonAdapter();

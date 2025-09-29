@@ -3,7 +3,7 @@ package org.tio.http.test;
 import org.tio.http.mcp.schema.*;
 import org.tio.http.mcp.server.McpServer;
 import org.tio.http.server.HttpServerStarter;
-import org.tio.utils.json.JacksonJsonAdapter;
+import org.tio.utils.json.Jackson2JsonAdapter;
 import org.tio.utils.json.JsonUtil;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ public class McpTest {
 
 	public static void main(String[] args) throws IOException {
 		// 测试 json 工具
-		JsonUtil.getJsonAdapter(new JacksonJsonAdapter());
+		JsonUtil.getJsonAdapter(new Jackson2JsonAdapter());
 //		JsonUtil.getJsonAdapter(new FastJson2JsonAdapter());
 //		JsonUtil.getJsonAdapter(new FastJson1JsonAdapter());
 //		JsonUtil.getJsonAdapter(new GsonJsonAdapter());
