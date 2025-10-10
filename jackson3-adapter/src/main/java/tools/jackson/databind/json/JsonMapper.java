@@ -1,12 +1,8 @@
 package tools.jackson.databind.json;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.core.json.JsonFactory;
-import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JavaType;
-import tools.jackson.databind.SerializationFeature;
-
-import java.util.function.UnaryOperator;
+import tools.jackson.databind.cfg.MapperBuilder;
 
 public class JsonMapper {
 
@@ -14,10 +10,10 @@ public class JsonMapper {
 	}
 
 	public static Builder builder(JsonFactory factory) {
-		return new Builder();
+		return null;
 	}
 
-	public JsonFactory rebuild() {
+	public Builder rebuild() {
 		return null;
 	}
 
@@ -41,23 +37,7 @@ public class JsonMapper {
 		return null;
 	}
 
-	public static class Builder {
-
-		public Builder findAndAddModules() {
-			return this;
-		}
-
-		public Builder disable(SerializationFeature serializationFeature) {
-			return this;
-		}
-
-		public Builder changeDefaultPropertyInclusion(UnaryOperator<JsonInclude.Value> handler) {
-			return this;
-		}
-
-		public Builder configure(DeserializationFeature deserializationFeature, boolean b) {
-			return this;
-		}
+	public static class Builder extends MapperBuilder<JsonMapper, Builder> {
 
 		public JsonMapper build() {
 			return null;

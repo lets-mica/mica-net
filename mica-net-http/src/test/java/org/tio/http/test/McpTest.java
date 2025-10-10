@@ -22,6 +22,7 @@ public class McpTest {
 	public static void main(String[] args) throws IOException {
 		// 测试 json 工具
 		JsonUtil.getJsonAdapter(new Jackson2JsonAdapter());
+//		JsonUtil.getJsonAdapter(new Jackson3JsonAdapter());
 //		JsonUtil.getJsonAdapter(new FastJson2JsonAdapter());
 //		JsonUtil.getJsonAdapter(new FastJson1JsonAdapter());
 //		JsonUtil.getJsonAdapter(new GsonJsonAdapter());
