@@ -26,7 +26,6 @@
     </scm>
 
     <modules>
-        <module>jackson3-adapter</module>
         <module>mica-net-utils</module>
         <module>mica-net-core</module>
         <module>mica-net-http</module>
@@ -90,11 +89,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>net.dreamlu</groupId>
-                <artifactId>jackson3-adapter</artifactId>
-                <version>${revision}</version>
-            </dependency>
             <dependency>
                 <groupId>net.dreamlu</groupId>
                 <artifactId>mica-net-utils</artifactId>

@@ -32,12 +32,6 @@
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- jackson3 适配器, 主要是为了适配 Jackson3JsonAdapter，使他可以在 java8 下编译。 -->
-        <dependency>
-            <groupId>net.dreamlu</groupId>
-            <artifactId>jackson3-adapter</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-json</artifactId>
@@ -66,6 +60,7 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- 支持多个 source -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -79,6 +74,19 @@
                         <configuration>
                             <sources>
                                 <source>${project.build.directory}/generated-sources/org/tio/utils</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                    <!-- 添加 jackson3 适配的 tools 包 -->
+                    <execution>
+                        <id>add-java17-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/main/java17</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -123,6 +131,19 @@
                             <target>
                                 <!-- 编译完成后删除，避免提示重复文件 -->
                                 <delete file="${project.build.directory}/generated-sources/org/tio/utils/Version.java" />
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!-- 在打包前执行 -->
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- 打包前删除 jackson3 适配的 tools 包 -->
+                                <delete dir="${project.build.directory}/classes/tools" />
                             </target>
                         </configuration>
                     </execution>
