@@ -1,16 +1,16 @@
 @SuppressWarnings({ "requires-automatic"})
 open module net.dreamlu.mica.net.utils {
 	requires transitive org.slf4j;
-	requires fastjson;
-	requires com.alibaba.fastjson2;
-	requires com.fasterxml.jackson.annotation;
-	requires com.fasterxml.jackson.core;
-	requires com.fasterxml.jackson.databind;
-	requires tools.jackson.core;
-	requires tools.jackson.databind;
-	requires com.google.gson;
-	requires cn.hutool.json;
-	requires snack3;
+	requires static fastjson;
+	requires static com.alibaba.fastjson2;
+	requires static com.fasterxml.jackson.annotation;
+	requires static com.fasterxml.jackson.core;
+	requires static com.fasterxml.jackson.databind;
+	requires static tools.jackson.core;
+	requires static tools.jackson.databind;
+	requires static com.google.gson;
+	requires static cn.hutool.json;
+	requires static snack3;
 	exports org.tio.utils;
 	exports org.tio.utils.buffer;
 	exports org.tio.utils.cache;
