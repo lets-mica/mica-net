@@ -1,11 +1,11 @@
 package tools.jackson.databind;
 
 import java.lang.reflect.Type;
-import java.util.List;
+import java.util.Collection;
 
 public class JavaType {
 
-	public <T> JavaType constructCollectionType(Class<List> listClass, Class<T> clazz) {
+	public JavaType constructCollectionType(Class<? extends Collection> collectionClass, Class<?> elementClass) {
 		return null;
 	}
 
