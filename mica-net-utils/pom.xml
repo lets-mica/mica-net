@@ -32,9 +32,10 @@
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- jackson3 适配器, 主要是为了适配 Jackson3JsonAdapter，使他可以在 java8 下编译。 -->
         <dependency>
-            <groupId>tools.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
+            <groupId>net.dreamlu</groupId>
+            <artifactId>jackson3-adapter</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
