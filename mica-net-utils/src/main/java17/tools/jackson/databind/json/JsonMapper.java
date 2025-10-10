@@ -25,7 +25,19 @@ public class JsonMapper {
 		return null;
 	}
 
-	public <T> T readValue(Object json, Object object) {
+	public <T> T readValue(String content, Class<T> valueType) {
+		return null;
+	}
+
+	public <T> T readValue(String content, JavaType valueType) {
+		return null;
+	}
+
+	public <T> T readValue(byte[] content, Class<T> valueType) {
+		return null;
+	}
+
+	public <T> T readValue(byte[] content, JavaType valueType) {
 		return null;
 	}
 
@@ -33,7 +45,11 @@ public class JsonMapper {
 		return null;
 	}
 
-	public <T> T convertValue(Object fromValue, Object toValueType) {
+	public <T> T convertValue(Object fromValue, Class<T> toValueType) {
+		return null;
+	}
+
+	public <T> T convertValue(Object fromValue, JavaType toValueType) {
 		return null;
 	}
 
