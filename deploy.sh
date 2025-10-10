@@ -16,4 +16,5 @@ else
 fi
 
 ## 4. deploy
-mvn clean package deploy -P$profile -pl mica-net-utils,mica-net-core,mica-net-http
+mvn clean package
+mvn deploy -P$profile -pl mica-net-utils,mica-net-core,mica-net-http
