@@ -48,8 +48,10 @@ public class JsonUtil {
 		JsonAdapter defaultJsonAdapter;
 		if (jsonAdapter != null) {
 			defaultJsonAdapter = jsonAdapter;
-		} else if (ClassUtil.isPresent(JacksonJsonAdapter.CLAZZ_NAME)) {
-			defaultJsonAdapter = new JacksonJsonAdapter();
+		} else if (ClassUtil.isPresent(Jackson3JsonAdapter.CLAZZ_NAME)) {
+			defaultJsonAdapter = new Jackson3JsonAdapter();
+		} else if (ClassUtil.isPresent(Jackson2JsonAdapter.CLAZZ_NAME)) {
+			defaultJsonAdapter = new Jackson2JsonAdapter();
 		} else if (ClassUtil.isPresent(FastJson2JsonAdapter.CLAZZ_NAME)) {
 			defaultJsonAdapter = new FastJson2JsonAdapter();
 		} else if (ClassUtil.isPresent(GsonJsonAdapter.CLAZZ_NAME)) {

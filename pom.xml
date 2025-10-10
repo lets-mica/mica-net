@@ -26,6 +26,7 @@
     </scm>
 
     <modules>
+        <module>jackson3-adapter</module>
         <module>mica-net-utils</module>
         <module>mica-net-core</module>
         <module>mica-net-http</module>
@@ -46,6 +47,7 @@
         <fastjson2.version>2.0.52</fastjson2.version>
         <gson.version>2.13.2</gson.version>
         <jackson.version>2.20.0</jackson.version>
+        <jackson3.version>3.0.0-rc10</jackson3.version>
         <hutool.version>5.8.40</hutool.version>
         <snack3.version>3.2.139</snack3.version>
         <slf4j.version>2.0.17</slf4j.version>
@@ -88,6 +90,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>net.dreamlu</groupId>
+                <artifactId>jackson3-adapter</artifactId>
+                <version>${revision}</version>
+            </dependency>
             <dependency>
                 <groupId>net.dreamlu</groupId>
                 <artifactId>mica-net-utils</artifactId>
