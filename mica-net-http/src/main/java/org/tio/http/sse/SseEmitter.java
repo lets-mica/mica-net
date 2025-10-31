@@ -108,6 +108,7 @@ public class SseEmitter {
 	 */
 	public static SseEmitter getEmitter(HttpRequest request, HttpResponse response) {
 		response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.TEXT_EVENT_STREAM);
+		response.addHeader(HeaderName.Cache_Control, HeaderValue.Cache_Control.no_cache);
 		response.addHeader(HeaderName.Connection, HeaderValue.Connection.keep_alive);
 		response.addHeader(HeaderName.Transfer_Encoding, HeaderValue.Transfer_Encoding.chunked);
 		return new SseEmitter(request);
