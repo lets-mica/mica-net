@@ -30,7 +30,7 @@ public class SseEvent {
 	 * 添加 SSE "id" 行.
 	 */
 	public SseEvent id(long id) {
-		buf.append("id:").append(id).append('\n');
+		buf.append("id: ").append(id).append('\n');
 		return this;
 	}
 
@@ -38,7 +38,7 @@ public class SseEvent {
 	 * 添加 SSE "id" 行.
 	 */
 	public SseEvent id(String id) {
-		buf.append("id:").append(id).append('\n');
+		buf.append("id: ").append(id).append('\n');
 		return this;
 	}
 
@@ -46,7 +46,7 @@ public class SseEvent {
 	 * 添加 SSE "event" 行.
 	 */
 	public SseEvent name(String event) {
-		buf.append("event:").append(event).append('\n');
+		buf.append("event: ").append(event).append('\n');
 		return this;
 	}
 
@@ -54,7 +54,7 @@ public class SseEvent {
 	 * 添加 SSE "retry" 行.
 	 */
 	public SseEvent reconnectTime(long reconnectTimeMillis) {
-		buf.append("retry:").append(reconnectTimeMillis).append('\n');
+		buf.append("retry: ").append(reconnectTimeMillis).append('\n');
 		return this;
 	}
 
@@ -64,9 +64,9 @@ public class SseEvent {
 	public SseEvent data(Object object) {
 		// 如果是多行字符串，则每行前面加上 data:
 		if (object instanceof String) {
-			buf.append("data:").append(StrUtil.replace((String) object, "\n", "\ndata:")).append('\n');
+			buf.append("data: ").append(StrUtil.replace((String) object, "\n", "\ndata: ")).append('\n');
 		} else {
-			buf.append("data:").append(object).append('\n');
+			buf.append("data: ").append(object).append('\n');
 		}
 		return this;
 	}
@@ -75,7 +75,7 @@ public class SseEvent {
 	 * 添加 SSE "comment" 行.
 	 */
 	public SseEvent comment(String comment) {
-		buf.append(':').append(StrUtil.replace(comment, "\n", "\n:")).append('\n');
+		buf.append(": ").append(StrUtil.replace(comment, "\n", "\n: ")).append('\n');
 		return this;
 	}
 
