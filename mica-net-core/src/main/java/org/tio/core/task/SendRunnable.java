@@ -275,19 +275,23 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			return false;
 		}
 
-		// ⭐ 预编码优化：在入队前完成编码，避免在发送线程中编码
-		// 这样可以将编码工作分散到多个业务线程，提升发送线程的处理效率
-		if (packet.getPreEncodedByteBuffer() == null) {
-			try {
-				ByteBuffer encoded = tioHandler.encode(packet, tioConfig, channelContext);
-				if (encoded != null) {
-					packet.setPreEncodedByteBuffer(encoded);
+	// ⭐ 预编码优化：在入队前完成编码，避免在发送线程中编码
+	// 这样可以将编码工作分散到多个业务线程，提升发送线程的处理效率
+	if (packet.getPreEncodedByteBuffer() == null) {
+		try {
+			ByteBuffer encoded = tioHandler.encode(packet, tioConfig, channelContext);
+			if (encoded != null) {
+				// 确保 ByteBuffer 处于可读状态
+				if (!encoded.hasRemaining()) {
+					encoded.flip();
 				}
-			} catch (Exception e) {
-				log.error("{}, 预编码失败: {}", channelContext, packet.logstr(), e);
-				// 预编码失败也允许入队，会在 getByteBuffer 中重试
+				packet.setPreEncodedByteBuffer(encoded);
 			}
+		} catch (Exception e) {
+			log.error("{}, 预编码失败: {}", channelContext, packet.logstr(), e);
+			// 预编码失败也允许入队，会在 getByteBuffer 中重试
 		}
+	}
 
 		if (channelContext.sslFacadeContext != null && !channelContext.sslFacadeContext.isHandshakeCompleted() && SslUtils.needSslEncrypt(packet, tioConfig)) {
 			return this.getForSendAfterSslHandshakeCompleted(true).add(packet);
@@ -316,10 +320,19 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		try {
 			ByteBuffer byteBuffer = packet.getPreEncodedByteBuffer();
 			if (byteBuffer == null) {
+				// 没有预编码，需要现场编码
 				byteBuffer = tioHandler.encode(packet, tioConfig, channelContext);
-			}
-			if (!byteBuffer.hasRemaining()) {
-				byteBuffer.flip();
+				// 现场编码需要检查状态
+				if (!byteBuffer.hasRemaining()) {
+					byteBuffer.flip();
+				}
+			} else {
+				// ⭐ 关键优化：使用 duplicate() 创建独立视图，避免多次使用时状态冲突
+				// duplicate() 共享数据但拥有独立的 position/limit/mark
+				// 这样 allByteBuffer.put(byteBuffer) 不会影响原始 buffer
+				byteBuffer = byteBuffer.duplicate();
+				// 重置 position 到开始，确保从头读取
+				byteBuffer.position(0);
 			}
 			return byteBuffer;
 		} catch (Exception e) {
