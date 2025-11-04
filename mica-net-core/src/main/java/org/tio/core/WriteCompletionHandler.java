@@ -283,6 +283,9 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 		} finally {
 			lock.unlock();
 		}
+		
+		// 异步优化：写操作完成后，触发下一批消息发送
+		channelContext.sendRunnable.onWriteCompleted();
 	}
 
 	/**

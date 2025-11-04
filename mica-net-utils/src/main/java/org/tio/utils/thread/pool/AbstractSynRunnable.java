@@ -211,8 +211,9 @@ public abstract class AbstractSynRunnable implements Runnable {
 	public final Executor executor;
 	/**
 	 * 是否已经提交到线程池了
+	 * volatile 保证多线程可见性，优化快速路径检查的准确性
 	 */
-	public boolean executed = false;
+	public volatile boolean executed = false;
 	protected ReentrantLock runningLock = new ReentrantLock();
 	private boolean isCanceled = false;
 

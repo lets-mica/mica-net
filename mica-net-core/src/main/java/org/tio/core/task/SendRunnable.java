@@ -199,7 +199,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.SSLException;
 
@@ -234,6 +234,11 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	 * The msg queue.
 	 */
 	private final Queue<Packet> msgQueue;
+	/**
+	 * 异步优化：标记是否有写操作正在进行
+	 * 用于防止 AsynchronousSocketChannel 的 WritePendingException
+	 */
+	private final AtomicBoolean writing = new AtomicBoolean(false);
 	public boolean canSend = true;
 	/**
 	 * The msg queue.
@@ -331,6 +336,11 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 
 	@Override
 	public void runTask() {
+		// 异步优化：如果有写操作正在进行，直接返回，避免 WritePendingException
+		if (writing.get()) {
+			return;
+		}
+		
 		if (msgQueue.isEmpty()) {
 			return;
 		}
@@ -438,17 +448,20 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		if (!TioUtils.checkBeforeIO(channelContext)) {
 			return;
 		}
-		ReentrantLock lock = channelContext.writeCompletionHandler.lock;
-		lock.lock();
+		
+		// 异步优化：标记写入状态
+		canSend = false;
+		writing.set(true);
+		
 		try {
-			canSend = false;
 			WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
+			// 异步发送，不再等待完成，回调中会处理
 			channelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, channelContext.writeCompletionHandler);
-			channelContext.writeCompletionHandler.condition.await();
-		} catch (InterruptedException e) {
-			log.error(e.getMessage(), e);
-		} finally {
-			lock.unlock();
+		} catch (Exception e) {
+			// 如果发送失败，恢复状态
+			writing.set(false);
+			canSend = true;
+			log.error("{}, 异步写入失败", channelContext, e);
 		}
 	}
 
@@ -465,6 +478,19 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	@Override
 	public Queue<Packet> getMsgQueue() {
 		return msgQueue;
+	}
+
+	/**
+	 * 异步优化：写操作完成时调用，由 WriteCompletionHandler 回调
+	 * 清除写入标记并触发下一批消息发送
+	 */
+	public void onWriteCompleted() {
+		writing.set(false);
+		// 优化：只在未提交状态且有消息时才触发，避免无效的 execute 调用和锁竞争
+		// executed 为 true 表示任务已在线程池队列中，无需重复提交
+		if (!msgQueue.isEmpty() && !this.executed) {
+			this.execute();
+		}
 	}
 
 }
