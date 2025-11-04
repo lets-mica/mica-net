@@ -336,11 +336,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	@Override
 	public void runTask() {
 		// 异步优化：如果有写操作正在进行，直接返回，避免 WritePendingException
-		if (writing.get()) {
-			return;
-		}
-
-		if (msgQueue.isEmpty()) {
+		if (writing.get() || msgQueue.isEmpty()) {
 			return;
 		}
 
