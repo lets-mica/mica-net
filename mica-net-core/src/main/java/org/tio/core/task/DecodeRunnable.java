@@ -223,10 +223,13 @@ import java.util.concurrent.Executor;
  */
 public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	private static final Logger log = LoggerFactory.getLogger(DecodeRunnable.class);
+	private static final int MIN_AVERAGE_BYTES_THRESHOLD = 256;
+	private static final int BUFFER_SIZE_RATIO = 2;
 	private final ChannelContext channelContext;
 	private final TioConfig tioConfig;
 	private final TioHandler tioHandler;
 	private final TioListener tioListener;
+	private final boolean isServer;
 	/**
 	 * The msg queue.
 	 */
@@ -246,6 +249,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 		this.tioConfig = channelContext.tioConfig;
 		this.tioHandler = this.tioConfig.getTioHandler();
 		this.tioListener = this.tioConfig.getTioListener();
+		this.isServer = tioConfig.isServer();
 		this.msgQueue = tioConfig.useQueueDecode ? new ConcurrentLinkedQueue<>() : null;
 	}
 
@@ -272,6 +276,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	/**
 	 * 清空处理的队列消息
 	 */
+	@Override
 	public void clearMsgQueue() {
 		super.clearMsgQueue();
 		lastByteBuffer = null;
@@ -296,8 +301,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 			byteBuffer = ByteBufferUtil.composite(lastByteBuffer, byteBuffer);
 			lastByteBuffer = null;
 		}
-		// 判断是否服务端
-		boolean isServer = tioConfig.isServer();
 		while (true) {
 			try {
 				int initPosition = byteBuffer.position();
@@ -342,7 +345,8 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 							}
 						}
 						int per = readableLength / channelStat.decodeFailCount;
-						if (per < Math.min(channelContext.getReadBufferSize() / 2, 256)) {
+						int threshold = Math.min(channelContext.getReadBufferSize() / BUFFER_SIZE_RATIO, MIN_AVERAGE_BYTES_THRESHOLD);
+						if (per < threshold) {
 							// 构造异常信息
 							String str = "连续解码" + channelStat.decodeFailCount + "次都不成功，" +
 								"参与解码的数据长度共" + readableLength + "字节，";

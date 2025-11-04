@@ -200,6 +200,7 @@ import org.tio.core.ChannelContext;
 import org.tio.core.PacketHandlerMode;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.Packet;
+import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
@@ -215,10 +216,10 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	private static final Logger log = LoggerFactory.getLogger(HandlerRunnable.class);
-
 	private final ChannelContext channelContext;
 	private final TioConfig tioConfig;
 	private final TioListener tioListener;
+	private final TioHandler tioHandler;
 	private final AtomicLong synFailCount = new AtomicLong();
 	/**
 	 * The msg queue.
@@ -229,6 +230,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 		super(executor);
 		this.channelContext = channelContext;
 		this.tioConfig = channelContext.tioConfig;
+		this.tioHandler = this.tioConfig.getTioHandler();
 		this.tioListener = this.tioConfig.getTioListener();
 		this.msgQueue = PacketHandlerMode.QUEUE == tioConfig.packetHandlerMode ? new ConcurrentLinkedQueue<>() : null;
 	}
@@ -250,26 +252,18 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 						syns.put(synSeq, packet);
 						initPacket.notify();
 					}
-				} else {
-					log.error("[{}]同步消息失败, synSeq is {}, 但是同步集合中没有对应key值", synFailCount.incrementAndGet(), synSeq);
-				}
 			} else {
-				tioConfig.getTioHandler().handler(packet, channelContext);
+				log.error("[{}]同步消息失败, synSeq is {}, 但是同步集合中没有对应key值", synFailCount.incrementAndGet(), synSeq);
 			}
+		} else {
+			tioHandler.handler(packet, channelContext);
+		}
 		} catch (Throwable e) {
 			log.error(packet.logstr(), e);
 		} finally {
 			long end = System.currentTimeMillis();
 			long iv = end - start;
-			if (tioConfig.statOn) {
-				channelContext.stat.handledPackets.incrementAndGet();
-				channelContext.stat.handledBytes.addAndGet(packet.getByteCount());
-				channelContext.stat.handledPacketCosts.addAndGet(iv);
-				// groupStat
-				tioConfig.groupStat.handledPackets.increment();
-				tioConfig.groupStat.handledBytes.add(packet.getByteCount());
-				tioConfig.groupStat.handledPacketCosts.add(iv);
-			}
+			updateStatistics(packet, iv);
 			if (tioListener != null) {
 				try {
 					tioListener.onAfterHandled(channelContext, packet, iv);
@@ -278,6 +272,27 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 				}
 			}
 		}
+	}
+
+	/**
+	 * 更新统计信息
+	 *
+	 * @param packet 数据包
+	 * @param cost   处理耗时
+	 */
+	private void updateStatistics(Packet packet, long cost) {
+		if (!tioConfig.statOn) {
+			return;
+		}
+		int byteCount = packet.getByteCount();
+		// 更新通道统计
+		channelContext.stat.handledPackets.incrementAndGet();
+		channelContext.stat.handledBytes.addAndGet(byteCount);
+		channelContext.stat.handledPacketCosts.addAndGet(cost);
+		// 更新组统计
+		tioConfig.groupStat.handledPackets.increment();
+		tioConfig.groupStat.handledBytes.add(byteCount);
+		tioConfig.groupStat.handledPacketCosts.add(cost);
 	}
 
 	@Override
