@@ -193,6 +193,16 @@
 */
 package org.tio.core.task;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.net.ssl.SSLException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
@@ -207,15 +217,6 @@ import org.tio.core.ssl.SslUtils;
 import org.tio.core.ssl.SslVo;
 import org.tio.core.utils.TioUtils;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
-
-import javax.net.ssl.SSLException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author tanyaowu
@@ -268,6 +269,24 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		if (this.isCanceled()) {
 			log.info("{}, 任务已经取消，{}添加到发送队列失败", channelContext, packet.logstr());
 			return false;
+		}
+
+		// ⭐ 预编码优化：在入队前完成编码，避免在发送线程中编码
+		// 这样可以将编码工作分散到多个业务线程，提升发送线程的处理效率
+		if (packet.getPreEncodedByteBuffer() == null) {
+			try {
+				ByteBuffer encoded = tioHandler.encode(packet, tioConfig, channelContext);
+				if (encoded != null) {
+					// 确保 ByteBuffer 处于可读状态
+					if (!encoded.hasRemaining()) {
+						encoded.flip();
+					}
+					packet.setPreEncodedByteBuffer(encoded);
+				}
+			} catch (Exception e) {
+				log.error("{}, 预编码失败: {}", channelContext, packet.logstr(), e);
+				// 预编码失败也允许入队，会在 getByteBuffer 中重试
+			}
 		}
 
 		if (channelContext.sslFacadeContext != null && !channelContext.sslFacadeContext.isHandshakeCompleted() && SslUtils.needSslEncrypt(packet, tioConfig)) {
@@ -325,7 +344,18 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			return;
 		}
 
-		int listInitialCapacity = Math.min(queueSize, canSend ? 300 : 1000);
+		// 动态调整批量大小 ⭐ 关键改动
+		int dynamicBatchSize;
+		if (queueSize > 10000) {
+			dynamicBatchSize = 5000;
+		} else if (queueSize > 1000) {
+			dynamicBatchSize = 2000;
+		} else if (queueSize > 300) {
+			dynamicBatchSize = 1000;
+		} else {
+			dynamicBatchSize = queueSize;
+		}
+		int listInitialCapacity = dynamicBatchSize;
 
 		Packet packet;
 		List<Packet> packets = new ArrayList<>(listInitialCapacity);
