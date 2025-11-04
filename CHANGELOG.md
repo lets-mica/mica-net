@@ -2,6 +2,18 @@
 
 ## 发行版本
 
+### v1.2.2 - 2025-11-04
+
+- perf(net): 优化异步写入性能与线程安全
+    - 为 AbstractSynRunnable.executed 添加 volatile修饰符，确保多线程可见性
+    - SendRunnable 中引入 AtomicBoolean(writing) 避免 WritePendingException- 移除 ReentrantLock 锁机制，改用无锁异步写入逻辑
+    - 增加 writing 状态标记，防止并发写入冲突
+    - 在 WriteCompletionHandler 回调中触发下一批消息发送- SynThreadPoolExecutor 中实现快速路径检查，减少无效锁竞争
+    -优化 executed 状态双重检查逻辑，提升任务提交效率
+- feat(core): 优化发送任务性能，引入预编码机制和动态调整批量发送大小
+- fix(sse): SSE 在 id、event、data 等字段值前添加空格
+- fix(sse): 为 SSE 响应添加了 Cache-Control: no-cache 头
+
 ### v1.1.21 - 2025-10-08
 
 - :sparkles: 优化慢包攻击检测逻辑
