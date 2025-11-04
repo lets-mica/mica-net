@@ -281,10 +281,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			try {
 				ByteBuffer encoded = tioHandler.encode(packet, tioConfig, channelContext);
 				if (encoded != null) {
-					// 确保 ByteBuffer 处于可读状态
-					if (!encoded.hasRemaining()) {
-						encoded.flip();
-					}
 					packet.setPreEncodedByteBuffer(encoded);
 				}
 			} catch (Exception e) {
@@ -322,7 +318,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			if (byteBuffer == null) {
 				byteBuffer = tioHandler.encode(packet, tioConfig, channelContext);
 			}
-
 			if (!byteBuffer.hasRemaining()) {
 				byteBuffer.flip();
 			}

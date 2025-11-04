@@ -71,9 +71,12 @@ public class ClusterMessageDecoder {
 	 * @return ClusterDataMessage
 	 */
 	private static ClusterDataMessage decodeDataMessage(ChannelContext ctx, ByteBuffer buffer, int readableLength) {
+		// 标记当前位置，用于重置
+		buffer.mark();
 		Pair<Integer, Integer> dataLengthPair = readDataPacketLength(buffer);
 		// 消息不够读
 		if (dataLengthPair == null) {
+			buffer.reset();
 			return null;
 		}
 		int dataLength = dataLengthPair.getLeft();
