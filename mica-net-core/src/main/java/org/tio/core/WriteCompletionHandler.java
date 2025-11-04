@@ -250,7 +250,6 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 		ReentrantLock lock = channelContext.writeCompletionHandler.lock;
 		lock.lock();
 		try {
-			channelContext.sendRunnable.canSend = true;
 			channelContext.writeCompletionHandler.condition.signal();
 			Object attachment = writeCompletionVo.obj;
 			TioConfig tioConfig = channelContext.tioConfig;
@@ -283,7 +282,6 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 		} finally {
 			lock.unlock();
 		}
-		
 		// 异步优化：写操作完成后，触发下一批消息发送
 		channelContext.sendRunnable.onWriteCompleted();
 	}

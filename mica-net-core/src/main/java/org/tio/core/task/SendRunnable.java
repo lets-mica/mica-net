@@ -239,7 +239,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	 * 用于防止 AsynchronousSocketChannel 的 WritePendingException
 	 */
 	private final AtomicBoolean writing = new AtomicBoolean(false);
-	public boolean canSend = true;
 	/**
 	 * The msg queue.
 	 */
@@ -355,11 +354,12 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		}
 
 		// 动态调整批量大小：根据队列积压情况自适应调整
-		int listInitialCapacity = getPacketListCapacity(queueSize);
+		// 针对 MQTT 等小消息场景，采用纯数量控制策略，简化逻辑
+		int targetBatchSize = getPacketListCapacity(queueSize);
 
 		Packet packet;
-		List<Packet> packets = new ArrayList<>(listInitialCapacity);
-		List<ByteBuffer> byteBuffers = new ArrayList<>(listInitialCapacity);
+		List<Packet> packets = new ArrayList<>(targetBatchSize);
+		List<ByteBuffer> byteBuffers = new ArrayList<>(targetBatchSize);
 		int allBytebufferCapacity = 0;
 		Boolean needSslEncrypted = null;
 		boolean sslChanged = false;
@@ -372,15 +372,19 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 
 			if (isSsl) {
 				boolean _needSslEncrypted = !packet.isSslEncrypted();
-				if (needSslEncrypted == null) {
-					sslChanged = false;
-				} else {
+				if (needSslEncrypted != null) {
 					sslChanged = needSslEncrypted != _needSslEncrypted;
 				}
 				needSslEncrypted = _needSslEncrypted;
 			}
 
-			if ((canSend && allBytebufferCapacity >= MAX_CAPACITY_MIN) || (allBytebufferCapacity >= MAX_CAPACITY_MAX) || sslChanged) {
+			// 批量控制：按数量控制，适合 MQTT 等小消息场景
+			// 1. 达到目标批量数量
+			// 2. SSL 状态变化（必须分开发送）
+			// 3. 数据量超过最大限制（安全上限保护，防止单批过大）
+			if (packets.size() >= targetBatchSize
+				|| allBytebufferCapacity >= MAX_CAPACITY_MAX
+				|| sslChanged) {
 				break;
 			}
 		}
@@ -439,7 +443,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			return;
 		}
 		// 异步优化：标记写入状态
-		canSend = false;
 		writing.set(true);
 		try {
 			WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
@@ -448,7 +451,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		} catch (Exception e) {
 			// 如果发送失败，恢复状态
 			writing.set(false);
-			canSend = true;
 			log.error("{}, 异步写入失败", channelContext, e);
 		}
 	}
