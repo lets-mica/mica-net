@@ -275,23 +275,23 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			return false;
 		}
 
-	// ⭐ 预编码优化：在入队前完成编码，避免在发送线程中编码
-	// 这样可以将编码工作分散到多个业务线程，提升发送线程的处理效率
-	if (packet.getPreEncodedByteBuffer() == null) {
-		try {
-			ByteBuffer encoded = tioHandler.encode(packet, tioConfig, channelContext);
-			if (encoded != null) {
-				// 确保 ByteBuffer 处于可读状态
-				if (!encoded.hasRemaining()) {
-					encoded.flip();
+		// ⭐ 预编码优化：在入队前完成编码，避免在发送线程中编码
+		// 这样可以将编码工作分散到多个业务线程，提升发送线程的处理效率
+		if (packet.getPreEncodedByteBuffer() == null) {
+			try {
+				ByteBuffer encoded = tioHandler.encode(packet, tioConfig, channelContext);
+				if (encoded != null) {
+					// 确保 ByteBuffer 处于可读状态
+					if (!encoded.hasRemaining()) {
+						encoded.flip();
+					}
+					packet.setPreEncodedByteBuffer(encoded);
 				}
-				packet.setPreEncodedByteBuffer(encoded);
+			} catch (Exception e) {
+				log.error("{}, 预编码失败: {}", channelContext, packet.logstr(), e);
+				// 预编码失败也允许入队，会在 getByteBuffer 中重试
 			}
-		} catch (Exception e) {
-			log.error("{}, 预编码失败: {}", channelContext, packet.logstr(), e);
-			// 预编码失败也允许入队，会在 getByteBuffer 中重试
 		}
-	}
 
 		if (channelContext.sslFacadeContext != null && !channelContext.sslFacadeContext.isHandshakeCompleted() && SslUtils.needSslEncrypt(packet, tioConfig)) {
 			return this.getForSendAfterSslHandshakeCompleted(true).add(packet);
