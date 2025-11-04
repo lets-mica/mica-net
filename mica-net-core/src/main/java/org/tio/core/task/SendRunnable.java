@@ -340,7 +340,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		if (writing.get()) {
 			return;
 		}
-		
+
 		if (msgQueue.isEmpty()) {
 			return;
 		}
@@ -354,18 +354,8 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			return;
 		}
 
-		// 动态调整批量大小 ⭐ 关键改动
-		int dynamicBatchSize;
-		if (queueSize > 10000) {
-			dynamicBatchSize = 5000;
-		} else if (queueSize > 1000) {
-			dynamicBatchSize = 2000;
-		} else if (queueSize > 300) {
-			dynamicBatchSize = 1000;
-		} else {
-			dynamicBatchSize = queueSize;
-		}
-		int listInitialCapacity = dynamicBatchSize;
+		// 动态调整批量大小：根据队列积压情况自适应调整
+		int listInitialCapacity = getPacketListCapacity(queueSize);
 
 		Packet packet;
 		List<Packet> packets = new ArrayList<>(listInitialCapacity);
@@ -448,11 +438,9 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		if (!TioUtils.checkBeforeIO(channelContext)) {
 			return;
 		}
-		
 		// 异步优化：标记写入状态
 		canSend = false;
 		writing.set(true);
-		
 		try {
 			WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
 			// 异步发送，不再等待完成，回调中会处理
@@ -490,6 +478,31 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		// executed 为 true 表示任务已在线程池队列中，无需重复提交
 		if (!msgQueue.isEmpty() && !this.executed) {
 			this.execute();
+		}
+	}
+
+	/**
+	 * 根据队列积压情况自适应调整批量大小
+	 *
+	 * @param queueSize 队列积压大小
+	 * @return 批量大小
+	 */
+	private static int getPacketListCapacity(int queueSize) {
+		// 积压越多，批量越大，加速消费；积压少时，批量小，降低延迟
+		if (queueSize > 20000) {
+			return 8000;                    // 极大积压：超大批量快速消化
+		} else if (queueSize > 10000) {
+			return 5000;                    // 严重积压：大批量处理
+		} else if (queueSize > 5000) {
+			return 3000;                    // 中度积压：中大批量
+		} else if (queueSize > 2000) {
+			return 1500;                    // 轻度积压：中批量
+		} else if (queueSize > 1000) {
+			return 1000;                    // 小积压：标准批量
+		} else if (queueSize > 300) {
+			return 500;                     // 少量积压：小批量
+		} else {
+			return queueSize;               // 极少消息：按实际数量
 		}
 	}
 
