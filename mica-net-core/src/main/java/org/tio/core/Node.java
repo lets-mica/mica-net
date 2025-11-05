@@ -202,12 +202,14 @@ import java.util.Objects;
  * 2017年10月19日 上午9:40:07
  */
 public class Node implements Comparable<Node> {
-	private final String ip;
+	// ⭐ 字段对齐优化：先放小的类型（int 4字节），再放大的类型（引用 8字节）
+	// 避免对齐填充，节省 4字节/对象
 	private final int port;
+	private final String ip;
 
 	public Node(String ip, int port) {
-		this.ip = StrUtil.isBlank(ip) ? "0.0.0.0" : ip;
 		this.port = port;
+		this.ip = StrUtil.isBlank(ip) ? "0.0.0.0" : ip;
 	}
 
 	@Override
