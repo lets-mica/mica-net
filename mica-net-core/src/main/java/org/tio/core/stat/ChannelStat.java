@@ -202,6 +202,9 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ChannelStat implements java.io.Serializable {
 	private static final long serialVersionUID = -6942731710053482089L;
+	
+	// ⭐ 字段对齐优化：按照 JVM 内存对齐原则重新排列字段，减少内存填充
+	// 1. 引用类型放在一起（8字节对齐）
 	/**
 	 * 本连接已发送的字节数
 	 */
@@ -240,9 +243,11 @@ public class ChannelStat implements java.io.Serializable {
 	 */
 	public final AtomicInteger heartbeatTimeoutCount = new AtomicInteger();
 	/**
-	 * 本次解码失败的次数
+	 * 第一次连接成功的时间（包装类型）
 	 */
-	public int decodeFailCount = 0;
+	public Long timeFirstConnected = null;
+	
+	// 2. long 类型放在一起（8字节对齐）
 	/**
 	 * 最近一次收到业务消息包的时间(一个完整的业务消息包，一部分消息不算)
 	 */
@@ -264,13 +269,15 @@ public class ChannelStat implements java.io.Serializable {
 	 */
 	public long timeCreated;
 	/**
-	 * 第一次连接成功的时间
-	 */
-	public Long timeFirstConnected = null;
-	/**
 	 * 连接关闭的时间
 	 */
 	public long timeClosed;
+	
+	// 3. int 类型放最后（4字节）
+	/**
+	 * 本次解码失败的次数
+	 */
+	public int decodeFailCount = 0;
 
 	public ChannelStat() {
 		this(System.currentTimeMillis());
