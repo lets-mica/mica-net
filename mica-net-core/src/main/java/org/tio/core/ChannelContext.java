@@ -224,18 +224,13 @@ public abstract class ChannelContext extends MapPropSupport {
 	private static final Logger log = LoggerFactory.getLogger(ChannelContext.class);
 	public static final String UNKNOWN_ADDRESS_IP = "$UNKNOWN";
 	public static final AtomicInteger UNKNOWN_ADDRESS_PORT_SEQ = new AtomicInteger();
+
+	// ⭐ 字段对齐优化：按照 JVM 内存对齐原则重新排列字段，减少内存填充
+	// 1. 引用类型放在一起（8字节对齐）
 	public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
 	public final ChannelStat stat = new ChannelStat();
 	public final CloseMeta closeMeta = new CloseMeta();
-	/**
-	 * 此值不设时，心跳时间取org.tio.core.TioConfig.heartbeatTimeout
-	 * 当然这个值如果小于org.tio.core.TioConfig.heartbeatTimeout，定时检查的时间间隔还是以org.tio.core.TioConfig.heartbeatTimeout为准，只是在判断时用此值
-	 */
-	public Long heartbeatTimeout = null;
-	/**
-	 * 一个packet所需要的字节数（用于应用告诉框架，下一次解码所需要的字节长度，省去冗余解码带来的性能损耗）
-	 */
-	public Integer packetNeededLength = null;
+
 	public TioConfig tioConfig = null;
 	public DecodeRunnable decodeRunnable = null;
 	public HandlerRunnable handlerRunnable = null;
@@ -243,24 +238,11 @@ public abstract class ChannelContext extends MapPropSupport {
 	public WriteCompletionHandler writeCompletionHandler = null;
 	public SslFacadeContext sslFacadeContext;
 	/**
-	 * 状态位，使用二进制标识位来判断状态
-	 *
-	 * <p>
-	 * 0~2 位，配置状态 isVirtual(虚拟用于压测):0,isReconnect(重连):0logWhenDecodeError(解码出现异常时，是否打印异常日志):0
-	 * 3~5 位，连接状态 isWaitingClose(等待关闭):0,isClosed(已关闭):1,isRemoved(已关闭):0
-	 * 6~7 位，扩展状态 isAccepted(已接受,用于业务例如：mqtt):0,isBizStatus(业务自定义状态):0
-	 * </p>
-	 */
-	private byte states = 0;
-	/**
 	 * The asynchronous socket channel.
 	 */
 	public AsynchronousSocketChannel asynchronousSocketChannel;
 	private ReadCompletionHandler readCompletionHandler = null;
-	private String userId;
-	private String token;
-	private String bsId;
-	private String id;
+
 	private Node clientNode;
 	/**
 	 * 一些连接是代理的，譬如web服务器放在nginx后面，此时需要知道最原始的ip
@@ -271,14 +253,43 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * 该连接在哪些组中
 	 */
 	private Set<String> groups = null;
-	/**
-	 * 个性化readBufferSize
-	 */
-	private Integer readBufferSize = null;
+
+	private String userId;
+	private String token;
+	private String bsId;
+	private String id;
+
 	/**
 	 * 连接关闭的原因码
 	 */
 	private CloseCode closeCode = CloseCode.INIT_STATUS;
+
+	// 2. 包装类型（可能为 null）
+	/**
+	 * 此值不设时，心跳时间取org.tio.core.TioConfig.heartbeatTimeout
+	 * 当然这个值如果小于org.tio.core.TioConfig.heartbeatTimeout，定时检查的时间间隔还是以org.tio.core.TioConfig.heartbeatTimeout为准，只是在判断时用此值
+	 */
+	public Long heartbeatTimeout = null;
+	/**
+	 * 一个packet所需要的字节数（用于应用告诉框架，下一次解码所需要的字节长度，省去冗余解码带来的性能损耗）
+	 */
+	public Integer packetNeededLength = null;
+	/**
+	 * 个性化readBufferSize
+	 */
+	private Integer readBufferSize = null;
+
+	// 3. 原始类型放最后（1字节）
+	/**
+	 * 状态位，使用二进制标识位来判断状态
+	 *
+	 * <p>
+	 * 0~2 位，配置状态 isVirtual(虚拟用于压测):0,isReconnect(重连):0logWhenDecodeError(解码出现异常时，是否打印异常日志):0
+	 * 3~5 位，连接状态 isWaitingClose(等待关闭):0,isClosed(已关闭):1,isRemoved(已关闭):0
+	 * 6~7 位，扩展状态 isAccepted(已接受,用于业务例如：mqtt):0,isBizStatus(业务自定义状态):0
+	 * </p>
+	 */
+	private byte states = 0;
 
 	/**
 	 * ChannelContext
