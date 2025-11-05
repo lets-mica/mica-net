@@ -193,10 +193,10 @@
 */
 package org.tio.core.intf;
 
-import org.tio.utils.SysConst;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
+
+import org.tio.utils.SysConst;
 
 /**
  * @author tanyaowu
@@ -204,29 +204,33 @@ import java.util.concurrent.CountDownLatch;
  */
 public class Packet implements java.io.Serializable {
 	private static final long serialVersionUID = 5275372187150637318L;
-	/**
-	 * 本packet在解码时，消耗的字节数
-	 */
-	private int byteCount = 0;
+	// ⭐ 位域标志常量（方案2：位域压缩）
+	private static final byte FLAG_FROM_CLUSTER = 0x01;   // 0000 0001
+	private static final byte FLAG_SSL_ENCRYPTED = 0x02;  // 0000 0010
+	// 未来可扩展到 8 个标志位
+	// 1. 引用类型放在一起（8字节对齐）
 	private Meta meta = null;
-	/**
-	 * 消息是否是另外一台机器通过topic转过来的，如果是就不要死循环地再一次转发啦
-	 * 这个属性是tio内部使用，业务层的用户请勿使用
-	 */
-	private boolean isFromCluster = false;
-	/**
-	 * 同步发送时，需要的同步序列号
-	 */
-	private int synSeq = 0;
 	private transient PacketListener packetListener;
 	/**
 	 * 预编码过的bytebuffer，如果此值不为null，框架则会忽略原来的encode()而直接用此值
 	 */
 	private transient ByteBuffer preEncodedByteBuffer = null;
+	// 2. int 类型放在一起（4字节对齐）
 	/**
-	 * 是否已经进行ssl加密过
+	 * 本packet在解码时，消耗的字节数
 	 */
-	private boolean isSslEncrypted = false;
+	private int byteCount = 0;
+	/**
+	 * 同步发送时，需要的同步序列号
+	 */
+	private int synSeq = 0;
+	// 3. byte/boolean 放最后（1字节）
+	/**
+	 * ⭐ 方案2：位域压缩 - 用一个 byte 存储多个 boolean 标志
+	 * 位0：isFromCluster - 消息是否是另外一台机器通过topic转过来的
+	 * 位1：isSslEncrypted - 是否已经进行ssl加密过
+	 */
+	private byte flags = 0;
 
 	/**
 	 * @return the byteCount
@@ -288,20 +292,44 @@ public class Packet implements java.io.Serializable {
 		return SysConst.BLANK;
 	}
 
+	/**
+	 * ⭐ 位域操作：检查是否来自集群
+	 * @return true if from cluster
+	 */
 	public boolean isFromCluster() {
-		return isFromCluster;
+		return (flags & FLAG_FROM_CLUSTER) != 0;
 	}
 
+	/**
+	 * ⭐ 位域操作：设置是否来自集群
+	 * @param isFromCluster true to set, false to clear
+	 */
 	public void setFromCluster(boolean isFromCluster) {
-		this.isFromCluster = isFromCluster;
+		if (isFromCluster) {
+			flags |= FLAG_FROM_CLUSTER;   // 设置位
+		} else {
+			flags &= ~FLAG_FROM_CLUSTER;  // 清除位
+		}
 	}
 
+	/**
+	 * ⭐ 位域操作：检查是否已 SSL 加密
+	 * @return true if ssl encrypted
+	 */
 	public boolean isSslEncrypted() {
-		return isSslEncrypted;
+		return (flags & FLAG_SSL_ENCRYPTED) != 0;
 	}
 
+	/**
+	 * ⭐ 位域操作：设置是否已 SSL 加密
+	 * @param isSslEncrypted true to set, false to clear
+	 */
 	public void setSslEncrypted(boolean isSslEncrypted) {
-		this.isSslEncrypted = isSslEncrypted;
+		if (isSslEncrypted) {
+			flags |= FLAG_SSL_ENCRYPTED;   // 设置位
+		} else {
+			flags &= ~FLAG_SSL_ENCRYPTED;  // 清除位
+		}
 	}
 
 	public Meta getMeta() {
