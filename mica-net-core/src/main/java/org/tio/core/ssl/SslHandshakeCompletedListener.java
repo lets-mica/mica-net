@@ -259,7 +259,7 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 			if (isUseQueueSend) {
 				sendRunnable.addMsg(packet);
 			} else {
-				sendRunnable.sendPacket(packet);
+				sendRunnable.sendPacket(packet, true);
 			}
 		}
 		if (isUseQueueSend) {

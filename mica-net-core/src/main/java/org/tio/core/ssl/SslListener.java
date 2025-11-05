@@ -246,9 +246,8 @@ public class SslListener implements ISSLListener {
 					channelContext.sendRunnable.execute();
 				}
 			} else {
-				channelContext.sendRunnable.sendPacket(p);
+				channelContext.sendRunnable.sendPacket(p, true);
 			}
-
 		}
 
 	}

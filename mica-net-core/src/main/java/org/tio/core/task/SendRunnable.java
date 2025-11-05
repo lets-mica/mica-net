@@ -226,10 +226,10 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	private static final Logger log = LoggerFactory.getLogger(SendRunnable.class);
 	private static final int MAX_CAPACITY_MIN = TcpConst.MAX_DATA_LENGTH - 1024;    //减掉1024是尽量防止溢出的一小部分还分成一个tcp包发出
 	private static final int MAX_CAPACITY_MAX = MAX_CAPACITY_MIN * 10;
+	// ⭐ 字段对齐优化：所有字段都是引用类型（8字节对齐），完美对齐
 	private final ChannelContext channelContext;
 	private final TioConfig tioConfig;
 	private final TioHandler tioHandler;
-	private final boolean isSsl;
 	/**
 	 * The msg queue.
 	 */
@@ -253,7 +253,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		this.channelContext = channelContext;
 		this.tioConfig = channelContext.tioConfig;
 		this.tioHandler = tioConfig.getTioHandler();
-		this.isSsl = SslUtils.isSsl(tioConfig);
 		this.msgQueue = msgQueue;
 	}
 
@@ -319,12 +318,15 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		if (writing.get() || msgQueue.isEmpty()) {
 			return;
 		}
+		// ⭐ 优化：使用局部变量代替字段，节省7字节对齐填充
+		boolean isSsl = SslUtils.isSsl(tioConfig);
 
+		// 队列大小
 		int queueSize = msgQueue.size();
 		if (queueSize == 1) {
 			Packet packet = msgQueue.poll();
 			if (packet != null) {
-				sendPacket(packet);
+				sendPacket(packet, isSsl);
 			}
 			return;
 		}
@@ -390,6 +392,10 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	}
 
 	public boolean sendPacket(Packet packet) {
+		return sendPacket(packet, SslUtils.isSsl(tioConfig));
+	}
+
+	public boolean sendPacket(Packet packet, boolean isSsl) {
 		ByteBuffer byteBuffer = getByteBuffer(packet);
 		if (isSsl && !packet.isSslEncrypted()) {
 			SslVo sslVo = new SslVo(byteBuffer, packet);

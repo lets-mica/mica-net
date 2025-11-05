@@ -225,11 +225,12 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	private static final Logger log = LoggerFactory.getLogger(DecodeRunnable.class);
 	private static final int MIN_AVERAGE_BYTES_THRESHOLD = 256;
 	private static final int BUFFER_SIZE_RATIO = 2;
+
+	// ⭐ 字段对齐优化：所有字段都是引用类型（8字节对齐），完美对齐
 	private final ChannelContext channelContext;
 	private final TioConfig tioConfig;
 	private final TioHandler tioHandler;
 	private final TioListener tioListener;
-	private final boolean isServer;
 	/**
 	 * The msg queue.
 	 */
@@ -249,7 +250,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 		this.tioConfig = channelContext.tioConfig;
 		this.tioHandler = this.tioConfig.getTioHandler();
 		this.tioListener = this.tioConfig.getTioListener();
-		this.isServer = tioConfig.isServer();
 		this.msgQueue = tioConfig.useQueueDecode ? new ConcurrentLinkedQueue<>() : null;
 	}
 
@@ -296,6 +296,8 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 	 * @see java.lang.Runnable#run()
 	 */
 	public void decode() {
+		// ⭐ 优化：使用局部变量代替字段，节省7字节对齐填充
+		boolean isServer = tioConfig.isServer();
 		ByteBuffer byteBuffer = newReceivedByteBuffer;
 		if (lastByteBuffer != null) {
 			byteBuffer = ByteBufferUtil.composite(lastByteBuffer, byteBuffer);
