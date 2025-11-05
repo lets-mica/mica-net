@@ -242,7 +242,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	/**
 	 * The msg queue.
 	 */
-	private ConcurrentLinkedQueue<Packet> forSendAfterSslHandshakeCompleted = null;
+	private Queue<Packet> forSendAfterSslHandshakeCompleted = null;
 
 	public SendRunnable(ChannelContext channelContext, Executor executor) {
 		this(channelContext, executor, new ConcurrentLinkedQueue<>());
@@ -274,25 +274,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			log.info("{}, 任务已经取消，{}添加到发送队列失败", channelContext, packet.logstr());
 			return false;
 		}
-
-		// ⭐ 预编码优化：在入队前完成编码，避免在发送线程中编码
-		// 这样可以将编码工作分散到多个业务线程，提升发送线程的处理效率
-		if (packet.getPreEncodedByteBuffer() == null) {
-			try {
-				ByteBuffer encoded = tioHandler.encode(packet, tioConfig, channelContext);
-				if (encoded != null) {
-					// 确保 ByteBuffer 处于可读状态
-					if (!encoded.hasRemaining()) {
-						encoded.flip();
-					}
-					packet.setPreEncodedByteBuffer(encoded);
-				}
-			} catch (Exception e) {
-				log.error("{}, 预编码失败: {}", channelContext, packet.logstr(), e);
-				// 预编码失败也允许入队，会在 getByteBuffer 中重试
-			}
-		}
-
 		if (channelContext.sslFacadeContext != null && !channelContext.sslFacadeContext.isHandshakeCompleted() && SslUtils.needSslEncrypt(packet, tioConfig)) {
 			return this.getForSendAfterSslHandshakeCompleted(true).add(packet);
 		} else {
@@ -320,19 +301,10 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		try {
 			ByteBuffer byteBuffer = packet.getPreEncodedByteBuffer();
 			if (byteBuffer == null) {
-				// 没有预编码，需要现场编码
 				byteBuffer = tioHandler.encode(packet, tioConfig, channelContext);
-				// 现场编码需要检查状态
-				if (!byteBuffer.hasRemaining()) {
-					byteBuffer.flip();
-				}
-			} else {
-				// ⭐ 关键优化：使用 duplicate() 创建独立视图，避免多次使用时状态冲突
-				// duplicate() 共享数据但拥有独立的 position/limit/mark
-				// 这样 allByteBuffer.put(byteBuffer) 不会影响原始 buffer
-				byteBuffer = byteBuffer.duplicate();
-				// 重置 position 到开始，确保从头读取
-				byteBuffer.position(0);
+			}
+			if (!byteBuffer.hasRemaining()) {
+				byteBuffer.flip();
 			}
 			return byteBuffer;
 		} catch (Exception e) {
@@ -495,7 +467,9 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 	 */
 	private static int getPacketListCapacity(int queueSize) {
 		// 积压越多，批量越大，加速消费；积压少时，批量小，降低延迟
-		if (queueSize > 20000) {
+		if (queueSize > 50000) {
+			return 20000;                   // 超大积压：超大批量快速消化
+		} else if (queueSize > 20000) {
 			return 8000;                    // 极大积压：超大批量快速消化
 		} else if (queueSize > 10000) {
 			return 5000;                    // 严重积压：大批量处理
