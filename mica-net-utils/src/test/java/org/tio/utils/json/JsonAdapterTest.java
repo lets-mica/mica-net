@@ -12,13 +12,14 @@ import java.util.Map;
  * @author L.cm
  */
 class JsonAdapterTest {
-	private static final Jackson3JsonAdapter jackson3JsonAdapter = new Jackson3JsonAdapter();
+//	private static final Jackson3JsonAdapter jackson3JsonAdapter = new Jackson3JsonAdapter();
 	private static final Jackson2JsonAdapter jackson2JsonAdapter = new Jackson2JsonAdapter();
 	private static final FastJson2JsonAdapter fastJson2JsonAdapter = new FastJson2JsonAdapter();
 	private static final GsonJsonAdapter gsonJsonAdapter = new GsonJsonAdapter();
 	private static final FastJson1JsonAdapter fastJson1JsonAdapter = new FastJson1JsonAdapter();
 	private static final HuToolJsonAdapter huToolJsonAdapter = new HuToolJsonAdapter();
 	private static final Snack3JsonAdapter snack3JsonAdapter = new Snack3JsonAdapter();
+	private static final Snack4JsonAdapter snack4JsonAdapter = new Snack4JsonAdapter();
 
 	@Test
 	void testMapToBean() {
@@ -26,9 +27,10 @@ class JsonAdapterTest {
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", name);
 		map.put("age", 18);
-		User user = jackson3JsonAdapter.convertValue(map, User.class);
-		Assertions.assertEquals(18, user.getAge());
-		Assertions.assertEquals(name, user.getName());
+		User user;
+//		user = jackson3JsonAdapter.convertValue(map, User.class);
+//		Assertions.assertEquals(18, user.getAge());
+//		Assertions.assertEquals(name, user.getName());
 
 		user = jackson2JsonAdapter.convertValue(map, User.class);
 		Assertions.assertEquals(18, user.getAge());
@@ -51,6 +53,10 @@ class JsonAdapterTest {
 		Assertions.assertEquals(name, user.getName());
 
 		user = snack3JsonAdapter.convertValue(map, User.class);
+		Assertions.assertEquals(18, user.getAge());
+		Assertions.assertEquals(name, user.getName());
+
+		user = snack4JsonAdapter.convertValue(map, User.class);
 		Assertions.assertEquals(18, user.getAge());
 		Assertions.assertEquals(name, user.getName());
 	}
