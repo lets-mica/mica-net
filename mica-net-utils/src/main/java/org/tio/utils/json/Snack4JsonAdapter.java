@@ -16,6 +16,7 @@
 
 package org.tio.utils.json;
 
+import org.noear.snack4.Feature;
 import org.noear.snack4.ONode;
 import org.noear.snack4.Options;
 import org.noear.snack4.codec.TypeRef;
@@ -38,11 +39,12 @@ public class Snack4JsonAdapter implements JsonAdapter {
 	private final Options options;
 
 	public Snack4JsonAdapter() {
-		this(Options.DEF_OPTIONS);
+		this(Options.of());
 	}
 
 	public Snack4JsonAdapter(Options options) {
 		this.options = Objects.requireNonNull(options, "noear Snack4 json options is null.");
+		options.addFeatures(Feature.Write_EnumUsingName);
 	}
 
 	@Override
