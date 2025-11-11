@@ -22,10 +22,8 @@ import org.tio.http.common.HeaderName;
 import org.tio.http.common.HeaderValue;
 import org.tio.http.common.HttpRequest;
 import org.tio.http.common.HttpResponse;
-import org.tio.utils.SysConst;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 
 /**
  * sse 发射器
@@ -86,9 +84,13 @@ public class SseEmitter {
 	 * @param sseEvent SseEvent
 	 */
 	public void send(SseEvent sseEvent) {
-		String chunkedString = sseEvent.toString();
-		byte[] chunkedBytes = chunkedString.getBytes(request.getCharset());
-		Packet ssePacket = new SsePacket(encodeChunk(chunkedBytes));
+		// 编码 sse 事件数据
+		String sseEventData = sseEvent.toString();
+		byte[] sseEventDataBytes = sseEventData.getBytes(request.getCharset());
+		// 创建 sse packet 并设置预编码的 byte buffer
+		Packet ssePacket = new Packet();
+		ssePacket.setPreEncodedByteBuffer(ByteBuffer.wrap(sseEventDataBytes));
+		// 发送 sse packet
 		Tio.send(request.channelContext, ssePacket);
 	}
 
@@ -110,30 +112,7 @@ public class SseEmitter {
 		response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.TEXT_EVENT_STREAM);
 		response.addHeader(HeaderName.Cache_Control, HeaderValue.Cache_Control.no_cache);
 		response.addHeader(HeaderName.Connection, HeaderValue.Connection.keep_alive);
-		response.addHeader(HeaderName.Transfer_Encoding, HeaderValue.Transfer_Encoding.chunked);
 		return new SseEmitter(request);
-	}
-
-	/**
-	 * 编码 chunk 数据
-	 *
-	 * @param chunkData chunk 数据
-	 * @return 编码后的 chunk 数据
-	 */
-	private static ByteBuffer encodeChunk(byte[] chunkData) {
-		int length = chunkData.length;
-		String chunkSize = Integer.toHexString(length);
-		byte[] chunkSizeBytes = chunkSize.getBytes(StandardCharsets.US_ASCII);
-		int crlfLength = SysConst.CR_LF.length;
-
-		// 计算总容量：chunkSize长度 + CRLF长度 + 数据长度 + 结尾CRLF长度
-		ByteBuffer buffer = ByteBuffer.allocate(chunkSizeBytes.length + crlfLength + length + crlfLength);
-		buffer.put(chunkSizeBytes);
-		buffer.put(SysConst.CR_LF);
-		buffer.put(chunkData);
-		buffer.put(SysConst.CR_LF);
-
-		return buffer;
 	}
 
 }
