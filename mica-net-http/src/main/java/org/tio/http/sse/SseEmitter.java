@@ -24,6 +24,7 @@ import org.tio.http.common.HttpRequest;
 import org.tio.http.common.HttpResponse;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * sse 发射器
@@ -86,7 +87,8 @@ public class SseEmitter {
 	public void send(SseEvent sseEvent) {
 		// 编码 sse 事件数据
 		String sseEventData = sseEvent.toString();
-		byte[] sseEventDataBytes = sseEventData.getBytes(request.getCharset());
+		// Event stream 数据必须以 UTF-8 编码进行解析
+		byte[] sseEventDataBytes = sseEventData.getBytes(StandardCharsets.UTF_8);
 		// 创建 sse packet 并设置预编码的 byte buffer
 		Packet ssePacket = new Packet();
 		ssePacket.setPreEncodedByteBuffer(ByteBuffer.wrap(sseEventDataBytes));
