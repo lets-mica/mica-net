@@ -149,6 +149,6 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 - mica-mqtt 部分工具包下沉。
 - 支持 Tcp Proxy 代理协议 v1 版，支持 nginx、elb 转发原始IP。 
 - 去除 ips 和 ip 黑名单, 不再依赖 caffeine 2.9.3。 
-- 不强制依赖 fastjson，支持多种 json 工具（jackson、fastjson、fastjson2、gson、hutool-json、snack3）。
+- 不强制依赖 fastjson，支持多种 json 工具（jackson2、jackson3、fastjson、fastjson2、gson、hutool-json、snack3、snack4）。
 - 优化 ssl，支持客户端和服务端支持双向认证，客户端不校验域名。 
 - 代码优化，更加符合规范。
