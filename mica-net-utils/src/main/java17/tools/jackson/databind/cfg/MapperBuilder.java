@@ -10,19 +10,19 @@ import java.util.function.UnaryOperator;
 public abstract class MapperBuilder<M extends JsonMapper, B extends MapperBuilder<M, B>> {
 
 	public B findAndAddModules() {
-		return null;
+		return (B) this;
 	}
 
 	public B disable(SerializationFeature... serializationFeature) {
-		return null;
+		return (B) this;
 	}
 
 	public B changeDefaultPropertyInclusion(UnaryOperator<JsonInclude.Value> handler) {
-		return null;
+		return (B) this;
 	}
 
 	public B configure(DeserializationFeature deserializationFeature, boolean b) {
-		return null;
+		return (B) this;
 	}
 
 }

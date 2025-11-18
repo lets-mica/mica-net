@@ -12,7 +12,7 @@ import java.util.Map;
  * @author L.cm
  */
 class JsonAdapterTest {
-//	private static final Jackson3JsonAdapter jackson3JsonAdapter = new Jackson3JsonAdapter();
+	private static final Jackson3JsonAdapter jackson3JsonAdapter = new Jackson3JsonAdapter();
 	private static final Jackson2JsonAdapter jackson2JsonAdapter = new Jackson2JsonAdapter();
 	private static final FastJson2JsonAdapter fastJson2JsonAdapter = new FastJson2JsonAdapter();
 	private static final GsonJsonAdapter gsonJsonAdapter = new GsonJsonAdapter();
@@ -28,9 +28,8 @@ class JsonAdapterTest {
 		map.put("name", name);
 		map.put("age", 18);
 		User user;
-//		user = jackson3JsonAdapter.convertValue(map, User.class);
-//		Assertions.assertEquals(18, user.getAge());
-//		Assertions.assertEquals(name, user.getName());
+		user = jackson3JsonAdapter.convertValue(map, User.class);
+		Assertions.assertNull(user);
 
 		user = jackson2JsonAdapter.convertValue(map, User.class);
 		Assertions.assertEquals(18, user.getAge());

@@ -10,11 +10,11 @@ public class JsonMapper {
 	}
 
 	public static Builder builder(JsonFactory factory) {
-		return null;
+		return new Builder();
 	}
 
 	public Builder rebuild() {
-		return null;
+		return new Builder();
 	}
 
 	public String writeValueAsString(Object object) {
@@ -56,7 +56,7 @@ public class JsonMapper {
 	public static class Builder extends MapperBuilder<JsonMapper, Builder> {
 
 		public JsonMapper build() {
-			return null;
+			return new JsonMapper();
 		}
 	}
 }
