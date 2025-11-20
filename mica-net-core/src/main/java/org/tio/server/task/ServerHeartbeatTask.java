@@ -93,7 +93,7 @@ public class ServerHeartbeatTask extends TimerTask {
 					needRemove = interval > heartbeatTimeout;
 				}
 				if (needRemove && !serverListener.onHeartbeatTimeout(channelContext, interval, channelContext.stat.heartbeatTimeoutCount.incrementAndGet())) {
-					log.info("{}, {} ms没有收发消息", channelContext, interval);
+					log.info("{}, {} ms没有收发消息 heartbeatMode:{}", channelContext, interval, heartbeatMode);
 					channelContext.setCloseCode(ChannelContext.CloseCode.HEARTBEAT_TIMEOUT);
 					Tio.remove(channelContext, interval + " ms没有收发消息");
 				} else {
