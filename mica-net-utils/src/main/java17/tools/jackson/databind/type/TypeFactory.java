@@ -7,7 +7,7 @@ import java.util.Collection;
 
 public class TypeFactory {
 
-	public JavaType constructCollectionType(Class<? extends Collection> collectionClass, Class<?> elementClass) {
+	public CollectionType constructCollectionType(Class<? extends Collection> collectionClass, Class<?> elementClass) {
 		return null;
 	}
 
