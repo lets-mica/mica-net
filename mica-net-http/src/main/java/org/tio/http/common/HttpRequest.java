@@ -215,19 +215,24 @@ public class HttpRequest extends HttpPacket {
 	private static final long serialVersionUID = -3849253977016967211L;
 	private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
 	private static final AtomicLong ID_GEN = new AtomicLong();
+	
+	// 8字节字段
 	private final long id = ID_GEN.incrementAndGet();
+	/**
+	 * 该HttpRequest对象的创建时间
+	 */
+	private long createTime = System.currentTimeMillis();
+	
+	// 引用类型字段（4/8字节，取决于压缩指针）
 	public RequestLine requestLine = null;
 	public ChannelContext channelContext;
 	public HttpConfig httpConfig;
 	protected Map<String, String> headers = new HashMap<>();
-	private boolean needForward = false;
-	private boolean isForward = false;
 	/**
 	 * 请求参数
 	 */
 	private Map<String, Object[]> params = new HashMap<>();
 	private Map<String, Cookie> cookieMap = null;
-	private int contentLength;
 	private String connection;
 	private String bodyString;
 	private RequestBodyFormat bodyFormat;
@@ -235,12 +240,15 @@ public class HttpRequest extends HttpPacket {
 	private Node remote = null;
 	private String domain = null;
 	private String host = null;
-	/**
-	 * 该HttpRequest对象的创建时间
-	 */
-	private long createTime = System.currentTimeMillis();
-	private boolean closed = false;
 	private Integer forwardCount = null;
+	
+	// 4字节字段
+	private int contentLength;
+	
+	// 1字节字段
+	private boolean needForward = false;
+	private boolean isForward = false;
+	private boolean closed = false;
 
 	public HttpRequest(Node remote) {
 		this.remote = remote;

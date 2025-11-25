@@ -205,11 +205,6 @@ public class WsSessionContext {
 	public static final String WS_SESSION_CONTEXT_KEY = "TIO_W_S_C";
 
 	/**
-	 * 是否已经握过手
-	 */
-	private boolean isHandshaked = false;
-
-	/**
 	 * websocket 握手请求包
 	 */
 	private HttpRequest handshakeRequest = null;
@@ -219,10 +214,15 @@ public class WsSessionContext {
 	 */
 	private HttpResponse handshakeResponse = null;
 
-	private String token = null;
-
 	//websocket 协议用到的，有时候数据包是分几个到的，注意那个fin字段，本im暂时不支持
 	private List<byte[]> lastParts = null;
+
+	private String token = null;
+
+	/**
+	 * 是否已经握过手
+	 */
+	private boolean isHandshaked = false;
 
 	public WsSessionContext() {
 

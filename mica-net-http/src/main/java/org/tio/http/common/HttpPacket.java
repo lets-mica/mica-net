@@ -205,9 +205,10 @@ import java.util.Map;
  */
 public class HttpPacket extends Packet {
 	private static final long serialVersionUID = 3903186670675671956L;
+	// 引用类型字段按照访问频率和逻辑分组
 	private final Map<String, Serializable> props = new HashMap<>();
-	protected byte[] body;
 	private String headerString = SysConst.BLANK;
+	protected byte[] body;
 
 	public HttpPacket() {
 

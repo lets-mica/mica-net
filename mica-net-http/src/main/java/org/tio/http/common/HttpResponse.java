@@ -207,24 +207,30 @@ import java.util.Map.Entry;
 public class HttpResponse extends HttpPacket {
 	public static final HttpResponse NULL_RESPONSE = new HttpResponse();
 	private static final long serialVersionUID = -3512681144230291786L;
+	
+	// 引用类型字段（4/8字节，取决于压缩指针）
 	private final Map<HeaderName, HeaderValue> headers = new HashMap<>();
 	/**
 	 * 服务器端用（因为服务器端可以直接枚举）
 	 */
 	private HttpResponseStatus status = HttpResponseStatus.C200;
+	private HttpRequest request = null;
+	private List<Cookie> cookies = null;
+	private Charset charset = HttpConst.CHARSET;
+	
+	// 4字节字段
+	private int headerByteCount = 2;
+	
+	// 1字节字段（将多个boolean字段放在一起，可能被打包）
 	/**
 	 * 是否是静态资源
 	 * true: 静态资源
 	 */
 	private boolean isStaticRes = false;
-	private HttpRequest request = null;
-	private List<Cookie> cookies = null;
-	private int headerByteCount = 2;
 	/**
 	 * 是否已经被gzip压缩过了，防止重复压缩
 	 */
 	private boolean hasGzipped = false;
-	private Charset charset = HttpConst.CHARSET;
 	/**
 	 * 忽略ip访问统计
 	 */
