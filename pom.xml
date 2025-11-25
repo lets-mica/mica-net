@@ -43,10 +43,9 @@
         <maven-flatten.version>1.7.3</maven-flatten.version>
         <maven-jar.version>3.5.0</maven-jar.version>
         <fastjson.version>1.2.83</fastjson.version>
-        <fastjson2.version>2.0.52</fastjson2.version>
+        <fastjson2.version>2.0.60</fastjson2.version>
         <gson.version>2.13.2</gson.version>
         <jackson.version>2.20.1</jackson.version>
-        <jackson3.version>3.0.0-rc10</jackson3.version>
         <hutool.version>5.8.41</hutool.version>
         <snack3.version>3.2.139</snack3.version>
         <snack4.version>4.0.16</snack4.version>
