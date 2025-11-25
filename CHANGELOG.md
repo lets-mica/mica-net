@@ -7,7 +7,8 @@
 - :sparkles: HttpRequest、HttpResponse 优化类字段排列以提高内存布局效率
 - :sparkles: 优化 SSE 事件发送逻辑并移除冗余代码，移除 Transfer-Encoding: chunked 头部设置
 - :sparkles: sse 使用 UTF-8 标准字符集编码
-- fix: 修复 PageUtils 当存在过滤条件时分页数据错误的问题
+- :bug: 修复 PageUtils 当存在过滤条件时分页数据错误的问题
+- :bug: 修复 jackson3 支持
 
 ### v1.2.2 - 2025-11-07
 
