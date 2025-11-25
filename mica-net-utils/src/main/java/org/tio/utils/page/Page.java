@@ -203,13 +203,27 @@ import java.util.function.Function;
  * 2017年5月10日 下午12:01:18
  */
 public class Page<T> implements Serializable {
-
 	private static final long serialVersionUID = 6551482606063638959L;
-	private List<T> list = null;                    //当前页的数据
-	private Integer pageNumber;                                    //当前页码，从1开始，如果值小于等于0，则视为1
-	private Integer pageSize;                                    //每页记录数
-	private Integer totalRow;                                    //总条数
-	private Integer totalPage;                                    //总页数
+	/**
+	 * 当前页的数据
+	 */
+	private List<T> list = null;
+	/**
+	 * 当前页码，从1开始，如果值小于等于0，则视为1
+	 */
+	private Integer pageNumber;
+	/**
+	 * 每页记录数
+	 */
+	private Integer pageSize;
+	/**
+	 * 总条数
+	 */
+	private Integer totalRow;
+	/**
+	 * 总页数
+	 */
+	private Integer totalPage;
 
 	public Page() {
 

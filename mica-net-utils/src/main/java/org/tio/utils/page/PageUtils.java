@@ -206,10 +206,27 @@ import java.util.function.Predicate;
  */
 public class PageUtils {
 
+	/**
+	 * 构造分页
+	 *
+	 * @param list       list
+	 * @param pageNumber pageNumber
+	 * @param pageSize   pageSize
+	 * @return Page
+	 */
 	public static <T> Page<T> fromList(List<T> list, int pageNumber, int pageSize) {
 		return fromList(list, pageNumber, pageSize, null);
 	}
 
+	/**
+	 * 构造分页
+	 *
+	 * @param list       list
+	 * @param pageNumber pageNumber
+	 * @param pageSize   pageSize
+	 * @param converter  转换器
+	 * @return Page
+	 */
 	public static <E, T> Page<T> fromList(List<E> list, int pageNumber, int pageSize, Function<E, T> converter) {
 		if (list == null) {
 			return null;
@@ -232,14 +249,41 @@ public class PageUtils {
 		return page;
 	}
 
+	/**
+	 * 构造分页
+	 *
+	 * @param set        set
+	 * @param pageNumber pageNumber
+	 * @param pageSize   pageSize
+	 * @return Page
+	 */
 	public static <T> Page<T> fromSet(Set<T> set, int pageNumber, int pageSize) {
 		return fromSet(set, pageNumber, pageSize, null, null);
 	}
 
+	/**
+	 * 构造分页
+	 *
+	 * @param set        set
+	 * @param pageNumber pageNumber
+	 * @param pageSize   pageSize
+	 * @param converter  转换器
+	 * @return Page
+	 */
 	public static <E, T> Page<T> fromSet(Set<E> set, int pageNumber, int pageSize, Function<E, T> converter) {
 		return fromSet(set, pageNumber, pageSize, null, converter);
 	}
 
+	/**
+	 * 构造分页
+	 *
+	 * @param set        set
+	 * @param pageNumber pageNumber
+	 * @param pageSize   pageSize
+	 * @param filter     过滤器
+	 * @param converter  转换器
+	 * @return Page
+	 */
 	public static <E, T> Page<T> fromSet(Set<E> set, int pageNumber, int pageSize, Predicate<E> filter, Function<E, T> converter) {
 		if (set == null) {
 			return null;
@@ -268,23 +312,24 @@ public class PageUtils {
 			int recordCount = set.size();
 			int actualPageSize = Math.min(pageSize, recordCount);
 			return new Page<>(pageData, pageNumber, actualPageSize, recordCount);
-		}
-		// 有 filter 时，必须遍历全部以统计 totalRow
-		for (E e : set) {
-			if (!filter.test(e)) {
-				continue;
-			}
-			if (matchCount >= startIndex && matchCount < endIndex) {
-				if (converter != null) {
-					pageData.add(converter.apply(e));
-				} else {
-					pageData.add((T) e);
+		} else {
+			// 有 filter 时，必须遍历全部以统计 totalRow
+			for (E e : set) {
+				if (!filter.test(e)) {
+					continue;
 				}
+				if (matchCount >= startIndex && matchCount < endIndex) {
+					if (converter != null) {
+						pageData.add(converter.apply(e));
+					} else {
+						pageData.add((T) e);
+					}
+				}
+				matchCount++;
 			}
-			matchCount++;
+			int actualPageSize = Math.min(pageSize, matchCount);
+			return new Page<>(pageData, pageNumber, actualPageSize, matchCount);
 		}
-		int actualPageSize = Math.min(pageSize, matchCount);
-		return new Page<>(pageData, pageNumber, actualPageSize, matchCount);
 	}
 
 	private static <E, T> Page<T> pre(Collection<E> allList, int pageNumber, int pageSize) {
