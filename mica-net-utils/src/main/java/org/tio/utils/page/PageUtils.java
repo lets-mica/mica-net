@@ -244,32 +244,47 @@ public class PageUtils {
 		if (set == null) {
 			return null;
 		}
-		Page<T> page = pre(set, pageNumber, pageSize);
-		List<T> pageData = page.getList();
-		if (pageData == null) {
-			return page;
-		}
-		int startIndex = Math.min((page.getPageNumber() - 1) * page.getPageSize(), set.size());
-		int endIndex = Math.min(page.getPageNumber() * page.getPageSize(), set.size());
-		int i = 0;
-		for (E e : set) {
-			if (i >= endIndex) {
-				break;
+		pageSize = processPageSize(pageSize);
+		pageNumber = processPageNumber(pageNumber);
+		int startIndex = (pageNumber - 1) * pageSize;
+		int endIndex = pageNumber * pageSize;
+		List<T> pageData = new ArrayList<>();
+		int matchCount = 0;
+		// 无 filter 时，可提前终止，totalRow = set.size()
+		if (filter == null) {
+			for (E e : set) {
+				if (matchCount >= endIndex) {
+					break;
+				}
+				if (matchCount >= startIndex) {
+					if (converter != null) {
+						pageData.add(converter.apply(e));
+					} else {
+						pageData.add((T) e);
+					}
+				}
+				matchCount++;
 			}
-			// 过滤
-			if (i < startIndex || (filter != null && !filter.test(e))) {
-				i++;
+			int recordCount = set.size();
+			int actualPageSize = Math.min(pageSize, recordCount);
+			return new Page<>(pageData, pageNumber, actualPageSize, recordCount);
+		}
+		// 有 filter 时，必须遍历全部以统计 totalRow
+		for (E e : set) {
+			if (!filter.test(e)) {
 				continue;
 			}
-			if (converter != null) {
-				pageData.add(converter.apply(e));
-			} else {
-				pageData.add((T) e);
+			if (matchCount >= startIndex && matchCount < endIndex) {
+				if (converter != null) {
+					pageData.add(converter.apply(e));
+				} else {
+					pageData.add((T) e);
+				}
 			}
-			i++;
+			matchCount++;
 		}
-		page.setList(pageData);
-		return page;
+		int actualPageSize = Math.min(pageSize, matchCount);
+		return new Page<>(pageData, pageNumber, actualPageSize, matchCount);
 	}
 
 	private static <E, T> Page<T> pre(Collection<E> allList, int pageNumber, int pageSize) {
