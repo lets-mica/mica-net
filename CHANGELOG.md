@@ -2,7 +2,7 @@
 
 ## 发行版本
 
-### v1.2.3 - 2025-12-29
+### v1.2.3 - 2025-12-25
 
 - :sparkles: HttpRequest、HttpResponse 优化类字段排列以提高内存布局效率
 - :sparkles: 优化 SSE 事件发送逻辑并移除冗余代码，移除 Transfer-Encoding: chunked 头部设置
