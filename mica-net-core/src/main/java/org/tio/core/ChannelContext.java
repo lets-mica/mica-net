@@ -355,6 +355,15 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	/**
+	 * 判断是否 ssl
+	 *
+	 * @return the ssl
+	 */
+	public boolean isSsl() {
+		return sslFacadeContext != null;
+	}
+
+	/**
 	 * 创建Node
 	 *
 	 * @param asynchronousSocketChannel AsynchronousSocketChannel
