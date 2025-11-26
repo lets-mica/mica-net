@@ -210,7 +210,7 @@ import java.util.Map;
  * @author tanyaowu
  * 2017年8月10日 下午5:05:49
  */
-public class IpUtils {
+public final class IpUtils {
 	private static final Logger log = LoggerFactory.getLogger(IpUtils.class);
 
 	/**

@@ -197,7 +197,7 @@ package org.tio.http.common.utils;
  * @author tanyaowu
  * 2017年7月27日 上午10:09:19
  */
-public class HttpParseUtils {
+public final class HttpParseUtils {
 
 	private HttpParseUtils() {
 	}
