@@ -402,8 +402,8 @@ public class HttpRequestDecoder {
 				if (bodyBytes != null && bodyBytes.length > 0) {
 					bodyString = new String(bodyBytes, httpRequest.getCharset());
 					httpRequest.setBodyString(bodyString);
-					if (log.isInfoEnabled()) {
-						log.info("{} body value\r\n{}", channelContext, bodyString);
+					if (log.isDebugEnabled()) {
+						log.debug("{} body value\r\n{}", channelContext, bodyString);
 					}
 				}
 				if (bodyFormat == RequestBodyFormat.URLENCODED) {
