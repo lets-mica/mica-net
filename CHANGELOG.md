@@ -2,6 +2,12 @@
 
 ## 发行版本
 
+### v1.2.4 - 2025-11-28
+
+- refactor(http): 降低请求体日志级别以减少冗余信息
+- refactor(utils): 将 HttpParseUtils 和 IpUtils 类声明为 final
+- feat(core): ChannelContext 类中添加 isSsl() 方法
+
 ### v1.2.3 - 2025-11-25
 
 - :sparkles: HttpRequest、HttpResponse 优化类字段排列以提高内存布局效率
