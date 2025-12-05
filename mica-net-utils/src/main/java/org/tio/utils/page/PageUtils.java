@@ -351,7 +351,7 @@ public class PageUtils {
 	}
 
 	private static int processPageSize(int pageSize) {
-		return pageSize <= 0 ? Integer.MAX_VALUE : pageSize;
+		return pageSize <= 0 ? 20 : pageSize;
 	}
 
 }
