@@ -231,28 +231,28 @@ public abstract class ChannelContext extends MapPropSupport {
 	public final ChannelStat stat = new ChannelStat();
 	public final CloseMeta closeMeta = new CloseMeta();
 
-	public TioConfig tioConfig = null;
-	public DecodeRunnable decodeRunnable = null;
-	public HandlerRunnable handlerRunnable = null;
-	public SendRunnable sendRunnable = null;
-	public WriteCompletionHandler writeCompletionHandler = null;
+	public TioConfig tioConfig;
+	public DecodeRunnable decodeRunnable;
+	public HandlerRunnable handlerRunnable;
+	public SendRunnable sendRunnable;
+	public WriteCompletionHandler writeCompletionHandler;
 	public SslFacadeContext sslFacadeContext;
 	/**
 	 * The asynchronous socket channel.
 	 */
 	public AsynchronousSocketChannel asynchronousSocketChannel;
-	private ReadCompletionHandler readCompletionHandler = null;
+	private ReadCompletionHandler readCompletionHandler;
 
 	private Node clientNode;
 	/**
 	 * 一些连接是代理的，譬如web服务器放在nginx后面，此时需要知道最原始的ip
 	 */
-	private Node proxyClientNode = null;
+	private Node proxyClientNode;
 	private Node serverNode;
 	/**
 	 * 该连接在哪些组中
 	 */
-	private Set<String> groups = null;
+	private Set<String> groups;
 
 	private String userId;
 	private String token;
@@ -269,15 +269,15 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * 此值不设时，心跳时间取org.tio.core.TioConfig.heartbeatTimeout
 	 * 当然这个值如果小于org.tio.core.TioConfig.heartbeatTimeout，定时检查的时间间隔还是以org.tio.core.TioConfig.heartbeatTimeout为准，只是在判断时用此值
 	 */
-	public Long heartbeatTimeout = null;
+	public Long heartbeatTimeout;
 	/**
 	 * 一个packet所需要的字节数（用于应用告诉框架，下一次解码所需要的字节长度，省去冗余解码带来的性能损耗）
 	 */
-	public Integer packetNeededLength = null;
+	public Integer packetNeededLength;
 	/**
 	 * 个性化readBufferSize
 	 */
-	private Integer readBufferSize = null;
+	private Integer readBufferSize;
 
 	// 3. 原始类型放最后（1字节）
 	/**
