@@ -273,7 +273,7 @@ public class ReconnConf {
 			return false;
 		}
 		if (reconnConf.getInterval() > 0) {
-			if (reconnConf.getRetryCount() <= 0 || reconnConf.getRetryCount() > clientChannelContext.getReconnCount().get()) {
+			if (reconnConf.getRetryCount() <= 0 || reconnConf.getRetryCount() > clientChannelContext.getReConnCount().get()) {
 				if (putIfNeedConn) {
 					TioClientConfig tioClientConfig = (TioClientConfig) clientChannelContext.tioConfig;
 					tioClientConfig.closeds.add(clientChannelContext);

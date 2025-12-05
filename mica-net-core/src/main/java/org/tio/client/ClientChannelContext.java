@@ -288,7 +288,7 @@ public class ClientChannelContext extends ChannelContext {
 		return false;
 	}
 
-	public AtomicInteger getReconnCount() {
+	public AtomicInteger getReConnCount() {
 		return reConnCount;
 	}
 

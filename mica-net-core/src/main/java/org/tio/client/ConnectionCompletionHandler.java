@@ -267,7 +267,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 				channelContext.setBindIp(bindIp);
 				channelContext.setBindPort(bindPort);
 
-				channelContext.getReconnCount().set(0);
+				channelContext.getReConnCount().set(0);
 				channelContext.setClosed(false);
 				isConnected = true;
 

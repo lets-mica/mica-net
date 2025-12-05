@@ -52,7 +52,7 @@ public class ClientReConnTask extends TimerTask {
 		if (channelContext.isRemoved() || !channelContext.isClosed()) {
 			return;
 		}
-		int reConnCount = channelContext.getReconnCount().incrementAndGet();
+		int reConnCount = channelContext.getReConnCount().incrementAndGet();
 		ReentrantReadWriteLock closeLock = channelContext.closeLock;
 		ReentrantReadWriteLock.WriteLock writeLock = closeLock.writeLock();
 		writeLock.lock();
