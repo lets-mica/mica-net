@@ -195,18 +195,24 @@ package org.tio.http.common;
 
 import org.tio.utils.hutool.StrUtil;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 /**
  * @author tanyaowu
  * 2017年6月28日 下午2:20:32
  */
 public class RequestLine {
 	public Method method;
-	public String path;            //譬如http://www.163.com/user/get?value=tan&id=789，那么此值就是/user/get
-	public String initPath;        //同path，只是path可能会被业务端修改，而这个是记录访问者访问的最原始path的
-	public String queryString;    //譬如http://www.163.com/user/get?value=tan&id=789，那么此值就是name=tan&id=789
+	/**
+	 * 譬如 http://www.163.com/user/get?value=tan&id=789，那么此值就是/user/get
+	 */
+	public String path;
+	/**
+	 * 同path，只是path可能会被业务端修改，而这个是记录访问者访问的最原始path的
+	 */
+	public String initPath;
+	/**
+	 * 譬如 http://www.163.com/user/get?value=tan&id=789，那么此值就是name=tan&id=789
+	 */
+	public String queryString;
 	public String protocol;
 	public String version;
 
@@ -319,45 +325,4 @@ public class RequestLine {
 		sb.append(protocol).append('/').append(version);
 		return sb.toString();
 	}
-
-	/**
-	 * 用来编码用的
-	 * "GET /json?tan=谭耀武 HTTP/1.1" -->"GET /json?tan=%E8%B0%AD%E8%80%80%E6%AD%A6 HTTP/1.1"
-	 *
-	 * @param charset 字符集
-	 * @return 编码后的 url
-	 */
-	@SuppressWarnings("deprecation")
-	public String toUrlEncodedString(String charset) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(method.value).append(' ').append(path);
-		if (StrUtil.isNotBlank(queryString)) {
-			sb.append('?');//.append(queryString);
-			String[] keyValues = queryString.split("&");
-			int i = 0;
-			for (String keyValue : keyValues) {
-				String[] keyValueArray = keyValue.split("=");
-				if (keyValueArray.length == 2) {
-					String name = keyValueArray[0];
-					String value = keyValueArray[1];
-					if (StrUtil.isNotBlank(charset)) {
-						try {
-							sb.append(name).append('=').append(URLEncoder.encode(value, charset));
-						} catch (UnsupportedEncodingException e) {
-							sb.append(name).append('=').append(URLEncoder.encode(value));
-						}
-					} else {
-						sb.append(name).append('=').append(URLEncoder.encode(value));
-					}
-					if (i != keyValues.length - 1)
-						sb.append('&');
-				}
-				i++;
-			}
-		}
-		sb.append(' ');
-		sb.append(protocol).append('/').append(version);
-		return sb.toString();
-	}
-
 }

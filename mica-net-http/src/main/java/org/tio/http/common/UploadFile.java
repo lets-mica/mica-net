@@ -193,28 +193,27 @@
 */
 package org.tio.http.common;
 
+import java.util.Arrays;
+
 /**
  * @author tanyaowu
  * 2017年7月26日 下午3:12:56
  */
 public class UploadFile {
-	private String name = null;
 	private int size = -1;
-	private byte[] data = null;
+	private String name;
+	private byte[] data;
 
-	/**
-	 *
-	 */
 	public UploadFile() {
 
 	}
 
-	public byte[] getData() {
-		return data;
+	public int getSize() {
+		return size;
 	}
 
-	public void setData(byte[] data) {
-		this.data = data;
+	public void setSize(int size) {
+		this.size = size;
 	}
 
 	public String getName() {
@@ -225,11 +224,20 @@ public class UploadFile {
 		this.name = name;
 	}
 
-	public int getSize() {
-		return size;
+	public byte[] getData() {
+		return data;
 	}
 
-	public void setSize(int size) {
-		this.size = size;
+	public void setData(byte[] data) {
+		this.data = data;
+	}
+
+	@Override
+	public String toString() {
+		return "UploadFile{" +
+			"size=" + size +
+			", name='" + name + '\'' +
+			", data=" + Arrays.toString(data) +
+			'}';
 	}
 }
