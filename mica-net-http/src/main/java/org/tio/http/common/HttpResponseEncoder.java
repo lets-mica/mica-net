@@ -210,11 +210,11 @@ import java.util.Set;
  * @author tanyaowu
  * 2017年8月4日 上午9:41:12
  */
-public class HttpResponseEncoder {
-	public static final int HEADER_SERVER_LENGTH = HeaderName.Server.bytes.length + HeaderValue.Server.SERVER_INFO.bytes.length + 4;
-	public static final int HEADER_DATE_LENGTH_1 = HeaderName.Date.bytes.length + 4;
-	public static final int HEADER_FIXED_LENGTH = HEADER_SERVER_LENGTH + HEADER_DATE_LENGTH_1;
+public final class HttpResponseEncoder {
 	private static final Logger log = LoggerFactory.getLogger(HttpResponseEncoder.class);
+	public static final int HEADER_SERVER_LENGTH = HeaderName.Server.bytes.length + HeaderValue.Server.SERVER_INFO.bytes.length + 4; // Server头长度(名称+值+冒号空格和\r\n)
+	public static final int HEADER_DATE_LENGTH = HeaderName.Date.bytes.length + 4; // Date头长度(名称+冒号空格和\r\n)
+	public static final int HEADER_FIXED_LENGTH = HEADER_SERVER_LENGTH + HEADER_DATE_LENGTH; // 固定头总长度
 
 	private HttpResponseEncoder() {
 
@@ -248,22 +248,25 @@ public class HttpResponseEncoder {
 		if (isNeedResponseContentLength(httpRequest, httpResponseStatus, headers)) {
 			httpResponse.addHeader(HeaderName.Content_Length, HeaderValue.from(Integer.toString(bodyLength)));
 		}
+		// 获取已计算的Header长度（包含用户添加的Header）
 		int headerLength = httpResponse.getHeaderByteCount();
 
+		// 添加固定Header长度（Server和Date）
+		// Date值长度在运行时确定
+		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
+		headerLength += HEADER_FIXED_LENGTH + httpDateValue.bytes.length;
+
+		// 处理cookie长度计算
 		if (httpResponse.getCookies() != null) {
 			for (Cookie cookie : httpResponse.getCookies()) {
-				headerLength += HeaderName.SET_COOKIE.bytes.length;
+				// SET_COOKIE头名称长度 + 冒号空格和\r\n
+				headerLength += HeaderName.SET_COOKIE.bytes.length + 4;
 				byte[] bs = cookie.toString().getBytes(httpResponse.getCharset());
 				cookie.setBytes(bs);
-				headerLength += (bs.length);
+				// Cookie值长度
+				headerLength += bs.length;
 			}
-			headerLength += httpResponse.getCookies().size() * 4; //冒号空格和\r\n
 		}
-
-		// 时间
-		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
-
-		headerLength += HEADER_FIXED_LENGTH + httpDateValue.bytes.length;
 
 		ByteBuffer buffer = ByteBuffer.allocate(respLineLength + headerLength + bodyLength);
 		buffer.put(httpResponseStatus.responseLineBinary);

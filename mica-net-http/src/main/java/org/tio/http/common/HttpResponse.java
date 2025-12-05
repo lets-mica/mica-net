@@ -339,7 +339,7 @@ public class HttpResponse extends HttpPacket {
 	 */
 	public void addHeader(HeaderName name, HeaderValue value) {
 		headers.put(name, value);
-		headerByteCount += (name.bytes.length + value.bytes.length + 4); //冒号空格和\r\n
+		headerByteCount += name.bytes.length + value.bytes.length + 4; //名称长度+值长度+冒号空格和\r\n(4个字符)
 	}
 
 	/**

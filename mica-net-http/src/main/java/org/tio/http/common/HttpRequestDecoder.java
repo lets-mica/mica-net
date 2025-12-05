@@ -217,10 +217,10 @@ import java.util.Objects;
  *
  * @author tanyaowu
  */
-public class HttpRequestDecoder {
+public final class HttpRequestDecoder {
 	private static final Logger log = LoggerFactory.getLogger(HttpRequestDecoder.class);
 
-	public HttpRequestDecoder() {
+	private HttpRequestDecoder() {
 
 	}
 
@@ -237,8 +237,6 @@ public class HttpRequestDecoder {
 	public static HttpRequest decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext, HttpConfig httpConfig)
 		throws TioDecodeException {
 		Map<String, String> headers = new HashMap<>();
-		int contentLength;
-		byte[] bodyBytes;
 		RequestLine firstLine = parseRequestLine(buffer, httpConfig);
 		if (firstLine == null) {
 			return null;
@@ -250,6 +248,7 @@ public class HttpRequestDecoder {
 		}
 		String contentLengthStr = headers.get(HttpConst.RequestHeaderKey.Content_Length);
 
+		int contentLength;
 		if (StrUtil.isBlank(contentLengthStr)) {
 			contentLength = 0;
 		} else {
@@ -267,18 +266,18 @@ public class HttpRequestDecoder {
 			if (notReceivedLength > channelContext.getReadBufferSize()) {
 				channelContext.setReadBufferSize(notReceivedLength);
 			}
-
 			channelContext.setPacketNeededLength(allNeedLength);
 			return null;
 		}
 		// request header end
 
 		// ----------------------------------------------- request body start
-		String realIp = IpUtils.getRealIp(channelContext, httpConfig, headers);
 		if (httpConfig.checkHost && !headers.containsKey(HttpConst.RequestHeaderKey.Host)) {
 			throw new TioDecodeException("there is no host header");
 		}
 
+		// 解析真实的 ip
+		String realIp = IpUtils.getRealIp(channelContext, httpConfig, headers);
 		Node realNode;
 		if (Objects.equals(realIp, channelContext.getClientNode().getIp())) {
 			realNode = channelContext.getClientNode();
@@ -305,10 +304,10 @@ public class HttpRequestDecoder {
 		}
 
 		if (contentLength > 0) {
-			bodyBytes = new byte[contentLength];
+			byte[] bodyBytes = new byte[contentLength];
 			buffer.get(bodyBytes);
 			httpRequest.setBody(bodyBytes);
-			//解析消息体
+			// 解析消息体
 			parseBody(httpRequest, firstLine, bodyBytes, channelContext, httpConfig);
 		}
 		// ----------------------------------------------- request body end

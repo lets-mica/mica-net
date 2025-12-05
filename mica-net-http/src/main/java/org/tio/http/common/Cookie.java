@@ -222,7 +222,7 @@ public class Cookie {
 	private boolean httpOnly = false;
 	private String name;
 	private String value;
-	private byte[] bytes;
+	private byte[] bytes; // Cookie字符串的字节表示，用于避免重复编码
 
 	/**
 	 * 创建一个 Cookie
