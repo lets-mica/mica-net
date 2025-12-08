@@ -16,10 +16,10 @@
 
 package org.tio.server.cluster.core;
 
-import org.tio.server.cluster.message.ClusterJoinMessage;
 import org.tio.client.intf.TioClientListener;
 import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
+import org.tio.server.cluster.message.ClusterJoinMessage;
 
 /**
  * 集群客户端监听器

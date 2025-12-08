@@ -16,13 +16,13 @@
 
 package org.tio.server.cluster.core;
 
-import org.tio.server.cluster.codec.ClusterMessageDecoder;
-import org.tio.server.cluster.codec.ClusterMessageEncoder;
 import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
+import org.tio.server.cluster.codec.ClusterMessageDecoder;
+import org.tio.server.cluster.codec.ClusterMessageEncoder;
 import org.tio.server.cluster.message.*;
 import org.tio.server.intf.TioServerHandler;
 

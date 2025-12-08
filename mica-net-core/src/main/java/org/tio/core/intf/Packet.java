@@ -193,10 +193,10 @@
 */
 package org.tio.core.intf;
 
+import org.tio.utils.SysConst;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
-
-import org.tio.utils.SysConst;
 
 /**
  * @author tanyaowu

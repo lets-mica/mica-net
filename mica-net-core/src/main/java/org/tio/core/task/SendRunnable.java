@@ -193,16 +193,6 @@
 */
 package org.tio.core.task;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.net.ssl.SSLException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
@@ -217,6 +207,15 @@ import org.tio.core.ssl.SslUtils;
 import org.tio.core.ssl.SslVo;
 import org.tio.core.utils.TioUtils;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
+
+import javax.net.ssl.SSLException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author tanyaowu
