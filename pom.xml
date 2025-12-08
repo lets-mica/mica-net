@@ -52,7 +52,6 @@
         <slf4j.version>2.0.17</slf4j.version>
         <tinylog.version>2.7.0</tinylog.version>
         <junit-jupiter.version>5.14.0</junit-jupiter.version>
-        <annotations.version>26.0.2-1</annotations.version>
     </properties>
 
     <developers>
@@ -79,11 +78,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 

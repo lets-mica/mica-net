@@ -193,7 +193,6 @@
 */
 package org.tio.http.common;
 
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
@@ -467,7 +466,6 @@ public class HttpRequest extends HttpPacket {
 	/**
 	 * @return the cookieMap
 	 */
-	@NotNull
 	public Map<String, Cookie> getCookieMap() {
 		if (cookieMap != null) {
 			return cookieMap;

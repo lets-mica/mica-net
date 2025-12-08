@@ -193,8 +193,6 @@
 */
 package org.tio.utils.thread.pool;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -247,7 +245,7 @@ public class DefaultThreadFactory implements ThreadFactory {
 	 * @see java.util.concurrent.ThreadFactory#newThread(java.lang.Runnable)
 	 */
 	@Override
-	public Thread newThread(@NotNull Runnable r) {
+	public Thread newThread(Runnable r) {
 		Thread thread = new Thread(r);
 		thread.setName(threadPoolName + '-' + threadPoolId.incrementAndGet());
 		thread.setPriority(priority);

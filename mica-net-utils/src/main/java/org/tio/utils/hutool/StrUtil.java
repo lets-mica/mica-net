@@ -193,8 +193,6 @@
 */
 package org.tio.utils.hutool;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -293,7 +291,7 @@ public class StrUtil {
 	 * @param newPattern {@code String} to insert
 	 * @return a {@code String} with the replacements
 	 */
-	public static String replace(String inString, String oldPattern, @Nullable String newPattern) {
+	public static String replace(String inString, String oldPattern, String newPattern) {
 		if (isEmpty(inString) || isEmpty(oldPattern) || newPattern == null) {
 			return inString;
 		}

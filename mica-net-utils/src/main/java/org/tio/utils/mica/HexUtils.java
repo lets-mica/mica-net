@@ -16,7 +16,6 @@
 
 package org.tio.utils.mica;
 
-import org.jetbrains.annotations.Nullable;
 import org.tio.utils.hutool.StrUtil;
 
 import java.nio.charset.Charset;
@@ -138,8 +137,7 @@ public class HexUtils {
 	 * @param data Data to Hex
 	 * @return bytes as a hex string
 	 */
-	@Nullable
-	public static String encodeToString(@Nullable String data) {
+	public static String encodeToString(String data) {
 		return encodeToString(data, DEFAULT_CHARSET);
 	}
 
@@ -150,8 +148,7 @@ public class HexUtils {
 	 * @param charset Charset
 	 * @return bytes as a hex string
 	 */
-	@Nullable
-	public static String encodeToString(@Nullable String data, Charset charset) {
+	public static String encodeToString(String data, Charset charset) {
 		if (StrUtil.isBlank(data)) {
 			return null;
 		}
