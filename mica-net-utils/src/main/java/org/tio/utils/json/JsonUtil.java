@@ -71,6 +71,15 @@ public class JsonUtil {
 		return defaultJsonAdapter;
 	}
 
+	/**
+	 * 判断字符串是否是 json
+	 *
+	 * @param json json
+	 * @return 是否是 json
+	 */
+	public static boolean isValidJson(String json) {
+		return getJsonAdapter().isValidJson(json);
+	}
 
 	/**
 	 * 转换成 json 字符串
