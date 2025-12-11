@@ -21,6 +21,7 @@ import tools.jackson.core.json.JsonFactory;
 import tools.jackson.core.json.JsonFactoryBuilder;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JavaType;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -64,6 +65,17 @@ public class Jackson3JsonAdapter implements JsonAdapter {
 	public Jackson3JsonAdapter(JsonMapper jsonMapper) {
 		// 使用传入的 jsonMapper rebuild，避免污染源 jsonMapper
 		this(jsonMapper.rebuild());
+	}
+
+	@Override
+	public boolean isValidJson(String json) {
+		try {
+			JsonNode jsonNode = jsonMapper.readTree(json);
+			// 严格校验：只有是 JSON对象 或 JSON数组 时才返回 true
+			return jsonNode != null && (jsonNode.isObject() || jsonNode.isArray());
+		} catch (Throwable e) {
+			return false;
+		}
 	}
 
 	@Override

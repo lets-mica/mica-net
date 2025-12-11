@@ -18,6 +18,7 @@ package org.tio.utils.json;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONB;
+import com.alibaba.fastjson2.JSONValidator;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -32,6 +33,15 @@ public class FastJson2JsonAdapter implements JsonAdapter {
 	 * 类名
 	 */
 	public static final String CLAZZ_NAME = "com.alibaba.fastjson2.JSON";
+
+	@Override
+	public boolean isValidJson(String json) {
+		try {
+			return JSONValidator.from(json).validate();
+		} catch (Throwable e) {
+			return false;
+		}
+	}
 
 	@Override
 	public String toJsonString(Object object) {

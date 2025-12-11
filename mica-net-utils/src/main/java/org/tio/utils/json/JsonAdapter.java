@@ -27,6 +27,14 @@ import java.util.List;
 public interface JsonAdapter {
 
 	/**
+	 * 判断字符串是否是 json
+	 *
+	 * @param json json
+	 * @return 是否是 json
+	 */
+	boolean isValidJson(String json);
+
+	/**
 	 * 转换成 json 字符串
 	 *
 	 * @param object object

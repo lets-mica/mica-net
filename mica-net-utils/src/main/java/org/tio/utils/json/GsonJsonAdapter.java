@@ -18,6 +18,8 @@ package org.tio.utils.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
@@ -47,6 +49,16 @@ public class GsonJsonAdapter implements JsonAdapter {
 
 	public GsonJsonAdapter(GsonBuilder gsonBuilder) {
 		this(Objects.requireNonNull(gsonBuilder, "gsonBuilder is null.").create());
+	}
+
+	@Override
+	public boolean isValidJson(String json) {
+		try {
+			JsonElement jsonElement = JsonParser.parseString(json);
+			return jsonElement != null && (jsonElement.isJsonObject() || jsonElement.isJsonArray());
+		} catch (Throwable e) {
+			return false;
+		}
 	}
 
 	@Override

@@ -45,6 +45,11 @@ public class HuToolJsonAdapter implements JsonAdapter {
 	}
 
 	@Override
+	public boolean isValidJson(String json) {
+		return JSONUtil.isTypeJSON(json);
+	}
+
+	@Override
 	public String toJsonString(Object object) {
 		return JSONUtil.toJsonStr(object, jsonConfig);
 	}

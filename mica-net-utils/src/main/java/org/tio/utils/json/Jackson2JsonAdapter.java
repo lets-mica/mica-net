@@ -18,10 +18,7 @@ package org.tio.utils.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.*;
 import org.tio.utils.mica.ExceptionUtils;
 
 import java.io.IOException;
@@ -55,6 +52,17 @@ public class Jackson2JsonAdapter implements JsonAdapter {
 		this.objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT);
 		// 启用全局忽略未知属性
 		this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
+
+	@Override
+	public boolean isValidJson(String json) {
+		try {
+			JsonNode jsonNode = objectMapper.readTree(json);
+			// 严格校验：只有是 JSON对象 或 JSON数组 时才返回 true
+			return jsonNode != null && (jsonNode.isObject() || jsonNode.isArray());
+		} catch (Throwable e) {
+			return false;
+		}
 	}
 
 	@Override

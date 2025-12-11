@@ -47,6 +47,16 @@ public class Snack3JsonAdapter implements JsonAdapter {
 	}
 
 	@Override
+	public boolean isValidJson(String json) {
+		try {
+			ONode oNode = ONode.loadStr(json, options);
+			return oNode.isObject() || oNode.isArray();
+		} catch (Throwable e) {
+			return false;
+		}
+	}
+
+	@Override
 	public String toJsonString(Object object) {
 		return ONode.load(object, options).toJson();
 	}

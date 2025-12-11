@@ -2,10 +2,11 @@ package tools.jackson.databind.json;
 
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.MapperBuilder;
 import tools.jackson.databind.type.TypeFactory;
 
-public class JsonMapper {
+public class JsonMapper extends ObjectMapper {
 
 	public JsonMapper() {
 	}
