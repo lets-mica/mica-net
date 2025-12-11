@@ -22,6 +22,19 @@ class JsonAdapterTest {
 	private static final Snack4JsonAdapter snack4JsonAdapter = new Snack4JsonAdapter();
 
 	@Test
+	void testIsValidJson() {
+		String json = "{\"name\":\"张三\",\"age\":18}";
+		Assertions.assertTrue(jackson3JsonAdapter.isValidJson(json));
+		Assertions.assertTrue(jackson2JsonAdapter.isValidJson(json));
+		Assertions.assertTrue(fastJson2JsonAdapter.isValidJson(json));
+		Assertions.assertTrue(gsonJsonAdapter.isValidJson(json));
+		Assertions.assertTrue(fastJson1JsonAdapter.isValidJson(json));
+		Assertions.assertTrue(huToolJsonAdapter.isValidJson(json));
+		Assertions.assertTrue(snack3JsonAdapter.isValidJson(json));
+		Assertions.assertTrue(snack4JsonAdapter.isValidJson(json));
+	}
+
+	@Test
 	void testMapToBean() {
 		String name = "张三";
 		Map<String, Object> map = new HashMap<>();

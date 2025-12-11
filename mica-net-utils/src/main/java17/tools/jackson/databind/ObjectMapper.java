@@ -5,7 +5,7 @@ import tools.jackson.core.JacksonException;
 public class ObjectMapper {
 
 	public JsonNode readTree(String content) throws JacksonException {
-		return null;
+		return new JsonNode() {};
 	}
 
 }

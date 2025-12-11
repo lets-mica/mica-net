@@ -3,11 +3,11 @@ package tools.jackson.databind;
 public abstract class JsonNode {
 
 	public boolean isArray() {
-		return false;
+		return true;
 	}
 
 	public boolean isObject() {
-		return false;
+		return true;
 	}
 
 }
