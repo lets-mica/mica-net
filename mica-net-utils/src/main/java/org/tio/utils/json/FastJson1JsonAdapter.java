@@ -19,7 +19,6 @@ package org.tio.utils.json;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONValidator;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
 

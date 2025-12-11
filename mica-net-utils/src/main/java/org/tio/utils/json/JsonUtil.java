@@ -17,9 +17,11 @@
 package org.tio.utils.json;
 
 import org.tio.utils.hutool.ClassUtil;
+import org.tio.utils.mica.TypeUtils;
 
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Map;
 
 /**
  * json 工具
@@ -171,6 +173,78 @@ public class JsonUtil {
 	 */
 	public static <T> List<T> readList(byte[] json, Class<T> clazz) {
 		return getJsonAdapter().readList(json, clazz);
+	}
+
+	/**
+	 * 将 json 字符串转成 map
+	 *
+	 * @param json       json
+	 * @param keyClass   key Class
+	 * @param valueClass value Class
+	 * @param <K>        泛型
+	 * @param <V>        泛型
+	 * @return 对象
+	 */
+	public static <K, V> Map<K, V> readMap(String json, Class<K> keyClass, Class<V> valueClass) {
+		return getJsonAdapter().readMap(json, keyClass, valueClass);
+	}
+
+	/**
+	 * 将 json 字符串转成 map
+	 *
+	 * @param json       json
+	 * @param keyClass   key Class
+	 * @param valueClass value Class
+	 * @param <K>        泛型
+	 * @param <V>        泛型
+	 * @return 对象
+	 */
+	public static <K, V> Map<K, V> readMap(byte[] json, Class<K> keyClass, Class<V> valueClass) {
+		return getJsonAdapter().readMap(json, keyClass, valueClass);
+	}
+
+	/**
+	 * 将 json 字符串转成 map
+	 *
+	 * @param json       json
+	 * @param valueClass value Class
+	 * @param <V>        泛型
+	 * @return 对象
+	 */
+	public static <V> Map<String, V> readMap(String json, Class<V> valueClass) {
+		return readMap(json, String.class, valueClass);
+	}
+
+	/**
+	 * 将 json 字符串转成 map
+	 *
+	 * @param json       json
+	 * @param valueClass value Class
+	 * @param <V>        泛型
+	 * @return 对象
+	 */
+	public static <V> Map<String, V> readMap(byte[] json, Class<V> valueClass) {
+		return readMap(json, String.class, valueClass);
+	}
+
+	/**
+	 * 将 json 字符串转成 map
+	 *
+	 * @param json json
+	 * @return 对象
+	 */
+	public static Map<String, Object> readMap(String json) {
+		return readMap(json, Object.class);
+	}
+
+	/**
+	 * 将 json 字符串转成 map
+	 *
+	 * @param json json
+	 * @return 对象
+	 */
+	public static Map<String, Object> readMap(byte[] json) {
+		return readMap(json, Object.class);
 	}
 
 	/**

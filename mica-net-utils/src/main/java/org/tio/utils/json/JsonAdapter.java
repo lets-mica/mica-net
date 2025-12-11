@@ -16,8 +16,11 @@
 
 package org.tio.utils.json;
 
+import org.tio.utils.mica.TypeUtils;
+
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Map;
 
 /**
  * json 适配器
@@ -98,7 +101,7 @@ public interface JsonAdapter {
 	}
 
 	/**
-	 * 将 json 字符串转成对象
+	 * 将 json 字符串转成 list
 	 *
 	 * @param json  json
 	 * @param clazz Class
@@ -108,7 +111,7 @@ public interface JsonAdapter {
 	<T> List<T> readList(String json, Class<T> clazz);
 
 	/**
-	 * 将 json byte array 转成对象
+	 * 将 json byte array 转成 list
 	 *
 	 * @param json  json
 	 * @param clazz Class
@@ -117,6 +120,34 @@ public interface JsonAdapter {
 	 */
 	default <T> List<T> readList(byte[] json, Class<T> clazz) {
 		return readList(new String(json), clazz);
+	}
+
+	/**
+	 * 将 json 字符串转成 map
+	 *
+	 * @param json       json
+	 * @param keyClass   key Class
+	 * @param valueClass value Class
+	 * @param <K>        泛型
+	 * @param <V>        泛型
+	 * @return 对象
+	 */
+	default <K, V> Map<K, V> readMap(String json, Class<K> keyClass, Class<V> valueClass) {
+		return readValue(json, TypeUtils.getGenericType(Map.class, keyClass, valueClass));
+	}
+
+	/**
+	 * 将 json 字符串转成 map
+	 *
+	 * @param json       json
+	 * @param keyClass   key Class
+	 * @param valueClass value Class
+	 * @param <K>        泛型
+	 * @param <V>        泛型
+	 * @return 对象
+	 */
+	default <K, V> Map<K, V> readMap(byte[] json, Class<K> keyClass, Class<V> valueClass) {
+		return readValue(json, TypeUtils.getGenericType(Map.class, keyClass, valueClass));
 	}
 
 	/**
