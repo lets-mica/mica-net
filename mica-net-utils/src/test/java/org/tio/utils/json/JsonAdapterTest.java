@@ -35,6 +35,28 @@ class JsonAdapterTest {
 	}
 
 	@Test
+	void testReadMap() {
+		String json = "{\"name\":\"张三\",\"age\":18}";
+		Map<String, Object> map;
+//		map = jackson3JsonAdapter.readMap(json, String.class, Object.class);
+//		Assertions.assertNull(map);
+		map = jackson2JsonAdapter.readMap(json, String.class, Object.class);
+		Assertions.assertNotNull(map);
+		map = fastJson2JsonAdapter.readMap(json, String.class, Object.class);
+		Assertions.assertNotNull(map);
+		map = gsonJsonAdapter.readMap(json, String.class, Object.class);
+		Assertions.assertNotNull(map);
+		map = fastJson1JsonAdapter.readMap(json, String.class, Object.class);
+		Assertions.assertNotNull(map);
+		map = huToolJsonAdapter.readMap(json, String.class, Object.class);
+		Assertions.assertNotNull(map);
+		map = snack3JsonAdapter.readMap(json, String.class, Object.class);
+		Assertions.assertNotNull(map);
+		map = snack4JsonAdapter.readMap(json, String.class, Object.class);
+		Assertions.assertNotNull(map);
+	}
+
+	@Test
 	void testMapToBean() {
 		String name = "张三";
 		Map<String, Object> map = new HashMap<>();
