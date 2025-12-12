@@ -2,6 +2,17 @@
 
 ## 发行版本
 
+### v1.2.6 - 2025-12-12
+- feat(json): JSONUtil 添加 JSON 转 Map 相关功能
+- feat(json): JSONUtil 增加 isValidJson JSON 字符串合法性校验方法
+- feat(utils): 新增通用的 IntPair 类
+
+### v1.2.5 - 2025-12-08
+- refactor(http): 删除 HttpRequestFunction 接口
+- refactor(http): 优化HttpRequestDecoder和HttpResponseEncoder代码
+- fix(page): 修正分页大小处理默认值，从最大整数改为20
+- fix(client): 将 reConnCount 统一命名为 ReConnCount 以保持一致性
+
 ### v1.2.4 - 2025-11-28
 
 - refactor(http): 降低请求体日志级别以减少冗余信息
