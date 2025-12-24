@@ -1,5 +1,7 @@
 package org.tio.utils.mica;
 
+import java.util.Objects;
+
 /**
  * IntPair
  *
@@ -21,6 +23,22 @@ public class IntPair<V> {
 
 	public V getValue() {
 		return value;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		IntPair<?> intPair = (IntPair<?>) o;
+		return key == intPair.key && Objects.equals(value, intPair.value);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = key;
+		result = 31 * result + Objects.hashCode(value);
+		return result;
 	}
 
 	@Override

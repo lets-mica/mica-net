@@ -16,6 +16,8 @@
 
 package org.tio.utils.mica;
 
+import java.util.Objects;
+
 /**
  * Pair
  *
@@ -38,6 +40,22 @@ public class Pair<L, R> {
 
 	public R getRight() {
 		return right;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Pair<?, ?> pair = (Pair<?, ?>) o;
+		return Objects.equals(left, pair.left) && Objects.equals(right, pair.right);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = Objects.hashCode(left);
+		result = 31 * result + Objects.hashCode(right);
+		return result;
 	}
 
 	@Override
