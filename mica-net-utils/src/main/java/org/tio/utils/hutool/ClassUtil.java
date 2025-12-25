@@ -87,6 +87,11 @@ public class ClassUtil {
 	 * @return fieldValue
 	 */
 	public static Object getFieldValue(Object obj, String fieldName) {
+		if (obj == null || fieldName == null) {
+			return null;
+		} else if (obj instanceof Map) {
+			return ((Map<?, ?>) obj).get(fieldName);
+		}
 		try {
 			Class<?> clazz = obj.getClass();
 			// 1. 查找声明类
