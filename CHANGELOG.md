@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v1.2.7 - 2025-12-26
+- feat(utils): ClassUtil 添加 getFieldValue 方法，支持读取 java bean 和 Map 对象属性。
+- feat(utils): 为 IntPair 和 Pair 添加 equals 和 hashCode 实现。
+
 ### v1.2.6 - 2025-12-12
 - feat(json): JSONUtil 添加 JSON 转 Map 相关功能
 - feat(json): JSONUtil 增加 isValidJson JSON 字符串合法性校验方法
