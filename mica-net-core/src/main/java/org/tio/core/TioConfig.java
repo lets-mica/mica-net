@@ -277,9 +277,15 @@ public abstract class TioConfig {
 	 */
 	public boolean logWhenDecodeError = false;
 	public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD;    //.queue;
+	/**
+	 * tio 编解码等线程数
+	 */
 	public SynThreadPoolExecutor tioExecutor;
-	public CloseRunnable closeRunnable;
+	/**
+	 * AIO AsynchronousChannelGroup 的线程池
+	 */
 	public ExecutorService groupExecutor;
+	public CloseRunnable closeRunnable;
 	public ClientNodes clientNodes = new ClientNodes();
 	public Set<ChannelContext> connections = ConcurrentHashMap.newKeySet();
 	public Groups groups = new Groups();
