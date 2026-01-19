@@ -45,7 +45,7 @@
         <fastjson.version>1.2.83</fastjson.version>
         <fastjson2.version>2.0.60</fastjson2.version>
         <gson.version>2.13.2</gson.version>
-        <jackson.version>2.20.1</jackson.version>
+        <jackson.version>2.21.0</jackson.version>
         <hutool.version>5.8.43</hutool.version>
         <snack3.version>3.2.139</snack3.version>
         <snack4.version>4.0.28</snack4.version>
