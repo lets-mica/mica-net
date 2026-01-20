@@ -48,7 +48,7 @@
         <jackson.version>2.21.0</jackson.version>
         <hutool.version>5.8.43</hutool.version>
         <snack3.version>3.2.139</snack3.version>
-        <snack4.version>4.0.29</snack4.version>
+        <snack4.version>4.0.30</snack4.version>
         <slf4j.version>2.0.17</slf4j.version>
         <tinylog.version>2.7.0</tinylog.version>
         <junit-jupiter.version>5.14.0</junit-jupiter.version>
