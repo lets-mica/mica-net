@@ -415,6 +415,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 					log.error("解码时遇到异常", e);
 				}
 				channelContext.setPacketNeededLength(null);
+				this.lastByteBuffer = null;
 				Tio.close(channelContext, e, "解码异常:" + e.getMessage(), CloseCode.DECODE_ERROR);
 				return;
 			}
