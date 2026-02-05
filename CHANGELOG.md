@@ -2,6 +2,9 @@
 
 ## 发行版本
 
+### v1.2.8 - 2026-02-05
+- fix(core): 修复 DecodeRunnable 中 lastByteBuffer 未清空 client 可能导致的重连解析问题
+
 ### v1.2.7 - 2025-12-26
 - feat(utils): ClassUtil 添加 getFieldValue 方法，支持读取 java bean 和 Map 对象属性。
 - feat(utils): 为 IntPair 和 Pair 添加 equals 和 hashCode 实现。
