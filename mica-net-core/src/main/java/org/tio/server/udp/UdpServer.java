@@ -26,7 +26,6 @@ public class UdpServer implements Runnable {
 	private final int port;
 	private DatagramChannel datagramChannel;
 	private Selector selector;
-	private Thread selectorThread;
 	private volatile boolean isStopped = false;
 	private final ByteBuffer readBuffer;
 
@@ -42,7 +41,7 @@ public class UdpServer implements Runnable {
 		datagramChannel.configureBlocking(false);
 		datagramChannel.socket().bind(new InetSocketAddress(port));
 		datagramChannel.register(selector, SelectionKey.OP_READ);
-		selectorThread = new Thread(this, "tio-udp-server-" + port);
+		Thread selectorThread = new Thread(this, "tio-udp-server-" + port);
 		selectorThread.setDaemon(false);
 		selectorThread.start();
 		log.info("NIO UDP Server started on port {}", port);
