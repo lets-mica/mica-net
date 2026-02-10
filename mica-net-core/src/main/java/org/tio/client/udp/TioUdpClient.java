@@ -7,7 +7,6 @@ package org.tio.client.udp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.client.ClientChannelContext;
 import org.tio.core.Tio;
 
 import java.io.IOException;
@@ -39,7 +38,7 @@ public class TioUdpClient implements Runnable {
 		this.thread.start();
 	}
 
-	public void register(DatagramChannel channel, ClientChannelContext context) {
+	public void register(DatagramChannel channel, UdpClientChannelContext context) {
 		taskQueue.add(() -> {
 			try {
 				channel.register(selector, SelectionKey.OP_READ, context);
@@ -98,7 +97,7 @@ public class TioUdpClient implements Runnable {
 	}
 
 	private void handleRead(SelectionKey key) {
-		ClientChannelContext context = (ClientChannelContext) key.attachment();
+		UdpClientChannelContext context = (UdpClientChannelContext) key.attachment();
 		DatagramChannel channel = (DatagramChannel) key.channel();
 
 		try {

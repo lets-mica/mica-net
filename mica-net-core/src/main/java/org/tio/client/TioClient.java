@@ -197,6 +197,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.client.task.ClientHeartbeatTask;
 import org.tio.client.udp.TioUdpClient;
+import org.tio.client.udp.UdpClientChannelContext;
 import org.tio.core.Node;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.timer.DefaultTimerTaskService;
@@ -400,7 +401,7 @@ public class TioClient {
 	 * @return ClientChannelContext
 	 * @throws Exception Exception
 	 */
-	public ClientChannelContext udpConnect(Node serverNode, Integer timeout) throws Exception {
+	public UdpClientChannelContext udpConnect(Node serverNode, Integer timeout) throws Exception {
 		return udpConnect(serverNode, null, null, timeout);
 	}
 
@@ -414,7 +415,7 @@ public class TioClient {
 	 * @return ClientChannelContext
 	 * @throws Exception Exception
 	 */
-	public synchronized ClientChannelContext udpConnect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
+	public synchronized UdpClientChannelContext udpConnect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
 		if (nioUdpClient == null) {
 			nioUdpClient = new TioUdpClient();
 		}
@@ -433,7 +434,7 @@ public class TioClient {
 		InetSocketAddress remote = new InetSocketAddress(serverNode.getIp(), serverNode.getPort());
 		datagramChannel.connect(remote);
 
-		ClientChannelContext context = new ClientChannelContext(clientConfig, datagramChannel);
+		UdpClientChannelContext context = new UdpClientChannelContext(clientConfig, datagramChannel);
 		context.setServerNode(serverNode);
 
 		nioUdpClient.register(datagramChannel, context);

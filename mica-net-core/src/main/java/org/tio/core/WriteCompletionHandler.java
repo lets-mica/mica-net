@@ -199,6 +199,7 @@ import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
+import org.tio.core.tcp.TcpChannelContext;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
@@ -228,7 +229,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 			if (log.isInfoEnabled()) {
 				log.info("{} {}/{} has sent", channelContext, writeCompletionVo.byteBuffer.position(), writeCompletionVo.byteBuffer.limit());
 			}
-			channelContext.asynchronousSocketChannel.write(writeCompletionVo.byteBuffer, writeCompletionVo, this);
+			((TcpChannelContext)channelContext).asynchronousSocketChannel.write(writeCompletionVo.byteBuffer, writeCompletionVo, this);
 		} else {
 			handle(bytesWritten, null, writeCompletionVo);
 		}

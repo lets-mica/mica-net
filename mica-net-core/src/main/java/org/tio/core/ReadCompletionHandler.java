@@ -197,6 +197,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.intf.TioListener;
+import org.tio.core.tcp.TcpChannelContext;
 import org.tio.core.utils.TioUtils;
 import org.tio.utils.buffer.ByteBufferUtil;
 
@@ -285,7 +286,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 		}
 		// 读取时有可能出现异常，gitee: https://gitee.com/dromara/mica-mqtt/issues/IBSM9W
 		try {
-			channelContext.asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, this);
+			((TcpChannelContext)channelContext).asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, this);
 		} catch (Throwable e) {
 			log.error(e.getMessage(), e);
 			failed(e, null);

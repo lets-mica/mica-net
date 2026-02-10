@@ -201,6 +201,7 @@ import org.tio.client.TioClientConfig;
 import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
+import org.tio.core.tcp.TcpChannelContext;
 import org.tio.utils.page.Page;
 import org.tio.utils.page.PageUtils;
 
@@ -496,21 +497,24 @@ public class Tio {
 			context.setCloseCode(closeCode);
 		}
 
-		if (!context.isUdp() && context.asynchronousSocketChannel != null) {
-			try {
-				context.asynchronousSocketChannel.shutdownInput();
-			} catch (Throwable e) {
-				//log.error(e.toString(), e);
-			}
-			try {
-				context.asynchronousSocketChannel.shutdownOutput();
-			} catch (Throwable e) {
-				//log.error(e.toString(), e);
-			}
-			try {
-				context.asynchronousSocketChannel.close();
-			} catch (Throwable e) {
-				//log.error(e.toString(), e);
+		if (!context.isUdp() && context instanceof TcpChannelContext) {
+			TcpChannelContext tcpChannelContext = (TcpChannelContext) context;
+			if (tcpChannelContext.asynchronousSocketChannel != null) {
+				try {
+					tcpChannelContext.asynchronousSocketChannel.shutdownInput();
+				} catch (Throwable e) {
+					//log.error(e.toString(), e);
+				}
+				try {
+					tcpChannelContext.asynchronousSocketChannel.shutdownOutput();
+				} catch (Throwable e) {
+					//log.error(e.toString(), e);
+				}
+				try {
+					tcpChannelContext.asynchronousSocketChannel.close();
+				} catch (Throwable e) {
+					//log.error(e.toString(), e);
+				}
 			}
 		}
 

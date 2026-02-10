@@ -198,6 +198,8 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.ChannelContext.CloseCode;
 import org.tio.core.Tio;
+import org.tio.core.tcp.TcpChannelContext;
+import org.tio.core.udp.UdpChannelContext;
 import org.tio.utils.thread.ThreadUtils;
 
 /**
@@ -212,21 +214,25 @@ public class TioUtils {
 			return false;
 		}
 
-		boolean isOpen;
+		boolean isOpen = false;
 		if (channelContext.isUdp()) {
-			if (channelContext.datagramChannel != null) {
-				isOpen = channelContext.datagramChannel.isOpen();
+			UdpChannelContext udpChannelContext = (UdpChannelContext) channelContext;
+			if (udpChannelContext.datagramChannel != null) {
+				isOpen = udpChannelContext.datagramChannel.isOpen();
 			} else {
 				log.error("{}, 请检查此异常, datagramChannel is null, isClosed:{}, isRemoved:{}, {} ", channelContext, channelContext.isClosed(), channelContext.isRemoved(),
 					ThreadUtils.stackTrace());
 				return false;
 			}
-		} else if (channelContext.asynchronousSocketChannel != null) {
-			isOpen = channelContext.asynchronousSocketChannel.isOpen();
 		} else {
-			log.error("{}, 请检查此异常, asynchronousSocketChannel is null, isClosed:{}, isRemoved:{}, {} ", channelContext, channelContext.isClosed(), channelContext.isRemoved(),
-				ThreadUtils.stackTrace());
-			return false;
+			TcpChannelContext tcpChannelContext = (TcpChannelContext) channelContext;
+			if (tcpChannelContext.asynchronousSocketChannel != null) {
+				isOpen = tcpChannelContext.asynchronousSocketChannel.isOpen();
+			} else {
+				log.error("{}, 请检查此异常, asynchronousSocketChannel is null, isClosed:{}, isRemoved:{}, {} ", channelContext, channelContext.isClosed(), channelContext.isRemoved(),
+					ThreadUtils.stackTrace());
+				return false;
+			}
 		}
 
 		if (channelContext.isClosed() || channelContext.isRemoved()) {

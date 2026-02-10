@@ -193,9 +193,9 @@
 */
 package org.tio.client;
 
-import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.TioConfig;
+import org.tio.core.tcp.TcpChannelContext;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -206,7 +206,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author tanyaowu
  * 2017年4月1日 上午9:31:16
  */
-public class ClientChannelContext extends ChannelContext {
+public class ClientChannelContext extends TcpChannelContext {
 	/**
 	 * 连续重连次数，连接成功后，此值会被重置0
 	 */
@@ -220,26 +220,6 @@ public class ClientChannelContext extends ChannelContext {
 	 */
 	public ClientChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
 		super(tioConfig, asynchronousSocketChannel);
-	}
-
-	/**
-	 * @param tioConfig       TioConfig
-	 * @param datagramChannel DatagramChannel
-	 */
-	public ClientChannelContext(TioConfig tioConfig, java.nio.channels.DatagramChannel datagramChannel) {
-		super(tioConfig, (AsynchronousSocketChannel) null);
-		this.datagramChannel = datagramChannel;
-		try {
-			if (datagramChannel.getLocalAddress() != null) {
-				InetSocketAddress inetSocketAddress = (InetSocketAddress) datagramChannel.getLocalAddress();
-				this.setClientNode(new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort()));
-			} else {
-				assignAnUnknownClientNode();
-			}
-		} catch (IOException e) {
-			assignAnUnknownClientNode();
-		}
-		this.setClosed(false);
 	}
 
 	/**

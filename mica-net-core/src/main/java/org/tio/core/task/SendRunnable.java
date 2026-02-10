@@ -206,6 +206,8 @@ import org.tio.core.intf.Packet;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.ssl.SslUtils;
 import org.tio.core.ssl.SslVo;
+import org.tio.core.tcp.TcpChannelContext;
+import org.tio.core.udp.UdpChannelContext;
 import org.tio.core.utils.TioUtils;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
@@ -428,12 +430,13 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		if (channelContext.isUdp()) {
 			boolean isSentSuccess = true;
 			try {
-				if (channelContext.datagramChannel != null) {
-					if (channelContext.datagramChannel.isConnected()) {
-						channelContext.datagramChannel.write(byteBuffer);
+				UdpChannelContext udpChannelContext = (UdpChannelContext) channelContext;
+				if (udpChannelContext.datagramChannel != null) {
+					if (udpChannelContext.datagramChannel.isConnected()) {
+						udpChannelContext.datagramChannel.write(byteBuffer);
 					} else {
 						Node remoteNode = channelContext.isServer() ? channelContext.getClientNode() : channelContext.getServerNode();
-						channelContext.datagramChannel.send(byteBuffer, remoteNode.getAsSocketAddress());
+						udpChannelContext.datagramChannel.send(byteBuffer, remoteNode.getAsSocketAddress());
 					}
 				}
 			} catch (Exception e) {
@@ -457,7 +460,8 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		try {
 			WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
 			// 异步发送，不再等待完成，回调中会处理
-			channelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, channelContext.writeCompletionHandler);
+			TcpChannelContext tcpChannelContext = (TcpChannelContext) channelContext;
+			tcpChannelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, channelContext.writeCompletionHandler);
 		} catch (Exception e) {
 			// 如果发送失败，恢复状态
 			writing.set(false);

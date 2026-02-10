@@ -193,9 +193,9 @@
 */
 package org.tio.server;
 
-import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.TioConfig;
+import org.tio.core.tcp.TcpChannelContext;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -204,7 +204,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 /**
  * @author tanyaowu
  */
-public class ServerChannelContext extends ChannelContext {
+public class ServerChannelContext extends TcpChannelContext {
 
 	/**
 	 * @param tioConfig                 TioConfig
