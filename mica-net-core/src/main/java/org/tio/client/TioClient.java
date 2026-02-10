@@ -196,8 +196,6 @@ package org.tio.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.client.task.ClientHeartbeatTask;
-import org.tio.client.udp.TioUdpClient;
-import org.tio.client.udp.UdpClientChannelContext;
 import org.tio.core.Node;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.timer.DefaultTimerTaskService;
@@ -222,7 +220,6 @@ public class TioClient {
 	private final TioClientConfig clientConfig;
 	private final TimerTaskService taskService;
 	private final AsynchronousChannelGroup channelGroup;
-	private TioUdpClient nioUdpClient;
 
 	/**
 	 * @param tioClientConfig TioClientConfig
@@ -394,55 +391,6 @@ public class TioClient {
 	}
 
 	/**
-	 * UDP connect
-	 *
-	 * @param serverNode serverNode
-	 * @param timeout    timeout
-	 * @return ClientChannelContext
-	 * @throws Exception Exception
-	 */
-	public UdpClientChannelContext udpConnect(Node serverNode, Integer timeout) throws Exception {
-		return udpConnect(serverNode, null, null, timeout);
-	}
-
-	/**
-	 * UDP connect
-	 *
-	 * @param serverNode serverNode
-	 * @param bindIp     bindIp
-	 * @param bindPort   bindPort
-	 * @param timeout    timeout
-	 * @return ClientChannelContext
-	 * @throws Exception Exception
-	 */
-	public synchronized UdpClientChannelContext udpConnect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
-		if (nioUdpClient == null) {
-			nioUdpClient = new TioUdpClient();
-		}
-
-		java.nio.channels.DatagramChannel datagramChannel = java.nio.channels.DatagramChannel.open();
-		datagramChannel.configureBlocking(false);
-
-		InetSocketAddress bindAddr;
-		if (bindPort != null) {
-			bindAddr = (bindIp == null) ? new InetSocketAddress(bindPort) : new InetSocketAddress(bindIp, bindPort);
-		} else {
-			bindAddr = new InetSocketAddress(0);
-		}
-		datagramChannel.bind(bindAddr);
-
-		InetSocketAddress remote = new InetSocketAddress(serverNode.getIp(), serverNode.getPort());
-		datagramChannel.connect(remote);
-
-		UdpClientChannelContext context = new UdpClientChannelContext(clientConfig, datagramChannel);
-		context.setServerNode(serverNode);
-
-		nioUdpClient.register(datagramChannel, context);
-		clientConfig.connecteds.add(context);
-		return context;
-	}
-
-	/**
 	 * @return the channelGroup
 	 */
 	public AsynchronousChannelGroup getChannelGroup() {
@@ -595,10 +543,6 @@ public class TioClient {
 	public boolean stop() {
 		// 先停止 ack 服务
 		this.taskService.stop();
-		// 停止 NIO UDP Client
-		if (nioUdpClient != null) {
-			nioUdpClient.stop();
-		}
 		// 删除实例
 		clientConfig.remove();
 		try {

@@ -1,10 +1,9 @@
 package org.tio.core.udp;
 
 import org.tio.client.DefaultTioClientListener;
-import org.tio.client.ReconnConf;
-import org.tio.client.TioClient;
-import org.tio.client.TioClientConfig;
 import org.tio.client.intf.TioClientHandler;
+import org.tio.client.udp.UdpClientChannelContext;
+import org.tio.client.udp.UdpClientConfig;
 import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.Tio;
@@ -25,29 +24,25 @@ public class UdpClientDemo {
 		// 1. Define Handler
 		TioClientHandler clientHandler = new UdpClientHandler();
 
-		// 2. Configure Client
-		TioClientConfig clientConfig = new TioClientConfig(clientHandler, new DefaultTioClientListener());
-		clientConfig.setReconnConf(new ReconnConf(0)); // Disable reconnection for this demo
+		// 2. Configure UDP Client
+		UdpClientConfig clientConfig = new UdpClientConfig(clientHandler, new DefaultTioClientListener());
 
-		// 3. Initialize TioClient
-		TioClient tioClient = new TioClient(clientConfig);
-
-		// 4. Connect to UDP Server (NIO)
-		// Note: Using udpConnect method
+		// 3. Connect to UDP Server (NIO)
+		// Note: Using udpConnect method from UdpClientConfig
 		Node serverNode = new Node("127.0.0.1", 3000);
-		ChannelContext context = tioClient.udpConnect(serverNode, 5000);
+		UdpClientChannelContext context = clientConfig.udpConnect(serverNode, 5000);
 
-		// 5. Send a message
+		// 4. Send a message
 		String msg = "Hello UDP World";
 		EncodedPacket packet = new EncodedPacket(msg.getBytes(StandardCharsets.UTF_8));
 		Tio.send(context, packet);
 		System.out.println("Client sent: " + msg);
 
-		// 6. Wait to receive echo
+		// 5. Wait to receive echo
 		Thread.sleep(2000);
 
-		// 7. Close
-		tioClient.stop();
+		// 6. Close
+		clientConfig.stopUdpClient();
 		System.exit(0);
 	}
 

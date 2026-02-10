@@ -8,8 +8,11 @@ package org.tio.client.udp;
 import org.tio.client.TioClientConfig;
 import org.tio.client.intf.TioClientHandler;
 import org.tio.client.intf.TioClientListener;
+import org.tio.core.Node;
 import org.tio.utils.thread.pool.SynThreadPoolExecutor;
 
+import java.net.InetSocketAddress;
+import java.nio.channels.DatagramChannel;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -23,6 +26,7 @@ import java.util.concurrent.ExecutorService;
  * @author L.cm
  */
 public class UdpClientConfig extends TioClientConfig {
+	private TioUdpClient udpClient;
 
 	/**
 	 * Create UDP client configuration without reconnection support
@@ -48,6 +52,64 @@ public class UdpClientConfig extends TioClientConfig {
 						   SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		// UDP doesn't need reconnection, so pass null
 		super(tioHandler, tioListener, null, tioExecutor, groupExecutor);
+	}
+
+	/**
+	 * UDP connect
+	 *
+	 * @param serverNode serverNode
+	 * @param timeout    timeout
+	 * @return UdpClientChannelContext
+	 * @throws Exception Exception
+	 */
+	public UdpClientChannelContext udpConnect(Node serverNode, Integer timeout) throws Exception {
+		return udpConnect(serverNode, null, null, timeout);
+	}
+
+	/**
+	 * UDP connect
+	 *
+	 * @param serverNode serverNode
+	 * @param bindIp     bindIp
+	 * @param bindPort   bindPort
+	 * @param timeout    timeout
+	 * @return UdpClientChannelContext
+	 * @throws Exception Exception
+	 */
+	public synchronized UdpClientChannelContext udpConnect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
+		if (udpClient == null) {
+			udpClient = new TioUdpClient();
+		}
+
+		DatagramChannel datagramChannel = DatagramChannel.open();
+		datagramChannel.configureBlocking(false);
+
+		InetSocketAddress bindAddr;
+		if (bindPort != null) {
+			bindAddr = (bindIp == null) ? new InetSocketAddress(bindPort) : new InetSocketAddress(bindIp, bindPort);
+		} else {
+			bindAddr = new InetSocketAddress(0);
+		}
+		datagramChannel.bind(bindAddr);
+
+		InetSocketAddress remote = new InetSocketAddress(serverNode.getIp(), serverNode.getPort());
+		datagramChannel.connect(remote);
+
+		UdpClientChannelContext context = new UdpClientChannelContext(this, datagramChannel);
+		context.setServerNode(serverNode);
+
+		udpClient.register(datagramChannel, context);
+		connecteds.add(context);
+		return context;
+	}
+
+	/**
+	 * Stop the UDP client
+	 */
+	public void stopUdpClient() {
+		if (udpClient != null) {
+			udpClient.stop();
+		}
 	}
 
 	@Override
