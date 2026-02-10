@@ -45,7 +45,7 @@ public class UdpChannelContext extends ChannelContext {
 
 	/**
 	 * Handle received UDP data by decoding it
-	 * This method unifies the duplicate logic from TioUdpClient and TioUdpServer
+	 * This method unifies the duplicate logic from UdpClient and UdpServer
 	 *
 	 * @param buffer the received data buffer
 	 */
