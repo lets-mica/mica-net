@@ -165,15 +165,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	/**
-	 * 创建Node
-	 *
-	 * @param asynchronousSocketChannel AsynchronousSocketChannel
-	 * @return Node
-	 * @throws IOException IOException
-	 */
-	public abstract Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException;
-
-	/**
 	 * @return the remoteNode
 	 */
 	public Node getClientNode() {

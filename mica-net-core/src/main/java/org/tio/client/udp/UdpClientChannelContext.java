@@ -18,10 +18,17 @@ public class UdpClientChannelContext extends UdpChannelContext {
     private Integer bindPort;
 
     public UdpClientChannelContext(TioConfig tioConfig, DatagramChannel datagramChannel) {
-        // We pass null for remoteNode to super because for a client, the remote node is the ServerNode,
-        // not the ClientNode. We set them manually below.
-        super(tioConfig, datagramChannel, null);
+        // Use the protected constructor that doesn't require remoteNode
+        super(tioConfig, datagramChannel);
 
+        // Initialize client node from local address
+        initializeClientNode(datagramChannel);
+    }
+
+    /**
+     * Initialize client node from DatagramChannel's local address
+     */
+    private void initializeClientNode(DatagramChannel datagramChannel) {
         try {
             if (datagramChannel.getLocalAddress() != null) {
                 InetSocketAddress inetSocketAddress = (InetSocketAddress) datagramChannel.getLocalAddress();

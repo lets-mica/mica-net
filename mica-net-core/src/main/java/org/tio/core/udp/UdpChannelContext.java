@@ -5,11 +5,15 @@
 */
 package org.tio.core.udp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.Node;
+import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.DatagramChannel;
 
@@ -17,18 +21,53 @@ import java.nio.channels.DatagramChannel;
  * @author tanyaowu
  */
 public class UdpChannelContext extends ChannelContext {
+	private static final Logger log = LoggerFactory.getLogger(UdpChannelContext.class);
 	public DatagramChannel datagramChannel;
 
 	public UdpChannelContext(TioConfig tioConfig, DatagramChannel datagramChannel, Node remoteNode) {
 		super(tioConfig);
 		this.datagramChannel = datagramChannel;
-		this.setClientNode(remoteNode);
+		if (remoteNode != null) {
+			this.setClientNode(remoteNode);
+		}
 		this.setClosed(false);
 	}
 
-	@Override
-	public Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException {
-		return createUnknownNode();
+	/**
+	 * Protected constructor for subclasses (e.g., UdpClientChannelContext)
+	 * that need to set the client node after construction
+	 */
+	protected UdpChannelContext(TioConfig tioConfig, DatagramChannel datagramChannel) {
+		super(tioConfig);
+		this.datagramChannel = datagramChannel;
+		this.setClosed(false);
+	}
+
+	/**
+	 * Handle received UDP data by decoding it
+	 * This method unifies the duplicate logic from TioUdpClient and TioUdpServer
+	 *
+	 * @param buffer the received data buffer
+	 */
+	public void handleReceivedData(ByteBuffer buffer) {
+		if (tioConfig.useQueueDecode) {
+			decodeRunnable.addMsg(buffer);
+			decodeRunnable.execute();
+		} else {
+			decodeRunnable.setNewReceivedByteBuffer(buffer);
+			decodeRunnable.decode();
+		}
+	}
+
+	/**
+	 * Handle UDP read errors
+	 *
+	 * @param e the throwable
+	 * @param message error message
+	 */
+	public void handleReadError(Throwable e, String message) {
+		log.error(message, e);
+		Tio.close(this, e, message, CloseCode.READ_ERROR);
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package org.tio.core.tcp;
 
 import org.tio.core.ChannelContext;
+import org.tio.core.Node;
 import org.tio.core.ReadCompletionHandler;
 import org.tio.core.TioConfig;
 import org.tio.core.WriteCompletionHandler;
@@ -19,14 +20,38 @@ public abstract class TcpChannelContext extends ChannelContext {
 	public TcpChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
 		super(tioConfig);
 		this.asynchronousSocketChannel = asynchronousSocketChannel;
+		initializeHandlers();
+		initializeClientNode(asynchronousSocketChannel);
+	}
+
+	// Constructor for virtual contexts
+	public TcpChannelContext(TioConfig tioConfig) {
+		super(tioConfig);
+		initializeHandlers();
+	}
+
+	public TcpChannelContext(TioConfig tioConfig, String id) {
+		super(tioConfig, id);
+		initializeHandlers();
+	}
+
+	/**
+	 * Initialize read and write completion handlers
+	 */
+	private void initializeHandlers() {
 		this.readCompletionHandler = new ReadCompletionHandler(this);
 		this.writeCompletionHandler = new WriteCompletionHandler(this);
-		// Logic moved from ChannelContext.setAsynchronousSocketChannel
-		if (asynchronousSocketChannel != null) {
+	}
+
+	/**
+	 * Initialize client node from AsynchronousSocketChannel
+	 * This method unifies the duplicate logic from constructor and setter
+	 */
+	private void initializeClientNode(AsynchronousSocketChannel channel) {
+		if (channel != null) {
 			try {
-				setClientNode(createClientNode(asynchronousSocketChannel));
+				setClientNode(createClientNode(channel));
 			} catch (IOException e) {
-				// Log and assign unknown
 				assignAnUnknownClientNode();
 			}
 		} else {
@@ -34,18 +59,15 @@ public abstract class TcpChannelContext extends ChannelContext {
 		}
 	}
 
-	// Constructor for virtual contexts
-	public TcpChannelContext(TioConfig tioConfig) {
-		super(tioConfig);
-		this.readCompletionHandler = new ReadCompletionHandler(this);
-		this.writeCompletionHandler = new WriteCompletionHandler(this);
-	}
-
-	public TcpChannelContext(TioConfig tioConfig, String id) {
-		super(tioConfig, id);
-		this.readCompletionHandler = new ReadCompletionHandler(this);
-		this.writeCompletionHandler = new WriteCompletionHandler(this);
-	}
+	/**
+	 * Create client Node from AsynchronousSocketChannel
+	 * This method is TCP-specific and implemented by subclasses
+	 *
+	 * @param asynchronousSocketChannel AsynchronousSocketChannel
+	 * @return Node
+	 * @throws IOException IOException
+	 */
+	protected abstract Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException;
 
 	public ReadCompletionHandler getReadCompletionHandler() {
 		return readCompletionHandler;
@@ -58,14 +80,6 @@ public abstract class TcpChannelContext extends ChannelContext {
 
 	public void setAsynchronousSocketChannel(AsynchronousSocketChannel asynchronousSocketChannel) {
 		this.asynchronousSocketChannel = asynchronousSocketChannel;
-		if (asynchronousSocketChannel != null) {
-			try {
-				setClientNode(createClientNode(asynchronousSocketChannel));
-			} catch (IOException e) {
-				assignAnUnknownClientNode();
-			}
-		} else {
-			assignAnUnknownClientNode();
-		}
+		initializeClientNode(asynchronousSocketChannel);
 	}
 }

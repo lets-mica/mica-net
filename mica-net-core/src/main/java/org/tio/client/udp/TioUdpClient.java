@@ -107,19 +107,13 @@ public class TioUdpClient implements Runnable {
 			int read = channel.read(buffer);
 			if (read > 0) {
 				buffer.flip();
-				if (context.tioConfig.useQueueDecode) {
-					context.decodeRunnable.addMsg(buffer);
-					context.decodeRunnable.execute();
-				} else {
-					context.decodeRunnable.setNewReceivedByteBuffer(buffer);
-					context.decodeRunnable.decode();
-				}
+				// Use the unified method from UdpChannelContext
+				context.handleReceivedData(buffer);
 			} else if (read < 0) {
-				Tio.close(context, "UDP read returned -1", org.tio.core.ChannelContext.CloseCode.READ_ERROR);
+				context.handleReadError(null, "UDP read returned -1");
 			}
 		} catch (Throwable e) {
-			log.error("UDP Read error", e);
-			Tio.close(context, e, "UDP Read error", org.tio.core.ChannelContext.CloseCode.READ_ERROR);
+			context.handleReadError(e, "UDP Read error");
 		}
 	}
 

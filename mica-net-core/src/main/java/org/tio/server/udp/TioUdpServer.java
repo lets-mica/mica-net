@@ -95,13 +95,8 @@ public class TioUdpServer implements Runnable {
 			newBuffer.put(readBuffer);
 			newBuffer.flip();
 
-			if (tioServerConfig.useQueueDecode) {
-				channelContext.decodeRunnable.addMsg(newBuffer);
-				channelContext.decodeRunnable.execute();
-			} else {
-				channelContext.decodeRunnable.setNewReceivedByteBuffer(newBuffer);
-				channelContext.decodeRunnable.decode();
-			}
+			// Use the unified method from UdpChannelContext
+			((UdpChannelContext) channelContext).handleReceivedData(newBuffer);
 
 		} catch (Throwable e) {
 			log.error("NIO UDP handle read error", e);
