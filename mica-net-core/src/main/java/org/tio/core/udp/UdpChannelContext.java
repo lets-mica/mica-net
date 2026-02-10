@@ -17,8 +17,7 @@ import java.nio.channels.DatagramChannel;
  * @author tanyaowu
  */
 public class UdpChannelContext extends ChannelContext {
-
-    public java.nio.channels.DatagramChannel datagramChannel;
+	public DatagramChannel datagramChannel;
 
 	public UdpChannelContext(TioConfig tioConfig, DatagramChannel datagramChannel, Node remoteNode) {
 		super(tioConfig);
@@ -37,8 +36,8 @@ public class UdpChannelContext extends ChannelContext {
 		return tioConfig.isServer();
 	}
 
-    @Override
-    public boolean isUdp() {
-        return true;
-    }
+	@Override
+	public boolean isUdp() {
+		return true;
+	}
 }
