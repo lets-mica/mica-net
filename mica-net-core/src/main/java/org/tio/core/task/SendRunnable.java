@@ -197,6 +197,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.ChannelContext.CloseCode;
+import org.tio.core.Node;
 import org.tio.core.TcpConst;
 import org.tio.core.Tio;
 import org.tio.core.TioConfig;
@@ -423,6 +424,34 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 		if (!TioUtils.checkBeforeIO(channelContext)) {
 			return;
 		}
+
+		if (channelContext.isUdp()) {
+			boolean isSentSuccess = true;
+			try {
+				if (channelContext.datagramChannel != null) {
+					if (channelContext.datagramChannel.isConnected()) {
+						channelContext.datagramChannel.write(byteBuffer);
+					} else {
+						Node remoteNode = channelContext.isServer() ? channelContext.getClientNode() : channelContext.getServerNode();
+						channelContext.datagramChannel.send(byteBuffer, remoteNode.getAsSocketAddress());
+					}
+				}
+			} catch (Exception e) {
+				log.error(channelContext + ", UDP send failed", e);
+				isSentSuccess = false;
+			}
+
+			if (packets instanceof Packet) {
+				channelContext.processAfterSent((Packet) packets, isSentSuccess);
+			} else if (packets instanceof List) {
+				List<Packet> list = (List<Packet>) packets;
+				for (Packet p : list) {
+					channelContext.processAfterSent(p, isSentSuccess);
+				}
+			}
+			return;
+		}
+
 		// 异步优化：标记写入状态
 		writing.set(true);
 		try {

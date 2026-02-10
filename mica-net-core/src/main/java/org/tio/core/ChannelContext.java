@@ -241,6 +241,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * The asynchronous socket channel.
 	 */
 	public AsynchronousSocketChannel asynchronousSocketChannel;
+	public java.nio.channels.DatagramChannel datagramChannel;
 	private ReadCompletionHandler readCompletionHandler;
 
 	private Node clientNode;
@@ -352,6 +353,10 @@ public abstract class ChannelContext extends MapPropSupport {
 				Tio.close(this, "在开始SSL握手时发生了异常" + e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
 			}
 		}
+	}
+
+	public boolean isUdp() {
+		return datagramChannel != null;
 	}
 
 	/**

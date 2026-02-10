@@ -195,6 +195,8 @@ package org.tio.core;
 
 import org.tio.utils.hutool.StrUtil;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Objects;
 
 /**
@@ -234,6 +236,10 @@ public class Node implements Comparable<Node> {
 
 	public String getPeerHost() {
 		return ip + ':' + port;
+	}
+
+	public SocketAddress getAsSocketAddress() {
+		return new InetSocketAddress(ip, port);
 	}
 
 	@Override

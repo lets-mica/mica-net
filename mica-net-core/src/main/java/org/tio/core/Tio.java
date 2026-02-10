@@ -496,7 +496,7 @@ public class Tio {
 			context.setCloseCode(closeCode);
 		}
 
-		if (context.asynchronousSocketChannel != null) {
+		if (!context.isUdp() && context.asynchronousSocketChannel != null) {
 			try {
 				context.asynchronousSocketChannel.shutdownInput();
 			} catch (Throwable e) {

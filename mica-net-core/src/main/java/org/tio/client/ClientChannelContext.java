@@ -223,6 +223,26 @@ public class ClientChannelContext extends ChannelContext {
 	}
 
 	/**
+	 * @param tioConfig       TioConfig
+	 * @param datagramChannel DatagramChannel
+	 */
+	public ClientChannelContext(TioConfig tioConfig, java.nio.channels.DatagramChannel datagramChannel) {
+		super(tioConfig, (AsynchronousSocketChannel) null);
+		this.datagramChannel = datagramChannel;
+		try {
+			if (datagramChannel.getLocalAddress() != null) {
+				InetSocketAddress inetSocketAddress = (InetSocketAddress) datagramChannel.getLocalAddress();
+				this.setClientNode(new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort()));
+			} else {
+				assignAnUnknownClientNode();
+			}
+		} catch (IOException e) {
+			assignAnUnknownClientNode();
+		}
+		this.setClosed(false);
+	}
+
+	/**
 	 * 创建一个虚拟ChannelContext，主要用来模拟一些操作，真实场景中用得少
 	 *
 	 * @param tioConfig TioConfig
