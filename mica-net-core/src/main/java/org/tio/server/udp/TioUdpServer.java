@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.udp.UdpChannelContext;
-import org.tio.server.TioServerConfig;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -23,7 +22,7 @@ import java.util.Set;
  */
 public class TioUdpServer implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(TioUdpServer.class);
-	private final TioServerConfig tioServerConfig;
+	private final UdpServerConfig serverConfig;
 	private final int port;
 	private DatagramChannel datagramChannel;
 	private Selector selector;
@@ -31,10 +30,10 @@ public class TioUdpServer implements Runnable {
 	private volatile boolean isStopped = false;
 	private final ByteBuffer readBuffer;
 
-	public TioUdpServer(TioServerConfig tioServerConfig, int port) {
-		this.tioServerConfig = tioServerConfig;
+	public TioUdpServer(UdpServerConfig serverConfig, int port) {
+		this.serverConfig = serverConfig;
 		this.port = port;
-		this.readBuffer = ByteBuffer.allocate(tioServerConfig.getReadBufferSize());
+		this.readBuffer = ByteBuffer.allocate(serverConfig.getReadBufferSize());
 	}
 
 	public void start() throws IOException {
@@ -43,11 +42,9 @@ public class TioUdpServer implements Runnable {
 		datagramChannel.configureBlocking(false);
 		datagramChannel.socket().bind(new InetSocketAddress(port));
 		datagramChannel.register(selector, SelectionKey.OP_READ);
-
 		selectorThread = new Thread(this, "tio-udp-server-" + port);
 		selectorThread.setDaemon(false);
 		selectorThread.start();
-
 		log.info("NIO UDP Server started on port {}", port);
 	}
 
@@ -84,10 +81,10 @@ public class TioUdpServer implements Runnable {
 			InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteAddress;
 			Node remoteNode = new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort());
 
-			ChannelContext channelContext = tioServerConfig.clientNodes.find(remoteNode);
+			ChannelContext channelContext = serverConfig.clientNodes.find(remoteNode);
 			if (channelContext == null) {
-				channelContext = new UdpChannelContext(tioServerConfig, channel, remoteNode);
-				tioServerConfig.clientNodes.put(channelContext);
+				channelContext = new UdpChannelContext(serverConfig, channel, remoteNode);
+				serverConfig.clientNodes.put(channelContext);
 			}
 
 			// Copy data to a new buffer because readBuffer is reused
@@ -97,7 +94,6 @@ public class TioUdpServer implements Runnable {
 
 			// Use the unified method from UdpChannelContext
 			((UdpChannelContext) channelContext).handleReceivedData(newBuffer);
-
 		} catch (Throwable e) {
 			log.error("NIO UDP handle read error", e);
 		}

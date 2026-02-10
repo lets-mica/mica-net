@@ -30,7 +30,7 @@ public class UdpClientDemo {
 		// 3. Connect to UDP Server (NIO)
 		// Note: Using udpConnect method from UdpClientConfig
 		Node serverNode = new Node("127.0.0.1", 3000);
-		UdpClientChannelContext context = clientConfig.udpConnect(serverNode, 5000);
+		UdpClientChannelContext context = clientConfig.connect(serverNode, 5000);
 
 		// 4. Send a message
 		String msg = "Hello UDP World";

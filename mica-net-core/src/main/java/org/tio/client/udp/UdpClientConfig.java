@@ -36,7 +36,6 @@ public class UdpClientConfig extends TioClientConfig {
 	 * @param tioListener TioClientListener
 	 */
 	public UdpClientConfig(TioClientHandler tioHandler, TioClientListener tioListener) {
-		// UDP doesn't need reconnection, so pass null
 		super(tioHandler, tioListener, null);
 	}
 
@@ -50,7 +49,6 @@ public class UdpClientConfig extends TioClientConfig {
 	 */
 	public UdpClientConfig(TioClientHandler tioHandler, TioClientListener tioListener,
 						   SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
-		// UDP doesn't need reconnection, so pass null
 		super(tioHandler, tioListener, null, tioExecutor, groupExecutor);
 	}
 
@@ -62,8 +60,8 @@ public class UdpClientConfig extends TioClientConfig {
 	 * @return UdpClientChannelContext
 	 * @throws Exception Exception
 	 */
-	public UdpClientChannelContext udpConnect(Node serverNode, Integer timeout) throws Exception {
-		return udpConnect(serverNode, null, null, timeout);
+	public UdpClientChannelContext connect(Node serverNode, Integer timeout) throws Exception {
+		return connect(serverNode, null, null, timeout);
 	}
 
 	/**
@@ -76,7 +74,7 @@ public class UdpClientConfig extends TioClientConfig {
 	 * @return UdpClientChannelContext
 	 * @throws Exception Exception
 	 */
-	public synchronized UdpClientChannelContext udpConnect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
+	public synchronized UdpClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
 		if (udpClient == null) {
 			udpClient = new TioUdpClient();
 		}
@@ -84,13 +82,13 @@ public class UdpClientConfig extends TioClientConfig {
 		DatagramChannel datagramChannel = DatagramChannel.open();
 		datagramChannel.configureBlocking(false);
 
-		InetSocketAddress bindAddr;
+		InetSocketAddress bindAdder;
 		if (bindPort != null) {
-			bindAddr = (bindIp == null) ? new InetSocketAddress(bindPort) : new InetSocketAddress(bindIp, bindPort);
+			bindAdder = (bindIp == null) ? new InetSocketAddress(bindPort) : new InetSocketAddress(bindIp, bindPort);
 		} else {
-			bindAddr = new InetSocketAddress(0);
+			bindAdder = new InetSocketAddress(0);
 		}
-		datagramChannel.bind(bindAddr);
+		datagramChannel.bind(bindAdder);
 
 		InetSocketAddress remote = new InetSocketAddress(serverNode.getIp(), serverNode.getPort());
 		datagramChannel.connect(remote);
