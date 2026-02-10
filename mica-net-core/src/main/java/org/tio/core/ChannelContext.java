@@ -42,12 +42,10 @@ public abstract class ChannelContext extends MapPropSupport {
 	public DecodeRunnable decodeRunnable;
 	public HandlerRunnable handlerRunnable;
 	public SendRunnable sendRunnable;
-	public WriteCompletionHandler writeCompletionHandler;
 	public SslFacadeContext sslFacadeContext;
 	// Channels removed: moved to subclasses TcpChannelContext and UdpChannelContext
 	// public AsynchronousSocketChannel asynchronousSocketChannel;
 	// public java.nio.channels.DatagramChannel datagramChannel;
-	private ReadCompletionHandler readCompletionHandler;
 
 	private Node clientNode;
 	/**
@@ -108,8 +106,6 @@ public abstract class ChannelContext extends MapPropSupport {
 		this.setTioConfig(tioConfig);
 		tioConfig.ids.bind(this);
 		// Removed channel assignment
-		this.readCompletionHandler = new ReadCompletionHandler(this);
-		this.writeCompletionHandler = new WriteCompletionHandler(this);
 		this.setLogWhenDecodeError(tioConfig.logWhenDecodeError);
 		initOther();
 		setUpSSL();
@@ -214,13 +210,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	/**
-	 * @return the readCompletionHandler
-	 */
-	public ReadCompletionHandler getReadCompletionHandler() {
-		return readCompletionHandler;
-	}
-
-	/**
 	 * @return the serverNode
 	 */
 	public Node getServerNode() {
@@ -240,13 +229,6 @@ public abstract class ChannelContext extends MapPropSupport {
 
 	public void setToken(String token) {
 		this.token = token;
-	}
-
-	/**
-	 * @return the writeCompletionHandler
-	 */
-	public WriteCompletionHandler getWriteCompletionHandler() {
-		return writeCompletionHandler;
 	}
 
     // Removed init(TioConfig, AsynchronousSocketChannel) - moved logic to constructor or subclass

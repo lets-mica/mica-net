@@ -461,7 +461,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
 			WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
 			// 异步发送，不再等待完成，回调中会处理
 			TcpChannelContext tcpChannelContext = (TcpChannelContext) channelContext;
-			tcpChannelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, channelContext.writeCompletionHandler);
+			tcpChannelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, tcpChannelContext.writeCompletionHandler);
 		} catch (Exception e) {
 			// 如果发送失败，恢复状态
 			writing.set(false);

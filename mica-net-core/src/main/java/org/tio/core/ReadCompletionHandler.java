@@ -210,10 +210,10 @@ import java.nio.channels.CompletionHandler;
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
 	private static final Logger log = LoggerFactory.getLogger(ReadCompletionHandler.class);
-	private final ChannelContext channelContext;
+	private final TcpChannelContext channelContext;
 	private ByteBuffer readByteBuffer;
 
-	public ReadCompletionHandler(ChannelContext channelContext) {
+	public ReadCompletionHandler(TcpChannelContext channelContext) {
 		this.channelContext = channelContext;
 		this.readByteBuffer = ByteBuffer.allocate(channelContext.getReadBufferSize());
 		this.readByteBuffer.order(channelContext.tioConfig.getByteOrder());
@@ -286,7 +286,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 		}
 		// 读取时有可能出现异常，gitee: https://gitee.com/dromara/mica-mqtt/issues/IBSM9W
 		try {
-			((TcpChannelContext)channelContext).asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, this);
+			channelContext.asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, this);
 		} catch (Throwable e) {
 			log.error(e.getMessage(), e);
 			failed(e, null);

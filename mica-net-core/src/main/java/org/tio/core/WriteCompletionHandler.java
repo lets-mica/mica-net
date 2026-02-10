@@ -214,9 +214,9 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 	private static final Logger log = LoggerFactory.getLogger(WriteCompletionHandler.class);
 	public final ReentrantLock lock = new ReentrantLock();
 	public final Condition condition = lock.newCondition();
-	private final ChannelContext channelContext;
+	private final TcpChannelContext channelContext;
 
-	public WriteCompletionHandler(ChannelContext channelContext) {
+	public WriteCompletionHandler(TcpChannelContext channelContext) {
 		this.channelContext = channelContext;
 	}
 
@@ -229,7 +229,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 			if (log.isInfoEnabled()) {
 				log.info("{} {}/{} has sent", channelContext, writeCompletionVo.byteBuffer.position(), writeCompletionVo.byteBuffer.limit());
 			}
-			((TcpChannelContext)channelContext).asynchronousSocketChannel.write(writeCompletionVo.byteBuffer, writeCompletionVo, this);
+			channelContext.asynchronousSocketChannel.write(writeCompletionVo.byteBuffer, writeCompletionVo, this);
 		} else {
 			handle(bytesWritten, null, writeCompletionVo);
 		}
@@ -248,10 +248,9 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 	 * @param writeCompletionVo writeCompletionVo
 	 */
 	public void handle(Integer bytesWritten, Throwable throwable, WriteCompletionVo writeCompletionVo) {
-		ReentrantLock lock = channelContext.writeCompletionHandler.lock;
 		lock.lock();
 		try {
-			channelContext.writeCompletionHandler.condition.signal();
+			condition.signal();
 			Object attachment = writeCompletionVo.obj;
 			TioConfig tioConfig = channelContext.tioConfig;
 			boolean isSentSuccess = bytesWritten > 0;
