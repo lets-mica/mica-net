@@ -20,8 +20,8 @@ import java.util.Set;
  * NIO UDP Server implementation.
  * Replaces the old BIO UdpServer.
  */
-public class TioUdpServer implements Runnable {
-	private static final Logger log = LoggerFactory.getLogger(TioUdpServer.class);
+public class UdpServer implements Runnable {
+	private static final Logger log = LoggerFactory.getLogger(UdpServer.class);
 	private final UdpServerConfig serverConfig;
 	private final int port;
 	private DatagramChannel datagramChannel;
@@ -30,7 +30,7 @@ public class TioUdpServer implements Runnable {
 	private volatile boolean isStopped = false;
 	private final ByteBuffer readBuffer;
 
-	public TioUdpServer(UdpServerConfig serverConfig, int port) {
+	public UdpServer(UdpServerConfig serverConfig, int port) {
 		this.serverConfig = serverConfig;
 		this.port = port;
 		this.readBuffer = ByteBuffer.allocate(serverConfig.getReadBufferSize());

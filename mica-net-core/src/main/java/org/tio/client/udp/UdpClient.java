@@ -7,7 +7,6 @@ package org.tio.client.udp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.core.Tio;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,18 +23,17 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author L.cm
  */
-public class TioUdpClient implements Runnable {
-	private static final Logger log = LoggerFactory.getLogger(TioUdpClient.class);
+public class UdpClient implements Runnable {
+	private static final Logger log = LoggerFactory.getLogger(UdpClient.class);
 	private final Selector selector;
 	private final Queue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
-	private final Thread thread;
 	private volatile boolean stopped = false;
 
-	public TioUdpClient() throws IOException {
+	public UdpClient() throws IOException {
 		this.selector = Selector.open();
-		this.thread = new Thread(this, "tio-udp-client-selector");
-		this.thread.setDaemon(true);
-		this.thread.start();
+		Thread thread = new Thread(this, "tio-udp-client-selector");
+		thread.setDaemon(true);
+		thread.start();
 	}
 
 	public void register(DatagramChannel channel, UdpClientChannelContext context) {

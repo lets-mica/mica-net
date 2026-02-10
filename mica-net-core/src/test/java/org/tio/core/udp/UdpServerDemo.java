@@ -7,9 +7,8 @@ import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.EncodedPacket;
 import org.tio.core.intf.Packet;
 import org.tio.server.DefaultTioServerListener;
-import org.tio.server.TioServerConfig;
 import org.tio.server.intf.TioServerHandler;
-import org.tio.server.udp.TioUdpServer;
+import org.tio.server.udp.UdpServer;
 import org.tio.server.udp.UdpServerConfig;
 
 import java.nio.ByteBuffer;
@@ -30,7 +29,7 @@ public class UdpServerDemo {
 
 		// 3. Initialize and Start NIO UDP Server
 		// Note: Using NioUdpServer directly for UDP
-		TioUdpServer udpServer = new TioUdpServer(serverConfig, 3000);
+		UdpServer udpServer = new UdpServer(serverConfig, 3000);
 		udpServer.start();
 
 		// Keep the main thread alive

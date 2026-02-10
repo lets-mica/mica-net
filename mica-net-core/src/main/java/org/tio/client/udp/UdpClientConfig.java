@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
  * @author L.cm
  */
 public class UdpClientConfig extends TioClientConfig {
-	private TioUdpClient udpClient;
+	private UdpClient udpClient;
 
 	/**
 	 * Create UDP client configuration without reconnection support
@@ -76,7 +76,7 @@ public class UdpClientConfig extends TioClientConfig {
 	 */
 	public synchronized UdpClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
 		if (udpClient == null) {
-			udpClient = new TioUdpClient();
+			udpClient = new UdpClient();
 		}
 
 		DatagramChannel datagramChannel = DatagramChannel.open();
