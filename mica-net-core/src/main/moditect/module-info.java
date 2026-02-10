@@ -11,14 +11,13 @@ open module net.dreamlu.mica.net.core {
 	exports org.tio.core.stat.vo;
 	exports org.tio.core.task;
 	exports org.tio.core.udp;
-	exports org.tio.core.udp.intf;
-	exports org.tio.core.udp.task;
 	exports org.tio.core.utils;
 	exports org.tio.core.uuid;
 	// client
 	exports org.tio.client;
 	exports org.tio.client.intf;
 	exports org.tio.client.task;
+	exports org.tio.client.udp;
 	// server
 	exports org.tio.server;
 	exports org.tio.server.cluster.codec;
@@ -27,4 +26,5 @@ open module net.dreamlu.mica.net.core {
 	exports org.tio.server.intf;
 	exports org.tio.server.proxy;
 	exports org.tio.server.task;
+	exports org.tio.server.udp;
 }
