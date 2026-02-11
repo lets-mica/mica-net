@@ -213,8 +213,7 @@ public class TioUtils {
 		if (channelContext.isWaitingClose()) {
 			return false;
 		}
-
-		boolean isOpen = false;
+		boolean isOpen;
 		if (channelContext.isUdp()) {
 			UdpChannelContext udpChannelContext = (UdpChannelContext) channelContext;
 			if (udpChannelContext.datagramChannel != null) {
@@ -234,7 +233,6 @@ public class TioUtils {
 				return false;
 			}
 		}
-
 		if (channelContext.isClosed() || channelContext.isRemoved()) {
 			if (isOpen) {
 				try {
@@ -247,7 +245,6 @@ public class TioUtils {
 			log.info("{}, isOpen:{}, isClosed:{}, isRemoved:{}", channelContext, isOpen, channelContext.isClosed(), channelContext.isRemoved());
 			return false;
 		}
-
 		if (!isOpen) {
 			log.info("{}, 可能对方关闭了连接, isOpen:{}, isClosed:{}, isRemoved:{}", channelContext, false, channelContext.isClosed(), channelContext.isRemoved());
 			Tio.close(channelContext, "channel is not open, 可能对方关闭了连接", CloseCode.CHANNEL_NOT_OPEN);
