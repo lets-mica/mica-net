@@ -74,12 +74,14 @@ public class UdpSendRunnable extends AbstractSendRunnable {
 		}
 
 		// SSL 加密（UDP 通常使用 DTLS，这里简化处理）
-		ByteBuffer finalBuffer = encryptBatchIfNeeded(result.byteBuffer, result.packets, isSsl, result.needSslEncrypted);
-		if (finalBuffer == null) {
+		ByteBuffer[] buffers = encryptBatchIfNeeded(result.byteBuffers, result.packets, isSsl, result.needSslEncrypted);
+		if (buffers == null) {
 			return;
 		}
 
-		sendByteBuffer(finalBuffer, result.packets);
+		// UDP 不支持 gather write，需要合并 ByteBuffer
+		ByteBuffer mergedBuffer = mergeBuffers(buffers);
+		sendByteBuffer(mergedBuffer, result.packets);
 	}
 
 	@Override
@@ -170,10 +172,31 @@ public class UdpSendRunnable extends AbstractSendRunnable {
 	 * 覆盖此方法以禁用批量 SSL 加密
 	 */
 	@Override
-	protected ByteBuffer encryptBatchIfNeeded(ByteBuffer allByteBuffer, List<Packet> packets, boolean isSsl, boolean needSslEncrypted) {
+	protected ByteBuffer[] encryptBatchIfNeeded(ByteBuffer[] byteBuffers, List<Packet> packets, boolean isSsl, boolean needSslEncrypted) {
 		if (isSsl && needSslEncrypted && tioConfig.sslConfig != null) {
 			log.warn("{}, UDP 批量发送不支持 SSL/TLS 加密，需要使用 DTLS（当前未实现）", channelContext);
 		}
-		return allByteBuffer;  // 直接返回原始数据，不加密
+		return byteBuffers;  // 直接返回原始数据，不加密
+	}
+
+	/**
+	 * 合并 ByteBuffer[] 为单个 ByteBuffer（UDP 不支持 gather write）
+	 */
+	private ByteBuffer mergeBuffers(ByteBuffer[] buffers) {
+		if (buffers.length == 1) {
+			return buffers[0];
+		}
+
+		int totalCapacity = 0;
+		for (ByteBuffer buffer : buffers) {
+			totalCapacity += buffer.remaining();
+		}
+
+		ByteBuffer merged = ByteBuffer.allocate(totalCapacity);
+		for (ByteBuffer buffer : buffers) {
+			merged.put(buffer);
+		}
+		merged.flip();
+		return merged;
 	}
 }

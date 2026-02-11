@@ -144,21 +144,32 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	}
 
 	/**
-	 * 批量 SSL 加密
+	 * 批量 SSL 加密（SSL 需要合并 ByteBuffer，无 SSL 时保持数组以支持 gather write）
 	 */
-	protected ByteBuffer encryptBatchIfNeeded(ByteBuffer allByteBuffer, List<Packet> packets, boolean isSsl, boolean needSslEncrypted) {
+	protected ByteBuffer[] encryptBatchIfNeeded(ByteBuffer[] byteBuffers, List<Packet> packets, boolean isSsl, boolean needSslEncrypted) {
 		if (isSsl && needSslEncrypted) {
-			SslVo sslVo = new SslVo(allByteBuffer, packets);
+			// SSL 加密需要合并为单个 ByteBuffer
+			int totalCapacity = 0;
+			for (ByteBuffer buffer : byteBuffers) {
+				totalCapacity += buffer.remaining();
+			}
+			ByteBuffer mergedBuffer = ByteBuffer.allocate(totalCapacity);
+			for (ByteBuffer buffer : byteBuffers) {
+				mergedBuffer.put(buffer);
+			}
+			mergedBuffer.flip();
+
+			SslVo sslVo = new SslVo(mergedBuffer, packets);
 			try {
 				channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
-				return sslVo.getByteBuffer();
+				return new ByteBuffer[]{sslVo.getByteBuffer()};
 			} catch (SSLException e) {
 				log.error("{}, 进行SSL加密时发生了异常", channelContext, e);
 				Tio.close(channelContext, "进行SSL加密时发生了异常", CloseCode.SSL_ENCRYPTION_ERROR);
 				return null;
 			}
 		}
-		return allByteBuffer;
+		return byteBuffers;
 	}
 
 	/**
@@ -185,7 +196,7 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	}
 
 	/**
-	 * 批量收集数据包并编码
+	 * 批量收集数据包并编码（TCP 使用 ByteBuffer[] gather write，UDP 需要合并）
 	 */
 	protected BatchEncodeResult batchEncode(int queueSize, boolean isSsl) {
 		int targetBatchSize = getPacketListCapacity(queueSize);
@@ -223,26 +234,21 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 			return null;
 		}
 
-		// 合并所有 ByteBuffer
-		ByteBuffer allByteBuffer = ByteBuffer.allocate(allBytebufferCapacity);
-		for (ByteBuffer byteBuffer : byteBuffers) {
-			allByteBuffer.put(byteBuffer);
-		}
-		allByteBuffer.flip();
-
-		return new BatchEncodeResult(allByteBuffer, packets, needSslEncrypted != null && needSslEncrypted);
+		// 返回 ByteBuffer 数组，子类决定是使用 gather write（TCP）还是合并（UDP）
+		ByteBuffer[] bufferArray = byteBuffers.toArray(new ByteBuffer[0]);
+		return new BatchEncodeResult(bufferArray, packets, needSslEncrypted != null && needSslEncrypted);
 	}
 
 	/**
 	 * 批量编码结果
 	 */
 	protected static class BatchEncodeResult {
-		public final ByteBuffer byteBuffer;
+		public final ByteBuffer[] byteBuffers;
 		public final List<Packet> packets;
 		public final boolean needSslEncrypted;
 
-		public BatchEncodeResult(ByteBuffer byteBuffer, List<Packet> packets, boolean needSslEncrypted) {
-			this.byteBuffer = byteBuffer;
+		public BatchEncodeResult(ByteBuffer[] byteBuffers, List<Packet> packets, boolean needSslEncrypted) {
+			this.byteBuffers = byteBuffers;
 			this.packets = packets;
 			this.needSslEncrypted = needSslEncrypted;
 		}

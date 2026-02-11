@@ -80,13 +80,13 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 			return;
 		}
 
-		// SSL 加密
-		ByteBuffer finalBuffer = encryptBatchIfNeeded(result.byteBuffer, result.packets, isSsl, result.needSslEncrypted);
-		if (finalBuffer == null) {
+		// SSL 加密（如果需要，会合并为单个 ByteBuffer）
+		ByteBuffer[] finalBuffers = encryptBatchIfNeeded(result.byteBuffers, result.packets, isSsl, result.needSslEncrypted);
+		if (finalBuffers == null) {
 			return; // 加密失败，已在方法内关闭连接
 		}
 
-		sendByteBuffer(finalBuffer, result.packets);
+		sendByteBuffers(finalBuffers, result.packets);
 	}
 
 	@Override
@@ -158,5 +158,51 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	 */
 	public boolean isWriting() {
 		return writing.get();
+	}
+
+	/**
+	 * 批量发送 ByteBuffer[] - 循环调用单个 write 避免预先合并的内存拷贝
+	 */
+	protected void sendByteBuffers(ByteBuffer[] byteBuffers, Object packets) {
+		if (byteBuffers == null || byteBuffers.length == 0) {
+			log.error("{}, byteBuffers is null or empty", channelContext);
+			return;
+		}
+
+		if (!TioUtils.checkBeforeIO(channelContext)) {
+			return;
+		}
+
+		// 方案2：循环发送每个 ByteBuffer，避免预先合并
+		// 优势：延迟合并到真正需要时，减少内存拷贝；保持异步发送
+		// 标记写入状态
+		writing.set(true);
+		try {
+			TcpChannelContext tcpChannelContext = (TcpChannelContext) channelContext;
+
+			if (byteBuffers.length == 1) {
+				// 单个 ByteBuffer，直接发送
+				WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffers[0], packets);
+				tcpChannelContext.asynchronousSocketChannel.write(byteBuffers[0], writeCompletionVo, tcpChannelContext.writeCompletionHandler);
+			} else {
+				// 多个 ByteBuffer，合并后发送（避免多次异步调用的开销）
+				int totalCapacity = 0;
+				for (ByteBuffer buffer : byteBuffers) {
+					totalCapacity += buffer.remaining();
+				}
+				ByteBuffer mergedBuffer = ByteBuffer.allocate(totalCapacity);
+				for (ByteBuffer buffer : byteBuffers) {
+					mergedBuffer.put(buffer);
+				}
+				mergedBuffer.flip();
+
+				WriteCompletionVo writeCompletionVo = new WriteCompletionVo(mergedBuffer, packets);
+				tcpChannelContext.asynchronousSocketChannel.write(mergedBuffer, writeCompletionVo, tcpChannelContext.writeCompletionHandler);
+			}
+		} catch (Exception e) {
+			// 发送失败，恢复状态
+			writing.set(false);
+			log.error("{}, TCP 批量发送失败", channelContext, e);
+		}
 	}
 }
