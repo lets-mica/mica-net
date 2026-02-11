@@ -246,45 +246,25 @@ public abstract class TioConfig {
 	public static final long DEFAULT_HEARTBEAT_TIMEOUT = 120_000L;
 	private static final AtomicInteger ID_ATOMIC = new AtomicInteger();
 	static Logger log = LoggerFactory.getLogger(TioConfig.class);
-	public final String id;
-	public boolean isShortConnection = false;
-	public SslConfig sslConfig = null;
-	public boolean debug = false;
-	public GroupStat groupStat = null;
-	public boolean statOn = true;
-	public PacketConverter packetConverter = null;
-	/**
-	 * 启动时间
-	 */
-	public long startTime = System.currentTimeMillis();
-	/**
-	 * 是否用队列发送
-	 */
-	public boolean useQueueSend = true;
-	/**
-	 * 是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失）
-	 */
-	public boolean useQueueDecode = false;
-	/**
-	 * 心跳超时时间(单位: 毫秒)，如果用户不希望框架层面做心跳相关工作，请把此值设为0或负数
-	 */
+
+	// 内存对齐优化：按字段大小分组排列（从大到小）
+	// 8字节字段
 	public long heartbeatTimeout = DEFAULT_HEARTBEAT_TIMEOUT;
-	/**
-	 * 心跳检测模式
-	 */
-	private HeartbeatMode heartbeatMode = HeartbeatMode.ANY;
-	/**
-	 * 解码出现异常时，是否打印异常日志
-	 */
-	public boolean logWhenDecodeError = false;
+	public long startTime = System.currentTimeMillis();
+
+	// 4字节字段
+	public int maxDecodeFailCount = 10;
+	private int readBufferSize = READ_BUFFER_SIZE;
+
+	// 引用类型（指针大小，通常8字节但可能压缩为4字节）
+	public final String id;
+	public SslConfig sslConfig = null;
+	public GroupStat groupStat = null;
+	public PacketConverter packetConverter = null;
+	public boolean useQueueSend = true;
+	public boolean useQueueDecode = false;
 	public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD;    //.queue;
-	/**
-	 * tio 编解码等线程数
-	 */
 	public SynThreadPoolExecutor tioExecutor;
-	/**
-	 * AIO AsynchronousChannelGroup 的线程池
-	 */
 	public ExecutorService groupExecutor;
 	public CloseRunnable closeRunnable;
 	public ClientNodes clientNodes = new ClientNodes();
@@ -294,22 +274,18 @@ public abstract class TioConfig {
 	public Tokens tokens = new Tokens();
 	public Ids ids = new Ids();
 	public BsIds bsIds = new BsIds();
-	/**
-	 * 解码失败多少次抛出异常
-	 */
-	public int maxDecodeFailCount = 10;
-	/**
-	 * 异步响应管理 - 使用 CompletableFuture 实现无锁异步响应
-	 */
 	public ConcurrentMap<Integer, CompletableFuture<Packet>> waitingResps = new ConcurrentHashMap<>();
 	protected String name = "未命名";
-	private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
-	/**
-	 * 接收数据的buffer size
-	 */
-	private int readBufferSize = READ_BUFFER_SIZE;
 	private GroupListener groupListener = null;
 	private TioUuid tioUuid = new DefaultTioUuid();
+	private HeartbeatMode heartbeatMode = HeartbeatMode.ANY;
+	private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
+
+	// 布尔型字段（放在最后减少padding）
+	public boolean isShortConnection = false;
+	public boolean debug = false;
+	public boolean statOn = true;
+	public boolean logWhenDecodeError = false;
 	private boolean isStopped = false;
 
 	public TioConfig() {
