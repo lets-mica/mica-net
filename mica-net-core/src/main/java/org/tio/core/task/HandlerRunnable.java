@@ -206,6 +206,7 @@ import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
@@ -245,19 +246,18 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 		try {
 			int synSeq = packet.getSynSeq();
 			if (synSeq > 0) {
-				Map<Integer, Packet> syns = tioConfig.getWaitingResps();
-				Packet initPacket = syns.remove(synSeq);
-				if (initPacket != null) {
-					synchronized (initPacket) {
-						syns.put(synSeq, packet);
-						initPacket.notify();
-					}
+				// 使用 CompletableFuture 异步响应机制（无锁）
+				Map<Integer, CompletableFuture<Packet>> asyncResps = tioConfig.getWaitingResps();
+				CompletableFuture<Packet> f = asyncResps.remove(synSeq);
+				if (f != null) {
+					// 使用 CompletableFuture 完成响应
+					f.complete(packet);
+				} else {
+					log.error("[{}]同步消息失败, synSeq is {}, 但是异步响应集合中没有对应key值", synFailCount.incrementAndGet(), synSeq);
+				}
 			} else {
-				log.error("[{}]同步消息失败, synSeq is {}, 但是同步集合中没有对应key值", synFailCount.incrementAndGet(), synSeq);
+				tioHandler.handler(packet, channelContext);
 			}
-		} else {
-			tioHandler.handler(packet, channelContext);
-		}
 		} catch (Throwable e) {
 			log.error(packet.logstr(), e);
 		} finally {

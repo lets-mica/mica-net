@@ -213,6 +213,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -297,7 +298,10 @@ public abstract class TioConfig {
 	 * 解码失败多少次抛出异常
 	 */
 	public int maxDecodeFailCount = 10;
-	public ConcurrentMap<Integer, Packet> waitingResps = new ConcurrentHashMap<>();
+	/**
+	 * 异步响应管理 - 使用 CompletableFuture 实现无锁异步响应
+	 */
+	public ConcurrentMap<Integer, CompletableFuture<Packet>> waitingResps = new ConcurrentHashMap<>();
 	protected String name = "未命名";
 	private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
 	/**
@@ -411,9 +415,10 @@ public abstract class TioConfig {
 	}
 
 	/**
-	 * @return the syns
+	 * 获取异步响应映射表
+	 * @return 异步响应映射表
 	 */
-	public Map<Integer, Packet> getWaitingResps() {
+	public Map<Integer, CompletableFuture<Packet>> getWaitingResps() {
 		return waitingResps;
 	}
 
