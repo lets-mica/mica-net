@@ -256,6 +256,18 @@ public abstract class TioConfig {
 	public int maxDecodeFailCount = 10;
 	private int readBufferSize = READ_BUFFER_SIZE;
 
+	/**
+	 * 慢包检测滑动窗口大小（默认16）
+	 * 用于计算最近N次接收的平均字节数，值越大统计越平滑但响应越慢
+	 */
+	public int slowPacketWindowSize = 16;
+
+	/**
+	 * 慢包检测间隔（默认1，表示每次都检测）
+	 * 设置为N表示每N次解码失败才检测一次，可降低检测频率提升性能
+	 */
+	public int slowPacketCheckInterval = 1;
+
 	// 引用类型（指针大小，通常8字节但可能压缩为4字节）
 	public final String id;
 	public SslConfig sslConfig = null;
@@ -287,6 +299,12 @@ public abstract class TioConfig {
 	public boolean statOn = true;
 	public boolean logWhenDecodeError = false;
 	private boolean isStopped = false;
+
+	/**
+	 * 是否启用慢包攻击检测（默认true）
+	 * 关闭可以在极高QPS场景下进一步优化性能，但会失去慢包防护
+	 */
+	public boolean enableSlowPacketDetection = true;
 
 	public TioConfig() {
 		this(null, null);

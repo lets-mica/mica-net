@@ -86,7 +86,7 @@
 
 	You may reproduce and distribute copies of the Work or Derivative Works thereof
 	in any medium, with or without modifications, and in Source or Object form,
-	provided that You meet the following conditions:
+	provided that you meet the following conditions:
 
 	You must give any other recipients of the Work or Derivative Works a copy of
 	this License; and
@@ -177,7 +177,7 @@
 	the same "printed page" as the copyright notice for easier identification within
 	third-party archives.
 
-	   Copyright 2020 t-io
+	   Copyright 2026 mica-net
 
 	   Licensed under the Apache License, Version 2.0 (the "License");
 	   you may not use this file except in compliance with the License.
@@ -193,306 +193,186 @@
 */
 package org.tio.core.stat;
 
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
- * @author tanyaowu
- * 2017年4月1日 下午2:17:35
+ * 慢包攻击检测器 - 使用滑动窗口算法优化性能
+ *
+ * <p>优化策略：
+ * <ul>
+ *   <li>使用滑动窗口代替全局平均值计算，降低计算开销</li>
+ *   <li>支持按频率检测（如每N次解码失败检测一次），减少检测次数</li>
+ *   <li>无锁设计，适用于高并发场景</li>
+ * </ul>
+ *
+ * @author mica-net
+ * 2026-02-11
  */
-public class ChannelStat implements java.io.Serializable {
-	private static final long serialVersionUID = -6942731710053482089L;
-	
-	// ⭐ 字段对齐优化：按照 JVM 内存对齐原则重新排列字段，减少内存填充
-	// 1. 引用类型放在一起（8字节对齐）
+public class SlowPacketDetector {
 	/**
-	 * 本连接已发送的字节数
+	 * 默认滑动窗口大小
 	 */
-	public final AtomicLong sentBytes = new AtomicLong();
-	/**
-	 * 本连接已发送的packet数
-	 */
-	public final AtomicLong sentPackets = new AtomicLong();
-	/**
-	 * 本连接已处理的字节数
-	 */
-	public final AtomicLong handledBytes = new AtomicLong();
-	/**
-	 * 本连接已处理的packet数
-	 */
-	public final AtomicLong handledPackets = new AtomicLong();
-	/**
-	 * 处理消息包耗时，单位：毫秒
-	 * 拿这个值除以handledPackets，就是处理每个消息包的平均耗时
-	 */
-	public final AtomicLong handledPacketCosts = new AtomicLong();
-	/**
-	 * 本连接已接收的字节数
-	 */
-	public final AtomicLong receivedBytes = new AtomicLong();
-	/**
-	 * 本连接已接收了多少次TCP数据包
-	 */
-	public final AtomicLong receivedTcps = new AtomicLong();
-	/**
-	 * 本连接已接收的packet数
-	 */
-	public final AtomicLong receivedPackets = new AtomicLong();
-	/**
-	 * 心跳超时次数
-	 */
-	public final AtomicInteger heartbeatTimeoutCount = new AtomicInteger();
-	/**
-	 * 第一次连接成功的时间（包装类型）
-	 */
-	public Long timeFirstConnected = null;
-	
-	// 2. long 类型放在一起（8字节对齐）
-	/**
-	 * 最近一次收到业务消息包的时间(一个完整的业务消息包，一部分消息不算)
-	 */
-	public long latestTimeOfReceivedPacket;
-	/**
-	 * 最近一次发送业务消息包的时间(一个完整的业务消息包，一部分消息不算)
-	 */
-	public long latestTimeOfSentPacket;
-	/**
-	 * 最近一次收到业务消息包的时间:收到字节就算
-	 */
-	public long latestTimeOfReceivedByte;
-	/**
-	 * 最近一次发送业务消息包的时间：发送字节就算
-	 */
-	public long latestTimeOfSentByte;
-	/**
-	 * ChannelContext对象创建的时间
-	 */
-	public long timeCreated;
-	/**
-	 * 连接关闭的时间
-	 */
-	public long timeClosed;
-	
-	// 3. int 类型放最后（4字节）
-	/**
-	 * 本次解码失败的次数
-	 */
-	public int decodeFailCount = 0;
+	private static final int DEFAULT_WINDOW_SIZE = 16;
 
 	/**
-	 * 慢包攻击检测器（可选，根据配置创建）
+	 * 默认检测频率（每N次失败检测一次）
 	 */
-	private SlowPacketDetector slowPacketDetector = null;
+	private static final int DEFAULT_CHECK_INTERVAL = 1;
 
-	public ChannelStat() {
-		this(System.currentTimeMillis());
-	}
+	/**
+	 * 滑动窗口 - 存储最近N次接收的字节数
+	 * 使用环形缓冲区实现
+	 */
+	private final int[] window;
 
-	private ChannelStat(long now) {
-		this.latestTimeOfReceivedPacket = now;
-		this.latestTimeOfSentPacket = now;
-		this.latestTimeOfReceivedByte = now;
-		this.latestTimeOfSentByte = now;
-		this.timeCreated = now;
-		this.timeClosed = now;
+	/**
+	 * 窗口大小
+	 */
+	private final int windowSize;
+
+	/**
+	 * 检测间隔（每N次失败检测一次）
+	 */
+	private final int checkInterval;
+
+	/**
+	 * 当前窗口位置（环形缓冲区索引）
+	 */
+	private int currentIndex = 0;
+
+	/**
+	 * 窗口中已填充的元素数量
+	 */
+	private int filledCount = 0;
+
+	/**
+	 * 窗口中所有值的总和（用于快速计算平均值）
+	 */
+	private long sum = 0;
+
+	/**
+	 * 上次检测时的解码失败次数
+	 */
+	private int lastCheckFailCount = 0;
+
+	/**
+	 * 使用默认配置创建检测器
+	 */
+	public SlowPacketDetector() {
+		this(DEFAULT_WINDOW_SIZE, DEFAULT_CHECK_INTERVAL);
 	}
 
 	/**
-	 * 平均每次TCP接收到的字节数，这个可以用来监控慢攻击，配置PacketsPerTcpReceive定位慢攻击
-	 */
-	public double getBytesPerTcpReceive() {
-		if (receivedTcps.get() == 0) {
-			return 0;
-		}
-		return receivedBytes.doubleValue() / receivedTcps.doubleValue();
-	}
-
-	/**
-	 * 平均每次TCP接收到的业务包数，这个可以用来监控慢攻击，此值越小越有攻击嫌疑
-	 */
-	public double getPacketsPerTcpReceive() {
-		if (receivedTcps.get() == 0) {
-			return 0;
-		}
-		return receivedPackets.doubleValue() / receivedTcps.doubleValue();
-	}
-
-	/**
-	 * @return the decodeFailCount
-	 */
-	public int getDecodeFailCount() {
-		return decodeFailCount;
-	}
-
-	/**
-	 * @return the countHandledByte
-	 */
-	public AtomicLong getHandledBytes() {
-		return handledBytes;
-	}
-
-	/**
-	 * @return the countHandledPacket
-	 */
-	public AtomicLong getHandledPackets() {
-		return handledPackets;
-	}
-
-	/**
-	 * @return the timeLatestReceivedMsg
-	 */
-	public long getLatestTimeOfReceivedPacket() {
-		return latestTimeOfReceivedPacket;
-	}
-
-	/**
-	 * @return the timeLatestSentMsg
-	 */
-	public long getLatestTimeOfSentPacket() {
-		return latestTimeOfSentPacket;
-	}
-
-	/**
-	 * @param latestTimeOfSentPacket the timeLatestSentMsg to set
-	 */
-	public void setLatestTimeOfSentPacket(long latestTimeOfSentPacket) {
-		this.latestTimeOfSentPacket = latestTimeOfSentPacket;
-	}
-
-	/**
-	 * @return the countReceivedByte
-	 */
-	public AtomicLong getReceivedBytes() {
-		return receivedBytes;
-	}
-
-	/**
-	 * @return the countReceivedPacket
-	 */
-	public AtomicLong getReceivedPackets() {
-		return receivedPackets;
-	}
-
-	/**
-	 * @return the countSentByte
-	 */
-	public AtomicLong getSentBytes() {
-		return sentBytes;
-	}
-
-	/**
-	 * @return the countSentPacket
-	 */
-	public AtomicLong getSentPackets() {
-		return sentPackets;
-	}
-
-	/**
-	 * @return the timeClosed
-	 */
-	public long getTimeClosed() {
-		return timeClosed;
-	}
-
-	/**
-	 * @param timeClosed the timeClosed to set
-	 */
-	public void setTimeClosed(long timeClosed) {
-		this.timeClosed = timeClosed;
-	}
-
-	/**
-	 * @return the timeCreated
-	 */
-	public long getTimeCreated() {
-		return timeCreated;
-	}
-
-	/**
-	 * @return the timeFirstConnected
-	 */
-	public Long getTimeFirstConnected() {
-		return timeFirstConnected;
-	}
-
-	/**
-	 * @param timeFirstConnected the timeFirstConnected to set
-	 */
-	public void setTimeFirstConnected(Long timeFirstConnected) {
-		this.timeFirstConnected = timeFirstConnected;
-	}
-
-	/**
-	 * @return the latestTimeOfReceivedByte
-	 */
-	public long getLatestTimeOfReceivedByte() {
-		return latestTimeOfReceivedByte;
-	}
-
-	/**
-	 * @param latestTimeOfReceivedByte the latestTimeOfReceivedByte to set
-	 */
-	public void setLatestTimeOfReceivedByte(long latestTimeOfReceivedByte) {
-		this.latestTimeOfReceivedByte = latestTimeOfReceivedByte;
-	}
-
-	/**
-	 * @return the latestTimeOfSentByte
-	 */
-	public long getLatestTimeOfSentByte() {
-		return latestTimeOfSentByte;
-	}
-
-	/**
-	 * @param latestTimeOfSentByte the latestTimeOfSentByte to set
-	 */
-	public void setLatestTimeOfSentByte(long latestTimeOfSentByte) {
-		this.latestTimeOfSentByte = latestTimeOfSentByte;
-	}
-
-	/**
-	 * @return the receivedTcps
-	 */
-	public AtomicLong getReceivedTcps() {
-		return receivedTcps;
-	}
-
-	public AtomicLong getHandledPacketCosts() {
-		return handledPacketCosts;
-	}
-
-	/**
-	 * 处理packet平均耗时，单位：毫秒
-	 *
-	 * @return 均耗时
-	 */
-	public double getHandledCostsPerPacket() {
-		if (handledPackets.get() > 0) {
-			return handledPacketCosts.doubleValue() / handledPackets.doubleValue();
-		}
-		return 0;
-	}
-
-	/**
-	 * 获取慢包检测器（延迟初始化）
+	 * 创建检测器
 	 *
 	 * @param windowSize 滑动窗口大小
-	 * @param checkInterval 检测间隔
-	 * @return 慢包检测器
+	 * @param checkInterval 检测间隔（每N次失败检测一次，1表示每次都检测）
 	 */
-	public SlowPacketDetector getSlowPacketDetector(int windowSize, int checkInterval) {
-		if (slowPacketDetector == null) {
-			slowPacketDetector = new SlowPacketDetector(windowSize, checkInterval);
-		}
-		return slowPacketDetector;
+	public SlowPacketDetector(int windowSize, int checkInterval) {
+		this.windowSize = Math.max(1, windowSize);
+		this.checkInterval = Math.max(1, checkInterval);
+		this.window = new int[this.windowSize];
 	}
 
 	/**
-	 * 检查是否已初始化慢包检测器
+	 * 记录一次接收的数据长度
 	 *
-	 * @return true表示已初始化
+	 * @param bytes 接收的字节数
 	 */
-	public boolean hasSlowPacketDetector() {
-		return slowPacketDetector != null;
+	public void recordReceive(int bytes) {
+		// 更新总和（减去即将被覆盖的旧值）
+		if (filledCount >= windowSize) {
+			sum -= window[currentIndex];
+		}
+
+		// 添加新值
+		window[currentIndex] = bytes;
+		sum += bytes;
+
+		// 更新索引和填充计数
+		currentIndex = (currentIndex + 1) % windowSize;
+		if (filledCount < windowSize) {
+			filledCount++;
+		}
+	}
+
+	/**
+	 * 判断是否需要进行检测
+	 *
+	 * @param currentFailCount 当前解码失败次数
+	 * @return true 表示需要检测，false 表示跳过本次检测
+	 */
+	public boolean shouldCheck(int currentFailCount) {
+		if (checkInterval == 1) {
+			return true;
+		}
+
+		// 检查是否达到检测间隔
+		int failsSinceLastCheck = currentFailCount - lastCheckFailCount;
+		if (failsSinceLastCheck >= checkInterval) {
+			lastCheckFailCount = currentFailCount;
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * 获取滑动窗口内的平均每次接收字节数
+	 *
+	 * @return 平均字节数，如果窗口为空则返回0
+	 */
+	public int getAverageBytes() {
+		if (filledCount == 0) {
+			return 0;
+		}
+		return (int) (sum / filledCount);
+	}
+
+	/**
+	 * 获取滑动窗口内的总接收字节数
+	 *
+	 * @return 总字节数
+	 */
+	public long getTotalBytes() {
+		return sum;
+	}
+
+	/**
+	 * 获取窗口中的样本数量
+	 *
+	 * @return 样本数量
+	 */
+	public int getSampleCount() {
+		return filledCount;
+	}
+
+	/**
+	 * 重置检测器状态
+	 */
+	public void reset() {
+		currentIndex = 0;
+		filledCount = 0;
+		sum = 0;
+		lastCheckFailCount = 0;
+		for (int i = 0; i < windowSize; i++) {
+			window[i] = 0;
+		}
+	}
+
+	/**
+	 * 获取配置的窗口大小
+	 *
+	 * @return 窗口大小
+	 */
+	public int getWindowSize() {
+		return windowSize;
+	}
+
+	/**
+	 * 获取配置的检测间隔
+	 *
+	 * @return 检测间隔
+	 */
+	public int getCheckInterval() {
+		return checkInterval;
 	}
 }

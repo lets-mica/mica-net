@@ -205,6 +205,7 @@ import org.tio.core.intf.Packet;
 import org.tio.core.intf.TioHandler;
 import org.tio.core.intf.TioListener;
 import org.tio.core.stat.ChannelStat;
+import org.tio.core.stat.SlowPacketDetector;
 import org.tio.server.proxy.ProxyProtocolDecoder;
 import org.tio.utils.buffer.ByteBufferUtil;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
@@ -336,19 +337,41 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 					}
 					ChannelStat channelStat = channelContext.stat;
 					channelStat.decodeFailCount++;
+
+					// ⭐ 优化：使用滑动窗口记录接收数据
+					if (tioConfig.enableSlowPacketDetection && channelStat.decodeFailCount > 0) {
+						channelStat.getSlowPacketDetector(tioConfig.slowPacketWindowSize, tioConfig.slowPacketCheckInterval)
+							.recordReceive(readableLength);
+					}
+
 					if (log.isDebugEnabled()) {
 						log.debug("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount, readableLength);
 					}
-					// 检查慢包攻击
-					if (channelStat.decodeFailCount > tioConfig.maxDecodeFailCount) {
+
+					// ⭐ 优化：慢包攻击检测
+					if (tioConfig.enableSlowPacketDetection && channelStat.decodeFailCount > tioConfig.maxDecodeFailCount) {
 						if (packetNeededLength == null) {
 							if (log.isInfoEnabled()) {
 								log.info("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount, readableLength);
 							}
 						}
-						int per = readableLength / channelStat.decodeFailCount;
+
+						// 使用滑动窗口计算平均值（如果已初始化）
+						int avgBytes;
+						if (channelStat.hasSlowPacketDetector()) {
+							SlowPacketDetector detector = channelStat.getSlowPacketDetector(tioConfig.slowPacketWindowSize, tioConfig.slowPacketCheckInterval);
+							// 检查是否需要本次检测（降低检测频率）
+							if (!detector.shouldCheck(channelStat.decodeFailCount)) {
+								return;
+							}
+							avgBytes = detector.getAverageBytes();
+						} else {
+							// 回退到原始算法（兼容禁用检测器的情况）
+							avgBytes = readableLength / channelStat.decodeFailCount;
+						}
+
 						int threshold = Math.min(channelContext.getReadBufferSize() / BUFFER_SIZE_RATIO, MIN_AVERAGE_BYTES_THRESHOLD);
-						if (per < threshold) {
+						if (avgBytes < threshold) {
 							// 构造异常信息
 							String str = "连续解码" + channelStat.decodeFailCount + "次都不成功，" +
 								"参与解码的数据长度共" + readableLength + "字节，";
@@ -356,7 +379,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
 								str += "解码所需长度" + packetNeededLength + "字节，";
 							}
 							// 检查慢包攻击
-							str += "并且平均每次接收到的数据为" + per + "字节，有慢攻击的嫌疑";
+							str += "并且平均每次接收到的数据为" + avgBytes + "字节，有慢攻击的嫌疑";
 							// 打印报文结构，方便定位问题
 							String hexDump = ByteBufferUtil.hexDump(lastByteBuffer);
 							log.error("{} {}，报文结构：\n{}", channelContext, str, hexDump);
