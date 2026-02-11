@@ -9,7 +9,9 @@ import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.stat.ChannelStat;
 import org.tio.core.task.*;
+import org.tio.core.tcp.TcpDecodeRunnable;
 import org.tio.core.tcp.TcpSendRunnable;
+import org.tio.core.udp.UdpDecodeRunnable;
 import org.tio.core.udp.UdpSendRunnable;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.prop.MapPropSupport;
@@ -37,7 +39,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	public final CloseMeta closeMeta = new CloseMeta();
 
 	public TioConfig tioConfig;
-	public DecodeRunnable decodeRunnable;
+	public AbstractDecodeRunnable decodeRunnable;
 	public HandlerRunnable handlerRunnable;
 	public AbstractSendRunnable sendRunnable;
 	public SslFacadeContext sslFacadeContext;
@@ -160,12 +162,10 @@ public abstract class ChannelContext extends MapPropSupport {
 		if (!this.tioConfig.isShortConnection && this.clientNode != null) {
 			tioConfig.clientNodes.remove(this);
 		}
-
 		this.clientNode = clientNode;
 		if (this.tioConfig.isShortConnection) {
 			return;
 		}
-
 		if (this.clientNode != null && !Objects.equals(UNKNOWN_ADDRESS_IP, this.clientNode.getIp())) {
 			tioConfig.clientNodes.put(this);
 		}
@@ -394,22 +394,10 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	/**
+	 * 设置 TioConfig 并初始化协议相关的 Runnable（由子类实现）
 	 * @param tioConfig the tioConfig to set
 	 */
-	private void setTioConfig(TioConfig tioConfig) {
-		this.tioConfig = tioConfig;
-		if (tioConfig != null) {
-			decodeRunnable = new DecodeRunnable(this, tioConfig.tioExecutor);
-			handlerRunnable = new HandlerRunnable(this, tioConfig.tioExecutor);
-			// 根据协议类型创建对应的 SendRunnable
-			if (this.isUdp()) {
-				sendRunnable = new UdpSendRunnable(this, tioConfig.tioExecutor);
-			} else {
-				sendRunnable = new TcpSendRunnable(this, tioConfig.tioExecutor);
-			}
-			tioConfig.connections.add(this);
-		}
-	}
+	protected abstract void setTioConfig(TioConfig tioConfig);
 
 	/**
 	 * 是否是服务器端

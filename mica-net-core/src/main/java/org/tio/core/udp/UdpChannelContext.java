@@ -1,8 +1,19 @@
 /*
-    Apache License
-    Version 2.0, January 2004
-    http://www.apache.org/licenses/
-*/
+ * Copyright (c) 2019-2029, Dreamlu 卢春梦 (596392912@qq.com & dreamlu.net).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tio.core.udp;
 
 import org.slf4j.Logger;
@@ -11,12 +22,15 @@ import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.Tio;
 import org.tio.core.TioConfig;
+import org.tio.core.task.HandlerRunnable;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 
 /**
- * @author tanyaowu
+ * UDP 专用 ChannelContext
+ *
+ * @author L.cm
  */
 public class UdpChannelContext extends ChannelContext {
 	private static final Logger log = LoggerFactory.getLogger(UdpChannelContext.class);
@@ -60,7 +74,7 @@ public class UdpChannelContext extends ChannelContext {
 	/**
 	 * Handle UDP read errors
 	 *
-	 * @param e the throwable
+	 * @param e       the throwable
 	 * @param message error message
 	 */
 	public void handleReadError(Throwable e, String message) {
@@ -81,5 +95,21 @@ public class UdpChannelContext extends ChannelContext {
 	@Override
 	public boolean isUdp() {
 		return true;
+	}
+
+	/**
+	 * UDP 专用：设置 TioConfig 并创建 UDP 专用的 Runnable
+	 */
+	@Override
+	protected void setTioConfig(TioConfig tioConfig) {
+		this.tioConfig = tioConfig;
+		if (tioConfig != null) {
+			// 创建 UDP 专用的 DecodeRunnable
+			decodeRunnable = new UdpDecodeRunnable(this, tioConfig.tioExecutor);
+			handlerRunnable = new HandlerRunnable(this, tioConfig.tioExecutor);
+			// 创建 UDP 专用的 SendRunnable
+			sendRunnable = new UdpSendRunnable(this, tioConfig.tioExecutor);
+			tioConfig.connections.add(this);
+		}
 	}
 }

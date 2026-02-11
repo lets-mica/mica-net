@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2019-2029, Dreamlu 卢春梦 (596392912@qq.com & dreamlu.net).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tio.core.tcp;
 
 import org.slf4j.Logger;
@@ -9,12 +25,15 @@ import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 import org.tio.core.WriteCompletionHandler;
 import org.tio.core.ssl.SslFacadeContext;
+import org.tio.core.task.HandlerRunnable;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;
 
 /**
  * TCP specific ChannelContext - 仅 TCP 支持 SSL/TLS
+ *
+ * @author L.cm
  */
 public abstract class TcpChannelContext extends ChannelContext {
 	private static final Logger log = LoggerFactory.getLogger(TcpChannelContext.class);
@@ -100,6 +119,22 @@ public abstract class TcpChannelContext extends ChannelContext {
 	@Override
 	public boolean isUdp() {
 		return false;
+	}
+
+	/**
+	 * TCP 专用：设置 TioConfig 并创建 TCP 专用的 Runnable
+	 */
+	@Override
+	protected void setTioConfig(TioConfig tioConfig) {
+		this.tioConfig = tioConfig;
+		if (tioConfig != null) {
+			// 创建 TCP 专用的 DecodeRunnable
+			decodeRunnable = new TcpDecodeRunnable(this, tioConfig.tioExecutor);
+			handlerRunnable = new HandlerRunnable(this, tioConfig.tioExecutor);
+			// 创建 TCP 专用的 SendRunnable
+			sendRunnable = new TcpSendRunnable(this, tioConfig.tioExecutor);
+			tioConfig.connections.add(this);
+		}
 	}
 
 	public void setAsynchronousSocketChannel(AsynchronousSocketChannel asynchronousSocketChannel) {
