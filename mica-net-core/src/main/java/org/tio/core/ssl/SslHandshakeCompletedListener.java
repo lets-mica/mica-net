@@ -201,7 +201,7 @@ import org.tio.core.TioConfig;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.facade.IHandshakeCompletedListener;
-import org.tio.core.task.SendRunnable;
+import org.tio.core.task.AbstractSendRunnable;
 import org.tio.server.TioServerConfig;
 import org.tio.server.proxy.ProxyProtocolDecoder;
 
@@ -242,7 +242,7 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 			}
 		}
 
-		SendRunnable sendRunnable = channelContext.sendRunnable;
+		AbstractSendRunnable sendRunnable = channelContext.sendRunnable;
 		Queue<Packet> forSendAfterSslHandshakeCompleted = sendRunnable.getForSendAfterSslHandshakeCompleted(false);
 		if (forSendAfterSslHandshakeCompleted == null || forSendAfterSslHandshakeCompleted.isEmpty()) {
 			return;

@@ -8,14 +8,12 @@ import org.tio.core.intf.PacketListener;
 import org.tio.core.intf.TioListener;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.stat.ChannelStat;
-import org.tio.core.task.DecodeRunnable;
-import org.tio.core.task.HandlerRunnable;
-import org.tio.core.task.SendRunnable;
+import org.tio.core.task.*;
+import org.tio.core.tcp.TcpSendRunnable;
+import org.tio.core.udp.UdpSendRunnable;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.prop.MapPropSupport;
 
-import java.io.IOException;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,12 +39,8 @@ public abstract class ChannelContext extends MapPropSupport {
 	public TioConfig tioConfig;
 	public DecodeRunnable decodeRunnable;
 	public HandlerRunnable handlerRunnable;
-	public SendRunnable sendRunnable;
+	public AbstractSendRunnable sendRunnable;
 	public SslFacadeContext sslFacadeContext;
-	// Channels removed: moved to subclasses TcpChannelContext and UdpChannelContext
-	// public AsynchronousSocketChannel asynchronousSocketChannel;
-	// public java.nio.channels.DatagramChannel datagramChannel;
-
 	private Node clientNode;
 	/**
 	 * 一些连接是代理的，譬如web服务器放在nginx后面，此时需要知道最原始的ip
@@ -137,21 +131,9 @@ public abstract class ChannelContext extends MapPropSupport {
 	}
 
 	/**
-	 * 设置 ssl
+	 * 设置 SSL/TLS
 	 */
-	public void setUpSSL() {
-		if (tioConfig.sslConfig != null) {
-			try {
-				this.sslFacadeContext = new SslFacadeContext(this);
-				if (tioConfig.isServer()) {
-					this.sslFacadeContext.beginHandshake();
-				}
-			} catch (Exception e) {
-				log.error("在开始SSL握手时发生了异常", e);
-				Tio.close(this, "在开始SSL握手时发生了异常" + e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
-			}
-		}
-	}
+	public abstract void setUpSSL();
 
 	public abstract boolean isUdp();
 
@@ -231,6 +213,7 @@ public abstract class ChannelContext extends MapPropSupport {
 			// 在长连接中，绑定群组几乎是必须要干的事，所以直接在初始化时给它赋值，省得在后面做同步处理
 			groups = ConcurrentHashMap.newKeySet();
 		}
+		// SSL 设置已移至 TcpChannelContext（UDP 不支持 SSL/TLS）
 	}
 
 	/**
@@ -418,7 +401,12 @@ public abstract class ChannelContext extends MapPropSupport {
 		if (tioConfig != null) {
 			decodeRunnable = new DecodeRunnable(this, tioConfig.tioExecutor);
 			handlerRunnable = new HandlerRunnable(this, tioConfig.tioExecutor);
-			sendRunnable = new SendRunnable(this, tioConfig.tioExecutor);
+			// 根据协议类型创建对应的 SendRunnable
+			if (this.isUdp()) {
+				sendRunnable = new UdpSendRunnable(this, tioConfig.tioExecutor);
+			} else {
+				sendRunnable = new TcpSendRunnable(this, tioConfig.tioExecutor);
+			}
 			tioConfig.connections.add(this);
 		}
 	}

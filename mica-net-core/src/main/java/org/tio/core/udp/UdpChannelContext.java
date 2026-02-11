@@ -12,9 +12,7 @@ import org.tio.core.Node;
 import org.tio.core.Tio;
 import org.tio.core.TioConfig;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.DatagramChannel;
 
 /**
@@ -73,6 +71,11 @@ public class UdpChannelContext extends ChannelContext {
 	@Override
 	public boolean isServer() {
 		return tioConfig.isServer();
+	}
+
+	@Override
+	public void setUpSSL() {
+		// 暂不支持 SSL/TLS
 	}
 
 	@Override

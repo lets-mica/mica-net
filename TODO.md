@@ -229,7 +229,7 @@ ByteBuffer composite(lastByteBuffer, byteBuffer)
 
 ---
 
-### 8. writev 分散聚集 I/O 支持
+### 8. write 分散聚集 I/O 支持
 
 **问题描述：**
 - 当前批量发送需要将多个小包合并到一个 ByteBuffer
@@ -245,7 +245,7 @@ ByteBuffer composite(lastByteBuffer, byteBuffer)
 
 **实施步骤：**
 - [ ] 修改 SendRunnable 支持 ByteBuffer[] 批量发送
-- [ ] 增加配置开关（useWritev）
+- [ ] 增加配置开关（useWrite）
 - [ ] 测试不同包大小下的性能表现
 - [ ] 对比单 Buffer 和数组方式的性能差异
 

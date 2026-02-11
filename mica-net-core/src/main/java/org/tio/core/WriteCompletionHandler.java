@@ -200,6 +200,7 @@ import org.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
 import org.tio.core.tcp.TcpChannelContext;
+import org.tio.core.tcp.TcpSendRunnable;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
@@ -282,8 +283,8 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 		} finally {
 			lock.unlock();
 		}
-		// 异步优化：写操作完成后，触发下一批消息发送
-		channelContext.sendRunnable.onWriteCompleted();
+		// TCP 专用：写操作完成后，触发下一批消息发送
+		((TcpSendRunnable) channelContext.sendRunnable).onWriteCompleted();
 	}
 
 	/**
