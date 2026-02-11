@@ -81,32 +81,32 @@ public class ServerHeartbeatTask extends TimerTask {
 		long sendQueueSizeAll = 0;
 		try {
 			start1 = System.currentTimeMillis();
-			for (ChannelContext channelContext : contextSet) {
+			for (ChannelContext context : contextSet) {
 				count++;
-				long compareTime = heartbeatMode.getLastTime(channelContext.stat);
+				long compareTime = heartbeatMode.getLastTime(context.stat);
 				long currTime = System.currentTimeMillis();
 				long interval = currTime - compareTime;
 				boolean needRemove;
-				if (channelContext.heartbeatTimeout != null && channelContext.heartbeatTimeout > 0) {
-					needRemove = interval > channelContext.heartbeatTimeout * heartbeatBackoff;
+				if (context.heartbeatTimeout != null && context.heartbeatTimeout > 0) {
+					needRemove = interval > context.heartbeatTimeout * heartbeatBackoff;
 				} else {
 					needRemove = interval > heartbeatTimeout;
 				}
-				if (needRemove && !serverListener.onHeartbeatTimeout(channelContext, interval, channelContext.stat.heartbeatTimeoutCount.incrementAndGet())) {
-					log.info("{}, {} ms没有收发消息 heartbeatMode:{}", channelContext, interval, heartbeatMode);
-					channelContext.setCloseCode(ChannelContext.CloseCode.HEARTBEAT_TIMEOUT);
-					Tio.remove(channelContext, interval + " ms没有收发消息");
+				if (needRemove && !serverListener.onHeartbeatTimeout(context, interval, context.stat.heartbeatTimeoutCount.incrementAndGet())) {
+					log.info("{}, {} ms没有收发消息 heartbeatMode:{}", context, interval, heartbeatMode);
+					context.setCloseCode(ChannelContext.CloseCode.HEARTBEAT_TIMEOUT);
+					Tio.remove(context, interval + " ms没有收发消息");
 				} else {
 					// 服务端队列数据统计
-					int decodeQueueSize = channelContext.getDecodeQueueSize();
+					int decodeQueueSize = context.getDecodeQueueSize();
 					if (decodeQueueSize > 0) {
 						decodeQueueSizeAll += decodeQueueSize;
 					}
-					int handlerQueueSize = channelContext.getHandlerQueueSize();
+					int handlerQueueSize = context.getHandlerQueueSize();
 					if (handlerQueueSize > 0) {
 						handlerQueueSizeAll += handlerQueueSize;
 					}
-					int sendQueueSize = channelContext.getSendQueueSize();
+					int sendQueueSize = context.getSendQueueSize();
 					if (sendQueueSize > 0) {
 						sendQueueSizeAll += sendQueueSize;
 					}

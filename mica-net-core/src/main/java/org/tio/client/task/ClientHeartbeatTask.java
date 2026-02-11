@@ -67,6 +67,9 @@ public class ClientHeartbeatTask extends TimerTask {
 		// 4. 心跳超时策略
 		HeartbeatTimeoutStrategy timeoutStrategy = clientConfig.getHeartbeatTimeoutStrategy();
 		long currTime = System.currentTimeMillis();
+		long decodeQueueSizeAll = 0;
+		long handlerQueueSizeAll = 0;
+		long sendQueueSizeAll = 0;
 		try {
 			for (ChannelContext entry : set) {
 				ClientChannelContext context = (ClientChannelContext) entry;
@@ -88,15 +91,28 @@ public class ClientHeartbeatTask extends TimerTask {
 					// 超过半个心跳周期，发送心跳
 					sendHeartbeat(context);
 				}
+				// 服务端队列数据统计
+				int decodeQueueSize = context.getDecodeQueueSize();
+				if (decodeQueueSize > 0) {
+					decodeQueueSizeAll += decodeQueueSize;
+				}
+				int handlerQueueSize = context.getHandlerQueueSize();
+				if (handlerQueueSize > 0) {
+					handlerQueueSizeAll += handlerQueueSize;
+				}
+				int sendQueueSize = context.getSendQueueSize();
+				if (sendQueueSize > 0) {
+					sendQueueSizeAll += sendQueueSize;
+				}
 			}
 			// 打印连接信息
-			if (clientConfig.debug && logger.isInfoEnabled()) {
+			if (clientConfig.debug || clientConfig.statOn) {
 				if (clientConfig.statOn) {
-					logger.info("[{}]: curr:{}, closed:{}, received:({}p)({}b), handled:{}, sent:({}p)({}b)", id, set.size(), clientGroupStat.closed.sum(),
+					logger.info("[{}]: curr:{}, closed:{}, received:({}p)({}b), handled:{}, sent:({}p)({}b), queues:(decode:{}, handler:{}, send:{})", id, set.size(), clientGroupStat.closed.sum(),
 						clientGroupStat.receivedPackets.sum(), clientGroupStat.receivedBytes.sum(), clientGroupStat.handledPackets.sum(),
-						clientGroupStat.sentPackets.sum(), clientGroupStat.sentBytes.sum());
+						clientGroupStat.sentPackets.sum(), clientGroupStat.sentBytes.sum(), decodeQueueSizeAll, handlerQueueSizeAll, sendQueueSizeAll);
 				} else {
-					logger.info("[{}]: curr:{}, closed:{}", id, set.size(), clientGroupStat.closed.sum());
+					logger.info("[{}]: curr:{}, closed:{}, queues:(decode:{}, handler:{}, send:{})", id, set.size(), clientGroupStat.closed.sum(), decodeQueueSizeAll, handlerQueueSizeAll, sendQueueSizeAll);
 				}
 			}
 		} catch (Throwable e) {
