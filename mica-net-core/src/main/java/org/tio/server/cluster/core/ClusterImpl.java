@@ -65,7 +65,7 @@ public class ClusterImpl implements ClusterApi {
 	/**
 	 * 后加入的成员
 	 */
-	private final List<Node> lateJoinMembers;
+	private final Set<Node> lateJoinMembers;
 	/**
 	 * tcp 集群服务
 	 */
@@ -88,7 +88,7 @@ public class ClusterImpl implements ClusterApi {
 		this.config = config;
 		this.localMember = new Node(config.getHost(), config.getPort());
 		this.seedMembers = filterSeedMembers(config);
-		this.lateJoinMembers = new ArrayList<>();
+		this.lateJoinMembers = ConcurrentHashMap.newKeySet();
 		this.messageDecoder = new ClusterMessageDecoder();
 		this.syncMessageMap = new ConcurrentHashMap<>();
 		this.snowflake = new Snowflake(ThreadLocalRandom.current().nextInt(1, 30), ThreadLocalRandom.current().nextInt(1, 30));
@@ -171,10 +171,20 @@ public class ClusterImpl implements ClusterApi {
 		long messageId = this.snowflake.nextId();
 		CompletableFuture<ClusterSyncAckMessage> future = new CompletableFuture<>();
 		syncMessageMap.put(messageId, future);
-		// 发送消息
-		Tio.send(context, new ClusterSyncMessage(messageId, message));
-		// 等待回调
-		return future.join();
+		try {
+			// 发送消息
+			Tio.send(context, new ClusterSyncMessage(messageId, message));
+			// 等待回调
+			return future.get(10, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			log.error(e.getMessage(), e);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		} finally {
+			syncMessageMap.remove(messageId);
+		}
+		return null;
 	}
 
 	@Override
@@ -232,10 +242,9 @@ public class ClusterImpl implements ClusterApi {
 	 *
 	 * @param joinMember joinMember
 	 */
-	protected synchronized void addJoinMember(Node joinMember) {
+	protected void addJoinMember(Node joinMember) {
 		// 新加入的节点
-		if (!lateJoinMembers.contains(joinMember)) {
-			this.lateJoinMembers.add(joinMember);
+		if (lateJoinMembers.add(joinMember)) {
 			try {
 				this.tcpClusterClient.connect(joinMember);
 			} catch (Exception e) {
