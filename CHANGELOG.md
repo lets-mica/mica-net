@@ -2,6 +2,14 @@
 
 ## 发行版本
 
+### v1.3.0 - 2026-02-13
+- UDP优化：统一TCP、UDP编解码和处理，UDP 重构为 NIO UDP 形式。
+- 性能优化：实现滑动窗口算法检测慢包攻击，降低检测开销
+- 异步处理：使用CompletableFuture优化同步消息，提升高并发性能
+- 内存对齐：优化TioConfig字段排序，减少内存padding提升缓存命中
+- 队列监控：在心跳任务中增加解码/处理/发送队列大小统计
+- 集群同步：将lateJoinMembers改为线程安全Set，同步消息增加10秒超时
+
 ### v1.2.8 - 2026-02-05
 - fix(core): 修复 DecodeRunnable 中 lastByteBuffer 未清空 client 可能导致的重连解析问题
 
