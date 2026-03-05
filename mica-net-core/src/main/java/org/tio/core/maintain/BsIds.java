@@ -263,7 +263,8 @@ public class BsIds {
 		if (StrUtil.isBlank(bsId)) {
 			return;
 		}
-		map.remove(bsId);
+		// 注意：修复并发竞态条件(Race Condition) Bug。这里必须使用 map.remove(key, value) 精确匹配删除，不能只根据 key 去 remove，否则在断线重连/重用等高并发场景下，可能会把刚刚连上的新连接误删。
+		map.remove(bsId, channelContext);
 		channelContext.setBsId(null);
 	}
 

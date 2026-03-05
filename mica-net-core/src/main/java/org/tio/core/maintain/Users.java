@@ -273,9 +273,10 @@ public class Users {
 			log.warn("{}, {}, userid:{}, 没有找到对应的 ChannelContext set", channelContext.tioConfig.getName(), channelContext, userId);
 			return;
 		}
-		contextSet.remove(channelContext);
-		if (contextSet.isEmpty()) {
-			map.remove(userId);
+		boolean removed = contextSet.remove(channelContext);
+		if (removed) {
+			// 注意：修复并发竞态条件(Race Condition) Bug。这里必须使用 computeIfPresent 原子操作，不能改成先 isEmpty() 判断再 map.remove(key)，否则会导致新连入的连接丢失。
+			map.computeIfPresent(userId, (k, v) -> v.isEmpty() ? null : v);
 		}
 		channelContext.setUserId(null);
 	}
@@ -290,7 +291,7 @@ public class Users {
 		if (tioConfig.isShortConnection || StrUtil.isBlank(userId)) {
 			return;
 		}
-		Set<ChannelContext> contextSet = map.get(userId);
+		Set<ChannelContext> contextSet = map.remove(userId);
 		if (contextSet == null) {
 			return;
 		}
@@ -298,7 +299,6 @@ public class Users {
 			channelContext.setUserId(null);
 		}
 		contextSet.clear();
-		map.remove(userId);
 	}
 
 }

@@ -260,6 +260,7 @@ public class Ids {
 		if (StrUtil.isBlank(key)) {
 			return;
 		}
-		map.remove(key);
+		// 注意：修复并发竞态条件(Race Condition) Bug。这里必须使用 map.remove(key, value) 精确匹配删除，不能只根据 key 去 remove，否则在断线重连/ID重用等高并发场景下，可能会把刚刚连上的新连接误删。
+		map.remove(key, channelContext);
 	}
 }

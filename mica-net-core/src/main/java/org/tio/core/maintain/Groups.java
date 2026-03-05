@@ -367,8 +367,8 @@ public class Groups {
 		if (channelSet == null) {
 			return;
 		}
-		boolean ss = channelSet.remove(channelContext);
-		if (!ss) {
+		boolean removed = channelSet.remove(channelContext);
+		if (!removed) {
 			log.warn("{}, 移除失败,group:{} cid:{}", channelContext, groupId, channelContext.getId());
 		}
 		if (deleteFromChannelContext) {
@@ -384,9 +384,9 @@ public class Groups {
 				}
 			}
 		}
-		//如果该群组没有任何连接，就把这个群组从map中删除，以释放空间
-		if (channelSet.isEmpty()) {
-			groupMap.remove(groupId);
+		if (removed) {
+			// 注意：修复并发竞态条件(Race Condition) Bug。这里必须使用 computeIfPresent 原子操作，不能改成先 isEmpty() 判断再 map.remove(key)，否则会导致新连入的连接丢失。
+			groupMap.computeIfPresent(groupId, (k, v) -> v.isEmpty() ? null : v);
 		}
 	}
 

@@ -274,9 +274,10 @@ public class Tokens {
 			return;
 		}
 		channelContext.setToken(null);
-		contextSet.remove(channelContext);
-		if (contextSet.isEmpty()) {
-			map.remove(token);
+		boolean removed = contextSet.remove(channelContext);
+		if (removed) {
+			// 注意：修复并发竞态条件(Race Condition) Bug。这里必须使用 computeIfPresent 原子操作，不能改成先 isEmpty() 判断再 map.remove(key)，否则会导致新连入的连接丢失。
+			map.computeIfPresent(token, (k, v) -> v.isEmpty() ? null : v);
 		}
 	}
 
@@ -290,7 +291,7 @@ public class Tokens {
 		if (tioConfig.isShortConnection || StrUtil.isBlank(token)) {
 			return;
 		}
-		Set<ChannelContext> contextSet = map.get(token);
+		Set<ChannelContext> contextSet = map.remove(token);
 		if (contextSet == null) {
 			return;
 		}
@@ -300,7 +301,6 @@ public class Tokens {
 			}
 			contextSet.clear();
 		}
-		map.remove(token);
 	}
 
 }
