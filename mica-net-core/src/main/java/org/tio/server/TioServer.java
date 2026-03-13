@@ -465,7 +465,9 @@ public class TioServer {
 		// 删除实例
 		serverConfig.remove();
 		// 停止 taskService
-		this.taskService.stop();
+		if (this.taskService != null) {
+			this.taskService.stop();
+		}
 		try {
 			channelGroup.shutdownNow();
 		} catch (Exception e) {
