@@ -541,8 +541,10 @@ public class TioClient {
 	 * @return boolean
 	 */
 	public boolean stop() {
-		// 先停止 ack 服务
-		this.taskService.stop();
+		// 停止 taskService
+		if (this.taskService != null) {
+			this.taskService.stop();
+		}
 		// 删除实例
 		clientConfig.remove();
 		try {
