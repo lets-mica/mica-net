@@ -16,6 +16,8 @@
 
 package org.tio.server.cluster.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tio.client.intf.TioClientListener;
 import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
@@ -27,6 +29,7 @@ import org.tio.server.cluster.message.ClusterJoinMessage;
  * @author L.cm
  */
 public class ClusterTcpClientListener implements TioClientListener {
+	private static final Logger log = LoggerFactory.getLogger(ClusterTcpClientListener.class);
 	private final ClusterApi clusterApi;
 
 	public ClusterTcpClientListener(ClusterApi clusterApi) {
@@ -44,9 +47,7 @@ public class ClusterTcpClientListener implements TioClientListener {
 
 	@Override
 	public void onBeforeClose(ChannelContext context, Throwable throwable, String remark, boolean isRemove) throws Exception {
-		if (throwable != null) {
-			throwable.printStackTrace();
-		}
+		log.error("集群链接断开 context:{} remark:{} isRemove:{}", context, remark, isRemove, throwable);
 	}
 
 }

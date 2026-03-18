@@ -18,6 +18,7 @@ package org.tio.server.cluster.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tio.client.ClientChannelContext;
 import org.tio.client.ReconnConf;
 import org.tio.client.TioClient;
 import org.tio.client.TioClientConfig;
@@ -75,6 +76,11 @@ public class ClusterImpl implements ClusterApi {
 	 */
 	private TioClient tcpClusterClient;
 	private final ClusterMessageDecoder messageDecoder;
+	/**
+	 * 集群成员节点与 ChannelContext 的映射
+	 * key: 连接时使用的 Node（connect 参数 / serverNode），与配置一致，避免 IPv4/IPv6 格式差异导致查找失败
+	 */
+	private final ConcurrentMap<Node, ChannelContext> memberChannels = new ConcurrentHashMap<>();
 	/**
 	 * 同步消息处理，key：messageId，value：CompletableFuture
 	 */
