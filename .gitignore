@@ -28,6 +28,10 @@ dist/
 nbdist/
 .nb-gradle/
 
+### OpenCode ###
+.opencode
+-p
+
 ### maven ###
 target/
 *.war
