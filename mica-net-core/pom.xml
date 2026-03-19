@@ -17,6 +17,11 @@
             <groupId>net.dreamlu</groupId>
             <artifactId>mica-net-utils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

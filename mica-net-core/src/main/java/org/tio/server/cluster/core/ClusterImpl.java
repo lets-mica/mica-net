@@ -174,7 +174,6 @@ public class ClusterImpl implements ClusterApi {
 
 	@Override
 	public ClusterSyncAckMessage sendSync(Node member, ClusterDataMessage message) {
-		// context
 		ChannelContext context = memberChannels.get(member);
 		if (context == null) {
 			log.warn("节点:{} 可能不在线", member);
