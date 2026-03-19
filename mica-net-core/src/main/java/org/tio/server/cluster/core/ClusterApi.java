@@ -86,7 +86,16 @@ public interface ClusterApi {
 	 *
 	 * @param data 集群消息
 	 */
-	void broadcast(byte[] data);
+	default void broadcast(byte[] data) {
+		broadcast(new ClusterDataMessage(data));
+	}
+
+	/**
+	 * 在集群中广播消息
+	 *
+	 * @param message 集群消息
+	 */
+	void broadcast(ClusterDataMessage message);
 
 	/**
 	 * 添加定时任务，注意：如果抛出异常，会终止后续任务，请自行处理异常

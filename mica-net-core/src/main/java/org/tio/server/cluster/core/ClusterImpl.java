@@ -198,11 +198,11 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
-	public void broadcast(byte[] data) {
+	public void broadcast(ClusterDataMessage message) {
 		// 所有在线节点
 		Set<ChannelContext> contextSet = new HashSet<>(memberChannels.values());
 		TioClientConfig clientConfig = this.tcpClusterClient.getClientConfig();
-		Tio.sendToSet(clientConfig, contextSet, new ClusterDataMessage(data), null);
+		Tio.sendToSet(clientConfig, contextSet, message, null);
 	}
 
 	@Override
