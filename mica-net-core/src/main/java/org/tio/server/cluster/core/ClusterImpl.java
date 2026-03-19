@@ -18,7 +18,6 @@ package org.tio.server.cluster.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.client.ClientChannelContext;
 import org.tio.client.ReconnConf;
 import org.tio.client.TioClient;
 import org.tio.client.TioClientConfig;
@@ -164,29 +163,27 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
-	public boolean send(Node member, byte[] data) {
+	public boolean send(Node member, ClusterDataMessage message) {
 		ChannelContext context = memberChannels.get(member);
 		if (context == null) {
 			log.warn("节点:{} 可能不在线", member);
 			return false;
 		}
-		return Tio.send(context, new ClusterDataMessage(data));
+		return Tio.send(context, message);
 	}
 
 	@Override
-	public ClusterSyncAckMessage sendSync(Node member, byte[] message) {
+	public ClusterSyncAckMessage sendSync(Node member, ClusterDataMessage message) {
 		// context
 		ChannelContext context = memberChannels.get(member);
 		if (context == null) {
 			log.warn("节点:{} 可能不在线", member);
 			return null;
 		}
-		// messageId
 		long messageId = this.snowflake.nextId();
 		CompletableFuture<ClusterSyncAckMessage> future = new CompletableFuture<>();
 		syncMessageMap.put(messageId, future);
 		try {
-			// 发送消息
 			Tio.send(context, new ClusterSyncMessage(messageId, message));
 			// 等待回调
 			return future.get(10, TimeUnit.SECONDS);

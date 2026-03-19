@@ -22,9 +22,11 @@ import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 import org.tio.server.cluster.message.*;
 import org.tio.utils.buffer.ByteBufferUtil;
+import org.tio.utils.json.JsonUtil;
 import org.tio.utils.mica.Pair;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 /**
  * 集群消息解码
@@ -71,24 +73,38 @@ public class ClusterMessageDecoder {
 	 * @return ClusterDataMessage
 	 */
 	private static ClusterDataMessage decodeDataMessage(ChannelContext ctx, ByteBuffer buffer, int readableLength) {
-		// 标记当前位置，用于重置
 		buffer.mark();
+		if (readableLength < 1 + 8) {
+			buffer.reset();
+			return null;
+		}
+		long timestamp = buffer.getLong();
+		Pair<Integer, Integer> headersLengthPair = readDataPacketLength(buffer);
+		if (headersLengthPair == null) {
+			buffer.reset();
+			return null;
+		}
+		int headersLength = headersLengthPair.getLeft();
+		int messageLength = 1 + 8 + headersLengthPair.getRight() + headersLength;
+		if (readableLength < messageLength) {
+			ctx.setPacketNeededLength(messageLength);
+			return null;
+		}
+		Map<String, String> headers = decodeHeaders(buffer, headersLength);
 		Pair<Integer, Integer> dataLengthPair = readDataPacketLength(buffer);
-		// 消息不够读
 		if (dataLengthPair == null) {
 			buffer.reset();
 			return null;
 		}
 		int dataLength = dataLengthPair.getLeft();
 		int dataLengthLength = dataLengthPair.getRight();
-		int messageLength = 1 + dataLengthLength + dataLength;
+		messageLength = 1 + 8 + headersLengthPair.getRight() + headersLength + dataLengthLength + dataLength;
 		if (readableLength < messageLength) {
 			ctx.setPacketNeededLength(messageLength);
 			return null;
 		}
-		// 数据
 		byte[] payload = ByteBufferUtil.readBytes(buffer, dataLength);
-		return new ClusterDataMessage(payload);
+		return new ClusterDataMessage(timestamp, headers, payload);
 	}
 
 	/**
@@ -99,27 +115,36 @@ public class ClusterMessageDecoder {
 	 * @return ClusterSyncMessage
 	 */
 	private static ClusterSyncMessage decodeSyncMessage(ChannelContext ctx, ByteBuffer buffer, int readableLength) {
-		// 消息不够读
-		if (readableLength < 1 + 8) {
+		if (readableLength < 1 + 8 + 8) {
 			return null;
 		}
-		// 消息 id
 		long messageId = buffer.getLong();
+		long timestamp = buffer.getLong();
+		Pair<Integer, Integer> headersLengthPair = readDataPacketLength(buffer);
+		if (headersLengthPair == null) {
+			return null;
+		}
+		int headersLength = headersLengthPair.getLeft();
+		int headersLengthLength = headersLengthPair.getRight();
+		int messageLength = 1 + 8 + 8 + headersLengthLength + headersLength;
+		if (readableLength < messageLength) {
+			ctx.setPacketNeededLength(messageLength);
+			return null;
+		}
+		Map<String, String> headers = decodeHeaders(buffer, headersLength);
 		Pair<Integer, Integer> dataLengthPair = readDataPacketLength(buffer);
-		// 消息不够读
 		if (dataLengthPair == null) {
 			return null;
 		}
 		int dataLength = dataLengthPair.getLeft();
 		int dataLengthLength = dataLengthPair.getRight();
-		int messageLength = 1 + 8 + dataLengthLength + dataLength;
+		messageLength = 1 + 8 + 8 + headersLengthLength + headersLength + dataLengthLength + dataLength;
 		if (readableLength < messageLength) {
 			ctx.setPacketNeededLength(messageLength);
 			return null;
 		}
-		// 数据
 		byte[] payload = ByteBufferUtil.readBytes(buffer, dataLength);
-		return new ClusterSyncMessage(messageId, payload);
+		return new ClusterSyncMessage(messageId, timestamp, headers, payload);
 	}
 
 	/**
@@ -177,6 +202,14 @@ public class ClusterMessageDecoder {
 			count++;
 		} while ((digit & 128) != 0 && count < 4);
 		return new Pair<>(remainingLength, count);
+	}
+
+	private static Map<String, String> decodeHeaders(ByteBuffer buffer, int headersLength) {
+		if (headersLength == 0) {
+			return null;
+		}
+		byte[] headersBytes = ByteBufferUtil.readBytes(buffer, headersLength);
+		return JsonUtil.readMap(headersBytes, String.class, String.class);
 	}
 
 }

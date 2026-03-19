@@ -17,6 +17,7 @@
 package org.tio.server.cluster.core;
 
 import org.tio.core.Node;
+import org.tio.server.cluster.message.ClusterDataMessage;
 import org.tio.server.cluster.message.ClusterSyncAckMessage;
 import org.tio.utils.timer.TimerTask;
 
@@ -47,7 +48,29 @@ public interface ClusterApi {
 	 * @param data   集群消息
 	 * @return 消息id.
 	 */
-	boolean send(Node member, byte[] data);
+	default boolean send(Node member, byte[] data) {
+		return send(member, new ClusterDataMessage(data));
+	}
+
+	/**
+	 * 发送消息
+	 *
+	 * @param member  member
+	 * @param message 集群消息
+	 * @return 消息id.
+	 */
+	boolean send(Node member, ClusterDataMessage message);
+
+	/**
+	 * 同步发送消息
+	 *
+	 * @param member Node
+	 * @param data   集群消息
+	 * @return 消息id.
+	 */
+	default ClusterSyncAckMessage sendSync(Node member, byte[] data) {
+		return sendSync(member, new ClusterDataMessage(data));
+	}
 
 	/**
 	 * 同步发送消息
@@ -56,7 +79,7 @@ public interface ClusterApi {
 	 * @param message 集群消息
 	 * @return 消息id.
 	 */
-	ClusterSyncAckMessage sendSync(Node member, byte[] message);
+	ClusterSyncAckMessage sendSync(Node member, ClusterDataMessage message);
 
 	/**
 	 * 在集群中广播消息

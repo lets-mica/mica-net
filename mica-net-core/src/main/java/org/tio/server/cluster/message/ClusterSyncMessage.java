@@ -16,6 +16,8 @@
 
 package org.tio.server.cluster.message;
 
+import java.util.Map;
+
 /**
  * 同步消息
  *
@@ -27,9 +29,26 @@ public class ClusterSyncMessage extends ClusterDataMessage {
 	 */
 	private final long messageId;
 
-	public ClusterSyncMessage(long messageId, byte[] payload) {
-		super(payload);
+	public ClusterSyncMessage(byte[] payload) {
+		this(System.currentTimeMillis(), null, payload);
+	}
+
+	public ClusterSyncMessage(ClusterDataMessage dataMessage) {
+		this(System.currentTimeMillis(), dataMessage.getHeaders(), dataMessage.getPayload());
+	}
+
+	public ClusterSyncMessage(long timestamp, Map<String, String> headers, byte[] payload) {
+		super(timestamp, headers, payload);
+		this.messageId = System.currentTimeMillis();
+	}
+
+	public ClusterSyncMessage(long messageId, long timestamp, Map<String, String> headers, byte[] payload) {
+		super(timestamp, headers, payload);
 		this.messageId = messageId;
+	}
+
+	public ClusterSyncMessage(long messageId, ClusterDataMessage dataMessage) {
+		this(messageId, dataMessage.getTimestamp(), dataMessage.getHeaders(), dataMessage.getPayload());
 	}
 
 	/**

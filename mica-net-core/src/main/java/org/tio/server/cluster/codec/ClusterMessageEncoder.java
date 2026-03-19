@@ -19,9 +19,11 @@ package org.tio.server.cluster.codec;
 import org.tio.core.Node;
 import org.tio.server.cluster.message.*;
 import org.tio.utils.buffer.ByteBufferUtil;
+import org.tio.utils.json.JsonUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * 集群消息编码
@@ -84,10 +86,15 @@ public class ClusterMessageEncoder {
 	private static ByteBuffer encodeDataMessage(ClusterDataMessage message) {
 		byte[] payload = message.getPayload();
 		int dataLength = payload.length;
+		byte[] headersBytes = encodeHeaders(message.getHeaders());
 		int dataLengthLength = getVariableLengthInt(dataLength);
-		ByteBuffer buffer = ByteBuffer.allocate(1 + dataLengthLength + dataLength);
+		int headersLengthLength = getVariableLengthInt(headersBytes.length);
+		int capacity = 1 + 8 + headersLengthLength + headersBytes.length + dataLengthLength + dataLength;
+		ByteBuffer buffer = ByteBuffer.allocate(capacity);
 		buffer.put(ClusterMessageType.DATA.getType());
-		// 消息内容长度
+		buffer.putLong(message.getTimestamp());
+		writeVariableLengthInt(buffer, headersBytes.length);
+		buffer.put(headersBytes);
 		writeVariableLengthInt(buffer, dataLength);
 		buffer.put(payload);
 		return buffer;
@@ -102,14 +109,16 @@ public class ClusterMessageEncoder {
 	private static ByteBuffer encodeSyncMessage(ClusterSyncMessage message) {
 		byte[] payload = message.getPayload();
 		int dataLength = payload.length;
+		byte[] headersBytes = encodeHeaders(message.getHeaders());
 		int dataLengthLength = getVariableLengthInt(dataLength);
-		int capacity = 1 + 8 + dataLengthLength + dataLength;
+		int headersLengthLength = getVariableLengthInt(headersBytes.length);
+		int capacity = 1 + 8 + 8 + headersLengthLength + headersBytes.length + dataLengthLength + dataLength;
 		ByteBuffer buffer = ByteBuffer.allocate(capacity);
 		buffer.put(ClusterMessageType.SYNC.getType());
-		// 消息id
-		long messageId = message.getMessageId();
-		buffer.putLong(messageId);
-		// 消息内容长度
+		buffer.putLong(message.getMessageId());
+		buffer.putLong(message.getTimestamp());
+		writeVariableLengthInt(buffer, headersBytes.length);
+		buffer.put(headersBytes);
 		writeVariableLengthInt(buffer, dataLength);
 		buffer.put(payload);
 		return buffer;
@@ -168,6 +177,13 @@ public class ClusterMessageEncoder {
 			}
 			buf.put((byte) digit);
 		} while (num > 0);
+	}
+
+	private static byte[] encodeHeaders(Map<String, String> headers) {
+		if (headers == null || headers.isEmpty()) {
+			return ByteBufferUtil.EMPTY_BYTES;
+		}
+		return JsonUtil.toJsonBytes(headers);
 	}
 
 }

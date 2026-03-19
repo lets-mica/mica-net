@@ -16,6 +16,9 @@
 
 package org.tio.server.cluster.message;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * 集群 data 消息
  *
@@ -24,12 +27,34 @@ package org.tio.server.cluster.message;
 public class ClusterDataMessage extends AbsClusterMessage {
 
 	/**
+	 * 时间戳
+	 */
+	private final long timestamp;
+	/**
+	 * 头信息
+	 */
+	private final Map<String, String> headers;
+	/**
 	 * 消息数据
 	 */
 	private final byte[] payload;
 
 	public ClusterDataMessage(byte[] payload) {
+		this(System.currentTimeMillis(), null, payload);
+	}
+
+	public ClusterDataMessage(long timestamp, Map<String, String> headers, byte[] payload) {
+		this.timestamp = timestamp;
+		this.headers = headers == null ? null : Collections.unmodifiableMap(headers);
 		this.payload = payload;
+	}
+
+	public long getTimestamp() {
+		return timestamp;
+	}
+
+	public Map<String, String> getHeaders() {
+		return headers;
 	}
 
 	public byte[] getPayload() {
