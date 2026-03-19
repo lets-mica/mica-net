@@ -159,20 +159,28 @@ public class ClusterImpl implements ClusterApi {
 		this.tcpClusterClient.stop();
 		// 2. 停止服务端
 		this.tcpClusterServer.stop();
+		// 3. 清理映射
+		this.memberChannels.clear();
 	}
 
 	@Override
-	public boolean send(Node address, byte[] data) {
-		TioClientConfig clientConfig = this.tcpClusterClient.getClientConfig();
-		ChannelContext context = Tio.getByClientNode(clientConfig, address);
+	public boolean send(Node member, byte[] data) {
+		ChannelContext context = memberChannels.get(member);
+		if (context == null) {
+			log.warn("节点:{} 可能不在线", member);
+			return false;
+		}
 		return Tio.send(context, new ClusterDataMessage(data));
 	}
 
 	@Override
-	public ClusterSyncAckMessage sendSync(Node address, byte[] message) {
+	public ClusterSyncAckMessage sendSync(Node member, byte[] message) {
 		// context
-		TioClientConfig clientConfig = this.tcpClusterClient.getClientConfig();
-		ChannelContext context = Tio.getByClientNode(clientConfig, address);
+		ChannelContext context = memberChannels.get(member);
+		if (context == null) {
+			log.warn("节点:{} 可能不在线", member);
+			return null;
+		}
 		// messageId
 		long messageId = this.snowflake.nextId();
 		CompletableFuture<ClusterSyncAckMessage> future = new CompletableFuture<>();
@@ -195,8 +203,9 @@ public class ClusterImpl implements ClusterApi {
 
 	@Override
 	public void broadcast(byte[] data) {
+		// 所有在线节点
+		Set<ChannelContext> contextSet = new HashSet<>(memberChannels.values());
 		TioClientConfig clientConfig = this.tcpClusterClient.getClientConfig();
-		Set<ChannelContext> contextSet = Tio.getConnecteds(clientConfig);
 		Tio.sendToSet(clientConfig, contextSet, new ClusterDataMessage(data), null);
 	}
 
@@ -244,11 +253,32 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	/**
+	 * 连接建立时注册：Node → ChannelContext
+	 *
+	 * @param node    连接目标节点（serverNode，与 connect 参数一致）
+	 * @param context 对应的 ChannelContext
+	 */
+	void putMemberChannel(Node node, ChannelContext context) {
+		memberChannels.put(node, context);
+	}
+
+	/**
+	 * 连接关闭时移除：Node → ChannelContext
+	 * 使用 remove(key, value) 精确匹配，避免重连场景下误删新连接
+	 *
+	 * @param node    连接目标节点
+	 * @param context 对应的 ChannelContext
+	 */
+	void removeMemberChannel(Node node, ChannelContext context) {
+		memberChannels.remove(node, context);
+	}
+
+	/**
 	 * 后加入进来的节点
 	 *
 	 * @param joinMember joinMember
 	 */
-	protected void addJoinMember(Node joinMember) {
+	void addJoinMember(Node joinMember) {
 		// 新加入的节点
 		if (lateJoinMembers.add(joinMember)) {
 			try {

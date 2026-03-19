@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.client.intf.TioClientListener;
 import org.tio.core.ChannelContext;
+import org.tio.core.Node;
 import org.tio.core.Tio;
 import org.tio.server.cluster.message.ClusterJoinMessage;
 
@@ -30,24 +31,31 @@ import org.tio.server.cluster.message.ClusterJoinMessage;
  */
 public class ClusterTcpClientListener implements TioClientListener {
 	private static final Logger log = LoggerFactory.getLogger(ClusterTcpClientListener.class);
-	private final ClusterApi clusterApi;
+	private final ClusterImpl clusterApi;
 
-	public ClusterTcpClientListener(ClusterApi clusterApi) {
+	public ClusterTcpClientListener(ClusterImpl clusterApi) {
 		this.clusterApi = clusterApi;
 	}
 
 	@Override
 	public void onAfterConnected(ChannelContext context, boolean isConnected, boolean isReconnect) throws Exception {
-		// 1. 如果自己是后加入的成员，连接成功之后发送一条加入的消息
-		boolean isLateJoinMember = clusterApi.isLateJoinMember();
-		if (isConnected && !isReconnect && isLateJoinMember) {
-			Tio.send(context, new ClusterJoinMessage(clusterApi.getLocalMember()));
+		if (isConnected) {
+			// 1. 绑定映射关系
+			Node serverNode = context.getServerNode();
+			clusterApi.putMemberChannel(serverNode, context);
+			// 2. 如果自己是后加入的成员，连接成功之后发送一条加入的消息
+			boolean isLateJoinMember = clusterApi.isLateJoinMember();
+			if (!isReconnect && isLateJoinMember) {
+				Tio.send(context, new ClusterJoinMessage(clusterApi.getLocalMember()));
+			}
 		}
 	}
 
 	@Override
 	public void onBeforeClose(ChannelContext context, Throwable throwable, String remark, boolean isRemove) throws Exception {
 		log.error("集群链接断开 context:{} remark:{} isRemove:{}", context, remark, isRemove, throwable);
+		Node serverNode = context.getServerNode();
+		clusterApi.removeMemberChannel(serverNode, context);
 	}
 
 }
