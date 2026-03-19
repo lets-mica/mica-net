@@ -45,7 +45,7 @@ public class ClusterDataMessage extends AbsClusterMessage {
 
 	public ClusterDataMessage(long timestamp, Map<String, String> headers, byte[] payload) {
 		this.timestamp = timestamp;
-		this.headers = headers == null ? null : Collections.unmodifiableMap(headers);
+		this.headers = headers;
 		this.payload = payload;
 	}
 
@@ -54,7 +54,19 @@ public class ClusterDataMessage extends AbsClusterMessage {
 	}
 
 	public Map<String, String> getHeaders() {
-		return headers;
+		if (headers == null) {
+			return Collections.emptyMap();
+		} else {
+			return Collections.unmodifiableMap(headers);
+		}
+	}
+
+	public String getHeader(String name) {
+		if (headers == null) {
+			return null;
+		} else {
+			return headers.get(name);
+		}
 	}
 
 	public byte[] getPayload() {
