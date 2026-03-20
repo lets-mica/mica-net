@@ -44,11 +44,11 @@ public enum ClusterMessageType {
 	/**
 	 * 数据同步
 	 */
-	SYNC((byte) 7),
+	SYNC((byte) 5),
 	/**
 	 * 数据同步回复
 	 */
-	SYNC_ACK((byte) 8);
+	SYNC_ACK((byte) 6);
 
 	private final byte type;
 
