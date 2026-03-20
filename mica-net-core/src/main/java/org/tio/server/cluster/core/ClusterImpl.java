@@ -273,14 +273,17 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	/**
-	 * 后加入进来的节点
+	 * 收到新节点 JOIN 消息后，将其加入集群并建立返回连接。
+	 * <p>
+	 * 拓扑设计：星形拓扑下，新节点主动连种子节点，种子节点收到 JOIN 后主动连回新节点，
+	 * 保证每对节点间都是双向 TCP 连接。
 	 *
-	 * @param joinMember joinMember
+	 * @param joinMember 新加入的节点
 	 */
 	void addJoinMember(Node joinMember) {
-		// 新加入的节点
 		if (lateJoinMembers.add(joinMember)) {
 			try {
+				// 主动建立到新节点的 client 连接（返回连接）
 				this.tcpClusterClient.connect(joinMember);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);

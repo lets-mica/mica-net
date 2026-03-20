@@ -44,6 +44,8 @@ public class ClusterTcpClientListener implements TioClientListener {
 			Node serverNode = context.getServerNode();
 			clusterApi.putMemberChannel(serverNode, context);
 			// 2. 如果自己是后加入的成员，连接成功之后发送一条加入的消息
+			// 只有后加入的成员才发 JOIN（种子成员启动时没有 JOIN 概念）
+			// JOIN 的作用是通知对方"请主动连回我"，实现双向通信
 			boolean isLateJoinMember = clusterApi.isLateJoinMember();
 			if (!isReconnect && isLateJoinMember) {
 				Tio.send(context, new ClusterJoinMessage(clusterApi.getLocalMember()));
