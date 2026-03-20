@@ -38,17 +38,9 @@ public enum ClusterMessageType {
 	 */
 	JOIN((byte) 3),
 	/**
-	 * 重连
-	 */
-	RECONNECT((byte) 4),
-	/**
-	 * 节点异常
-	 */
-	FAILED((byte) 5),
-	/**
 	 * 数据
 	 */
-	DATA((byte) 6),
+	DATA((byte) 4),
 	/**
 	 * 数据同步
 	 */

@@ -41,6 +41,7 @@ import org.tio.utils.timer.TimerTask;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -184,8 +185,10 @@ public class ClusterImpl implements ClusterApi {
 		syncMessageMap.put(messageId, future);
 		try {
 			Tio.send(context, new ClusterSyncMessage(messageId, message));
-			// 等待回调
 			return future.get(10, TimeUnit.SECONDS);
+		} catch (TimeoutException e) {
+			log.warn("同步消息超时, messageId:{}, member:{}", messageId, member);
+			future.cancel(false);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			log.error(e.getMessage(), e);
