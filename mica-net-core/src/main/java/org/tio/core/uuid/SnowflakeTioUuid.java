@@ -210,7 +210,11 @@ public class SnowflakeTioUuid implements TioUuid {
 	}
 
 	public SnowflakeTioUuid(long workerId, long datacenterId) {
-		snowflake = new Snowflake(workerId, datacenterId);
+		this(new Snowflake(workerId, datacenterId));
+	}
+
+	public SnowflakeTioUuid(Snowflake snowflake) {
+		this.snowflake = snowflake;
 	}
 
 	@Override
