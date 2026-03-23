@@ -85,7 +85,8 @@ public class ClusterMessageEncoder {
 	 */
 	private static ByteBuffer encodeDataMessage(ClusterDataMessage message) {
 		byte[] payload = message.getPayload();
-		int dataLength = payload.length;
+		// payload 可能会为空
+		int dataLength = payload == null ? 0 : payload.length;
 		byte[] headersBytes = encodeHeaders(message.getHeaders());
 		int dataLengthLength = getVariableLengthInt(dataLength);
 		int headersLengthLength = getVariableLengthInt(headersBytes.length);
@@ -96,7 +97,9 @@ public class ClusterMessageEncoder {
 		writeVariableLengthInt(buffer, headersBytes.length);
 		buffer.put(headersBytes);
 		writeVariableLengthInt(buffer, dataLength);
-		buffer.put(payload);
+		if (payload != null) {
+			buffer.put(payload);
+		}
 		return buffer;
 	}
 

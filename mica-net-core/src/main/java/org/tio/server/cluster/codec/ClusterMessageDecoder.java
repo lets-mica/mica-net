@@ -103,8 +103,12 @@ public class ClusterMessageDecoder {
 			ctx.setPacketNeededLength(messageLength);
 			return null;
 		}
-		byte[] payload = ByteBufferUtil.readBytes(buffer, dataLength);
-		return new ClusterDataMessage(timestamp, headers, payload);
+		if (dataLength > 0) {
+			byte[] payload = ByteBufferUtil.readBytes(buffer, dataLength);
+			return new ClusterDataMessage(timestamp, headers, payload);
+		} else {
+			return new ClusterDataMessage(timestamp, headers, null);
+		}
 	}
 
 	/**
