@@ -76,7 +76,7 @@ class ClusterMessageDecoderTest {
 		ClusterDataMessage decoded = (ClusterDataMessage) packet;
 		assertArrayEquals(payload, decoded.getPayload());
 		assertNotNull(decoded.getTimestamp());
-		assertNull(decoded.getHeaders());
+		assertNotNull(decoded.getHeaders());
 	}
 
 	@Test
@@ -94,7 +94,7 @@ class ClusterMessageDecoderTest {
 		ClusterDataMessage decoded = (ClusterDataMessage) packet;
 		assertArrayEquals(payload, decoded.getPayload());
 		assertEquals(timestamp, decoded.getTimestamp());
-		assertNull(decoded.getHeaders());
+		assertNotNull(decoded.getHeaders());
 	}
 
 	@Test
@@ -112,7 +112,7 @@ class ClusterMessageDecoderTest {
 		assertArrayEquals(payload, decoded.getPayload());
 		assertTrue(decoded.getMessageId() > 0);
 		assertNotNull(decoded.getTimestamp());
-		assertNull(decoded.getHeaders());
+		assertNotNull(decoded.getHeaders());
 	}
 
 	@Test
