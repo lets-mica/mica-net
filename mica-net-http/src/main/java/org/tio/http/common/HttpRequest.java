@@ -286,21 +286,26 @@ public class HttpRequest extends HttpPacket {
 		}
 		Object[] existValue = params.get(key);
 		if (existValue != null) {
-			Object[] newExistValue = new Object[existValue.length + 1];
+			int newLen = existValue.length + 1;
+			Object[] newExistValue;
 			if (value instanceof String) {
-				newExistValue = new String[existValue.length + 1];
+				newExistValue = new String[newLen];
 			} else if (value instanceof UploadFile) {
-				newExistValue = new UploadFile[existValue.length + 1];
+				newExistValue = new UploadFile[newLen];
+			} else {
+				newExistValue = new Object[newLen];
 			}
 			System.arraycopy(existValue, 0, newExistValue, 0, existValue.length);
-			newExistValue[newExistValue.length - 1] = value;
+			newExistValue[newLen - 1] = value;
 			params.put(key, newExistValue);
 		} else {
-			Object[] newExistValue = null;
+			Object[] newExistValue;
 			if (value instanceof String) {
-				newExistValue = new String[]{(String) value};
+				newExistValue = new String[]{((String) value)};
 			} else if (value instanceof UploadFile) {
 				newExistValue = new UploadFile[]{(UploadFile) value};
+			} else {
+				newExistValue = new Object[]{value};
 			}
 			params.put(key, newExistValue);
 		}

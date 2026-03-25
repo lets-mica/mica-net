@@ -259,11 +259,12 @@ public final class HttpResponseEncoder {
 			httpResponse.addHeader(HeaderName.Transfer_Encoding, HeaderValue.Transfer_Encoding.chunked);
 		}
 
-		// 计算Header长度
-		int headerLength = calcHeaderLength(httpResponse);
+		// 计算Header长度，Date只计算一次
+		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
+		int headerLength = calcHeaderLength(httpResponse, httpDateValue);
 
 		ByteBuffer buffer = ByteBuffer.allocate(respLineLength + headerLength + bodyLength);
-		encodeHeaders(buffer, httpResponseStatus, headers, httpResponse.getCookies());
+		encodeHeaders(buffer, httpResponseStatus, headers, httpResponse.getCookies(), httpDateValue);
 
 		if (bodyLength > 0) {
 			buffer.put(body);
@@ -311,10 +312,11 @@ public final class HttpResponseEncoder {
 		}
 
 		// 计算Header长度
-		int headerLength = calcHeaderLength(httpResponse);
+		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
+		int headerLength = calcHeaderLength(httpResponse, httpDateValue);
 
 		ByteBuffer buffer = ByteBuffer.allocate(respLineLength + headerLength);
-		encodeHeaders(buffer, httpResponseStatus, headers, httpResponse.getCookies());
+		encodeHeaders(buffer, httpResponseStatus, headers, httpResponse.getCookies(), httpDateValue);
 		buffer.flip();
 		return buffer;
 	}
@@ -322,13 +324,11 @@ public final class HttpResponseEncoder {
 	/**
 	 * 计算响应头长度
 	 */
-	private static int calcHeaderLength(HttpResponse httpResponse) {
+	private static int calcHeaderLength(HttpResponse httpResponse, HeaderValue httpDateValue) {
 		// 获取已计算的Header长度（包含用户添加的Header）
 		int headerLength = httpResponse.getHeaderByteCount();
 
 		// 添加固定Header长度（Server和Date）
-		// Date值长度在运行时确定
-		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
 		headerLength += HEADER_FIXED_LENGTH + httpDateValue.bytes.length;
 
 		// 处理cookie长度计算
@@ -352,7 +352,8 @@ public final class HttpResponseEncoder {
 	private static void encodeHeaders(ByteBuffer buffer,
 								   HttpResponseStatus httpResponseStatus,
 								   Map<HeaderName, HeaderValue> headers,
-								   List<Cookie> cookies) {
+								   List<Cookie> cookies,
+								   HeaderValue httpDateValue) {
 		// 写入状态行
 		buffer.put(httpResponseStatus.responseLineBinary);
 
@@ -364,7 +365,6 @@ public final class HttpResponseEncoder {
 		buffer.put(SysConst.CR_LF);
 
 		// 写入 Date
-		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
 		buffer.put(HeaderName.Date.bytes);
 		buffer.put(SysConst.COL);
 		buffer.put(SysConst.SPACE);

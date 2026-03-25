@@ -31,6 +31,9 @@ import java.nio.charset.StandardCharsets;
  * @author L.cm
  */
 public class HttpStream {
+	private static final byte[] CRLF = SysConst.CR_LF;
+	private static final byte[] LAST_CHUNK = {'0', '\r', '\n', '\r', '\n'};
+
 	private final HttpRequest request;
 	private final HttpStreamType type;
 	private volatile boolean closed = false;
@@ -143,7 +146,6 @@ public class HttpStream {
 	 * Encode a chunk
 	 */
 	private Packet encodeChunk(byte[] data, int off, int len) {
-		byte[] crlf = SysConst.CR_LF;
 		ByteBuffer buffer;
 		if (type == HttpStreamType.SSE) {
 			// SSE: data already ends with \r\n from SseData.toString()
@@ -153,11 +155,11 @@ public class HttpStream {
 			// CHUNKED: size\r\ndata\r\n
 			String sizeHex = Integer.toHexString(len);
 			byte[] sizeBytes = sizeHex.getBytes();
-			buffer = ByteBuffer.allocate(sizeBytes.length + crlf.length + len + crlf.length);
+			buffer = ByteBuffer.allocate(sizeBytes.length + CRLF.length + len + CRLF.length);
 			buffer.put(sizeBytes);
-			buffer.put(crlf);
+			buffer.put(CRLF);
 			buffer.put(data, off, len);
-			buffer.put(crlf);
+			buffer.put(CRLF);
 		}
 		buffer.flip();
 		Packet packet = new Packet();
@@ -170,7 +172,7 @@ public class HttpStream {
 	 */
 	private Packet encodeLastChunk() {
 		Packet packet = new Packet();
-		ByteBuffer buffer = ByteBuffer.wrap("0\r\n\r\n".getBytes());
+		ByteBuffer buffer = ByteBuffer.wrap(LAST_CHUNK);
 		packet.setPreEncodedByteBuffer(buffer);
 		return packet;
 	}
