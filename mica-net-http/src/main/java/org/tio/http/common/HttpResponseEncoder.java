@@ -274,54 +274,6 @@ public final class HttpResponseEncoder {
 	}
 
 	/**
-	 * 编码响应头（不包含body，用于流式响应）
-	 *
-	 * @param httpResponse HttpResponse
-	 * @return ByteBuffer
-	 */
-	public static ByteBuffer encodeHeaders(HttpResponse httpResponse) {
-		HttpRequest httpRequest = httpResponse.getHttpRequest();
-		int bodyLength = 0;
-		byte[] body = httpResponse.body;
-
-		// 如果是分块传输，不处理body（body会通过HttpStream单独发送）
-		if (body != null && !httpResponse.isChunked()) {
-			// 处理gzip
-			try {
-				HttpGzipUtils.gzip(httpRequest, httpResponse);
-			} catch (Exception e) {
-				log.error(e.toString(), e);
-			}
-			body = httpResponse.body;
-			bodyLength = body.length;
-		}
-
-		HttpResponseStatus httpResponseStatus = httpResponse.getStatus();
-		int respLineLength = httpResponseStatus.responseLineBinary.length;
-
-		Map<HeaderName, HeaderValue> headers = httpResponse.getHeaders();
-		boolean chunked = httpResponse.isChunked();
-
-		// 判断是否需要响应报文长度
-		if (isNeedResponseContentLength(httpRequest, httpResponseStatus, headers, chunked)) {
-			httpResponse.addHeader(HeaderName.Content_Length, HeaderValue.from(Integer.toString(bodyLength)));
-		}
-		// 如果是分块传输，添加 Transfer-Encoding: chunked 头
-		if (chunked) {
-			httpResponse.addHeader(HeaderName.Transfer_Encoding, HeaderValue.Transfer_Encoding.chunked);
-		}
-
-		// 计算Header长度
-		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
-		int headerLength = calcHeaderLength(httpResponse, httpDateValue);
-
-		ByteBuffer buffer = ByteBuffer.allocate(respLineLength + headerLength);
-		encodeHeaders(buffer, httpResponseStatus, headers, httpResponse.getCookies(), httpDateValue);
-		buffer.flip();
-		return buffer;
-	}
-
-	/**
 	 * 计算响应头长度
 	 */
 	private static int calcHeaderLength(HttpResponse httpResponse, HeaderValue httpDateValue) {

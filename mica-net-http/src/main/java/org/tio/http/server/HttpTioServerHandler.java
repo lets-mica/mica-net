@@ -202,7 +202,6 @@ import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 import org.tio.http.common.*;
 import org.tio.http.common.handler.HttpRequestHandler;
-import org.tio.http.common.stream.HttpStream;
 import org.tio.server.intf.TioServerHandler;
 
 import java.nio.ByteBuffer;
@@ -232,10 +231,6 @@ public class HttpTioServerHandler implements TioServerHandler {
 
 	@Override
 	public ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext channelContext) {
-		// 如果是预编码的包（流式响应的headers），直接返回预编码的buffer
-		if (packet.getPreEncodedByteBuffer() != null) {
-			return packet.getPreEncodedByteBuffer();
-		}
 		return HttpResponseEncoder.encode((HttpResponse) packet);
 	}
 
