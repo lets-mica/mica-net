@@ -56,7 +56,7 @@ public class HttpStream {
 		if (closed) {
 			throw new RuntimeException("Stream already closed");
 		}
-		if (data == null || data.length <= 0) {
+		if (data == null || data.length == 0) {
 			return;
 		}
 		Packet packet = encodeChunk(data, 0, data.length);
