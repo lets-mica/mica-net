@@ -232,6 +232,10 @@ public class HttpTioServerHandler implements TioServerHandler {
 
 	@Override
 	public ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext channelContext) {
+		// 如果是预编码的包（流式响应的headers），直接返回预编码的buffer
+		if (packet.getPreEncodedByteBuffer() != null) {
+			return packet.getPreEncodedByteBuffer();
+		}
 		return HttpResponseEncoder.encode((HttpResponse) packet);
 	}
 
@@ -247,18 +251,7 @@ public class HttpTioServerHandler implements TioServerHandler {
 		HttpRequest request = (HttpRequest) packet;
 		HttpResponse httpResponse = requestHandler.handler(request);
 		if (httpResponse != null) {
-			// 如果是流式响应，先发送响应头
-			HttpStream httpStream = httpResponse.getHttpStream();
-			if (httpStream != null) {
-				// 发送响应头
-				ByteBuffer headerBuffer = HttpResponseEncoder.encodeHeaders(httpResponse);
-				Packet headerPacket = new Packet();
-				headerPacket.setPreEncodedByteBuffer(headerBuffer);
-				Tio.send(context, headerPacket);
-				// 后续数据通过 HttpStream 发送
-			} else {
-				Tio.send(context, httpResponse);
-			}
+			Tio.send(context, httpResponse);
 		} else {
 			if (log.isInfoEnabled()) {
 				log.info("{}, {}, handler return null, request line: {}", context.tioConfig.getName(), context, request.getRequestLine());
