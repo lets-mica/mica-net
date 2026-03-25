@@ -1,5 +1,8 @@
 package org.tio.http.test;
 
+import org.tio.core.ChannelContext;
+import org.tio.core.intf.Packet;
+import org.tio.core.intf.PacketListener;
 import org.tio.http.common.HeaderName;
 import org.tio.http.common.HeaderValue;
 import org.tio.http.common.HttpRequest;
@@ -50,20 +53,25 @@ public class StreamExample implements HttpRequestHandler {
 		// 开启流式响应
 		HttpStream out = response.startStream(request);
 
-		// 在异步线程中发送数据
-		new Thread(() -> {
-			try {
-				for (int i = 1; i <= 5; i++) {
-					String chunk = "Chunk " + i + " - " + System.currentTimeMillis() + "\n";
-					out.write(chunk.getBytes());
-					ThreadUtils.sleep(1000);
-				}
-				// 结束流
-				out.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+		response.setPacketListener(new PacketListener() {
+			@Override
+			public void onAfterSent(ChannelContext context, Packet packet, boolean isSentSuccess) throws Exception {
+				// 在异步线程中发送数据
+				new Thread(() -> {
+					try {
+						for (int i = 1; i <= 5; i++) {
+							String chunk = "Chunk " + i + " - " + System.currentTimeMillis() + "\n";
+							out.write(chunk.getBytes());
+							ThreadUtils.sleep(1000);
+						}
+						// 结束流
+						out.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}).start();
 			}
-		}).start();
+		});
 
 		return response;
 	}
@@ -81,24 +89,29 @@ public class StreamExample implements HttpRequestHandler {
 		// 开启流式响应
 		HttpStream out = response.startStream(request);
 
-		// 在异步线程中模拟文件传输
-		new Thread(() -> {
-			try {
-				// 模拟分块发送大文件
-				byte[] buffer = new byte[1024]; // 1KB per chunk
-				for (int i = 0; i < 100; i++) {
-					// 填充模拟数据
-					for (int j = 0; j < buffer.length; j++) {
-						buffer[j] = (byte) (i % 256);
+		response.setPacketListener(new PacketListener() {
+			@Override
+			public void onAfterSent(ChannelContext context, Packet packet, boolean isSentSuccess) throws Exception {
+				// 在异步线程中模拟文件传输
+				new Thread(() -> {
+					try {
+						// 模拟分块发送大文件
+						byte[] buffer = new byte[1024]; // 1KB per chunk
+						for (int i = 0; i < 100; i++) {
+							// 填充模拟数据
+							for (int j = 0; j < buffer.length; j++) {
+								buffer[j] = (byte) (i % 256);
+							}
+							out.write(buffer);
+							ThreadUtils.sleep(100); // 模拟IO延迟
+						}
+						out.close();
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
-					out.write(buffer);
-					ThreadUtils.sleep(100); // 模拟IO延迟
-				}
-				out.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+				}).start();
 			}
-		}).start();
+		});
 
 		return response;
 	}
