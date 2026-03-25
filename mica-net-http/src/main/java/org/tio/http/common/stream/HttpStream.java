@@ -16,8 +16,10 @@
 
 package org.tio.http.common.stream;
 
+import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
 import org.tio.core.intf.Packet;
+import org.tio.core.intf.PacketListener;
 import org.tio.http.common.HttpRequest;
 import org.tio.http.common.sse.SseData;
 import org.tio.utils.SysConst;
@@ -151,10 +153,16 @@ public class HttpStream extends OutputStream {
 		closed = true;
 		if (type == HttpStreamType.CHUNKED) {
 			// 发送最后一块，使用阻塞发送确保数据写入网络
-			Tio.bSend(request.channelContext, encodeLastChunk());
+			Packet lastChunkPacket = encodeLastChunk();
+			// 添加监听器，只在 chunk 发送完成后再 close
+			lastChunkPacket.setPacketListener((context, packet, isSentSuccess) -> {
+				request.close("Stream closed");
+			});
+			Tio.send(request.channelContext, lastChunkPacket);
+		} else {
+			// SSE 不发送终止块，但关闭连接
+			request.close("SSE closed");
 		}
-		// SSE 不发送终止块，但关闭连接
-		request.close("Stream type: " + type + " closed");
 	}
 
 	/**
