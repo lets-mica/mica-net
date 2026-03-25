@@ -24,7 +24,7 @@ public class TestHttpRequestHandler implements HttpRequestHandler {
 					stream.send(i, "message", "hello\n123123");
 					ThreadUtils.sleep(1000);
 				}
-				stream.end();
+				stream.close();
 				System.out.println("stream--------------end");
 			}).start();
 			return httpResponse;

@@ -16,16 +16,12 @@
 
 package org.tio.http.common.stream;
 
-import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
 import org.tio.core.intf.Packet;
-import org.tio.core.intf.PacketListener;
 import org.tio.http.common.HttpRequest;
 import org.tio.http.common.sse.SseData;
 import org.tio.utils.SysConst;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -34,7 +30,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author L.cm
  */
-public class HttpStream extends OutputStream {
+public class HttpStream {
 	private final HttpRequest request;
 	private final HttpStreamType type;
 	private volatile boolean closed = false;
@@ -54,11 +50,14 @@ public class HttpStream extends OutputStream {
 	 * @param data 数据
 	 */
 	public void send(byte[] data) {
-		try {
-			write(data);
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to send data", e);
+		if (closed) {
+			throw new RuntimeException("Stream already closed");
 		}
+		if (data == null || data.length <= 0) {
+			return;
+		}
+		Packet packet = encodeChunk(data, 0, data.length);
+		Tio.send(request.channelContext, packet);
 	}
 
 	/**
@@ -115,44 +114,19 @@ public class HttpStream extends OutputStream {
 	 * 直接发送字符串
 	 */
 	private void sendString(String str) {
-		try {
-			write(str.getBytes(StandardCharsets.UTF_8));
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to send data", e);
-		}
+		send(str.getBytes(StandardCharsets.UTF_8));
 	}
 
-	@Override
-	public void write(int b) throws IOException {
-		write(new byte[]{(byte) b}, 0, 1);
-	}
-
-	@Override
-	public void write(byte[] b, int off, int len) throws IOException {
-		if (closed) {
-			throw new IOException("Stream type: " + type + " already closed");
-		}
-		if (len <= 0) {
-			return;
-		}
-		Packet packet = encodeChunk(b, off, len);
-		Tio.send(request.channelContext, packet);
-	}
-
-	@Override
-	public void flush() throws IOException {
-		// HTTP chunked transfer doesn't require explicit flush
-		// Data is sent immediately via Tio.send()
-	}
-
-	@Override
-	public void close() throws IOException {
+	/**
+	 * 主动关闭流
+	 */
+	public void close() {
 		if (closed) {
 			return;
 		}
 		closed = true;
 		if (type == HttpStreamType.CHUNKED) {
-			// 发送最后一块，使用阻塞发送确保数据写入网络
+			// 发送最后一块，等待发送完成后再关闭
 			Packet lastChunkPacket = encodeLastChunk();
 			// 添加监听器，只在 chunk 发送完成后再 close
 			lastChunkPacket.setPacketListener((context, packet, isSentSuccess) -> {
@@ -162,17 +136,6 @@ public class HttpStream extends OutputStream {
 		} else {
 			// SSE 不发送终止块，但关闭连接
 			request.close("SSE closed");
-		}
-	}
-
-	/**
-	 * 主动关闭流
-	 */
-	public void end() {
-		try {
-			close();
-		} catch (IOException e) {
-			// ignore
 		}
 	}
 

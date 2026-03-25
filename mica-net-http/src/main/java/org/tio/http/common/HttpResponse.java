@@ -199,7 +199,6 @@ import org.tio.http.common.utils.HttpGzipUtils;
 import org.tio.utils.SysConst;
 import org.tio.utils.hutool.StrUtil;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
@@ -569,21 +568,18 @@ public class HttpResponse extends HttpPacket {
 	 * 写入分块数据
 	 *
 	 * @param data 数据
-	 * @throws IOException IO异常
 	 */
-	public void writeChunk(byte[] data) throws IOException {
+	public void writeChunk(byte[] data) {
 		if (httpStream == null) {
-			throw new IOException("Stream not started, call startStream() first");
+			throw new RuntimeException("Stream not started, call startStream() first");
 		}
-		httpStream.write(data);
+		httpStream.send(data);
 	}
 
 	/**
 	 * 结束流式响应
-	 *
-	 * @throws IOException IO异常
 	 */
-	public void endStream() throws IOException {
+	public void endStream() {
 		if (httpStream != null) {
 			httpStream.close();
 		}

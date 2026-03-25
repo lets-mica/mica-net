@@ -13,8 +13,6 @@ import org.tio.http.common.stream.HttpStream;
 import org.tio.http.server.HttpServerStarter;
 import org.tio.utils.thread.ThreadUtils;
 
-import java.io.IOException;
-
 /**
  * HTTP Streaming 示例
  * <p>
@@ -58,17 +56,13 @@ public class StreamExample implements HttpRequestHandler {
 			public void onAfterSent(ChannelContext context, Packet packet, boolean isSentSuccess) throws Exception {
 				// 在异步线程中发送数据
 				new Thread(() -> {
-					try {
-						for (int i = 1; i <= 5; i++) {
-							String chunk = "Chunk " + i + " - " + System.currentTimeMillis() + "\n";
-							out.write(chunk.getBytes());
-							ThreadUtils.sleep(1000);
-						}
-						// 结束流
-						out.close();
-					} catch (IOException e) {
-						e.printStackTrace();
+					for (int i = 1; i <= 5; i++) {
+						String chunk = "Chunk " + i + " - " + System.currentTimeMillis() + "\n";
+						out.send(chunk.getBytes());
+						ThreadUtils.sleep(1000);
 					}
+					// 结束流
+					out.close();
 				}).start();
 			}
 		});
@@ -94,22 +88,18 @@ public class StreamExample implements HttpRequestHandler {
 			public void onAfterSent(ChannelContext context, Packet packet, boolean isSentSuccess) throws Exception {
 				// 在异步线程中模拟文件传输
 				new Thread(() -> {
-					try {
-						// 模拟分块发送大文件
-						byte[] buffer = new byte[1024]; // 1KB per chunk
-						for (int i = 0; i < 100; i++) {
-							// 填充模拟数据
-							for (int j = 0; j < buffer.length; j++) {
-								buffer[j] = (byte) (i % 256);
-							}
-							out.write(buffer);
-							ThreadUtils.sleep(100); // 模拟IO延迟
+					// 模拟分块发送大文件
+					byte[] buffer = new byte[1024]; // 1KB per chunk
+					for (int i = 0; i < 100; i++) {
+						// 填充模拟数据
+						for (int j = 0; j < buffer.length; j++) {
+							buffer[j] = (byte) (i % 256);
 						}
-						ThreadUtils.sleep(1000);
-						out.close();
-					} catch (IOException e) {
-						e.printStackTrace();
+						out.send(buffer);
+						ThreadUtils.sleep(100); // 模拟IO延迟
 					}
+					ThreadUtils.sleep(1000);
+					out.close();
 				}).start();
 			}
 		});

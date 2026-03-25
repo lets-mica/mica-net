@@ -61,7 +61,7 @@ public class SseExample implements HttpRequestHandler {
 						stream.send(i, "counter", "Count: " + i);
 						ThreadUtils.sleep(1000);
 					}
-					stream.end();
+					stream.close();
 				}).start();
 			}
 		});
@@ -90,7 +90,7 @@ public class SseExample implements HttpRequestHandler {
 						stream.send(type, message);
 						ThreadUtils.sleep(2000);
 					}
-					stream.end();
+					stream.close();
 				}).start();
 			}
 
@@ -128,8 +128,7 @@ public class SseExample implements HttpRequestHandler {
 						}
 					});
 
-					ThreadUtils.sleep(1000);
-					stream.end();
+					stream.close();
 				}).start();
 			}
 		});

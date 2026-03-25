@@ -42,7 +42,7 @@ public class McpServerSession {
 	 * 关闭
 	 */
 	public void close() {
-		httpStream.end();
+		httpStream.close();
 	}
 
 	@Override
