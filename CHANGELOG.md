@@ -2,6 +2,16 @@
 
 ## 发行版本
 
+### v1.3.4 - 2026-03-28
+- feat(http): 支持 http stream 重构 sse。
+
+### v1.3.3 - 2026-03-24
+- fix(cluster): 集群 ClusterDataMessage 消息支持报文为空。
+
+### v1.3.2 - 2026-03-23
+- feat(cluster): 优化 ClusterDataMessage 消息，添加 headers 通用字段，方便扩展。
+- feat(cluster): 优化集群消息的发送接口，方便使用。
+
 ### v1.3.1 - 2026-03-17
 - fix(server、client): 修复 taskService 某些情况下停止时空指针异常。
 
