@@ -2,8 +2,7 @@ package org.tio.http.test;
 
 import org.tio.http.common.*;
 import org.tio.http.common.handler.HttpRequestHandler;
-import org.tio.http.sse.SseEvent;
-import org.tio.http.sse.SseEmitter;
+import org.tio.http.common.stream.HttpStream;
 import org.tio.utils.thread.ThreadUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -17,23 +16,16 @@ public class TestHttpRequestHandler implements HttpRequestHandler {
 		String path = requestLine.getPath();
 		HttpResponse httpResponse = new HttpResponse(request);
 		if ("/sse".equals(path)) {
-			SseEmitter emitter = SseEmitter.getEmitter(request, httpResponse);
+			HttpStream stream = httpResponse.startSse(request);
 			// 跨域支持
 			httpResponse.addHeader(HeaderName.Access_Control_Allow_Origin, HeaderValue.from("*"));
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					for (int i = 0; i < 10; i++) {
-						SseEvent sseEvent = new SseEvent()
-							.id(i)
-							.name("message")
-							.data("hello\n123123");
-						emitter.send(sseEvent);
-						ThreadUtils.sleep(1000);
-					}
-					emitter.close();
-					System.out.println("emitter--------------close");
+			new Thread(() -> {
+				for (int i = 0; i < 10; i++) {
+					stream.send(i, "message", "hello\n123123");
+					ThreadUtils.sleep(1000);
 				}
+				stream.end();
+				System.out.println("stream--------------end");
 			}).start();
 			return httpResponse;
 		}

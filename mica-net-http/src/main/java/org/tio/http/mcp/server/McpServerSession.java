@@ -1,12 +1,11 @@
 package org.tio.http.mcp.server;
 
+import org.tio.http.common.stream.HttpStream;
 import org.tio.http.jsonrpc.JsonRpcMessage;
-import org.tio.http.sse.SseEmitter;
-import org.tio.http.sse.SseEvent;
 import org.tio.utils.json.JsonUtil;
 
 /**
- * mcp 服务端 session，注意：先写死 sse，没必要整那么复杂，先玩会了后面再调整
+ * mcp 服务端 session
  *
  * @author L.cm
  */
@@ -16,18 +15,18 @@ public class McpServerSession {
 	 */
 	public static final String MESSAGE_EVENT_TYPE = "message";
 	private final String sessionId;
-	private final SseEmitter sseEmitter;
+	private final HttpStream httpStream;
 
-	public McpServerSession(String sessionId, SseEmitter sseEmitter) {
+	public McpServerSession(String sessionId, HttpStream httpStream) {
 		this.sessionId = sessionId;
-		this.sseEmitter = sseEmitter;
+		this.httpStream = httpStream;
 	}
 
 	/**
 	 * 发送心跳
 	 */
 	public void sendHeartbeat() {
-		sseEmitter.send(new SseEvent().comment("heartbeat"));
+		httpStream.send(null, null, "heartbeat");
 	}
 
 	/**
@@ -36,14 +35,14 @@ public class McpServerSession {
 	 * @param message JsonRpcMessage
 	 */
 	public void sendMessage(JsonRpcMessage message) {
-		sseEmitter.send(MESSAGE_EVENT_TYPE, JsonUtil.toJsonString(message));
+		httpStream.send(MESSAGE_EVENT_TYPE, JsonUtil.toJsonString(message));
 	}
 
 	/**
 	 * 关闭
 	 */
 	public void close() {
-		sseEmitter.close();
+		httpStream.end();
 	}
 
 	@Override

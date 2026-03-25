@@ -193,10 +193,13 @@
 */
 package org.tio.http.common;
 
+import org.tio.http.common.stream.HttpStream;
+import org.tio.http.common.stream.HttpStreamType;
 import org.tio.http.common.utils.HttpGzipUtils;
 import org.tio.utils.SysConst;
 import org.tio.utils.hutool.StrUtil;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
@@ -239,6 +242,16 @@ public class HttpResponse extends HttpPacket {
 	 * 忽略token访问统计
 	 */
 	private boolean skipTokenStat = false;
+
+	/**
+	 * 是否是分块传输编码（流式响应）
+	 */
+	private boolean chunked = false;
+
+	/**
+	 * 流输出（用于流式响应）
+	 */
+	private transient HttpStream httpStream;
 
 	public HttpResponse() {
 	}
@@ -506,6 +519,88 @@ public class HttpResponse extends HttpPacket {
 	 */
 	public int getHeaderByteCount() {
 		return headerByteCount;
+	}
+
+	/**
+	 * 是否是分块传输编码
+	 */
+	public boolean isChunked() {
+		return chunked;
+	}
+
+	/**
+	 * 设置是否分块传输编码
+	 */
+	public void setChunked(boolean chunked) {
+		this.chunked = chunked;
+	}
+
+	/**
+	 * 开启流式响应（HTTP Chunked Transfer-Encoding）
+	 *
+	 * @param request HttpRequest
+	 * @return HttpStream 用于写入数据
+	 */
+	public HttpStream startStream(HttpRequest request) {
+		this.chunked = true;
+		this.httpStream = new HttpStream(request);
+		return this.httpStream;
+	}
+
+	/**
+	 * 开启 SSE 流式响应
+	 * <p>
+	 * 自动设置正确的 Content-Type 等响应头
+	 * <p>
+	 * 注意：SSE 不使用 HTTP Chunked Transfer-Encoding，而是直接发送 SSE 数据直到连接关闭
+	 *
+	 * @param request HttpRequest
+	 * @return HttpStream (Type.SSE)
+	 */
+	public HttpStream startSse(HttpRequest request) {
+		this.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.TEXT_EVENT_STREAM);
+		this.addHeader(HeaderName.Cache_Control, HeaderValue.Cache_Control.no_cache);
+		this.addHeader(HeaderName.Connection, HeaderValue.Connection.keep_alive);
+		this.httpStream = new HttpStream(request, HttpStreamType.SSE);
+		return this.httpStream;
+	}
+
+	/**
+	 * 写入分块数据
+	 *
+	 * @param data 数据
+	 * @throws IOException IO异常
+	 */
+	public void writeChunk(byte[] data) throws IOException {
+		if (httpStream == null) {
+			throw new IOException("Stream not started, call startStream() first");
+		}
+		httpStream.write(data);
+	}
+
+	/**
+	 * 结束流式响应
+	 *
+	 * @throws IOException IO异常
+	 */
+	public void endStream() throws IOException {
+		if (httpStream != null) {
+			httpStream.close();
+		}
+	}
+
+	/**
+	 * 获取流输出
+	 */
+	public HttpStream getHttpStream() {
+		return httpStream;
+	}
+
+	/**
+	 * 设置流输出（供内部使用）
+	 */
+	public void setHttpStream(HttpStream httpStream) {
+		this.httpStream = httpStream;
 	}
 
 }

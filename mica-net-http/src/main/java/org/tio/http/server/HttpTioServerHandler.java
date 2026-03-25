@@ -202,6 +202,7 @@ import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 import org.tio.http.common.*;
 import org.tio.http.common.handler.HttpRequestHandler;
+import org.tio.http.common.stream.HttpStream;
 import org.tio.server.intf.TioServerHandler;
 
 import java.nio.ByteBuffer;
@@ -246,7 +247,18 @@ public class HttpTioServerHandler implements TioServerHandler {
 		HttpRequest request = (HttpRequest) packet;
 		HttpResponse httpResponse = requestHandler.handler(request);
 		if (httpResponse != null) {
-			Tio.send(context, httpResponse);
+			// 如果是流式响应，先发送响应头
+			HttpStream httpStream = httpResponse.getHttpStream();
+			if (httpStream != null) {
+				// 发送响应头
+				ByteBuffer headerBuffer = HttpResponseEncoder.encodeHeaders(httpResponse);
+				Packet headerPacket = new Packet();
+				headerPacket.setPreEncodedByteBuffer(headerBuffer);
+				Tio.send(context, headerPacket);
+				// 后续数据通过 HttpStream 发送
+			} else {
+				Tio.send(context, httpResponse);
+			}
 		} else {
 			if (log.isInfoEnabled()) {
 				log.info("{}, {}, handler return null, request line: {}", context.tioConfig.getName(), context, request.getRequestLine());

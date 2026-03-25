@@ -28,7 +28,8 @@ dist/
 nbdist/
 .nb-gradle/
 
-### OpenCode ###
+### AI Code ###
+.claude
 .opencode
 -p
 

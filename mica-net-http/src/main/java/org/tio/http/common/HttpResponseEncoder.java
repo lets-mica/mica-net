@@ -200,6 +200,7 @@ import org.tio.utils.SysConst;
 import org.tio.utils.hutool.DateUtil;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -221,15 +222,18 @@ public final class HttpResponseEncoder {
 	}
 
 	/**
-	 * @param httpResponse   HttpResponse
+	 * 编码响应
+	 *
+	 * @param httpResponse HttpResponse
 	 * @return ByteBuffer
 	 */
 	public static ByteBuffer encode(HttpResponse httpResponse) {
 		HttpRequest httpRequest = httpResponse.getHttpRequest();
-		int bodyLength = 0;
 		byte[] body = httpResponse.body;
+		int bodyLength = 0;
 
-		if (body != null) {
+		// 如果是分块传输，不处理body（body会通过HttpStream单独发送）
+		if (body != null && !httpResponse.isChunked()) {
 			// 处理gzip
 			try {
 				HttpGzipUtils.gzip(httpRequest, httpResponse);
@@ -244,66 +248,22 @@ public final class HttpResponseEncoder {
 		int respLineLength = httpResponseStatus.responseLineBinary.length;
 
 		Map<HeaderName, HeaderValue> headers = httpResponse.getHeaders();
+		boolean chunked = httpResponse.isChunked();
+
 		// 判断是否需要响应报文长度
-		if (isNeedResponseContentLength(httpRequest, httpResponseStatus, headers)) {
+		if (isNeedResponseContentLength(httpRequest, httpResponseStatus, headers, chunked)) {
 			httpResponse.addHeader(HeaderName.Content_Length, HeaderValue.from(Integer.toString(bodyLength)));
 		}
-		// 获取已计算的Header长度（包含用户添加的Header）
-		int headerLength = httpResponse.getHeaderByteCount();
-
-		// 添加固定Header长度（Server和Date）
-		// Date值长度在运行时确定
-		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
-		headerLength += HEADER_FIXED_LENGTH + httpDateValue.bytes.length;
-
-		// 处理cookie长度计算
-		if (httpResponse.getCookies() != null) {
-			for (Cookie cookie : httpResponse.getCookies()) {
-				// SET_COOKIE头名称长度 + 冒号空格和\r\n
-				headerLength += HeaderName.SET_COOKIE.bytes.length + 4;
-				byte[] bs = cookie.toString().getBytes(httpResponse.getCharset());
-				cookie.setBytes(bs);
-				// Cookie值长度
-				headerLength += bs.length;
-			}
+		// 如果是分块传输，添加 Transfer-Encoding: chunked 头
+		if (chunked) {
+			httpResponse.addHeader(HeaderName.Transfer_Encoding, HeaderValue.Transfer_Encoding.chunked);
 		}
+
+		// 计算Header长度
+		int headerLength = calcHeaderLength(httpResponse);
 
 		ByteBuffer buffer = ByteBuffer.allocate(respLineLength + headerLength + bodyLength);
-		buffer.put(httpResponseStatus.responseLineBinary);
-
-		buffer.put(HeaderName.Server.bytes);
-		buffer.put(SysConst.COL);
-		buffer.put(SysConst.SPACE);
-		buffer.put(HeaderValue.Server.SERVER_INFO.bytes);
-		buffer.put(SysConst.CR_LF);
-
-		buffer.put(HeaderName.Date.bytes);
-		buffer.put(SysConst.COL);
-		buffer.put(SysConst.SPACE);
-		buffer.put(httpDateValue.bytes);
-		buffer.put(SysConst.CR_LF);
-
-		Set<Entry<HeaderName, HeaderValue>> headerSet = headers.entrySet();
-		for (Entry<HeaderName, HeaderValue> entry : headerSet) {
-			buffer.put(entry.getKey().bytes);
-			buffer.put(SysConst.COL);
-			buffer.put(SysConst.SPACE);
-			buffer.put(entry.getValue().bytes);
-			buffer.put(SysConst.CR_LF);
-		}
-
-		//处理cookie
-		if (httpResponse.getCookies() != null) {
-			for (Cookie cookie : httpResponse.getCookies()) {
-				buffer.put(HeaderName.SET_COOKIE.bytes);
-				buffer.put(SysConst.COL);
-				buffer.put(SysConst.SPACE);
-				buffer.put(cookie.getBytes());
-				buffer.put(SysConst.CR_LF);
-			}
-		}
-
-		buffer.put(SysConst.CR_LF);
+		encodeHeaders(buffer, httpResponseStatus, headers, httpResponse.getCookies());
 
 		if (bodyLength > 0) {
 			buffer.put(body);
@@ -313,16 +273,146 @@ public final class HttpResponseEncoder {
 	}
 
 	/**
+	 * 编码响应头（不包含body，用于流式响应）
+	 *
+	 * @param httpResponse HttpResponse
+	 * @return ByteBuffer
+	 */
+	public static ByteBuffer encodeHeaders(HttpResponse httpResponse) {
+		HttpRequest httpRequest = httpResponse.getHttpRequest();
+		int bodyLength = 0;
+		byte[] body = httpResponse.body;
+
+		// 如果是分块传输，不处理body（body会通过HttpStream单独发送）
+		if (body != null && !httpResponse.isChunked()) {
+			// 处理gzip
+			try {
+				HttpGzipUtils.gzip(httpRequest, httpResponse);
+			} catch (Exception e) {
+				log.error(e.toString(), e);
+			}
+			body = httpResponse.body;
+			bodyLength = body.length;
+		}
+
+		HttpResponseStatus httpResponseStatus = httpResponse.getStatus();
+		int respLineLength = httpResponseStatus.responseLineBinary.length;
+
+		Map<HeaderName, HeaderValue> headers = httpResponse.getHeaders();
+		boolean chunked = httpResponse.isChunked();
+
+		// 判断是否需要响应报文长度
+		if (isNeedResponseContentLength(httpRequest, httpResponseStatus, headers, chunked)) {
+			httpResponse.addHeader(HeaderName.Content_Length, HeaderValue.from(Integer.toString(bodyLength)));
+		}
+		// 如果是分块传输，添加 Transfer-Encoding: chunked 头
+		if (chunked) {
+			httpResponse.addHeader(HeaderName.Transfer_Encoding, HeaderValue.Transfer_Encoding.chunked);
+		}
+
+		// 计算Header长度
+		int headerLength = calcHeaderLength(httpResponse);
+
+		ByteBuffer buffer = ByteBuffer.allocate(respLineLength + headerLength);
+		encodeHeaders(buffer, httpResponseStatus, headers, httpResponse.getCookies());
+		buffer.flip();
+		return buffer;
+	}
+
+	/**
+	 * 计算响应头长度
+	 */
+	private static int calcHeaderLength(HttpResponse httpResponse) {
+		// 获取已计算的Header长度（包含用户添加的Header）
+		int headerLength = httpResponse.getHeaderByteCount();
+
+		// 添加固定Header长度（Server和Date）
+		// Date值长度在运行时确定
+		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
+		headerLength += HEADER_FIXED_LENGTH + httpDateValue.bytes.length;
+
+		// 处理cookie长度计算
+		List<Cookie> cookies = httpResponse.getCookies();
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				// SET_COOKIE头名称长度 + 冒号空格和\r\n
+				headerLength += HeaderName.SET_COOKIE.bytes.length + 4;
+				byte[] bs = cookie.toString().getBytes(httpResponse.getCharset());
+				cookie.setBytes(bs);
+				// Cookie值长度
+				headerLength += bs.length;
+			}
+		}
+		return headerLength;
+	}
+
+	/**
+	 * 编码响应头到ByteBuffer
+	 */
+	private static void encodeHeaders(ByteBuffer buffer,
+								   HttpResponseStatus httpResponseStatus,
+								   Map<HeaderName, HeaderValue> headers,
+								   List<Cookie> cookies) {
+		// 写入状态行
+		buffer.put(httpResponseStatus.responseLineBinary);
+
+		// 写入 Server
+		buffer.put(HeaderName.Server.bytes);
+		buffer.put(SysConst.COL);
+		buffer.put(SysConst.SPACE);
+		buffer.put(HeaderValue.Server.SERVER_INFO.bytes);
+		buffer.put(SysConst.CR_LF);
+
+		// 写入 Date
+		HeaderValue httpDateValue = HeaderValue.from(DateUtil.httpDate());
+		buffer.put(HeaderName.Date.bytes);
+		buffer.put(SysConst.COL);
+		buffer.put(SysConst.SPACE);
+		buffer.put(httpDateValue.bytes);
+		buffer.put(SysConst.CR_LF);
+
+		// 写入自定义headers
+		Set<Entry<HeaderName, HeaderValue>> headerSet = headers.entrySet();
+		for (Entry<HeaderName, HeaderValue> entry : headerSet) {
+			buffer.put(entry.getKey().bytes);
+			buffer.put(SysConst.COL);
+			buffer.put(SysConst.SPACE);
+			buffer.put(entry.getValue().bytes);
+			buffer.put(SysConst.CR_LF);
+		}
+
+		// 写入cookies
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				buffer.put(HeaderName.SET_COOKIE.bytes);
+				buffer.put(SysConst.COL);
+				buffer.put(SysConst.SPACE);
+				buffer.put(cookie.getBytes());
+				buffer.put(SysConst.CR_LF);
+			}
+		}
+
+		// 头结束 CRLF
+		buffer.put(SysConst.CR_LF);
+	}
+
+	/**
 	 * 判断是否需要相应 Content-Length 头
 	 *
 	 * @param httpRequest HttpRequest
 	 * @param httpResponseStatus HttpResponseStatus
 	 * @param headers headers
+	 * @param chunked 是否是分块传输
 	 * @return 是否需要相应 body 长度头
 	 */
 	private static boolean isNeedResponseContentLength(HttpRequest httpRequest,
 												HttpResponseStatus httpResponseStatus,
-												Map<HeaderName, HeaderValue> headers) {
+												Map<HeaderName, HeaderValue> headers,
+												boolean chunked) {
+		// 如果是分块传输，不需要 Content-Length
+		if (chunked) {
+			return false;
+		}
 		// 注意：HttpRequest 有为空的情况
 		if (httpRequest != null && Method.HEAD == httpRequest.requestLine.method) {
 			return false;

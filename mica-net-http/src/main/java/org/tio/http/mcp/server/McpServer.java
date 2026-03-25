@@ -10,7 +10,7 @@ import org.tio.http.jsonrpc.JsonRpcNotification;
 import org.tio.http.jsonrpc.JsonRpcRequest;
 import org.tio.http.jsonrpc.JsonRpcResponse;
 import org.tio.http.mcp.schema.*;
-import org.tio.http.sse.SseEmitter;
+import org.tio.http.common.stream.HttpStream;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.json.JsonUtil;
 
@@ -457,13 +457,13 @@ public class McpServer {
 	public HttpResponse sseEndpoint(HttpRequest request) {
 		HttpResponse httpResponse = new HttpResponse(request);
 		// 构造 sse
-		SseEmitter emitter = SseEmitter.getEmitter(request, httpResponse);
+		HttpStream stream = httpResponse.startSse(request);
 		// 响应包发送后，再发送 sse 回包
 		httpResponse.setPacketListener((context, packet, isSentSuccess) -> {
 			if (isSentSuccess) {
 				String sessionId = StrUtil.getNanoId();
-				sessions.put(sessionId, new McpServerSession(sessionId, emitter));
-				emitter.send(ENDPOINT_EVENT_TYPE, messageEndpoint + "?sessionId=" + sessionId);
+				sessions.put(sessionId, new McpServerSession(sessionId, stream));
+				stream.send(ENDPOINT_EVENT_TYPE, messageEndpoint + "?sessionId=" + sessionId);
 			}
 		});
 		return httpResponse;
