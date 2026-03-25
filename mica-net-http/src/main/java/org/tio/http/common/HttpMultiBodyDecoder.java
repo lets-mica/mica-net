@@ -203,6 +203,7 @@ import org.tio.utils.buffer.ByteBufferUtil;
 import org.tio.utils.hutool.StrUtil;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -236,20 +237,18 @@ public class HttpMultiBodyDecoder {
 		long start = System.currentTimeMillis();
 
 		ByteBuffer buffer = ByteBuffer.wrap(bodyBytes);
-		buffer.position(0);
+		Charset charset = request.getCharset();
 
 		String boundary = "--" + initboundary;
 		String endBoundary = boundary + "--";
 		Step step = Step.BOUNDARY;
 		try {
-			label1:
-			while (true) {
+			while (step != Step.END) {
 				if (step == Step.BOUNDARY) {
-					String line = ByteBufferUtil.readLine(buffer, request.getCharset(), HttpConfig.MAX_LENGTH_OF_BOUNDARY);
+					String line = ByteBufferUtil.readLine(buffer, charset, HttpConfig.MAX_LENGTH_OF_BOUNDARY);
 					if (boundary.equals(line)) {
 						step = Step.HEADER;
-					} else if (endBoundary.equals(line)) // 结束了
-					{
+					} else if (endBoundary.equals(line)) {
 						break;
 					} else {
 						throw new TioDecodeException("line need:" + boundary + ", but is: " + line + "");
@@ -258,15 +257,13 @@ public class HttpMultiBodyDecoder {
 
 				Header multiBodyHeader = new Header();
 				if (step == Step.HEADER) {
-					List<String> lines = new ArrayList<>(2);
-					label2:
+					List<String> lines = new ArrayList<>(4);
 					while (true) {
-						String line = ByteBufferUtil.readLine(buffer, request.getCharset(), HttpConfig.MAX_LENGTH_OF_MULTI_HEADER);
+						String line = ByteBufferUtil.readLine(buffer, charset, HttpConfig.MAX_LENGTH_OF_MULTI_HEADER);
 						if ("".equals(line)) {
-							break label2;
-						} else {
-							lines.add(line);
+							break;
 						}
+						lines.add(line);
 					}
 
 					parseHeader(lines, multiBodyHeader, channelContext);
@@ -275,11 +272,7 @@ public class HttpMultiBodyDecoder {
 
 				if (step == Step.BODY) {
 					step = parseBody(multiBodyHeader, request, buffer, boundary, endBoundary, httpConfig);
-					if (step == Step.END) {
-						break label1;
-					}
 				}
-
 			}
 		} catch (LengthOverflowException loe) {
 			throw new TioDecodeException(loe);
@@ -304,13 +297,18 @@ public class HttpMultiBodyDecoder {
 	public static Step parseBody(Header header, HttpRequest request, ByteBuffer buffer, String boundary, String endBoundary, HttpConfig httpConfig)
 		throws LengthOverflowException, TioDecodeException {
 		int initPosition = buffer.position();
+		Charset charset = request.getCharset();
+		int maxLengthOfMultiBody = httpConfig.getMaxLengthOfMultiBody();
 
 		while (buffer.hasRemaining()) {
-			String line = ByteBufferUtil.readLine(buffer, request.getCharset(), httpConfig.getMaxLengthOfMultiBody());
+			int lineStartPos = buffer.position();
+			String line = ByteBufferUtil.readLine(buffer, charset, maxLengthOfMultiBody);
+			// 计算行的字节长度，避免 line.getBytes()
+			int lineByteLength = buffer.position() - lineStartPos - 2; // 减去 \r\n
 			boolean isEndBoundary = endBoundary.equals(line);
 			boolean isBoundary = boundary.equals(line);
 			if (isBoundary || isEndBoundary) {
-				int endIndex = buffer.position() - line.getBytes().length - 2 - 2;
+				int endIndex = buffer.position() - lineByteLength - 2 - 2;
 				int length = endIndex - initPosition;
 				byte[] dst = new byte[length];
 				System.arraycopy(buffer.array(), initPosition, dst, 0, length);
@@ -358,17 +356,35 @@ public class HttpMultiBodyDecoder {
 			throw new TioDecodeException("multipart_form_data 格式不对，没有头部信息");
 		}
 		try {
-			for (String line : lines) {
-				String[] keyvalue = line.split(":");
-				String key = StrUtil.trim(keyvalue[0]).toLowerCase();//
-				String value = StrUtil.trim(keyvalue[1]);
-				header.map.put(key, value);
-			}
+			String contentDisposition = null;
+			String contentType = null;
+			String name = null;
+			String filename = null;
 
-			String contentDisposition = header.map.get(MultiBodyHeaderKey.Content_Disposition);
-			String name = HttpParseUtils.getSubAttribute(contentDisposition, "name");//.getPerprotyEqualValue(header.map, MultiBodyHeaderKey.Content_Disposition, "value");
-			String filename = HttpParseUtils.getSubAttribute(contentDisposition, "filename");//HttpParseUtils.getPerprotyEqualValue(header.map, MultiBodyHeaderKey.Content_Disposition, "filename");
-			String contentType = header.map.get(MultiBodyHeaderKey.Content_Type);//.HttpParseUtils.getPerprotyEqualValue(header.map, MultiBodyHeaderKey.Content_Type, "filename");
+			for (String line : lines) {
+				int colonIndex = line.indexOf(':');
+				if (colonIndex == -1) {
+					continue;
+				}
+				// 去掉末尾的 \r 或 \n
+				int endIndex = line.length();
+				if (line.charAt(endIndex - 1) == '\r' || line.charAt(endIndex - 1) == '\n') {
+					endIndex--;
+					if (line.charAt(endIndex - 1) == '\r') {
+						endIndex--;
+					}
+				}
+				String key = line.substring(0, colonIndex).trim().toLowerCase();
+				String value = line.substring(colonIndex + 1, endIndex).trim();
+
+				if (key.equals(MultiBodyHeaderKey.Content_Disposition)) {
+					contentDisposition = value;
+					name = HttpParseUtils.getSubAttribute(value, "name");
+					filename = HttpParseUtils.getSubAttribute(value, "filename");
+				} else if (key.equals(MultiBodyHeaderKey.Content_Type)) {
+					contentType = value;
+				}
+			}
 
 			header.setContentDisposition(contentDisposition);
 			header.setName(name);
@@ -409,7 +425,7 @@ public class HttpMultiBodyDecoder {
 		private String filename = null;
 		private String contentType = null;
 
-		private Map<String, String> map = new HashMap<>();
+		private Map<String, String> map = new HashMap<>(4);
 
 		public String getContentDisposition() {
 			return contentDisposition;
