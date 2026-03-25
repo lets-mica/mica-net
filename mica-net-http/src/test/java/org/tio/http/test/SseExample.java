@@ -128,6 +128,8 @@ public class SseExample implements HttpRequestHandler {
 						}
 					});
 
+					// 由于为异步发送，需要等待前面的包发送完成了再 close
+					ThreadUtils.sleep(1000);
 					stream.close();
 				}).start();
 			}
