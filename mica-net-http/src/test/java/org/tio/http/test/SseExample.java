@@ -127,6 +127,8 @@ public class SseExample implements HttpRequestHandler {
 							return "{ \"time\": " + System.currentTimeMillis() + " }";
 						}
 					});
+
+					ThreadUtils.sleep(1000);
 					stream.end();
 				}).start();
 			}

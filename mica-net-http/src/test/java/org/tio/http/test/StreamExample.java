@@ -105,6 +105,7 @@ public class StreamExample implements HttpRequestHandler {
 							out.write(buffer);
 							ThreadUtils.sleep(100); // 模拟IO延迟
 						}
+						ThreadUtils.sleep(1000);
 						out.close();
 					} catch (IOException e) {
 						e.printStackTrace();
