@@ -26,6 +26,7 @@ final class Reader<E> extends Mapped {
 	 * tick后，如果队列有文件，则执行清理
 	 */
 	private final BlockingQueue<Path> clearQueue = new LinkedBlockingQueue<>(12);
+	private volatile boolean stopped = false;
 
 	private final Path path;
 	private final long mfs;
@@ -205,16 +206,29 @@ final class Reader<E> extends Mapped {
 
 	private void startCleanThread() {
 		Thread thread = new Thread(() -> {
-			while (true) {
+			while (!stopped) {
 				try {
-					Path consumed = clearQueue.take();
-					Files.deleteIfExists(consumed);
-					log.debug("已读并删除：{}", consumed);
-				} catch (InterruptedException | IOException e) {
-					log.error(e.getMessage(), e);
+					Path consumed = clearQueue.poll(1, java.util.concurrent.TimeUnit.SECONDS);
+					if (consumed != null) {
+						Files.deleteIfExists(consumed);
+						log.debug("已读并删除：{}", consumed);
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 					break;
+				} catch (IOException e) {
+					log.error(e.getMessage(), e);
 				}
 			}
+			// 清理剩余队列中的文件
+			clearQueue.forEach(consumed -> {
+				try {
+					Files.deleteIfExists(consumed);
+					log.debug("关闭时删除：{}", consumed);
+				} catch (IOException e) {
+					log.error(e.getMessage(), e);
+				}
+			});
 		});
 		thread.setDaemon(true);
 		thread.setName("FileQueueClear");
@@ -225,6 +239,7 @@ final class Reader<E> extends Mapped {
 	public void close() throws IOException {
 		lock.lock();
 		try {
+			stopped = true;
 			super.close();
 			data.close();
 			data = null;

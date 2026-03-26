@@ -2,6 +2,7 @@ package org.tio.utils.queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tio.utils.json.Jackson2JsonAdapter;
 import org.tio.utils.json.JsonUtil;
 import org.tio.utils.thread.ThreadUtils;
 
@@ -25,6 +26,7 @@ public class FileQueueTest {
 	public static String DEFAULT_ROOT = System.getProperty("user.dir") + "/mica-net-utils/target";
 
 	public static void main(String[] args) throws Exception {
+		JsonUtil.getJsonAdapter(new Jackson2JsonAdapter());
 		FileQueue<Test> queue = FileQueue.builder()
 			.path(Paths.get(DEFAULT_ROOT, "test-nio"))
 			.maxFileSize(500 * 1024 * 1024)

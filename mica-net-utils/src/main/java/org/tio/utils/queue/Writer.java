@@ -173,7 +173,17 @@ final class Writer<E> extends Mapped {
 	void waiting() throws InterruptedException {
 		lock.lock();
 		try {
-			condition.await();
+			boolean interrupted = Thread.interrupted();
+			try {
+				condition.await();
+			} catch (InterruptedException e) {
+				interrupted = true;
+				throw e;
+			} finally {
+				if (interrupted) {
+					Thread.currentThread().interrupt();
+				}
+			}
 		} finally {
 			lock.unlock();
 		}
