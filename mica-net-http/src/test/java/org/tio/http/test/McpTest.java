@@ -2,6 +2,7 @@ package org.tio.http.test;
 
 import org.tio.http.mcp.schema.*;
 import org.tio.http.mcp.server.McpServer;
+import org.tio.http.mcp.server.McpServerSession;
 import org.tio.http.server.HttpServerStarter;
 import org.tio.utils.json.Jackson2JsonAdapter;
 import org.tio.utils.json.JsonUtil;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -83,6 +85,45 @@ public class McpTest {
 			toolResult.setStructuredContent(json);
 
 			return toolResult;
+		});
+
+		// 注册传输层
+		mcpServer.useSseTransport();
+		mcpServer.useStreamableTransport();
+
+		// 流式工具示例：逐步返回数据
+		McpTool streamTool = new McpTool();
+		streamTool.setName("streamData");
+		streamTool.setDescription("流式返回数据");
+		streamTool.setReturnDirect(false);
+
+		McpJsonSchema streamInputSchema = new McpJsonSchema();
+		streamInputSchema.setType("object");
+		streamInputSchema.setProperties(new HashMap<>());
+		streamInputSchema.setRequired(new ArrayList<>());
+		streamTool.setInputSchema(streamInputSchema);
+
+		mcpServer.toolStream(streamTool, (McpServerSession session, Map<String, Object> params) -> {
+			// 返回一个 Iterator，遍历过程中主动推送 chunk
+			return new Iterator<McpContent>() {
+				private int index = 0;
+				private final int total = 5;
+
+				@Override
+				public boolean hasNext() {
+					return index < total;
+				}
+
+				@Override
+				public McpContent next() {
+					String data = "chunk_" + index;
+					// 主动推送到客户端
+					McpTextContent chunk = new McpTextContent(data);
+					session.sendChunk(chunk);
+					index++;
+					return chunk;
+				}
+			};
 		});
 
 		TestMcpHandler mcpHandler = new TestMcpHandler(mcpServer);

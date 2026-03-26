@@ -10,12 +10,11 @@ import org.tio.http.jsonrpc.JsonRpcNotification;
 import org.tio.http.jsonrpc.JsonRpcRequest;
 import org.tio.http.jsonrpc.JsonRpcResponse;
 import org.tio.http.mcp.schema.*;
-import org.tio.http.common.stream.HttpStream;
+import org.tio.http.mcp.server.transport.McpTransport;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.json.JsonUtil;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -32,36 +31,14 @@ public class McpServer {
 	public static final String ENDPOINT_EVENT_TYPE = "endpoint";
 
 	/**
-	 * Default SSE endpoint path as specified by the MCP transport specification.
-	 */
-	public static final String DEFAULT_SSE_ENDPOINT = "/sse";
-
-	/**
-	 * Default message endpoint path as specified by the MCP transport specification.
-	 */
-	public static final String DEFAULT_MESSAGE_ENDPOINT = DEFAULT_SSE_ENDPOINT + "/message";
-
-	/**
 	 * 默认的服务信息
 	 */
 	private static final McpImplementation DEFAULT_SERVER_INFO = new McpImplementation("mcp-server", "1.0.0");
 
 	/**
-	 * Map of active client sessions, keyed by session ID.
+	 * 注册的传输层列表
 	 */
-	private final ConcurrentHashMap<String, McpServerSession> sessions = new ConcurrentHashMap<>();
-
-	private final String sseEndpoint;
-	private final String messageEndpoint;
-
-	public McpServer() {
-		this(DEFAULT_SSE_ENDPOINT, DEFAULT_MESSAGE_ENDPOINT);
-	}
-
-	public McpServer(String sseEndpoint, String messageEndpoint) {
-		this.sseEndpoint = StrUtil.isBlank(sseEndpoint) ? DEFAULT_SSE_ENDPOINT : sseEndpoint;
-		this.messageEndpoint = StrUtil.isBlank(messageEndpoint) ? DEFAULT_MESSAGE_ENDPOINT : messageEndpoint;
-	}
+	private final List<McpTransport> transports = new ArrayList<>();
 
 	private McpImplementation serverInfo = DEFAULT_SERVER_INFO;
 	private McpServerCapabilities serverCapabilities;
@@ -182,7 +159,41 @@ public class McpServer {
 						  BiFunction<McpServerSession, Map<String, Object>, McpCallToolResult> handler) {
 		Objects.requireNonNull(tool, "Tool must not be null");
 		Objects.requireNonNull(handler, "Handler must not be null");
-		this.tools.add(new McpToolSpecification(tool, handler));
+		this.tools.add(McpToolSpecification.of(tool, handler));
+		return this;
+	}
+
+	/**
+	 * Adds a single tool with its streaming implementation handler to the server.
+	 * The handler returns an Iterator that produces McpContent chunks,
+	 * which are sent to the client in real-time via SSE.
+	 *
+	 * <p>
+	 * Example usage: <pre>{@code
+	 * .toolStream(
+	 *     new Tool("streamData", "Streams data", schema),
+	 *     (session, args) -> new Iterator<>() {
+	 *         public boolean hasNext() { return hasMore(); }
+	 *         public McpContent next() {
+	 *             session.sendChunk(new McpTextContent(computeNext()));
+	 *             return current;
+	 *         }
+	 *     }
+	 * )
+	 * }</pre>
+	 *
+	 * @param tool    The tool definition including name, description, and schema. Must
+	 *                not be null.
+	 * @param handler The function that implements the tool's streaming logic. Must not
+	 *                be null. Returns an Iterator of McpContent to be streamed to client.
+	 * @return This builder instance for method chaining
+	 * @throws IllegalArgumentException if tool or handler is null
+	 */
+	public McpServer toolStream(McpTool tool,
+						  BiFunction<McpServerSession, Map<String, Object>, Iterator<McpContent>> handler) {
+		Objects.requireNonNull(tool, "Tool must not be null");
+		Objects.requireNonNull(handler, "Handler must not be null");
+		this.tools.add(McpToolSpecification.ofStream(tool, handler));
 		return this;
 	}
 
@@ -449,74 +460,62 @@ public class McpServer {
 	}
 
 	/**
-	 * sse endpoint
+	 * 注册传输层
+	 *
+	 * @param transport 传输层实现
+	 * @return this
+	 */
+	public McpServer useTransport(McpTransport transport) {
+		Objects.requireNonNull(transport, "Transport must not be null");
+		this.transports.add(transport);
+		return this;
+	}
+
+	/**
+	 * 使用 SSE 传输层（便捷方法）
+	 *
+	 * @return this
+	 */
+	public McpServer useSseTransport() {
+		return useTransport(new org.tio.http.mcp.server.transport.SseTransport(this));
+	}
+
+	/**
+	 * 使用 Streamable HTTP 传输层（便捷方法）
+	 *
+	 * @return this
+	 */
+	public McpServer useStreamableTransport() {
+		return useTransport(new org.tio.http.mcp.server.transport.StreamableHttpTransport(this));
+	}
+
+	/**
+	 * 根据请求路径分发到对应的传输层处理
 	 *
 	 * @param request HttpRequest
 	 * @return HttpResponse
 	 */
-	public HttpResponse sseEndpoint(HttpRequest request) {
-		HttpResponse httpResponse = new HttpResponse(request);
-		// 构造 sse
-		HttpStream stream = httpResponse.startSse(request);
-		// 响应包发送后，再发送 sse 回包
-		httpResponse.setPacketListener((context, packet, isSentSuccess) -> {
-			if (isSentSuccess) {
-				String sessionId = StrUtil.getNanoId();
-				sessions.put(sessionId, new McpServerSession(sessionId, stream));
-				stream.send(ENDPOINT_EVENT_TYPE, messageEndpoint + "?sessionId=" + sessionId);
+	public HttpResponse handleRequest(HttpRequest request) {
+		for (McpTransport transport : transports) {
+			HttpResponse response = transport.handle(request);
+			// 如果不是 404，说明找到了对应的 transport
+			if (response.getStatus() != HttpResponseStatus.C404) {
+				return response;
 			}
-		});
-		return httpResponse;
+		}
+		// 没有找到对应的 transport
+		HttpResponse resp = new HttpResponse(request);
+		resp.setStatus(HttpResponseStatus.C404);
+		return resp;
 	}
 
 	/**
-	 * sse message endpoint
+	 * 获取已注册的传输层列表
 	 *
-	 * @param request HttpRequest
-	 * @return HttpResponse
+	 * @return transports
 	 */
-	public HttpResponse sseMessageEndpoint(HttpRequest request) {
-		// session id
-		String sessionId = request.getParam("sessionId");
-		HttpResponse response = new HttpResponse(request);
-		if (StrUtil.isBlank(sessionId)) {
-			response.setStatus(HttpResponseStatus.C400);
-			response.setBody("Session ID missing in message endpoint".getBytes());
-			return response;
-		}
-		McpServerSession session = sessions.get(sessionId);
-		if (session == null) {
-			response.setStatus(HttpResponseStatus.C400);
-			response.setBody("Session is null".getBytes());
-			log.error("Session is null sessionId:{}", sessionId);
-			return response;
-		}
-		JsonRpcMessage jsonRpcMessage = deserializeJsonRpcMessage(request.getBody());
-		if (jsonRpcMessage instanceof JsonRpcRequest) {
-			JsonRpcResponse rpcResponse = handleIncomingRequest(session, (JsonRpcRequest) jsonRpcMessage);
-			session.sendMessage(rpcResponse);
-		} else if (jsonRpcMessage instanceof JsonRpcNotification) {
-			JsonRpcNotification notification = (JsonRpcNotification) jsonRpcMessage;
-			log.info("JsonRpcNotification:{}", notification);
-		}
-		return response;
-	}
-
-	/**
-	 * 发送心跳
-	 */
-	public void sendHeartbeat() {
-		for (McpServerSession session : sessions.values()) {
-			session.sendHeartbeat();
-		}
-	}
-
-	public String getMessageEndpoint() {
-		return messageEndpoint;
-	}
-
-	public String getSseEndpoint() {
-		return sseEndpoint;
+	public List<McpTransport> getTransports() {
+		return Collections.unmodifiableList(transports);
 	}
 
 	/**
@@ -526,7 +525,7 @@ public class McpServer {
 	 * @param request The incoming JSON-RPC request
 	 * @return A Mono containing the JSON-RPC response
 	 */
-	private JsonRpcResponse handleIncomingRequest(McpServerSession session, JsonRpcRequest request) {
+	public JsonRpcResponse handleIncomingRequest(McpServerSession session, JsonRpcRequest request) {
 		String method = request.getMethod();
 		if (McpSchema.METHOD_INITIALIZE.equals(method)) {
 			McpInitializeRequest initializeRequest = JsonUtil.convertValue(request.getParams(), McpInitializeRequest.class);
@@ -579,7 +578,13 @@ public class McpServer {
 				McpTool tool = toolSpecification.getTool();
 				if (tool.getName().equals(name)) {
 					Map<String, Object> toolArguments = getCallToolArguments(callToolRequest.getArguments());
-					toolResult = toolSpecification.getCall().apply(session, toolArguments);
+					if (toolSpecification.isStream()) {
+						// 流式调用
+						toolResult = session.callToolStream(toolSpecification, toolArguments, tool.getReturnDirect());
+					} else {
+						// 同步调用
+						toolResult = toolSpecification.getCall().apply(session, toolArguments);
+					}
 					break;
 				}
 			}

@@ -20,11 +20,10 @@ public class TestMcpHandler implements HttpRequestHandler {
 		RequestLine requestLine = request.getRequestLine();
 		String path = requestLine.getPath();
 		System.out.println(path);
-		if ("/sse".equals(path)) {
-			// 跨域支持
-			return mcpServer.sseEndpoint(request);
-		} else if ("/sse/message".equals(path)) {
-			return mcpServer.sseMessageEndpoint(request);
+		// 使用 transport 统一处理
+		HttpResponse response = mcpServer.handleRequest(request);
+		if (response.getStatus() != org.tio.http.common.HttpResponseStatus.C404) {
+			return response;
 		}
 		HttpResponse httpResponse = new HttpResponse(request);
 		httpResponse.setBody("hello".getBytes(StandardCharsets.UTF_8));
