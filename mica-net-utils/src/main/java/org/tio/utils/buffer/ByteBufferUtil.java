@@ -25,7 +25,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
- * ByteBuffer 工具
+ * ByteBuffer 工具类，提供ByteBuffer的读写、复制、转换等操作
+ * <p>
+ * 支持堆缓冲区和直接缓冲区，自动选择最优实现方式。
+ * LE后缀表示小端序（Little Endian），BE后缀表示大端序（Big Endian）。
  *
  * @author L.cm
  */
@@ -40,31 +43,31 @@ public class ByteBufferUtil {
 	public static final byte[] EMPTY_BYTES = new byte[0];
 
 	/**
-	 * read byte
+	 * 读取1个字节
 	 *
 	 * @param buffer ByteBuffer
-	 * @return byte
+	 * @return byte值
 	 */
 	public static byte readByte(ByteBuffer buffer) {
 		return buffer.get();
 	}
 
 	/**
-	 * read unsigned byte，1个字节无符号
+	 * 读取1个字节作为无符号数
 	 *
 	 * @param buffer ByteBuffer
-	 * @return short
+	 * @return short类型的无符号值 (0-255)
 	 */
 	public static short readUnsignedByte(ByteBuffer buffer) {
 		return (short) (buffer.get() & 0xFF);
 	}
 
 	/**
-	 * 读取 byte 数组
+	 * 读取指定长度的字节数组，消耗position
 	 *
 	 * @param buffer ByteBuffer
-	 * @param length 长度
-	 * @return byte array
+	 * @param length 要读取的字节数
+	 * @return byte数组
 	 */
 	public static byte[] readBytes(ByteBuffer buffer, int length) {
 		byte[] data = new byte[length];
@@ -73,18 +76,22 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 读取 ByteBuffer remaining 区间的字节数组，不消耗 position
+	 * 读取ByteBuffer remaining区间的字节数组，不消耗position
+	 * <p>
+	 * 自动处理堆缓冲区和直接缓冲区。
 	 *
 	 * @param buffer ByteBuffer
-	 * @return byte array
+	 * @return remaining区间的字节数组
 	 */
 	public static byte[] toArray(ByteBuffer buffer) {
 		int position = buffer.position();
 		int limit = buffer.limit();
 		int remaining = limit - position;
 		if (buffer.hasArray()) {
+			// 堆缓冲区：直接复制指定区间
 			return Arrays.copyOfRange(buffer.array(), buffer.arrayOffset() + position, buffer.arrayOffset() + limit);
 		} else {
+			// 直接缓冲区：读取后恢复position
 			byte[] data = new byte[remaining];
 			buffer.get(data);
 			buffer.position(position);
@@ -93,40 +100,40 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 读取 short
+	 * 读取2字节short，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return short
+	 * @return short值
 	 */
 	public static short readShort(ByteBuffer buffer) {
 		return buffer.getShort();
 	}
 
 	/**
-	 * 读取 short，小端
+	 * 读取2字节short，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return short
+	 * @return short值
 	 */
 	public static short readShortLE(ByteBuffer buffer) {
 		return (short) ((buffer.get() & 0xFF) | ((buffer.get() & 0xFF) << 8));
 	}
 
 	/**
-	 * 读取 short，大端
+	 * 读取2字节short，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return short
+	 * @return short值
 	 */
 	public static short readShortBE(ByteBuffer buffer) {
 		return (short) (((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF));
 	}
 
 	/**
-	 * read unsigned short，2个字节无符号
+	 * 读取2字节无符号整数，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int类型的无符号值 (0-65535)
 	 */
 	public static int readUnsignedShort(ByteBuffer buffer) {
 		ByteOrder order = buffer.order();
@@ -138,30 +145,32 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read unsigned short，2个字节无符号
+	 * 读取2字节无符号整数，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int类型的无符号值
 	 */
 	public static int readUnsignedShortLE(ByteBuffer buffer) {
 		return (buffer.get() & 0xFF) | ((buffer.get() & 0xFF) << 8);
 	}
 
 	/**
-	 * read unsigned short，2个字节无符号，大端在前
+	 * 读取2字节无符号整数，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int类型的无符号值
 	 */
 	public static int readUnsignedShortBE(ByteBuffer buffer) {
 		return ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
 	}
 
 	/**
-	 * 读取3个字节有符号
+	 * 读取3字节有符号整数，使用buffer当前字节序
+	 * <p>
+	 * 3字节整数常用于网络协议和音视频格式中。
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int值
 	 */
 	public static int readMedium(ByteBuffer buffer) {
 		ByteOrder order = buffer.order();
@@ -173,42 +182,40 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 读取3个字节有符号，小端在前
+	 * 读取3字节有符号整数，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int值
 	 */
 	public static int readMediumLE(ByteBuffer buffer) {
 		int ret = readUnsignedMediumLE(buffer);
-		// 如果最高位为1，则表示是负数
+		// 如果最高位为1，则表示是负数，需要符号扩展
 		if ((ret & 0x800000) != 0) {
-			// 将最高位之上的位全部设置为1，以保持有符号性质
 			ret |= 0xff000000;
 		}
 		return ret;
 	}
 
 	/**
-	 * 读取3个字节有符号，大端在前
+	 * 读取3字节有符号整数，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int值
 	 */
 	public static int readMediumBE(ByteBuffer buffer) {
 		int ret = readUnsignedMediumBE(buffer);
-		// 如果最高位为1，则表示是负数
+		// 如果最高位为1，则表示是负数，需要符号扩展
 		if ((ret & 0x800000) != 0) {
-			// 将最高位之上的位全部设置为1，以保持有符号性质
 			ret |= 0xff000000;
 		}
 		return ret;
 	}
 
 	/**
-	 * read unsigned 3个字节无符号
+	 * 读取3字节无符号整数，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int类型的无符号值 (0-16777215)
 	 */
 	public static int readUnsignedMedium(ByteBuffer buffer) {
 		ByteOrder order = buffer.order();
@@ -220,40 +227,40 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read unsigned 3个字节无符号，小端在前
+	 * 读取3字节无符号整数，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int类型的无符号值
 	 */
 	public static int readUnsignedMediumLE(ByteBuffer buffer) {
 		return (buffer.get() & 0xFF) | ((buffer.get() & 0xFF) << 8) | ((buffer.get() & 0xFF) << 16);
 	}
 
 	/**
-	 * read unsigned 3个字节无符号，大端在前
+	 * 读取3字节无符号整数，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int类型的无符号值
 	 */
 	public static int readUnsignedMediumBE(ByteBuffer buffer) {
 		return ((buffer.get() & 0xFF) << 16) | ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
 	}
 
 	/**
-	 * read int, 4个字节
+	 * 读取4字节int，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int值
 	 */
 	public static int readInt(ByteBuffer buffer) {
 		return buffer.getInt();
 	}
 
 	/**
-	 * read int, 4个字节，小端
+	 * 读取4字节int，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int值
 	 */
 	public static int readIntLE(ByteBuffer buffer) {
 		return (buffer.get() & 0xFF) |
@@ -263,10 +270,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read int, 4个字节，大端在前
+	 * 读取4字节int，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return int
+	 * @return int值
 	 */
 	public static int readIntBE(ByteBuffer buffer) {
 		return ((buffer.get() & 0xFF) << 24) |
@@ -276,10 +283,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read unsigned int, 4个字节无符号
+	 * 读取4字节无符号整数，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return long类型的无符号值
 	 */
 	public static long readUnsignedInt(ByteBuffer buffer) {
 		ByteOrder order = buffer.order();
@@ -291,10 +298,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read unsigned int, 4个字节无符号
+	 * 读取4字节无符号整数，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return long类型的无符号值
 	 */
 	public static long readUnsignedIntLE(ByteBuffer buffer) {
 		return (buffer.get() & 0xFFL) |
@@ -304,10 +311,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read unsigned int, 4个字节无符号，大端在前
+	 * 读取4字节无符号整数，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return long类型的无符号值
 	 */
 	public static long readUnsignedIntBE(ByteBuffer buffer) {
 		return ((buffer.get() & 0xFFL) << 24) |
@@ -317,11 +324,11 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read n 个字节无符号，大端在前
+	 * 读取n字节无符号整数，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @param n      n 个字符
-	 * @return int
+	 * @param n      字节数 (1-8)
+	 * @return long类型的无符号值
 	 */
 	public static long readUnsignedNByteBE(ByteBuffer buffer, int n) {
 		byte[] value = new byte[n];
@@ -334,11 +341,11 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read n 个字节无符号，小端在前
+	 * 读取n字节无符号整数，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @param n      n 个字符
-	 * @return long
+	 * @param n      字节数 (1-8)
+	 * @return long类型的无符号值
 	 */
 	public static long readUnsignedNByteLE(ByteBuffer buffer, int n) {
 		byte[] value = new byte[n];
@@ -351,50 +358,50 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read float, 4个字节，小端
+	 * 读取4字节float，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return float
+	 * @return float值
 	 */
 	public static float readFloat(ByteBuffer buffer) {
 		return buffer.getFloat();
 	}
 
 	/**
-	 * read float, 4个字节，小端
+	 * 读取4字节float，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return float
+	 * @return float值
 	 */
 	public static float readFloatLE(ByteBuffer buffer) {
 		return Float.intBitsToFloat(readIntLE(buffer));
 	}
 
 	/**
-	 * read float, 4个字节，大端
+	 * 读取4字节float，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return float
+	 * @return float值
 	 */
 	public static float readFloatBE(ByteBuffer buffer) {
 		return Float.intBitsToFloat(readIntBE(buffer));
 	}
 
 	/**
-	 * read long, 8个字节
+	 * 读取8字节long，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return long值
 	 */
 	public static long readLong(ByteBuffer buffer) {
 		return buffer.getLong();
 	}
 
 	/**
-	 * read long, 8个字节，无符号
+	 * 读取8字节long，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return long值
 	 */
 	public static long readLongLE(ByteBuffer buffer) {
 		return (buffer.get() & 0xFFL) |
@@ -408,10 +415,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read long, 8个字节，无符号，大端在前
+	 * 读取8字节long，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return long值
 	 */
 	public static long readLongBE(ByteBuffer buffer) {
 		return ((long) buffer.get() << 56) |
@@ -425,10 +432,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read long, 8个字节，无符号
+	 * 读取8字节无符号整数，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return long值
 	 */
 	public static long readUnsignedLong(ByteBuffer buffer) {
 		ByteOrder order = buffer.order();
@@ -440,10 +447,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read long, 8个字节，无符号
+	 * 读取8字节无符号整数，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return long值
 	 */
 	public static long readUnsignedLongLE(ByteBuffer buffer) {
 		return (buffer.get() & 0xFFL) |
@@ -457,10 +464,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read long, 8个字节，无符号，大端在前
+	 * 读取8字节无符号整数，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return long
+	 * @return long值
 	 */
 	public static long readUnsignedLongBE(ByteBuffer buffer) {
 		return ((buffer.get() & 0xFFL) << 56) |
@@ -474,47 +481,47 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * read double, 8个字节
+	 * 读取8字节double，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return double
+	 * @return double值
 	 */
 	public static double readDouble(ByteBuffer buffer) {
 		return buffer.getDouble();
 	}
 
 	/**
-	 * read double, 8个字节，小端在前
+	 * 读取8字节double，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return double
+	 * @return double值
 	 */
 	public static double readDoubleLE(ByteBuffer buffer) {
 		return Double.longBitsToDouble(readLongLE(buffer));
 	}
 
 	/**
-	 * read double, 8个字节，大端在前
+	 * 读取8字节double，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @return double
+	 * @return double值
 	 */
 	public static double readDoubleBE(ByteBuffer buffer) {
 		return Double.longBitsToDouble(readLongBE(buffer));
 	}
 
 	/**
-	 * 写出 1 个字节的无符号 byte
+	 * 写入1个字节
 	 *
 	 * @param buffer ByteBuffer
-	 * @param s      数据
+	 * @param s      数据 (0-255)
 	 */
 	public static void writeByte(ByteBuffer buffer, short s) {
 		buffer.put((byte) s);
 	}
 
 	/**
-	 * 写出 2 个字节的 short，小端模式
+	 * 写入2字节short，小端序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param s      数据
@@ -525,7 +532,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 2 个字节的 short，大端模式
+	 * 写入2字节short，大端序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param s      数据
@@ -536,10 +543,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 3 个字节的无符号
+	 * 写入3字节无符号整数，小端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @param i      数据
+	 * @param i      数据 (0-16777215)
 	 */
 	public static void writeMediumLE(ByteBuffer buffer, int i) {
 		buffer.put((byte) i);
@@ -548,10 +555,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 3 个字节的无符号，大端模式
+	 * 写入3字节无符号整数，大端序
 	 *
 	 * @param buffer ByteBuffer
-	 * @param i      数据
+	 * @param i      数据 (0-16777215)
 	 */
 	public static void writeMediumBE(ByteBuffer buffer, int i) {
 		buffer.put((byte) (i >> 16));
@@ -560,7 +567,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 4 个字节的 int，小端模式
+	 * 写入4字节int，小端序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param i      数据
@@ -573,7 +580,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 4 个字节的 int，大端模式
+	 * 写入4字节int，大端序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param i      数据
@@ -586,7 +593,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 4 个字节的 float
+	 * 写入4字节float，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param value  数据
@@ -596,7 +603,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 4 个字节的 float，小端模式
+	 * 写入4字节float，小端序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param value  数据
@@ -606,7 +613,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 4 个字节的 float，大端模式
+	 * 写入4字节float，大端序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param value  数据
@@ -616,7 +623,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 8 个字节的 long，小端模式
+	 * 写入8字节long，小端序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param l      数据
@@ -633,7 +640,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 8 个字节的 long，大端模式
+	 * 写入8字节long，大端序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param l      数据
@@ -650,7 +657,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 8 个字节的 value
+	 * 写入8字节double，使用buffer当前字节序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param value  数据
@@ -660,7 +667,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 8 个字节的 value，小端模式
+	 * 写入8字节double，小端序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param value  数据
@@ -670,7 +677,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 写出 8 个字节的 value，大端模式
+	 * 写入8字节double，大端序
 	 *
 	 * @param buffer ByteBuffer
 	 * @param value  数据
@@ -680,11 +687,11 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * skip bytes
+	 * 跳过指定字节数，移动 position
 	 *
 	 * @param buffer ByteBuffer
-	 * @param skip   skip bytes
-	 * @return ByteBuffer
+	 * @param skip   要跳过的字节数
+	 * @return buffer 自身
 	 */
 	public static ByteBuffer skipBytes(ByteBuffer buffer, int skip) {
 		buffer.position(buffer.position() + skip);
@@ -692,31 +699,29 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 组合两个 bytebuffer，把可读部分的组合成一个新的 bytebuffer
+	 * 组合两个 ByteBuffer 的可读部分为一个新的 ByteBuffer
 	 *
-	 * @param byteBuffer1 ByteBuffer
-	 * @param byteBuffer2 ByteBuffer
-	 * @return ByteBuffer
+	 * @param byteBuffer1 第一个 ByteBuffer
+	 * @param byteBuffer2 第二个B yteBuffer
+	 * @return 组合后的新 ByteBuffer
 	 */
 	public static ByteBuffer composite(ByteBuffer byteBuffer1, ByteBuffer byteBuffer2) {
 		int capacity = byteBuffer1.remaining() + byteBuffer2.remaining();
 		ByteBuffer ret = ByteBuffer.allocate(capacity);
 		ret.put(byteBuffer1);
 		ret.put(byteBuffer2);
-		ret.position(0);
-		ret.limit(ret.capacity());
+		ret.rewind();
 		return ret;
 	}
 
 	/**
-	 * ByteBuffer clone
+	 * 克隆ByteBuffer，复制整个capacity的数据
 	 *
-	 * @param original ByteBuffer
-	 * @return ByteBuffer
+	 * @param original 原ByteBuffer
+	 * @return 新的ByteBuffer（堆缓冲区）
 	 */
 	public static ByteBuffer clone(ByteBuffer original) {
 		ByteBuffer clone = ByteBuffer.allocate(original.capacity());
-		// copy from the beginning
 		original.rewind();
 		clone.put(original);
 		original.rewind();
@@ -725,21 +730,45 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * @param src            ByteBuffer
-	 * @param srcStartIndex  srcStartIndex
-	 * @param dest           ByteBuffer
-	 * @param destStartIndex destStartIndex
-	 * @param length         length
+	 * 从源ByteBuffer复制指定区间到目标ByteBuffer
+	 * <p>
+	 * 自动处理堆缓冲区和直接缓冲区，不改变两个buffer的position和limit。
+	 *
+	 * @param src           源ByteBuffer
+	 * @param srcStartIndex 源起始索引（从0开始）
+	 * @param dst           目标ByteBuffer
+	 * @param dstStartIndex 目标起始索引
+	 * @param length        复制长度
 	 */
-	public static void copy(ByteBuffer src, int srcStartIndex, ByteBuffer dest, int destStartIndex, int length) {
-		System.arraycopy(src.array(), srcStartIndex, dest.array(), destStartIndex, length);
+	public static void copy(ByteBuffer src, int srcStartIndex, ByteBuffer dst, int dstStartIndex, int length) {
+		if (src.hasArray() && dst.hasArray()) {
+			// 堆缓冲区：直接使用System.arraycopy高效复制
+			System.arraycopy(src.array(), src.arrayOffset() + srcStartIndex, dst.array(), dst.arrayOffset() + dstStartIndex, length);
+		} else {
+			// 直接缓冲区：使用slice避免改变原buffer的position/limit
+			int oriSrcPos = src.position();
+			int oriSrcLim = src.limit();
+			int oriDstPos = dst.position();
+			src.position(srcStartIndex);
+			ByteBuffer srcSlice = src.slice();
+			srcSlice.limit(length);
+			src.position(oriSrcPos);
+			src.limit(oriSrcLim);
+			dst.position(dstStartIndex);
+			dst.put(srcSlice);
+			dst.position(oriDstPos);
+		}
 	}
 
 	/**
-	 * @param src        本方法不会改变position等指针变量
-	 * @param startIndex 从0开始
-	 * @param endIndex   endIndex
-	 * @return ByteBuffer
+	 * 复制ByteBuffer指定区间的数据到新缓冲区
+	 * <p>
+	 * 不改变原buffer的position和limit。
+	 *
+	 * @param src        源ByteBuffer
+	 * @param startIndex 起始索引（从0开始）
+	 * @param endIndex   结束索引
+	 * @return 新的ByteBuffer（堆缓冲区）
 	 */
 	public static ByteBuffer copy(ByteBuffer src, int startIndex, int endIndex) {
 		int size = endIndex - startIndex;
@@ -758,8 +787,12 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * @param src 本方法不会改变position等指针变量
-	 * @return ByteBuffer
+	 * 复制ByteBuffer remaining区间的数据到新缓冲区
+	 * <p>
+	 * 不改变原buffer的position和limit。
+	 *
+	 * @param src 源ByteBuffer
+	 * @return 新的ByteBuffer（堆缓冲区）
 	 */
 	public static ByteBuffer copy(ByteBuffer src) {
 		int startIndex = src.position();
@@ -768,26 +801,34 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * @param src      ByteBuffer
+	 * 将ByteBuffer按指定单元大小拆分成多个ByteBuffer
+	 * <p>
+	 * 常用于拆包操作。
+	 *
+	 * @param src      源ByteBuffer
 	 * @param unitSize 每个单元的大小
-	 * @return 如果不需要拆分，则返回null
+	 * @return 拆分后的ByteBuffer数组，如果不需要拆分则返回null
 	 */
 	public static ByteBuffer[] split(ByteBuffer src, int unitSize) {
 		int limit = src.limit();
 		if (unitSize >= limit) {
 			return null;
 		}
-		int size = (int) (Math.ceil((double) src.limit() / (double) unitSize));
+		int size = (int) Math.ceil((double) limit / unitSize);
 		ByteBuffer[] ret = new ByteBuffer[size];
 		int srcIndex = 0;
 		for (int i = 0; i < size; i++) {
 			int bufferSize = unitSize;
+			// 最后一组可能小于unitSize
 			if (i == size - 1) {
-				bufferSize = src.limit() % unitSize;
+				bufferSize = src.remaining() % unitSize;
+				if (bufferSize == 0) {
+					bufferSize = unitSize;
+				}
 			}
 			byte[] dest = new byte[bufferSize];
 			System.arraycopy(src.array(), srcIndex, dest, 0, dest.length);
-			srcIndex = srcIndex + bufferSize;
+			srcIndex += bufferSize;
 
 			ret[i] = ByteBuffer.wrap(dest);
 			ret[i].position(0);
@@ -797,21 +838,26 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * 查找行结束位置（\n或\r\n）
+	 *
 	 * @param buffer ByteBuffer
-	 * @return index
+	 * @return 行结束索引，未找到返回-1
 	 */
 	public static int lineEnd(ByteBuffer buffer) {
 		return lineEnd(buffer, Integer.MAX_VALUE);
 	}
 
 	/**
+	 * 查找行结束位置（\n或\r\n），限制最大搜索长度
+	 *
 	 * @param buffer    ByteBuffer
-	 * @param maxLength maxLength
-	 * @return index
+	 * @param maxLength 最大搜索长度
+	 * @return 行结束索引，未找到返回-1
 	 */
 	public static int lineEnd(ByteBuffer buffer, int maxLength) {
 		int initPosition = buffer.position();
 		int endPosition = indexOf(buffer, '\n', maxLength);
+		// 处理\r\n情况
 		if ((endPosition - initPosition > 0) && (buffer.get(endPosition - 1) == '\r')) {
 			return endPosition - 1;
 		}
@@ -819,13 +865,18 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * @param buffer    position会被移动
-	 * @param theChar   结束
-	 * @param maxLength maxLength
-	 * @return index
+	 * 在ByteBuffer中查找指定字符的位置
+	 * <p>
+	 * 会改变buffer的position。查找范围受maxLength限制。
+	 *
+	 * @param buffer    ByteBuffer（position会被移动）
+	 * @param theChar   要查找的字符
+	 * @param maxLength 最大搜索长度
+	 * @return 字符位置，未找到返回-1；超过maxLength抛出IndexOutOfBoundsException
 	 */
 	public static int indexOf(ByteBuffer buffer, char theChar, int maxLength) {
 		int count = 0;
+		// 只有remaining超过maxLength时才限制
 		boolean needJudgeLengthOverflow = buffer.remaining() > maxLength;
 		while (buffer.hasRemaining()) {
 			if (buffer.get() == theChar) {
@@ -833,7 +884,7 @@ public class ByteBufferUtil {
 			}
 			if (needJudgeLengthOverflow) {
 				count++;
-				if (count > maxLength) {
+				if (count >= maxLength) {
 					throw new IndexOutOfBoundsException("maxlength is " + maxLength);
 				}
 			}
@@ -842,21 +893,23 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 读取一行
+	 * 读取一行（默认UTF-8编码）
 	 *
 	 * @param buffer  ByteBuffer
-	 * @param charset Charset
-	 * @return String
+	 * @param charset 字符编码
+	 * @return 行字符串，未找到行尾返回null
 	 */
 	public static String readLine(ByteBuffer buffer, Charset charset) {
 		return readLine(buffer, charset, Integer.MAX_VALUE);
 	}
 
 	/**
+	 * 读取一行，限制最大长度
+	 *
 	 * @param buffer    ByteBuffer
-	 * @param charset   Charset
-	 * @param maxLength maxLength
-	 * @return String
+	 * @param charset   字符编码
+	 * @param maxLength 最大读取长度
+	 * @return 行字符串，未找到行尾返回null
 	 */
 	public static String readLine(ByteBuffer buffer, Charset charset, int maxLength) {
 		int startPosition = buffer.position();
@@ -882,23 +935,23 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 读取字符串
+	 * 读取指定长度的字符串（默认UTF-8编码）
 	 *
 	 * @param buffer ByteBuffer
-	 * @param count  count
-	 * @return String
+	 * @param count  字节长度
+	 * @return 字符串
 	 */
 	public static String readString(ByteBuffer buffer, int count) {
 		return readString(buffer, count, StandardCharsets.UTF_8);
 	}
 
 	/**
-	 * 读取字符串
+	 * 读取指定长度和编码的字符串
 	 *
 	 * @param buffer  ByteBuffer
-	 * @param count   count
-	 * @param charset Charset
-	 * @return String
+	 * @param count   字节长度
+	 * @param charset 字符编码
+	 * @return 字符串
 	 */
 	public static String readString(ByteBuffer buffer, int count, Charset charset) {
 		byte[] bytes = new byte[count];
@@ -907,11 +960,13 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * 读取到指定字符为止的字符串
+	 *
 	 * @param buffer    ByteBuffer
-	 * @param charset   Charset
-	 * @param endChar   endChar
-	 * @param maxLength maxLength
-	 * @return String
+	 * @param charset   字符编码
+	 * @param endChar   结束字符
+	 * @param maxLength 最大读取长度
+	 * @return 字符串，未找到结束字符返回null
 	 */
 	public static String readString(ByteBuffer buffer, Charset charset, char endChar, int maxLength) {
 		int startPosition = buffer.position();
@@ -937,7 +992,7 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 转成 string，读取 ByteBuffer 所有数据
+	 * 将ByteBuffer remaining区间转为字符串（默认UTF-8编码）
 	 *
 	 * @param buffer ByteBuffer
 	 * @return 字符串
@@ -947,10 +1002,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 转成 string，读取 ByteBuffer 所有数据
+	 * 将ByteBuffer remaining区间转为指定编码的字符串
 	 *
 	 * @param buffer  ByteBuffer
-	 * @param charset Charset
+	 * @param charset 字符编码
 	 * @return 字符串
 	 */
 	public static String toString(ByteBuffer buffer, Charset charset) {
@@ -958,9 +1013,9 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 转成 string
+	 * 将byte数组转为字符串（默认UTF-8编码）
 	 *
-	 * @param buffer ByteBuffer
+	 * @param buffer byte数组
 	 * @return 字符串
 	 */
 	public static String toString(byte[] buffer) {
@@ -968,10 +1023,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 转成 string
+	 * 将byte数组转为指定编码的字符串
 	 *
-	 * @param buffer  ByteBuffer
-	 * @param charset Charset
+	 * @param buffer  byte数组
+	 * @param charset 字符编码
 	 * @return 字符串
 	 */
 	public static String toString(byte[] buffer, Charset charset) {
@@ -979,20 +1034,22 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 以16进制 打印 ByteBuffer
+	 * 以十六进制格式打印ByteBuffer
+	 * <p>
+	 * 不消耗buffer的position。
 	 *
 	 * @param byteBuffer ByteBuffer
-	 * @return hex String
+	 * @return 十六进制字符串
 	 */
 	public static String hexDump(ByteBuffer byteBuffer) {
 		return toHexString(toArray(byteBuffer));
 	}
 
 	/**
-	 * 以16进制 打印字节数组
+	 * 以十六进制格式打印字节数组
 	 *
-	 * @param bytes byte[]
-	 * @return hex String
+	 * @param bytes byte数组
+	 * @return 十六进制字符串
 	 */
 	public static String toHexString(final byte[] bytes) {
 		final StringBuilder buffer = new StringBuilder(bytes.length);
@@ -1019,6 +1076,7 @@ public class ByteBufferUtil {
 					buffer.append(' ');
 			}
 		}
+		// 最后一行不足16字节时的填充
 		if (column != 15) {
 			for (int i = 0; i < 15 - column; i++) {
 				buffer.append("   ");
@@ -1031,12 +1089,12 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 过滤掉字节数组中0x0 - 0x1F的控制字符，生成字符串
+	 * 过滤控制字符，将0x00-0x1F范围内的字节替换为'.'（0x2E）
 	 *
-	 * @param bytes  byte[]
-	 * @param offset int
-	 * @param count  int
-	 * @return String
+	 * @param bytes  byte数组
+	 * @param offset 起始偏移
+	 * @param count  字节数
+	 * @return 过滤后的字符串
 	 */
 	private static String filterString(final byte[] bytes, final int offset, final int count) {
 		final byte[] buffer = new byte[count];
@@ -1050,10 +1108,10 @@ public class ByteBufferUtil {
 	}
 
 	/**
-	 * 将hexStr格式化成length长度16进制数，并在后边加上h
+	 * 格式化十六进制字符串，补零到8位并加'h'后缀
 	 *
-	 * @param hexStr String
-	 * @return String
+	 * @param hexStr 十六进制字符串
+	 * @return 格式化后的字符串，如"0000001Ah"
 	 */
 	private static String fixHexString(final String hexStr) {
 		if (hexStr == null || hexStr.isEmpty()) {

@@ -239,4 +239,62 @@ class ByteBufferUtilTest {
 		Assertions.assertEquals("hello", str);
 	}
 
+	@Test
+	void testCopyHeapBuffer() {
+		// 堆缓冲区 copy 测试
+		byte[] srcData = "hello world".getBytes(StandardCharsets.UTF_8);
+		ByteBuffer src = ByteBuffer.allocate(100);
+		src.put(srcData);
+
+		ByteBuffer dst = ByteBuffer.allocate(100);
+		ByteBufferUtil.copy(src, 0, dst, 0, 5);
+
+		dst.position(0);
+		dst.limit(5);
+		Assertions.assertEquals("hello", ByteBufferUtil.toString(dst, StandardCharsets.UTF_8));
+	}
+
+	@Test
+	void testCopyDirectBuffer() {
+		// 直接缓冲区 copy 测试
+		byte[] srcData = "hello world".getBytes(StandardCharsets.UTF_8);
+		ByteBuffer src = ByteBuffer.allocateDirect(100);
+		src.put(srcData);
+
+		ByteBuffer dest = ByteBuffer.allocateDirect(100);
+		ByteBufferUtil.copy(src, 0, dest, 0, 5);
+
+		dest.position(0);
+		dest.limit(5);
+		Assertions.assertEquals("hello", ByteBufferUtil.toString(dest, StandardCharsets.UTF_8));
+	}
+
+	@Test
+	void testIndexOfFound() {
+		// 找到字符的情况
+		byte[] data = "hello world".getBytes(StandardCharsets.UTF_8);
+		ByteBuffer buffer = ByteBuffer.wrap(data);
+		Assertions.assertEquals(4, ByteBufferUtil.indexOf(buffer, 'o', 20));
+	}
+
+	@Test
+	void testIndexOfNotFoundWithinLimit() {
+		// 在 maxLength 内未找到，抛出异常
+		byte[] data = "hello world".getBytes(StandardCharsets.UTF_8);
+		ByteBuffer buffer = ByteBuffer.wrap(data);
+		Assertions.assertThrows(IndexOutOfBoundsException.class, () -> {
+			ByteBufferUtil.indexOf(buffer, 'x', 5); // 只搜索前5个字节
+		});
+	}
+
+	@Test
+	void testIndexOfNotFoundWithinRemaining() {
+		// remaining < maxLength，未找到返回-1
+		byte[] data = "hello world".getBytes(StandardCharsets.UTF_8);
+		ByteBuffer buffer = ByteBuffer.wrap(data);
+		buffer.position(0);
+		buffer.limit(5); // 只读前5个字节
+		Assertions.assertEquals(-1, ByteBufferUtil.indexOf(buffer, 'x', 100)); // maxLength > remaining
+	}
+
 }
