@@ -187,7 +187,7 @@ public class McpServer {
 	 * @throws IllegalArgumentException if tool or handler is null
 	 */
 	public McpServer toolStream(McpTool tool,
-						  BiFunction<McpServerSession, Map<String, Object>, Iterator<McpContent>> handler) {
+								BiFunction<McpServerSession, Map<String, Object>, Iterator<McpContent>> handler) {
 		Objects.requireNonNull(tool, "Tool must not be null");
 		Objects.requireNonNull(handler, "Handler must not be null");
 		this.tools.add(McpToolSpecification.ofStream(tool, handler));
@@ -478,12 +478,33 @@ public class McpServer {
 	}
 
 	/**
+	 * 使用 SSE 传输层（便捷方法）
+	 *
+	 * @param sseEndpoint     sseEndpoint
+	 * @param messageEndpoint messageEndpoint
+	 * @return this
+	 */
+	public McpServer useSseTransport(String sseEndpoint, String messageEndpoint) {
+		return useTransport(new SseTransport(this, sseEndpoint, messageEndpoint));
+	}
+
+	/**
 	 * 使用 Streamable HTTP 传输层（便捷方法）
 	 *
 	 * @return this
 	 */
 	public McpServer useStreamableTransport() {
 		return useTransport(new StreamableHttpTransport(this));
+	}
+
+	/**
+	 * 使用 Streamable HTTP 传输层（便捷方法）
+	 *
+	 * @param endpoint endpoint
+	 * @return this
+	 */
+	public McpServer useStreamableTransport(String endpoint) {
+		return useTransport(new StreamableHttpTransport(this, endpoint));
 	}
 
 	/**
