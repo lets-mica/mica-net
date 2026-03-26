@@ -277,9 +277,11 @@ public class HttpMultiBodyDecoder {
 		} catch (LengthOverflowException loe) {
 			throw new TioDecodeException(loe);
 		} finally {
-			long end = System.currentTimeMillis();
-			long iv = end - start;
-			log.info("解析耗时:{}ms", iv);
+			if (log.isDebugEnabled()) {
+				long end = System.currentTimeMillis();
+				long iv = end - start;
+				log.debug("解析耗时:{}ms", iv);
+			}
 		}
 
 	}
@@ -310,8 +312,11 @@ public class HttpMultiBodyDecoder {
 			if (isBoundary || isEndBoundary) {
 				int endIndex = buffer.position() - lineByteLength - 2 - 2;
 				int length = endIndex - initPosition;
-				byte[] dst = new byte[length];
-				System.arraycopy(buffer.array(), initPosition, dst, 0, length);
+				int oriPos = buffer.position();
+				buffer.position(initPosition);
+				buffer.limit(endIndex);
+				byte[] dst = ByteBufferUtil.toArray(buffer);
+				buffer.position(oriPos);
 				String filename = header.getFilename();
 				// 该字段类型是file
 				if (filename != null) {
@@ -377,11 +382,11 @@ public class HttpMultiBodyDecoder {
 				String key = line.substring(0, colonIndex).trim().toLowerCase();
 				String value = line.substring(colonIndex + 1, endIndex).trim();
 
-				if (key.equals(MultiBodyHeaderKey.Content_Disposition)) {
+				if (MultiBodyHeaderKey.Content_Disposition.equals(key)) {
 					contentDisposition = value;
 					name = HttpParseUtils.getSubAttribute(value, "name");
 					filename = HttpParseUtils.getSubAttribute(value, "filename");
-				} else if (key.equals(MultiBodyHeaderKey.Content_Type)) {
+				} else if (MultiBodyHeaderKey.Content_Type.equals(key)) {
 					contentType = value;
 				}
 			}
