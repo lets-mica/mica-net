@@ -48,6 +48,9 @@ public class DefaultTimerTaskService implements TimerTaskService {
 
 	@Override
 	public <T extends TimerTask> T add(T timerTask) {
+		if (!started.get()) {
+			return timerTask;
+		}
 		this.systemTimer.add(timerTask);
 		return timerTask;
 	}
@@ -67,9 +70,10 @@ public class DefaultTimerTaskService implements TimerTaskService {
 
 	@Override
 	public void stop() {
-		started.set(false);
-		timingWheelThread.shutdown();
+		// 先关闭线程池，防止新任务加入
 		systemTimer.shutdown();
+		timingWheelThread.shutdown();
+		started.set(false);
 	}
 
 }

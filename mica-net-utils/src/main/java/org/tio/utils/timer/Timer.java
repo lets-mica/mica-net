@@ -38,8 +38,9 @@ public interface Timer {
 	 *
 	 * @param timeoutMs timeoutMs
 	 * @return whether any tasks were executed
+	 * @throws InterruptedException if interrupted during poll
 	 */
-	boolean advanceClock(long timeoutMs);
+	boolean advanceClock(long timeoutMs) throws InterruptedException;
 
 	/**
 	 * 取得待执行的任务数量

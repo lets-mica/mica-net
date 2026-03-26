@@ -88,15 +88,9 @@ public class SystemTimer implements Timer, Consumer<TimerTaskEntry> {
 	}
 
 	@Override
-	public boolean advanceClock(long timeoutMs) {
+	public boolean advanceClock(long timeoutMs) throws InterruptedException {
 		TimerTaskList bucket;
-		try {
-			bucket = delayQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			logger.error(e.getMessage(), e);
-			return false;
-		}
+		bucket = delayQueue.poll(timeoutMs, TimeUnit.MILLISECONDS);
 		if (bucket == null) {
 			return false;
 		}
@@ -128,7 +122,7 @@ public class SystemTimer implements Timer, Consumer<TimerTaskEntry> {
 			logger.error(e1.getMessage(), e1);
 		}
 		try {
-			taskExecutor.awaitTermination(6000, TimeUnit.SECONDS);
+			taskExecutor.awaitTermination(10, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			logger.error(e.getMessage(), e);
@@ -139,7 +133,7 @@ public class SystemTimer implements Timer, Consumer<TimerTaskEntry> {
 		// 尝试将任务加入时间轮
 		if (!timingWheel.add(timerTaskEntry)) {
 			// 任务过期则执行任务，仅当 任务已经过期 或者 任务主动取消 才会进入此分支
-			if (!timerTaskEntry.cancelled()) {
+			if (!timerTaskEntry.cancelled() && !taskExecutor.isShutdown()) {
 				taskExecutor.submit(timerTaskEntry.getTimerTask());
 			}
 		}

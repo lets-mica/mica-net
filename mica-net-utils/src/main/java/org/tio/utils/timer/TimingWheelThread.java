@@ -62,11 +62,13 @@ public class TimingWheelThread extends Thread {
 		log.info("Starting");
 		try {
 			while (isRunning()) {
-				timer.advanceClock(workTimeoutMs);
-			}
-		} catch (Exception e) {
-			if (isRunning()) {
-				log.error("Error due to", e);
+				try {
+					timer.advanceClock(workTimeoutMs);
+				} catch (InterruptedException e) {
+					// interrupt 来自 shutdown，退出循环
+					Thread.currentThread().interrupt();
+					break;
+				}
 			}
 		} finally {
 			shutdownComplete.countDown();
