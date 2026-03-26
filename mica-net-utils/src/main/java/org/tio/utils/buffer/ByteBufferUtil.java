@@ -73,6 +73,26 @@ public class ByteBufferUtil {
 	}
 
 	/**
+	 * 读取 ByteBuffer remaining 区间的字节数组，不消耗 position
+	 *
+	 * @param buffer ByteBuffer
+	 * @return byte array
+	 */
+	public static byte[] toArray(ByteBuffer buffer) {
+		int position = buffer.position();
+		int limit = buffer.limit();
+		int remaining = limit - position;
+		if (buffer.hasArray()) {
+			return Arrays.copyOfRange(buffer.array(), buffer.arrayOffset() + position, buffer.arrayOffset() + limit);
+		} else {
+			byte[] data = new byte[remaining];
+			buffer.get(data);
+			buffer.position(position);
+			return data;
+		}
+	}
+
+	/**
 	 * 读取 short
 	 *
 	 * @param buffer ByteBuffer
@@ -89,11 +109,7 @@ public class ByteBufferUtil {
 	 * @return short
 	 */
 	public static short readShortLE(ByteBuffer buffer) {
-		byte[] value = new byte[2];
-		buffer.get(value, 0, 2);
-		short ret = value[0];
-		ret |= (short) ((value[1] & 0xff) << 8);
-		return ret;
+		return (short) ((buffer.get() & 0xFF) | ((buffer.get() & 0xFF) << 8));
 	}
 
 	/**
@@ -103,11 +119,7 @@ public class ByteBufferUtil {
 	 * @return short
 	 */
 	public static short readShortBE(ByteBuffer buffer) {
-		byte[] value = new byte[2];
-		buffer.get(value, 0, 2);
-		short ret = (short) ((value[0]) << 8);
-		ret |= (short) (value[1] & 0xff);
-		return ret;
+		return (short) (((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF));
 	}
 
 	/**
@@ -214,12 +226,7 @@ public class ByteBufferUtil {
 	 * @return int
 	 */
 	public static int readUnsignedMediumLE(ByteBuffer buffer) {
-		byte[] value = new byte[3];
-		buffer.get(value, 0, 3);
-		int ret = value[0] & 0xff;
-		ret |= (value[1] & 0xff) << 8;
-		ret |= (value[2] & 0xff) << 16;
-		return ret;
+		return (buffer.get() & 0xFF) | ((buffer.get() & 0xFF) << 8) | ((buffer.get() & 0xFF) << 16);
 	}
 
 	/**
@@ -229,12 +236,7 @@ public class ByteBufferUtil {
 	 * @return int
 	 */
 	public static int readUnsignedMediumBE(ByteBuffer buffer) {
-		byte[] value = new byte[3];
-		buffer.get(value, 0, 3);
-		int ret = (value[0] & 0xff) << 16;
-		ret |= (value[1] & 0xff) << 8;
-		ret |= value[2] & 0xff;
-		return ret;
+		return ((buffer.get() & 0xFF) << 16) | ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
 	}
 
 	/**
@@ -254,13 +256,10 @@ public class ByteBufferUtil {
 	 * @return int
 	 */
 	public static int readIntLE(ByteBuffer buffer) {
-		byte[] value = new byte[4];
-		buffer.get(value, 0, 4);
-		int ret = value[0] & 0xff;
-		ret |= (value[1] & 0xff) << 8;
-		ret |= (value[2] & 0xff) << 16;
-		ret |= value[3] << 24;
-		return ret;
+		return (buffer.get() & 0xFF) |
+			((buffer.get() & 0xFF) << 8) |
+			((buffer.get() & 0xFF) << 16) |
+			((buffer.get() & 0xFF) << 24);
 	}
 
 	/**
@@ -270,13 +269,10 @@ public class ByteBufferUtil {
 	 * @return int
 	 */
 	public static int readIntBE(ByteBuffer buffer) {
-		byte[] value = new byte[4];
-		buffer.get(value, 0, 4);
-		int ret = value[0] << 24;
-		ret |= (value[1] & 0xff) << 16;
-		ret |= (value[2] & 0xff) << 8;
-		ret |= value[3] & 0xff;
-		return ret;
+		return ((buffer.get() & 0xFF) << 24) |
+			((buffer.get() & 0xFF) << 16) |
+			((buffer.get() & 0xFF) << 8) |
+			(buffer.get() & 0xFF);
 	}
 
 	/**
@@ -546,11 +542,9 @@ public class ByteBufferUtil {
 	 * @param i      数据
 	 */
 	public static void writeMediumLE(ByteBuffer buffer, int i) {
-		byte[] value = new byte[3];
-		value[0] = (byte) (i);
-		value[1] = (byte) (i >>> 8);
-		value[2] = (byte) (i >>> 16);
-		buffer.put(value, 0, 3);
+		buffer.put((byte) i);
+		buffer.put((byte) (i >> 8));
+		buffer.put((byte) (i >> 16));
 	}
 
 	/**
@@ -560,11 +554,9 @@ public class ByteBufferUtil {
 	 * @param i      数据
 	 */
 	public static void writeMediumBE(ByteBuffer buffer, int i) {
-		byte[] value = new byte[3];
-		value[0] = (byte) (i >>> 16);
-		value[1] = (byte) (i >>> 8);
-		value[2] = (byte) (i);
-		buffer.put(value, 0, 3);
+		buffer.put((byte) (i >> 16));
+		buffer.put((byte) (i >> 8));
+		buffer.put((byte) i);
 	}
 
 	/**
@@ -962,7 +954,7 @@ public class ByteBufferUtil {
 	 * @return 字符串
 	 */
 	public static String toString(ByteBuffer buffer, Charset charset) {
-		return new String(buffer.array(), charset);
+		return new String(toArray(buffer), charset);
 	}
 
 	/**
@@ -993,8 +985,7 @@ public class ByteBufferUtil {
 	 * @return hex String
 	 */
 	public static String hexDump(ByteBuffer byteBuffer) {
-		byte[] data = Arrays.copyOf(byteBuffer.array(), byteBuffer.remaining());
-		return toHexString(data);
+		return toHexString(toArray(byteBuffer));
 	}
 
 	/**

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * ByteBufferUtil 单元测试
@@ -104,6 +105,28 @@ class ByteBufferUtilTest {
 	}
 
 	@Test
+	void testMediumSignedLE() {
+		// 有符号medium，小端 -1
+		int value = -1;
+		ByteBuffer buffer = ByteBuffer.allocate(3);
+		ByteBufferUtil.writeMediumLE(buffer, value);
+		buffer.flip();
+		int result = ByteBufferUtil.readMediumLE(buffer);
+		Assertions.assertEquals(value, result);
+	}
+
+	@Test
+	void testMediumSignedBE() {
+		// 有符号medium，大端 -1
+		int value = -1;
+		ByteBuffer buffer = ByteBuffer.allocate(3);
+		ByteBufferUtil.writeMediumBE(buffer, value);
+		buffer.flip();
+		int result = ByteBufferUtil.readMediumBE(buffer);
+		Assertions.assertEquals(value, result);
+	}
+
+	@Test
 	void testInt() {
 		long value = 4294967295L;
 		ByteBuffer buffer = ByteBuffer.allocate(12);
@@ -142,6 +165,78 @@ class ByteBufferUtilTest {
 		buffer.flip();
 		long byteLE = ByteBufferUtil.readUnsignedNByteLE(buffer, 4);
 		Assertions.assertEquals(test, byteLE);
+	}
+
+	@Test
+	void testHexDumpHeapBuffer() {
+		// 堆缓冲区测试：hexDump不消耗position
+		byte[] data = "hello world".getBytes(StandardCharsets.UTF_8);
+		ByteBuffer buffer = ByteBuffer.allocate(100);
+		buffer.position(10);
+		buffer.put(data);
+		buffer.position(10);
+		buffer.limit(10 + data.length);
+
+		int posBefore = buffer.position();
+		int limitBefore = buffer.limit();
+		String hex = ByteBufferUtil.hexDump(buffer);
+		Assertions.assertEquals(posBefore, buffer.position());
+		Assertions.assertEquals(limitBefore, buffer.limit());
+		Assertions.assertTrue(hex.contains("68 65 6c 6c 6f")); // "hello" hex
+	}
+
+	@Test
+	void testHexDumpDirectBuffer() {
+		// 直接缓冲区测试：hexDump不消耗position
+		byte[] data = "hello".getBytes(StandardCharsets.UTF_8);
+		ByteBuffer buffer = ByteBuffer.allocateDirect(100);
+		buffer.position(10);
+		buffer.put(data);
+		buffer.position(10);
+		buffer.limit(10 + data.length);
+
+		int posBefore = buffer.position();
+		int limitBefore = buffer.limit();
+		String hex = ByteBufferUtil.hexDump(buffer);
+		Assertions.assertEquals(posBefore, buffer.position());
+		Assertions.assertEquals(limitBefore, buffer.limit());
+		Assertions.assertTrue(hex.contains("68 65 6c 6c 6f"));
+	}
+
+	@Test
+	void testToStringHeapBuffer() {
+		// 堆缓冲区测试：toString不消耗position
+		byte[] data = "hello".getBytes(StandardCharsets.UTF_8);
+		ByteBuffer buffer = ByteBuffer.allocate(100);
+		buffer.position(5);
+		buffer.put(data);
+		buffer.position(5);
+		buffer.limit(5 + data.length);
+
+		int posBefore = buffer.position();
+		int limitBefore = buffer.limit();
+		String str = ByteBufferUtil.toString(buffer, StandardCharsets.UTF_8);
+		Assertions.assertEquals(posBefore, buffer.position());
+		Assertions.assertEquals(limitBefore, buffer.limit());
+		Assertions.assertEquals("hello", str);
+	}
+
+	@Test
+	void testToStringDirectBuffer() {
+		// 直接缓冲区测试：toString不消耗position
+		byte[] data = "hello".getBytes(StandardCharsets.UTF_8);
+		ByteBuffer buffer = ByteBuffer.allocateDirect(100);
+		buffer.position(5);
+		buffer.put(data);
+		buffer.position(5);
+		buffer.limit(5 + data.length);
+
+		int posBefore = buffer.position();
+		int limitBefore = buffer.limit();
+		String str = ByteBufferUtil.toString(buffer, StandardCharsets.UTF_8);
+		Assertions.assertEquals(posBefore, buffer.position());
+		Assertions.assertEquals(limitBefore, buffer.limit());
+		Assertions.assertEquals("hello", str);
 	}
 
 }
