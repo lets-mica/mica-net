@@ -77,10 +77,9 @@ public class SseTransport implements McpTransport {
 	/**
 	 * 处理 SSE 连接（GET /sse）
 	 */
-	private HttpResponse handleSseConnection(HttpRequest request) {
+	public HttpResponse handleSseConnection(HttpRequest request) {
 		HttpResponse httpResponse = new HttpResponse(request);
 		HttpStream stream = httpResponse.startSse(request);
-
 		httpResponse.setPacketListener((context, packet, isSentSuccess) -> {
 			if (isSentSuccess) {
 				String sessionId = StrUtil.getNanoId();
@@ -94,7 +93,7 @@ public class SseTransport implements McpTransport {
 	/**
 	 * 处理消息（POST /sse/message）
 	 */
-	private HttpResponse handleMessage(HttpRequest request) {
+	public HttpResponse handleMessage(HttpRequest request) {
 		String sessionId = request.getParam("sessionId");
 		HttpResponse response = new HttpResponse(request);
 

@@ -94,7 +94,7 @@ public class StreamableHttpTransport implements McpTransport {
 	/**
 	 * 处理 SSE 连接（GET /mcp）
 	 */
-	private HttpResponse handleSseConnection(HttpRequest request) {
+	public HttpResponse handleSseConnection(HttpRequest request) {
 		HttpResponse httpResponse = new HttpResponse(request);
 		HttpStream stream = httpResponse.startSse(request);
 
@@ -113,7 +113,7 @@ public class StreamableHttpTransport implements McpTransport {
 	/**
 	 * 处理 JSON-RPC 请求（POST /mcp）
 	 */
-	private HttpResponse handleJsonRpcRequest(HttpRequest request) {
+	public HttpResponse handleJsonRpcRequest(HttpRequest request) {
 		String sessionId = request.getParam("sessionId");
 		StreamableSession session = sessionId != null ? sessions.get(sessionId) : null;
 

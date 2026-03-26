@@ -11,6 +11,8 @@ import org.tio.http.jsonrpc.JsonRpcRequest;
 import org.tio.http.jsonrpc.JsonRpcResponse;
 import org.tio.http.mcp.schema.*;
 import org.tio.http.mcp.server.transport.McpTransport;
+import org.tio.http.mcp.server.transport.SseTransport;
+import org.tio.http.mcp.server.transport.StreamableHttpTransport;
 import org.tio.utils.hutool.StrUtil;
 import org.tio.utils.json.JsonUtil;
 
@@ -25,11 +27,6 @@ import java.util.function.BiFunction;
  */
 public class McpServer {
 	private static final Logger log = LoggerFactory.getLogger(McpServer.class);
-	/**
-	 * Event type for sending the message endpoint URI to clients.
-	 */
-	public static final String ENDPOINT_EVENT_TYPE = "endpoint";
-
 	/**
 	 * 默认的服务信息
 	 */
@@ -477,7 +474,7 @@ public class McpServer {
 	 * @return this
 	 */
 	public McpServer useSseTransport() {
-		return useTransport(new org.tio.http.mcp.server.transport.SseTransport(this));
+		return useTransport(new SseTransport(this));
 	}
 
 	/**
@@ -486,7 +483,7 @@ public class McpServer {
 	 * @return this
 	 */
 	public McpServer useStreamableTransport() {
-		return useTransport(new org.tio.http.mcp.server.transport.StreamableHttpTransport(this));
+		return useTransport(new StreamableHttpTransport(this));
 	}
 
 	/**
