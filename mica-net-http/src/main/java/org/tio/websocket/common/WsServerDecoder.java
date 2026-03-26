@@ -223,8 +223,6 @@ public class WsServerDecoder {
 		byte first = buf.get();
 		//		int b = first & 0xFF; //转换成32位
 		boolean fin = (first & 0x80) > 0; // 得到第8位 10000000>0
-		@SuppressWarnings("unused")
-		int rsv = (first & 0x70) >>> 4; // 得到5、6、7 为01110000 然后右移四位为00000111
 		byte opCodeByte = (byte) (first & 0x0F); // 后四位为opCode 00001111
 		Opcode opcode = Opcode.valueOf(opCodeByte);
 		if (opcode == Opcode.CLOSE) {
