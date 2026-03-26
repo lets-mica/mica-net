@@ -189,6 +189,13 @@ public class StreamableHttpTransport implements McpTransport {
 		return sessions.size();
 	}
 
+	@Override
+	public void sendHeartbeat() {
+		for (StreamableSession session : sessions.values()) {
+			session.sendHeartbeat();
+		}
+	}
+
 	/**
 	 * Streamable Session 管理
 	 */
@@ -207,6 +214,12 @@ public class StreamableHttpTransport implements McpTransport {
 
 		public HttpStream getStream() {
 			return stream;
+		}
+
+		public void sendHeartbeat() {
+			if (stream != null) {
+				stream.send(null, null, "heartbeat");
+			}
 		}
 	}
 

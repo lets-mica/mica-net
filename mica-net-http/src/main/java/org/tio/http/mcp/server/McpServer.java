@@ -519,6 +519,15 @@ public class McpServer {
 	}
 
 	/**
+	 * 向所有 transport 的所有 session 发送心跳
+	 */
+	public void sendHeartbeat() {
+		for (McpTransport transport : transports) {
+			transport.sendHeartbeat();
+		}
+	}
+
+	/**
 	 * Handles an incoming JSON-RPC request by routing it to the appropriate handler.
 	 *
 	 * @param session McpServerSession

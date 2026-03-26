@@ -24,4 +24,9 @@ public interface McpTransport {
 	 * @return 传输类型
 	 */
 	String getType();
+
+	/**
+	 * 向所有 session 发送心跳
+	 */
+	void sendHeartbeat();
 }

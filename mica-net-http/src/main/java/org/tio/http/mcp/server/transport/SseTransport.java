@@ -6,7 +6,6 @@ import org.tio.http.common.HttpRequest;
 import org.tio.http.common.HttpResponse;
 import org.tio.http.common.HttpResponseStatus;
 import org.tio.http.common.RequestLine;
-import org.tio.http.common.Method;
 import org.tio.http.common.stream.HttpStream;
 import org.tio.http.jsonrpc.JsonRpcMessage;
 import org.tio.http.jsonrpc.JsonRpcNotification;
@@ -37,7 +36,6 @@ public class SseTransport implements McpTransport {
 	public static final String TRANSPORT_TYPE = "sse";
 	public static final String DEFAULT_SSE_ENDPOINT = "/sse";
 	public static final String DEFAULT_MESSAGE_ENDPOINT = DEFAULT_SSE_ENDPOINT + "/message";
-	public static final String MESSAGE_EVENT_TYPE = "message";
 	public static final String ENDPOINT_EVENT_TYPE = "endpoint";
 
 	private final McpServer mcpServer;
@@ -153,5 +151,12 @@ public class SseTransport implements McpTransport {
 
 	public int getSessionCount() {
 		return sessions.size();
+	}
+
+	@Override
+	public void sendHeartbeat() {
+		for (McpServerSession session : sessions.values()) {
+			session.sendHeartbeat();
+		}
 	}
 }
