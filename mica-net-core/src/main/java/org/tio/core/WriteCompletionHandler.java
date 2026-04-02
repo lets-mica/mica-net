@@ -150,8 +150,8 @@
 	liable to You for damages, including any direct, indirect, special, incidental,
 	or consequential damages of any character arising as a result of this License or
 	out of the use or inability to use the Work (including but not limited to
-	damages for loss of goodwill, work stoppage, computer failure or malfunction, or
-	any and all other commercial damages or losses), even if such Contributor has
+	damages for loss of goodwill, work stoppage, computer failure or malfunction,
+	or any and all other commercial damages or losses), even if such Contributor has
 	been advised of the possibility of such damages.
 
 	9. Accepting Warranty or Additional Liability.
@@ -196,7 +196,6 @@ package org.tio.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext.CloseCode;
-import org.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import org.tio.core.intf.Packet;
 import org.tio.core.intf.Packet.Meta;
 import org.tio.core.tcp.TcpChannelContext;
@@ -205,50 +204,129 @@ import org.tio.core.tcp.TcpSendRunnable;
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
+ * TCP 异步写完成处理器（CompletionHandler）
+ *
+ * <p>统一处理单 buffer 和批量 scatter-write：
+ * <ul>
+ *   <li>所有写操作都通过 {@link java.nio.channels.AsynchronousSocketChannel#write(ByteBuffer[], int, int, long, java.util.concurrent.TimeUnit, Object, CompletionHandler)}
+ *        scatter-write API 发送，始终返回 {@code Long} 类型字节数</li>
+ *   <li>单包发送时也被包装为 {@code ByteBuffer[]{singleBuffer}}，与批量场景共用同一路径</li>
+ *   <li>scatter-write 续写：遍历找到首个仍有剩余数据的 buffer，构建剩余数组继续写入，避免切换到 {@code write(ByteBuffer)} 导致类型冲突</li>
+ * </ul>
+ *
+ * <p>与 JDK AIO 的类型冲突问题：
+ * <ul>
+ *   <li>{@code write(ByteBuffer)} 返回 {@code Integer}，对应 {@code CompletionHandler<Integer, A>}</li>
+ *   <li>{@code write(ByteBuffer[])} 返回 {@code Long}，对应 {@code CompletionHandler<Long, A>}</li>
+ *   <li>两者回调签名不同，无法用同一个 handler 兼容量产和续写</li>
+ *   <li>本实现统一使用 {@code write(ByteBuffer[])} 路径，续写也构建剩余 buffer 数组，保证始终为 {@code Long} 回调</li>
+ * </ul>
+ *
  * @author tanyaowu
  */
-public class WriteCompletionHandler implements CompletionHandler<Integer, WriteCompletionVo> {
+public class WriteCompletionHandler implements CompletionHandler<Long, WriteCompletionHandler.WriteCompletionVo> {
+	/** 日志 */
 	private static final Logger log = LoggerFactory.getLogger(WriteCompletionHandler.class);
+
+	/** 保护共享状态（attachment、统计信息） */
 	public final ReentrantLock lock = new ReentrantLock();
+
+	/** 配合 lock 使用，signal 后唤醒 {@link org.tio.core.tcp.TcpSendRunnable} 中等待的线程 */
 	public final Condition condition = lock.newCondition();
+
+	/** TCP 连接上下文 */
 	private final TcpChannelContext channelContext;
 
+	/**
+	 * 构造写完成处理器
+	 *
+	 * @param channelContext TCP 连接上下文
+	 */
 	public WriteCompletionHandler(TcpChannelContext channelContext) {
 		this.channelContext = channelContext;
 	}
 
+	/**
+	 * 异步写完成回调（由 JDK AIO 调用）
+	 *
+	 * <p>流程：
+	 * <ol>
+	 *   <li>更新最后发送时间（{@code latestTimeOfSentByte}）</li>
+	 *   <li>遍历 buffer 数组，找到首个 {@code hasRemaining()} 的 buffer</li>
+	 *   <li>若有剩余，构建剩余 buffer 子数组继续 scatter-write（始终走 {@code write(ByteBuffer[])} 保证 Long 回调）</li>
+	 *   <li>若所有 buffer 均无剩余，调用 {@link #handle(long, Throwable, WriteCompletionVo)} 完成统计和业务回调</li>
+	 * </ol>
+	 *
+	 * @param bytesWritten    写入字节数（{@code write(ByteBuffer[])} 返回 {@code Long}）
+	 * @param writeCompletionVo 写完成附加对象，包含 buffer 数组和业务附件
+	 */
 	@Override
-	public void completed(Integer bytesWritten, WriteCompletionVo writeCompletionVo) {
-		if (bytesWritten > 0) {
+	public void completed(Long bytesWritten, WriteCompletionVo writeCompletionVo) {
+		if (bytesWritten == null) {
+			bytesWritten = 0L;
+		}
+		long bytes = bytesWritten;
+		if (bytes > 0) {
 			channelContext.stat.latestTimeOfSentByte = System.currentTimeMillis();
 		}
-		if (writeCompletionVo.byteBuffer.hasRemaining()) {
-			if (log.isInfoEnabled()) {
-				log.info("{} {}/{} has sent", channelContext, writeCompletionVo.byteBuffer.position(), writeCompletionVo.byteBuffer.limit());
-			}
-			channelContext.asynchronousSocketChannel.write(writeCompletionVo.byteBuffer, writeCompletionVo, this);
-		} else {
-			handle(bytesWritten, null, writeCompletionVo);
-		}
-	}
 
-	@Override
-	public void failed(Throwable throwable, WriteCompletionVo writeCompletionVo) {
-		handle(0, throwable, writeCompletionVo);
+		// scatter-write 续写：找到第一个还有剩余数据的 buffer，继续用 write(ByteBuffer[]) 发送
+		ByteBuffer[] buffers = writeCompletionVo.buffers;
+		int startIndex = writeCompletionVo.index;
+		for (int i = startIndex; i < buffers.length; i++) {
+			if (buffers[i].hasRemaining()) {
+				writeCompletionVo.index = i;
+				if (log.isInfoEnabled()) {
+					log.info("{} gather write, buffer {}/{} has remaining {} bytes",
+						channelContext, i + 1, buffers.length, buffers[i].remaining());
+				}
+				// 构建剩余 buffer 数组继续 gather write，始终用 write(ByteBuffer[])
+				int remaining = buffers.length - i;
+				ByteBuffer[] remainingBuffers = new ByteBuffer[remaining];
+				System.arraycopy(buffers, i, remainingBuffers, 0, remaining);
+				channelContext.asynchronousSocketChannel.write(
+					remainingBuffers, 0, remainingBuffers.length,
+					0L, TimeUnit.MILLISECONDS,
+					writeCompletionVo, this);
+				return;
+			}
+		}
+		// 所有 buffer 都发送完毕
+		handle(bytes, null, writeCompletionVo);
 	}
 
 	/**
-	 * 处理
+	 * 异步写失败回调（由 JDK AIO 调用）
 	 *
-	 * @param bytesWritten      bytesWritten
-	 * @param throwable         throwable
-	 * @param writeCompletionVo writeCompletionVo
+	 * @param throwable         失败原因
+	 * @param writeCompletionVo 写完成附加对象
 	 */
-	public void handle(Integer bytesWritten, Throwable throwable, WriteCompletionVo writeCompletionVo) {
+	@Override
+	public void failed(Throwable throwable, WriteCompletionVo writeCompletionVo) {
+		handle(0L, throwable, writeCompletionVo);
+	}
+
+	/**
+	 * 处理写完成（统计 + 业务回调）
+	 *
+	 * <p>在持有 {@link #lock} 的前提下执行：
+	 * <ul>
+	 *   <li>signal {@link #condition}，唤醒 {@link org.tio.core.tcp.TcpSendRunnable} 中等待的线程</li>
+	 *   <li>更新统计：{@code latestTimeOfSentPacket}、{@code sentBytes}、{@code groupStat.sentBytes}</li>
+	 *   <li>写失败时关闭连接（{@link Tio#close(ChannelContext, Throwable, String, CloseCode)}）</li>
+	 *   <li>最后触发 {@link TcpSendRunnable#onWriteCompleted()}，继续发送后续消息</li>
+	 * </ul>
+	 *
+	 * @param bytesWritten      写入字节数（{@code > 0} 表示成功）
+	 * @param throwable         异常（{@code null} 表示成功）
+	 * @param writeCompletionVo 写完成附加对象
+	 */
+	public void handle(long bytesWritten, Throwable throwable, WriteCompletionVo writeCompletionVo) {
 		lock.lock();
 		try {
 			condition.signal();
@@ -260,7 +338,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 				channelContext.stat.latestTimeOfSentPacket = System.currentTimeMillis();
 				if (tioConfig.statOn) {
 					tioConfig.groupStat.sentBytes.add(bytesWritten);
-					channelContext.stat.sentBytes.addAndGet(bytesWritten);
+					channelContext.stat.sentBytes.addAndGet((int) bytesWritten);
 				}
 			}
 
@@ -288,12 +366,14 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 	}
 
 	/**
-	 * @param result        result
-	 * @param throwable     throwable
-	 * @param packet        packet
-	 * @param isSentSuccess isSentSuccess
+	 * 单个 packet 发送完成后的业务回调
+	 *
+	 * @param result        本次写入字节数（{@code handle(long, ...)} 中传入，与 {@code isSentSuccess} 配合使用）
+	 * @param throwable     异常（{@code null} 表示成功）
+	 * @param packet        已发送的 packet
+	 * @param isSentSuccess 本次发送是否成功（{@code > 0} 字节视为成功）
 	 */
-	public void handleOne(Integer result, Throwable throwable, Packet packet, boolean isSentSuccess) {
+	public void handleOne(long result, Throwable throwable, Packet packet, boolean isSentSuccess) {
 		Meta meta = packet.getMeta();
 		if (meta != null) {
 			meta.setSentSuccess(isSentSuccess);
@@ -305,19 +385,42 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 		}
 	}
 
+	/**
+	 * 写完成的附加对象（Attachment）
+	 *
+	 * <p>统一使用 {@code ByteBuffer[]} 支持 scatter-write：
+	 * <ul>
+	 *   <li>{@code buffers}：要发送的 ByteBuffer 数组，scatter-write 将依次写入每个 buffer 的内容</li>
+	 *   <li>{@code obj}：业务附件，通常为 {@link Packet} 或 {@code List<Packet>}</li>
+	 *   <li>{@code index}：scatter-write 续写时记录当前下标，避免重复遍历已完成的 buffer</li>
+	 * </ul>
+	 *
+	 * <p>单包发送时：{@code buffers = new ByteBuffer[]{singleBuffer}}
+	 * <p>批量发送时：{@code buffers = new ByteBuffer[]{buf1, buf2, buf3, ...}}
+	 */
 	public static class WriteCompletionVo {
-		private final ByteBuffer byteBuffer;
+		/** ByteBuffer 数组，scatter-write 使用 */
+		private final ByteBuffer[] buffers;
+
+		/** 业务附件：Packet 或 List<Packet> */
 		private final Object obj;
 
 		/**
-		 * WriteCompletionVo
-		 *
-		 * @param byteBuffer byteBuffer
-		 * @param obj        obj
+		 * scatter-write 续写下标，记录当前遍历位置
+		 * <p>初始为 {@code 0}，每次续写时更新为第一个仍有剩余数据的 buffer 下标
 		 */
-		public WriteCompletionVo(ByteBuffer byteBuffer, Object obj) {
-			this.byteBuffer = byteBuffer; //[pos=0 lim=212 cap=212]
+		private int index;
+
+		/**
+		 * 构造写完成附加对象
+		 *
+		 * @param buffers ByteBuffer 数组（不允许为 null 或空数组）
+		 * @param obj     业务附件（Packet 或 List<Packet>）
+		 */
+		public WriteCompletionVo(ByteBuffer[] buffers, Object obj) {
+			this.buffers = buffers;
 			this.obj = obj;
+			this.index = 0;
 		}
 	}
 

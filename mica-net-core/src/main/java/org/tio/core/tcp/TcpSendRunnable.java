@@ -19,7 +19,7 @@ package org.tio.core.tcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tio.core.ChannelContext;
-import org.tio.core.WriteCompletionHandler.WriteCompletionVo;
+import org.tio.core.WriteCompletionHandler;
 import org.tio.core.intf.Packet;
 import org.tio.core.ssl.SslUtils;
 import org.tio.core.task.AbstractSendRunnable;
@@ -28,6 +28,7 @@ import org.tio.core.utils.TioUtils;
 import java.nio.ByteBuffer;
 import java.util.Queue;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -121,14 +122,14 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 		// 标记写入状态
 		writing.set(true);
 		try {
-			WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
+			// 统一包装为 ByteBuffer[]{byteBuffer}，走 scatter-write 路径
+			ByteBuffer[] buffers = new ByteBuffer[]{byteBuffer};
+			WriteCompletionHandler.WriteCompletionVo writeCompletionVo = new WriteCompletionHandler.WriteCompletionVo(buffers, packets);
 			TcpChannelContext tcpChannelContext = (TcpChannelContext) channelContext;
-
-			// 异步发送，不阻塞当前线程
 			tcpChannelContext.asynchronousSocketChannel.write(
-					byteBuffer,
-					writeCompletionVo,
-					tcpChannelContext.writeCompletionHandler);
+				buffers, 0, 1,
+				0L, TimeUnit.MILLISECONDS,
+				writeCompletionVo, tcpChannelContext.writeCompletionHandler);
 		} catch (Exception e) {
 			// 发送失败，恢复状态
 			writing.set(false);
@@ -158,7 +159,10 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	}
 
 	/**
-	 * 批量发送 ByteBuffer[] - 循环调用单个 write 避免预先合并的内存拷贝
+	 * 批量发送 ByteBuffer[] - 使用 gather write 零拷贝发送
+	 * <p>
+	 * 对于多个 ByteBuffer，直接使用 AsynchronousSocketChannel.write(ByteBuffer[], ...)
+	 * 让 OS 内核进行分散聚集写入，无需预先合并，避免内存拷贝。
 	 */
 	protected void sendByteBuffers(ByteBuffer[] byteBuffers, Object packets) {
 		if (byteBuffers == null || byteBuffers.length == 0) {
@@ -170,32 +174,15 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 			return;
 		}
 
-		// 方案2：循环发送每个 ByteBuffer，避免预先合并
-		// 优势：延迟合并到真正需要时，减少内存拷贝；保持异步发送
-		// 标记写入状态
 		writing.set(true);
 		try {
 			TcpChannelContext tcpChannelContext = (TcpChannelContext) channelContext;
-
-			if (byteBuffers.length == 1) {
-				// 单个 ByteBuffer，直接发送
-				WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffers[0], packets);
-				tcpChannelContext.asynchronousSocketChannel.write(byteBuffers[0], writeCompletionVo, tcpChannelContext.writeCompletionHandler);
-			} else {
-				// 多个 ByteBuffer，合并后发送（避免多次异步调用的开销）
-				int totalCapacity = 0;
-				for (ByteBuffer buffer : byteBuffers) {
-					totalCapacity += buffer.remaining();
-				}
-				ByteBuffer mergedBuffer = ByteBuffer.allocate(totalCapacity);
-				for (ByteBuffer buffer : byteBuffers) {
-					mergedBuffer.put(buffer);
-				}
-				mergedBuffer.flip();
-
-				WriteCompletionVo writeCompletionVo = new WriteCompletionVo(mergedBuffer, packets);
-				tcpChannelContext.asynchronousSocketChannel.write(mergedBuffer, writeCompletionVo, tcpChannelContext.writeCompletionHandler);
-			}
+			// 统一走 scatter-write 路径，单个 buffer 也包装为数组
+			WriteCompletionHandler.WriteCompletionVo writeCompletionVo = new WriteCompletionHandler.WriteCompletionVo(byteBuffers, packets);
+			tcpChannelContext.asynchronousSocketChannel.write(
+				byteBuffers, 0, byteBuffers.length,
+				0L, TimeUnit.MILLISECONDS,
+				writeCompletionVo, tcpChannelContext.writeCompletionHandler);
 		} catch (Exception e) {
 			// 发送失败，恢复状态
 			writing.set(false);

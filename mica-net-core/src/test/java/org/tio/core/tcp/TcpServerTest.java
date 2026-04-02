@@ -11,8 +11,9 @@ import java.nio.charset.StandardCharsets;
 public class TcpServerTest {
 
 	public static void main(String[] args) throws IOException {
+		int length = ("mica:" + System.nanoTime()).getBytes(StandardCharsets.UTF_8).length;
 		// 示例：默认的消息长度
-		FixedLengthCodec fixedLengthCodec = new FixedLengthCodec("mica:166130695837".getBytes(StandardCharsets.UTF_8).length);
+		FixedLengthCodec fixedLengthCodec = new FixedLengthCodec(length);
 		TioServerHandler serverHandler = new TestTioServerHandler(fixedLengthCodec);
 		// 配置
 		TioServerConfig config = new TioServerConfig(serverHandler, new DefaultTioServerListener());

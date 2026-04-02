@@ -3,10 +3,6 @@
 基于对 `mica-net-core` 和 `mica-net-utils` 的深度代码走查，梳理出以下需要在未来版本中优先解决的性能瓶颈、并发 Bug 以及架构优化点：
 
 ## 1. 内存管理与 I/O 零拷贝优化 (极高优先级 - 降低 GC 压力)
-* **缺失 Vectorized I/O (分散/聚集 I/O)**：
-  * **位置**：`TcpSendRunnable.sendByteBuffers(ByteBuffer[] byteBuffers, ...)`。
-  * **现状**：当前在批量发送多个包时，会重新申请一个大的 `ByteBuffer` 并把所有小 Buffer 数据 copy 进去再发送。
-  * **优化**：Java AIO `AsynchronousSocketChannel` 原生支持 `write(ByteBuffer[] srcs, ...)`。直接传递数组，将合并工作交给 OS 内核的 Gathering Write，彻底消除用户态内存分配和拷贝。
 * **深拷贝引发的 Young GC 压力**：
   * **位置**：`ReadCompletionHandler.completed()`。
   * **现状**：开启 `useQueueDecode` 或 SSL 时，每次读取都会触发 `ByteBufferUtil.copy(readByteBuffer)` 进行全量深拷贝。
