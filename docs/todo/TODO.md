@@ -25,8 +25,8 @@
 - 增加引用计数机制管理生命周期
 
 **关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/tcp/ReadCompletionHandler.java` (~150-180)
-- `mica-net-core/src/main/java/org/tio/core/task/SendRunnable.java` (~374)
+- `mica-net-core/src/main/java/org/tio/core/ReadCompletionHandler.java` (深拷贝位于 ~246-258)
+- `mica-net-core/src/main/java/org/tio/core/tcp/TcpSendRunnable.java`
 - 新增 `mica-net-core/src/main/java/org/tio/core/buffer/ByteBufferPool.java`
 
 **预期收益：**
@@ -69,7 +69,7 @@ if (useQueueDecode || sslFacadeContext != null) {
 - 适用于不需要池化的简化场景
 
 **关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/tcp/ReadCompletionHandler.java:150-180`
+- `mica-net-core/src/main/java/org/tio/core/ReadCompletionHandler.java` (~246-258)
 - `mica-net-core/src/main/java/org/tio/core/ChannelContext.java`（增加双缓冲字段）
 
 **预期收益：**
@@ -86,46 +86,44 @@ if (useQueueDecode || sslFacadeContext != null) {
 
 ---
 
-### 3. 实现 CompositeByteBuffer（零拷贝半包处理）
+### 3. ByteBufferUtil.composite() 零拷贝改造
 
 **问题描述：**
 ```java
-// DecodeRunnable 中处理半包
-ByteBuffer composite(lastByteBuffer, byteBuffer)
-// 涉及新内存申请 + 两次数组拷贝
+// ByteBufferUtil.composite() 现有实现
+ByteBuffer ret = ByteBuffer.allocate(capacity);
+ret.put(byteBuffer1);
+ret.put(byteBuffer2);  // 物理拷贝
 ```
-- 网络环境差时半包频繁，成为性能热点
-- 每次合并都需要分配新内存并拷贝两份数据
+- `ByteBufferUtil.composite()` 已存在，但实现为 `allocate + put` 全量拷贝
+- 半包场景频繁时成为性能热点
 
 **优化方案：**
-- 实现 CompositeByteBuffer 类（逻辑视图组合）
-- 通过数组持有多个 ByteBuffer 引用，无需物理拷贝
-- 提供统一的读取接口（get, position, limit 等）
-- 参考 Netty CompositeByteBuf 设计
+- 不新增类，改造现有 `ByteBufferUtil.composite()` 方法
+- 内部维护 ByteBuffer 数组 + 偏移量/长度信息（逻辑组合）
+- 提供统一的读写接口，数据仅在真正需要连续内存时才合并
+- 参考 Netty CompositeByteBuf 设计思路
 
 **关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/task/DecodeRunnable.java:335`
-- 新增 `mica-net-core/src/main/java/org/tio/core/buffer/CompositeByteBuffer.java`
-- `mica-net-utils/src/main/java/org/tio/utils/buffer/ByteBufferUtil.java`（增加工具方法）
+- `mica-net-utils/src/main/java/org/tio/utils/buffer/ByteBufferUtil.java`（现有 composite 方法）
+- `mica-net-core/src/main/java/org/tio/core/tcp/TcpDecodeRunnable.java`（半包处理调用点）
 
 **预期收益：**
 - 半包场景性能提升 20-30%
 - 减少内存分配和 GC 压力
 
 **实施步骤：**
-- [ ] 设计 CompositeByteBuffer 接口
-- [ ] 实现基础读取方法（get, position, limit, remaining）
-- [ ] 实现组件管理（addComponent, discardReadComponents）
-- [ ] 修改 DecodeRunnable 使用 CompositeByteBuffer
-- [ ] 修改 ByteBufferUtil.composite() 方法
-- [ ] 编写单元测试（各种半包组合场景）
+- [ ] 设计逻辑组合结构（维护 ByteBuffer 数组 + 偏移量）
+- [ ] 改造 ByteBufferUtil.composite() 内部实现
+- [ ] 实现统一读取接口（get, position, limit, remaining）
+- [ ] 半包场景测试验证
 - [ ] 性能测试对比优化前后差异
 
 ---
 
 ## P1 - 中期优化（提升稳定性和灵活性）
 
-### 4. 业务线程池隔离
+### 4. 业务线程池隔离 ⚠️ 待核实
 
 **问题描述：**
 - HandlerRunnable 在 tioExecutor 中执行
@@ -148,6 +146,8 @@ ByteBuffer composite(lastByteBuffer, byteBuffer)
 - [ ] 增加业务线程池监控指标
 - [ ] 编写配置示例文档
 - [ ] 测试不同线程池配置下的性能表现
+
+> ⚠️ **状态待核实**：`businessExecutor` 配置项目前未在代码中实现，仅在 TODO 文档中存在。
 
 ---
 
@@ -175,10 +175,10 @@ ByteBuffer composite(lastByteBuffer, byteBuffer)
 
 ---
 
-### 6. 统计模块分级控制
+### 6. 统计模块分级控制 ⚠️ 待核实
 
 **问题描述：**
-- 当前 statOn 是全局开关，不够灵活
+- 当前 `TioConfig.statOn` 是单一 boolean 开关，不够灵活
 - 统计操作（AtomicLong.addAndGet）在极高 QPS 下仍有微量开销
 
 **优化方案：**
@@ -199,6 +199,8 @@ ByteBuffer composite(lastByteBuffer, byteBuffer)
 - [ ] 修改各统计点增加级别判断
 - [ ] 性能测试不同级别的性能差异
 - [ ] 更新配置文档
+
+> ⚠️ **状态待核实**：`TioConfig` 中目前仅有 `statOn` 单一 boolean 开关，`StatLevel` 分级机制未在代码中实现。
 
 ---
 
@@ -241,7 +243,7 @@ ByteBuffer composite(lastByteBuffer, byteBuffer)
 - 直接传递 ByteBuffer 数组给内核
 
 **关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/task/SendRunnable.java:374`
+- `mica-net-core/src/main/java/org/tio/core/tcp/TcpSendRunnable.java`
 
 **实施步骤：**
 - [ ] 修改 SendRunnable 支持 ByteBuffer[] 批量发送
@@ -251,11 +253,11 @@ ByteBuffer composite(lastByteBuffer, byteBuffer)
 
 ---
 
-### 9. 同步消息机制优化 ✅ 已完成
+### 9. 同步消息机制优化 ⚠️ 文档标记失实
 
 **问题描述：**
 ```java
-// HandlerRunnable 同步消息处理（旧实现）
+// HandlerRunnable 同步消息处理（当前实现）
 synchronized(initPacket) {
     initPacket.notify();
 }
@@ -263,81 +265,25 @@ synchronized(initPacket) {
 - Monitor 锁开销较大
 - 在高并发同步调用下存在竞争
 
-**优化方案：CompletableFuture 异步响应** ✅
+**优化方案：CompletableFuture 异步响应**
 
-已实现基于 CompletableFuture 的异步响应机制，提供更现代化、高性能的 API。
+> ⚠️ **严重错误**：以下文档标记为"✅ 已完成"，但 **代码中不存在** 对应实现。
+>
+> 核查结果：
+> - `org.tio.core.async.TioFuture` ❌ 不存在
+> - `Tio.sendAsync()` / `Tio.sendAndAwait()` ❌ 不存在
+> - `waitingAsyncResps` ❌ 不存在于 TioConfig
+> - `HandlerRunnable.java` 中无异步 API 相关代码
+> - 测试文件 `TioAsyncExample.java` ❌ 不存在
+>
+> **文档中的"已完成"标记与代码现状严重不符，需核实原实现是否被回滚或从未合并。**
 
-**已完成的实现：**
-
-1. ✅ **核心类 TioFuture**
-   - 位置：`org.tio.core.async.TioFuture`
-   - 功能：封装 CompletableFuture，提供无锁异步响应
-
-2. ✅ **TioConfig 扩展**
-   - 添加：`waitingAsyncResps` 异步响应映射表
-   - 方法：`getWaitingAsyncResps()`
-
-3. ✅ **HandlerRunnable 重构**
-   - 优先使用 CompletableFuture 机制
-   - 向后兼容旧的 synchronized 机制
-   - 代码位置：`HandlerRunnable.java:248-268`
-
-4. ✅ **Tio 异步 API**
-   - `Tio.sendAsync()` - 异步发送并返回 TioFuture
-   - `Tio.sendAndAwait()` - 返回 CompletableFuture 用于链式调用
-   - 支持超时设置和自动超时处理
-   - 代码位置：`Tio.java:1546-1644`
-
-**新 API 使用示例：**
-
-```java
-// 方式1：异步回调（推荐）
-Tio.sendAsync(channelContext, requestPacket)
-   .getFuture()
-   .thenAccept(response -> {
-       log.info("收到响应: {}", response);
-   })
-   .exceptionally(ex -> {
-       log.error("请求失败", ex);
-       return null;
-   });
-
-// 方式2：链式调用
-Tio.sendAndAwait(channelContext, request1)
-   .thenCompose(resp1 -> Tio.sendAndAwait(channelContext, request2))
-   .thenAccept(resp2 -> log.info("完成"));
-
-// 方式3：并行请求
-CompletableFuture.allOf(
-    Tio.sendAndAwait(ctx1, packet1),
-    Tio.sendAndAwait(ctx2, packet2)
-).thenRun(() -> log.info("全部完成"));
-
-// 方式4：同步等待（兼容旧API）
-Packet response = Tio.sendAsync(channelContext, requestPacket)
-                     .get(10, TimeUnit.SECONDS);
-```
-
-**性能提升：**
-- ✅ 无 Monitor 锁开销
-- ✅ 高并发场景下性能提升 20-40%
-- ✅ 支持现代化异步编程模式
-- ✅ 完全向后兼容
-
-**测试和示例：**
-- 示例代码：`mica-net-core/src/test/java/org/tio/core/async/TioAsyncExample.java`
-- 包含 7 种使用场景和性能对比
-
-**实施状态：**
-- [x] 设计 CompletableFuture 方案
-- [x] 实现 TioFuture 核心类
-- [x] 修改 TioConfig 支持异步响应
-- [x] 重构 HandlerRunnable
-- [x] 在 Tio 中添加异步 API
-- [x] 保持向后兼容性
-- [x] 编写使用示例
-- [ ] 性能压测对比（待后续补充）
-- [ ] 更新用户文档
+**待实施步骤：**
+- [ ] 核查原实现历史（是否曾有 CompletableFuture 方案）
+- [ ] 如需重新实现，参考文档中的设计思路
+- [ ] 实现 TioFuture 核心类
+- [ ] 在 Tio 中添加异步 API
+- [ ] 编写测试和示例
 
 ---
 
@@ -514,6 +460,6 @@ tioConfig.setMaxDecodeFailCount(10);
 
 ---
 
-**最后更新：** 2026-02-11
+**最后更新：** 2026-04-02（经代码核查后修正）
 **状态：** 待实施
 **预期总体收益：** 内存占用 ↓40-50%，GC 停顿 ↓60%+，吞吐量 ↑30-50%
