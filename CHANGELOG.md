@@ -4,6 +4,7 @@
 
 ### v1.3.5 - 2026-04-28
 - perf(tcp): 优化异步写入为零拷贝 scatter-write 批量发送。
+- perf(ssl): 优化ReadCompletionHandler中SslFacade解密流程，改用slice()避免复制字节缓冲区。
 
 ### v1.3.4 - 2026-03-28
 - feat(http): 支持 http stream 重构 sse。
