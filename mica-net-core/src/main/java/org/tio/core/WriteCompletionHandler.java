@@ -258,7 +258,7 @@ public class WriteCompletionHandler implements CompletionHandler<Long, WriteComp
 	 * <ol>
 	 *   <li>更新最后发送时间（{@code latestTimeOfSentByte}）</li>
 	 *   <li>遍历 buffer 数组，找到首个 {@code hasRemaining()} 的 buffer</li>
-	 *   <li>若有剩余，构建剩余 buffer 子数组继续 scatter-write（始终走 {@code write(ByteBuffer[])} 保证 Long 回调）</li>
+	 *   <li>若有剩余，直接用原数组 + offset/length 参数继续 scatter-write（{@code write(ByteBuffer[], offset, length)}），无额外数组分配</li>
 	 *   <li>若所有 buffer 均无剩余，调用 {@link #handle(long, Throwable, WriteCompletionVo)} 完成统计和业务回调</li>
 	 * </ol>
 	 *
@@ -275,7 +275,8 @@ public class WriteCompletionHandler implements CompletionHandler<Long, WriteComp
 			channelContext.stat.latestTimeOfSentByte = System.currentTimeMillis();
 		}
 
-		// scatter-write 续写：找到第一个还有剩余数据的 buffer，继续用 write(ByteBuffer[]) 发送
+		// scatter-write 续写：找到第一个还有剩余数据的 buffer，继续用 write(ByteBuffer[], offset, length) 发送
+		// 使用 JDK AIO 原生的 offset+length 参数，无需 copy 构建新数组
 		ByteBuffer[] buffers = writeCompletionVo.buffers;
 		int startIndex = writeCompletionVo.index;
 		for (int i = startIndex; i < buffers.length; i++) {
@@ -285,12 +286,10 @@ public class WriteCompletionHandler implements CompletionHandler<Long, WriteComp
 					log.info("{} gather write, buffer {}/{} has remaining {} bytes",
 						channelContext, i + 1, buffers.length, buffers[i].remaining());
 				}
-				// 构建剩余 buffer 数组继续 gather write，始终用 write(ByteBuffer[])
-				int remaining = buffers.length - i;
-				ByteBuffer[] remainingBuffers = new ByteBuffer[remaining];
-				System.arraycopy(buffers, i, remainingBuffers, 0, remaining);
+				// 原数组 + 偏移量 + 长度，直接走 write(ByteBuffer[], offset, length)
+				// 避免 new ByteBuffer[remaining] + System.arraycopy 分配开销
 				channelContext.asynchronousSocketChannel.write(
-					remainingBuffers, 0, remainingBuffers.length,
+					buffers, i, buffers.length - i,
 					0L, TimeUnit.MILLISECONDS,
 					writeCompletionVo, this);
 				return;
