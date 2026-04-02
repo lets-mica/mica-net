@@ -251,13 +251,16 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 					channelContext.decodeRunnable.decode();
 				}
 			} else {
-				ByteBuffer copiedByteBuffer = null;
 				try {
-					copiedByteBuffer = ByteBufferUtil.copy(readByteBuffer);
-					log.debug("{}, 丢给SslFacade解密:{}", channelContext, copiedByteBuffer);
-					channelContext.sslFacadeContext.getSslFacade().decrypt(copiedByteBuffer);
+					// slice() 创建只读视图，共享底层数组，不分配堆内存不拷贝字节
+					// readByteBuffer.flip() 后 position=0，slice 从 position 到 limit
+					// SSLFacade.decrypt() 只从 buffer 读取（unwrap 推进 position），不保留引用
+					// 下次 read() 会重新初始化 readByteBuffer，不会复用已有数据的 slice
+					ByteBuffer plainBuffer = readByteBuffer.slice();
+					log.debug("{}, 丢给SslFacade解密:{}", channelContext, plainBuffer);
+					channelContext.sslFacadeContext.getSslFacade().decrypt(plainBuffer);
 				} catch (Exception e) {
-					log.error("{}, {}{}", channelContext, e.getMessage(), copiedByteBuffer, e);
+					log.error("{}, 丢给SslFacade解密失败:{}", channelContext, e.getMessage(), e);
 					Tio.close(channelContext, e, e.getMessage(), CloseCode.SSL_DECRYPT_ERROR);
 				}
 			}

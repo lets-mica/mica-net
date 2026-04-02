@@ -16,7 +16,7 @@ public class FixedLengthCodec {
 	private final int length;
 
 	public FixedLengthCodec(int length) {
-		this.length = length + 1;
+		this.length = length;
 	}
 
 	public Packet decode(ByteBuffer buffer, int readableLength) {
