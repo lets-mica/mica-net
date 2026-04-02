@@ -2,6 +2,9 @@
 
 ## 发行版本
 
+### v1.3.5 - 2026-04-28
+- perf(tcp): 优化异步写入为零拷贝 scatter-write 批量发送。
+
 ### v1.3.4 - 2026-03-28
 - feat(http): 支持 http stream 重构 sse。
 
