@@ -187,7 +187,6 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 ### 开发体验
 
-- **抽象 IServer**：简化服务端开发
 - **简化 TioConfig**：不继承 `MapPropSupport`，使用更简洁
 - **FileQueue**：内置文件队列，支持 GraalVM
 - **NodeSelector**：为客户端集群做准备
