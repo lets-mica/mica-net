@@ -144,6 +144,7 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 - 使用 **Java 8** 作为最低编译版本
 - 基于 **t-io 3.8.1.v20220401-RELEASE** 简化而来
+- mica-net 2.0.0 开始调整了包名，从 `org.tio` 迁移到 `net.dreamlu.mica.net` 避免跟原版 t-io 包冲突。
 - 去除了一些使用不到的模块和代码，代码更精简
 - **不强制依赖 fastjson**，支持多种 JSON 工具（Jackson2、Jackson3、Fastjson、Fastjson2、Gson、Hutool-json、Snack3、Snack4）
 - 添加 mica 中的 **HexUtils、DigestUtils、ExceptionUtils** 等工具类
