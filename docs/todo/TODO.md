@@ -270,7 +270,7 @@ synchronized(initPacket) {
 > ⚠️ **严重错误**：以下文档标记为"✅ 已完成"，但 **代码中不存在** 对应实现。
 >
 > 核查结果：
-> - `org.tio.core.async.TioFuture` ❌ 不存在
+> - `net.dreamlu.mica.net.core.async.TioFuture` ❌ 不存在
 > - `Tio.sendAsync()` / `Tio.sendAndAwait()` ❌ 不存在
 > - `waitingAsyncResps` ❌ 不存在于 TioConfig
 > - `HandlerRunnable.java` 中无异步 API 相关代码
@@ -300,7 +300,7 @@ synchronized(initPacket) {
 **已完成的实现：**
 
 1. ✅ **核心类 SlowPacketDetector**
-   - 位置：`stat.core.net.dreamlu.mica.net.SlowPacketDetector`
+   - 位置：`net.dreamlu.mica.net.SlowPacketDetector`
    - 功能：环形缓冲区实现的滑动窗口统计
    - 特性：无锁设计，O(1) 时间复杂度
 

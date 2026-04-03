@@ -41,8 +41,8 @@ public abstract class ChannelContext extends MapPropSupport {
 	public AbstractSendRunnable sendRunnable;
 	public SslFacadeContext sslFacadeContext;
 	/**
-	 * 此值不设时，心跳时间取org.tio.core.TioConfig.heartbeatTimeout
-	 * 当然这个值如果小于org.tio.core.TioConfig.heartbeatTimeout，定时检查的时间间隔还是以org.tio.core.TioConfig.heartbeatTimeout为准，只是在判断时用此值
+	 * 此值不设时，心跳时间取net.dreamlu.mica.net.TioConfig.heartbeatTimeout
+	 * 当然这个值如果小于net.dreamlu.mica.net.TioConfig.heartbeatTimeout，定时检查的时间间隔还是以net.dreamlu.mica.net.TioConfig.heartbeatTimeout为准，只是在判断时用此值
 	 */
 	public Long heartbeatTimeout;
 	/**

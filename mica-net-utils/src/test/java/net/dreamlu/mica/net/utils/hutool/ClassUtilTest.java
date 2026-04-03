@@ -22,7 +22,7 @@ class ClassUtilTest {
 		// 测试存在的类
 		assertTrue(ClassUtil.isPresent("java.lang.String"));
 		assertTrue(ClassUtil.isPresent("java.util.ArrayList"));
-		assertTrue(ClassUtil.isPresent("org.tio.utils.hutool.ClassUtil"));
+		assertTrue(ClassUtil.isPresent("net.dreamlu.mica.net.utils.hutool.ClassUtil"));
 		// 测试不存在的类
 		assertFalse(ClassUtil.isPresent("com.example.NonExistentClass"));
 		assertFalse(ClassUtil.isPresent("invalid.class.name!@#"));

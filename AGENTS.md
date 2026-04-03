@@ -71,14 +71,14 @@ Adhere strictly to the existing code style. When in doubt, mimic the surrounding
 *   **Ordering:**
     1.  Standard Java imports (`java.*`, `javax.*`)
     2.  Third-party imports (`org.slf4j.*`, `com.alibaba.*`)
-    3.  Project imports (`org.tio.*`, `net.dreamlu.*`)
+    3.  Project imports (`net.dreamlu.mica.net.*`, `net.dreamlu.mica.net.utils.*`)
 *   **Cleanup:** Remove unused imports.
 
 ### Naming Conventions
 *   **Classes/Interfaces:** `PascalCase` (e.g., `ChannelContext`, `TioServer`).
 *   **Methods/Variables:** `camelCase` (e.g., `sendPacket`, `clientNode`).
 *   **Constants:** `UPPER_SNAKE_CASE` (e.g., `MAX_DATA_LENGTH`, `UNKNOWN_ADDRESS_IP`).
-*   **Packages:** `lowercase` (e.g., `org.tio.core`).
+*   **Packages:** `lowercase` (e.g., `net.dreamlu.mica.net.core`).
 
 ### Logging
 *   Use **SLF4J** for logging.
@@ -99,7 +99,7 @@ Adhere strictly to the existing code style. When in doubt, mimic the surrounding
 *   Use `try-catch` blocks where appropriate.
 *   Log exceptions with stack traces using `log.error(msg, e)`.
 *   Avoid swallowing exceptions without logging or handling.
-*   When throwing custom exceptions, use existing exception classes in `org.tio.core.exception` if applicable.
+*   When throwing custom exceptions, use existing exception classes in `net.dreamlu.mica.net.core.exception` if applicable.
 
 ### Comments and Javadoc
 *   **Language:** Existing comments contain Chinese. New comments should ideally be in English for broader accessibility, but Chinese is acceptable if modifying existing Chinese-commented sections to maintain consistency.
