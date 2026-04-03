@@ -140,15 +140,54 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 ## 变更内容
 
-- 使用 java8 作为最低编译版本。 
-- 去除了一些使用不到的模块和代码。 
-- 使用并发集合替换锁，优化代码降低内存使用量。 
-- stat 的 AtomicInteger 替换成 LongAdder。
-- `ChannelContext` 采用二进制位标识状态位，减少内存占用。并预留 `isAccepted`、`setAccepted` 和 `isBizStatus`、`setBizStatus` 给业务使用。 
-- 添加 mica 中的 HexUtils、DigestUtils、ExceptionUtils。 
-- mica-mqtt 部分工具包下沉。
-- 支持 Tcp Proxy 代理协议 v1 版，支持 nginx、elb 转发原始IP。 
-- 去除 ips 和 ip 黑名单, 不再依赖 caffeine 2.9.3。 
-- 不强制依赖 fastjson，支持多种 json 工具（jackson2、jackson3、fastjson、fastjson2、gson、hutool-json、snack3、snack4）。
-- 优化 ssl，支持客户端和服务端支持双向认证，客户端不校验域名。 
-- 代码优化，更加符合规范。
+### 基础改造
+
+- 使用 **Java 8** 作为最低编译版本
+- 基于 **t-io 3.8.1.v20220401-RELEASE** 简化而来
+- 去除了一些使用不到的模块和代码，代码更精简
+- **不强制依赖 fastjson**，支持多种 JSON 工具（Jackson2、Jackson3、Fastjson、Fastjson2、Gson、Hutool-json、Snack3、Snack4）
+- 添加 mica 中的 **HexUtils、DigestUtils、ExceptionUtils** 等工具类
+
+### 内存优化
+
+- **ChannelContext** 采用二进制位标识状态位，减少内存占用，预留 `isAccepted`、`isBizStatus` 给业务使用
+- **Packet** 使用位域压缩技术，将 boolean 标志合并到 byte 中
+- **LongAdder** 替换 AtomicInteger，提升统计性能
+- 使用**并发集合**替换锁，降低锁竞争
+- **TioConfig** 字段排序优化，减少内存 padding 提升缓存命中
+- **ChannelStat** 按 JVM 对齐原则重排字段，引用类型集中放置
+- **Node** 类调整字段顺序，每个对象节省 4 字节
+
+### 性能优化
+
+- **无锁异步写入**：移除 ReentrantLock，改用无锁异步写入逻辑
+- **scatter-write 零拷贝**：优化异步写入为零拷贝批量发送，减少内存分配
+- **SSL 解密优化**：使用 slice() 替代字节缓冲区复制，降低内存开销
+- **自适应批量发送**：动态调整批量发送大小，适应高负载场景
+- **滑动窗口慢包检测**：实现滑动窗口算法检测慢包攻击，降低检测开销
+- **队列监控**：心跳任务中增加解码/处理/发送队列大小统计
+
+### 网络与协议
+
+- **UDP 重构**：UDP 重构为 NIO UDP 形式，统一 TCP、UDP 编解码和处理
+- **TCP Proxy Protocol v1**：支持 nginx、ELB 转发原始 IP
+- **SSL 双向认证**：支持客户端和服务端双向认证，客户端可跳过域名校验
+- **PKCS12 证书支持**：SSL 支持 PKCS12 证书格式
+- **backlog 配置**：服务端添加 backlog 配置项
+
+### 功能特性
+
+- **SSE（Server-Sent Events）**：支持 HTTP Server-Sent Events
+- **时间轮心跳**：服务端心跳改为时间轮，减少线程数
+- **心跳超时策略**：支持 HeartbeatTimeoutStrategy，支持发送 ping 或断开等待重连
+- **虚拟线程支持**：biz 线程池支持虚拟线程
+- **模块化支持**：添加 `module-info.java`，支持 Java Platform Module System
+- **SSLEngineCustomizer**：用于配置 TLS 协议版本和加密套件
+
+### 开发体验
+
+- **抽象 IServer**：简化服务端开发
+- **简化 TioConfig**：不继承 `MapPropSupport`，使用更简洁
+- **FileQueue**：内置文件队列，支持 GraalVM
+- **NodeSelector**：为客户端集群做准备
+- **JacksonJsonAdapter**：调整默认配置，优化序列化/反序列化行为
