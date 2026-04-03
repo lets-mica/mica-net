@@ -43,12 +43,21 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 	private final ClusterMessageListener messageListener;
 
 	public ClusterTcpServerHandler(ClusterImpl clusterApi,
-								   ClusterMessageDecoder messageDecoder,
-								   ClusterMessageListener messageListener) {
+	                               ClusterMessageDecoder messageDecoder,
+	                               ClusterMessageListener messageListener) {
 		this.clusterApi = clusterApi;
 		this.messageEncoder = ClusterMessageEncoder.INSTANCE;
 		this.messageDecoder = messageDecoder;
 		this.messageListener = messageListener;
+	}
+
+	/**
+	 * 处理 ping 消息
+	 *
+	 * @param context ChannelContext
+	 */
+	private static void handlerPingMessage(ChannelContext context) {
+		Tio.send(context, ClusterPongMessage.INSTANCE);
 	}
 
 	@Override
@@ -73,15 +82,6 @@ public class ClusterTcpServerHandler implements TioServerHandler {
 		} else if (packet instanceof ClusterJoinMessage) {
 			handlerJoinMessage((ClusterJoinMessage) packet);
 		}
-	}
-
-	/**
-	 * 处理 ping 消息
-	 *
-	 * @param context ChannelContext
-	 */
-	private static void handlerPingMessage(ChannelContext context) {
-		Tio.send(context, ClusterPongMessage.INSTANCE);
 	}
 
 	/**

@@ -96,7 +96,7 @@ public final class ProxyProtocolDecoder {
 	 * @throws TioDecodeException TioDecodeException
 	 */
 	public static Packet decodeIfEnable(ChannelContext context, ByteBuffer buffer, int readableLength,
-										DecoderFunction next) throws TioDecodeException {
+	                                    DecoderFunction next) throws TioDecodeException {
 		if (isProxyProtocolEnabled(context)) {
 			return decode(context, buffer, readableLength, next);
 		} else {

@@ -278,6 +278,14 @@ public class CollUtil {
 			this.size = size;
 		}
 
+		private static int ceilDiv(int x, int y) {
+			int r = x / y;
+			if (r * y < x) {
+				r++;
+			}
+			return r;
+		}
+
 		@Override
 		public List<T> get(int index) {
 			if (index >= 0 && index < this.size()) {
@@ -296,14 +304,6 @@ public class CollUtil {
 		@Override
 		public boolean isEmpty() {
 			return this.list.isEmpty();
-		}
-
-		private static int ceilDiv(int x, int y) {
-			int r = x / y;
-			if (r * y < x) {
-				r++;
-			}
-			return r;
 		}
 
 		@Override

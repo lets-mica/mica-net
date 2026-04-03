@@ -23,13 +23,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author L.cm
  */
 public class StreamableHttpTransport implements McpTransport {
-	private static final Logger log = LoggerFactory.getLogger(StreamableHttpTransport.class);
-
 	public static final String TRANSPORT_TYPE = "streamable-http";
 	public static final String DEFAULT_ENDPOINT = "/mcp";
 	public static final String MESSAGE_EVENT_TYPE = "message";
 	public static final String ENDPOINT_EVENT_TYPE = "endpoint";
-
+	private static final Logger log = LoggerFactory.getLogger(StreamableHttpTransport.class);
 	private final McpServer mcpServer;
 	private final String endpoint;
 	/**

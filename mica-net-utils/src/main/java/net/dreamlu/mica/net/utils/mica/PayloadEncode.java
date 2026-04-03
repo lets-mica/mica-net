@@ -66,22 +66,6 @@ public enum PayloadEncode {
 	};
 
 	/**
-	 * 编码
-	 *
-	 * @param data byte array
-	 * @return byte array
-	 */
-	public abstract String encode(byte[] data);
-
-	/**
-	 * 解码
-	 *
-	 * @param data String 字符串
-	 * @return byte array
-	 */
-	public abstract byte[] decode(String data);
-
-	/**
 	 * 解码
 	 *
 	 * @param data     data
@@ -110,5 +94,21 @@ public enum PayloadEncode {
 		}
 		return PayloadEncode.plain;
 	}
+
+	/**
+	 * 编码
+	 *
+	 * @param data byte array
+	 * @return byte array
+	 */
+	public abstract String encode(byte[] data);
+
+	/**
+	 * 解码
+	 *
+	 * @param data String 字符串
+	 * @return byte array
+	 */
+	public abstract byte[] decode(String data);
 
 }

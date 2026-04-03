@@ -217,16 +217,15 @@ public class HttpRequest extends HttpPacket {
 
 	// 8字节字段
 	private final long id = ID_GEN.incrementAndGet();
-	/**
-	 * 该HttpRequest对象的创建时间
-	 */
-	private long createTime = System.currentTimeMillis();
-
 	// 引用类型字段（4/8字节，取决于压缩指针）
 	public RequestLine requestLine = null;
 	public ChannelContext channelContext;
 	public HttpConfig httpConfig;
 	protected Map<String, String> headers = new HashMap<>();
+	/**
+	 * 该HttpRequest对象的创建时间
+	 */
+	private long createTime = System.currentTimeMillis();
 	/**
 	 * 请求参数
 	 */

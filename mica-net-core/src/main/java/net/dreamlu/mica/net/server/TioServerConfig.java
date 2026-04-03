@@ -272,7 +272,7 @@ public class TioServerConfig extends TioConfig {
 	 * @param groupExecutor     ThreadPoolExecutor
 	 */
 	public TioServerConfig(TioServerHandler tioServerHandler, TioServerListener tioServerListener,
-						   SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+	                       SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
 		this(null, tioServerHandler, tioServerListener, tioExecutor, groupExecutor);
 	}
 
@@ -284,7 +284,7 @@ public class TioServerConfig extends TioConfig {
 	 * @param groupExecutor     ThreadPoolExecutor
 	 */
 	public TioServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener,
-						   SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
+	                       SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		super(tioExecutor, groupExecutor);
 		this.name = name;
 		this.groupStat = new ServerGroupStat();

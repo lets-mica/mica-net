@@ -207,8 +207,8 @@ public class HttpPacket extends Packet {
 	private static final long serialVersionUID = 3903186670675671956L;
 	// 引用类型字段按照访问频率和逻辑分组
 	private final Map<String, Serializable> props = new HashMap<>();
-	private String headerString = SysConst.BLANK;
 	protected byte[] body;
+	private String headerString = SysConst.BLANK;
 
 	public HttpPacket() {
 
@@ -225,7 +225,7 @@ public class HttpPacket extends Packet {
 	}
 
 	/**
-	 * @param key key
+	 * @param key          key
 	 * @param defaultValue defaultValue
 	 * @return Object
 	 */
@@ -247,7 +247,7 @@ public class HttpPacket extends Packet {
 	/**
 	 * 设置属性
 	 *
-	 * @param key key
+	 * @param key   key
 	 * @param value value
 	 */
 	public void setAttribute(String key, Serializable value) {

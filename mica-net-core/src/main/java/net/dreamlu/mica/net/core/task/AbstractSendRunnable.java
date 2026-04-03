@@ -46,10 +46,9 @@ import java.util.concurrent.Executor;
  * @author tanyaowu
  */
 public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet> {
-	private static final Logger log = LoggerFactory.getLogger(AbstractSendRunnable.class);
 	protected static final int MAX_CAPACITY_MIN = TcpConst.MAX_DATA_LENGTH - 1024;
 	protected static final int MAX_CAPACITY_MAX = MAX_CAPACITY_MIN * 10;
-
+	private static final Logger log = LoggerFactory.getLogger(AbstractSendRunnable.class);
 	// 共享字段
 	protected final ChannelContext channelContext;
 	protected final TioConfig tioConfig;
@@ -67,6 +66,29 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 		this.tioConfig = channelContext.tioConfig;
 		this.tioHandler = tioConfig.getTioHandler();
 		this.msgQueue = msgQueue;
+	}
+
+	/**
+	 * 根据队列积压情况自适应调整批量大小
+	 */
+	protected static int getPacketListCapacity(int queueSize) {
+		if (queueSize > 50000) {
+			return 20000;
+		} else if (queueSize > 20000) {
+			return 8000;
+		} else if (queueSize > 10000) {
+			return 5000;
+		} else if (queueSize > 5000) {
+			return 3000;
+		} else if (queueSize > 2000) {
+			return 1500;
+		} else if (queueSize > 1000) {
+			return 1000;
+		} else if (queueSize > 300) {
+			return 500;
+		} else {
+			return queueSize;
+		}
 	}
 
 	public Queue<Packet> getForSendAfterSslHandshakeCompleted(boolean forceCreate) {
@@ -173,29 +195,6 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	}
 
 	/**
-	 * 根据队列积压情况自适应调整批量大小
-	 */
-	protected static int getPacketListCapacity(int queueSize) {
-		if (queueSize > 50000) {
-			return 20000;
-		} else if (queueSize > 20000) {
-			return 8000;
-		} else if (queueSize > 10000) {
-			return 5000;
-		} else if (queueSize > 5000) {
-			return 3000;
-		} else if (queueSize > 2000) {
-			return 1500;
-		} else if (queueSize > 1000) {
-			return 1000;
-		} else if (queueSize > 300) {
-			return 500;
-		} else {
-			return queueSize;
-		}
-	}
-
-	/**
 	 * 批量收集数据包并编码（TCP 使用 ByteBuffer[] gather write，UDP 需要合并）
 	 */
 	protected BatchEncodeResult batchEncode(int queueSize, boolean isSsl) {
@@ -224,8 +223,8 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 			}
 
 			if (packets.size() >= targetBatchSize
-					|| allBytebufferCapacity >= MAX_CAPACITY_MAX
-					|| sslChanged) {
+				|| allBytebufferCapacity >= MAX_CAPACITY_MAX
+				|| sslChanged) {
 				break;
 			}
 		}
@@ -237,21 +236,6 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 		// 返回 ByteBuffer 数组，子类决定是使用 gather write（TCP）还是合并（UDP）
 		ByteBuffer[] bufferArray = byteBuffers.toArray(new ByteBuffer[0]);
 		return new BatchEncodeResult(bufferArray, packets, needSslEncrypted != null && needSslEncrypted);
-	}
-
-	/**
-	 * 批量编码结果
-	 */
-	protected static class BatchEncodeResult {
-		public final ByteBuffer[] byteBuffers;
-		public final List<Packet> packets;
-		public final boolean needSslEncrypted;
-
-		public BatchEncodeResult(ByteBuffer[] byteBuffers, List<Packet> packets, boolean needSslEncrypted) {
-			this.byteBuffers = byteBuffers;
-			this.packets = packets;
-			this.needSslEncrypted = needSslEncrypted;
-		}
 	}
 
 	@Override
@@ -287,4 +271,19 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	 * 发送 ByteBuffer（子类实现）
 	 */
 	protected abstract void sendByteBuffer(ByteBuffer byteBuffer, Object packets);
+
+	/**
+	 * 批量编码结果
+	 */
+	protected static class BatchEncodeResult {
+		public final ByteBuffer[] byteBuffers;
+		public final List<Packet> packets;
+		public final boolean needSslEncrypted;
+
+		public BatchEncodeResult(ByteBuffer[] byteBuffers, List<Packet> packets, boolean needSslEncrypted) {
+			this.byteBuffers = byteBuffers;
+			this.packets = packets;
+			this.needSslEncrypted = needSslEncrypted;
+		}
+	}
 }

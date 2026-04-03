@@ -207,9 +207,8 @@ import java.util.Map.Entry;
  * @author tanyaowu
  */
 public class HttpResponse extends HttpPacket {
-	private static final long serialVersionUID = -3512681144230291786L;
 	public static final HttpResponse NULL_RESPONSE = new HttpResponse();
-
+	private static final long serialVersionUID = -3512681144230291786L;
 	// 引用类型字段（4/8字节，取决于压缩指针）
 	private final Map<HeaderName, HeaderValue> headers = new HashMap<>();
 	/**

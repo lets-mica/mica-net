@@ -120,6 +120,10 @@ public class TimingWheel {
 	 */
 	private final DelayQueue<TimerTaskList> queue;
 	/**
+	 * 时间槽
+	 */
+	private final TimerTaskList[] buckets;
+	/**
 	 * 表示时间轮当前所处的时间
 	 */
 	private long currentTime;
@@ -127,10 +131,6 @@ public class TimingWheel {
 	 * 上层时间轮
 	 */
 	private volatile TimingWheel overflowWheel;
-	/**
-	 * 时间槽
-	 */
-	private final TimerTaskList[] buckets;
 
 	public TimingWheel(long tickMs, int wheelSize, long startMs, LongAdder taskCounter, DelayQueue<TimerTaskList> queue) {
 		this.tickMs = tickMs;

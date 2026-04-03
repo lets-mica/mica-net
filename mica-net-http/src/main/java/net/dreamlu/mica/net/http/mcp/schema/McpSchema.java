@@ -4,7 +4,7 @@ package net.dreamlu.mica.net.http.mcp.schema;
  * mcp 定义
  *
  * <p>
- *     <a href="https://modelcontextprotocol.io/specification/2025-03-26">mcp 协议地址</a>
+ * <a href="https://modelcontextprotocol.io/specification/2025-03-26">mcp 协议地址</a>
  * </p>
  *
  * @author L.cm

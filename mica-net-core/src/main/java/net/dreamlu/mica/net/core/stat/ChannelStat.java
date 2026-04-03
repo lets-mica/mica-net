@@ -476,7 +476,7 @@ public class ChannelStat implements java.io.Serializable {
 	/**
 	 * 获取慢包检测器（延迟初始化）
 	 *
-	 * @param windowSize 滑动窗口大小
+	 * @param windowSize    滑动窗口大小
 	 * @param checkInterval 检测间隔
 	 * @return 慢包检测器
 	 */

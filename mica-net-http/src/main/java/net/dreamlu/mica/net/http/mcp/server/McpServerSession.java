@@ -73,9 +73,9 @@ public class McpServerSession {
 	 * @return McpCallToolResult
 	 */
 	public McpCallToolResult callToolStream(
-			McpToolSpecification toolSpec,
-			java.util.Map<String, Object> args,
-			boolean returnDirect) {
+		McpToolSpecification toolSpec,
+		java.util.Map<String, Object> args,
+		boolean returnDirect) {
 		Iterator<McpContent> contentIter = toolSpec.callStream(this, args);
 		McpCallToolResult result = new McpCallToolResult();
 		if (returnDirect) {

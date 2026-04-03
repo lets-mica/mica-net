@@ -245,6 +245,42 @@ public class TioServer {
 	}
 
 	/**
+	 * 获取 time task 服务
+	 *
+	 * @param serverConfig TioServerConfig
+	 * @return TimerTaskService
+	 */
+	private static TimerTaskService getTimerTaskService(TioServerConfig serverConfig) {
+		return Optional.ofNullable(serverConfig.getTaskService()).orElseGet(DefaultTimerTaskService::new);
+	}
+
+	/**
+	 * 启动信息打印
+	 *
+	 * @param infoList infoList
+	 * @param xxLen    xxLen
+	 * @param start    start
+	 */
+	private static void startManagementDebugInfo(List<String> infoList, int xxLen, long start) {
+		// Android 中没有 ManagementFactory
+		boolean hasManagementFactory = ClassUtil.isPresent("java.lang.management.ManagementFactory");
+		if (hasManagementFactory) {
+			try {
+				java.lang.management.RuntimeMXBean runtimeMxBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
+				long startTime = runtimeMxBean.getStartTime();
+				long startCost = System.currentTimeMillis() - startTime;
+				String runtimeName = runtimeMxBean.getName();
+				String pid = runtimeName.split("@")[0];
+				infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
+				infoList.add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
+				infoList.add(StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + pid);
+			} catch (Throwable ignore) {
+				// ignore
+			}
+		}
+	}
+
+	/**
 	 * @return the tioServerConfig
 	 */
 	public TioServerConfig getServerConfig() {
@@ -418,42 +454,6 @@ public class TioServer {
 			log.info(printStr.toString());
 		} else {
 			System.out.println(printStr);
-		}
-	}
-
-	/**
-	 * 获取 time task 服务
-	 *
-	 * @param serverConfig TioServerConfig
-	 * @return TimerTaskService
-	 */
-	private static TimerTaskService getTimerTaskService(TioServerConfig serverConfig) {
-		return Optional.ofNullable(serverConfig.getTaskService()).orElseGet(DefaultTimerTaskService::new);
-	}
-
-	/**
-	 * 启动信息打印
-	 *
-	 * @param infoList infoList
-	 * @param xxLen    xxLen
-	 * @param start    start
-	 */
-	private static void startManagementDebugInfo(List<String> infoList, int xxLen, long start) {
-		// Android 中没有 ManagementFactory
-		boolean hasManagementFactory = ClassUtil.isPresent("java.lang.management.ManagementFactory");
-		if (hasManagementFactory) {
-			try {
-				java.lang.management.RuntimeMXBean runtimeMxBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
-				long startTime = runtimeMxBean.getStartTime();
-				long startCost = System.currentTimeMillis() - startTime;
-				String runtimeName = runtimeMxBean.getName();
-				String pid = runtimeName.split("@")[0];
-				infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
-				infoList.add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
-				infoList.add(StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + pid);
-			} catch (Throwable ignore) {
-				// ignore
-			}
 		}
 	}
 

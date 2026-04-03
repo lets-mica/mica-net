@@ -28,8 +28,8 @@ public class McpToolSpecification {
 	 * 私有构造函数，使用静态工厂方法创建
 	 */
 	private McpToolSpecification(McpTool tool,
-			BiFunction<McpServerSession, Map<String, Object>, McpCallToolResult> call,
-			BiFunction<McpServerSession, Map<String, Object>, Iterator<McpContent>> streamCall) {
+	                             BiFunction<McpServerSession, Map<String, Object>, McpCallToolResult> call,
+	                             BiFunction<McpServerSession, Map<String, Object>, Iterator<McpContent>> streamCall) {
 		this.tool = tool;
 		this.call = call;
 		this.streamCall = streamCall;
@@ -39,7 +39,7 @@ public class McpToolSpecification {
 	 * 创建同步调用的 Tool Specification
 	 */
 	public static McpToolSpecification of(McpTool tool,
-			BiFunction<McpServerSession, Map<String, Object>, McpCallToolResult> call) {
+	                                      BiFunction<McpServerSession, Map<String, Object>, McpCallToolResult> call) {
 		return new McpToolSpecification(tool, call, null);
 	}
 
@@ -47,7 +47,7 @@ public class McpToolSpecification {
 	 * 创建流式调用的 Tool Specification
 	 */
 	public static McpToolSpecification ofStream(McpTool tool,
-			BiFunction<McpServerSession, Map<String, Object>, Iterator<McpContent>> streamCall) {
+	                                            BiFunction<McpServerSession, Map<String, Object>, Iterator<McpContent>> streamCall) {
 		return new McpToolSpecification(tool, null, streamCall);
 	}
 

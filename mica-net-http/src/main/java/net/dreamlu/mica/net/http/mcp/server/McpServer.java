@@ -36,10 +36,6 @@ public class McpServer {
 	 * 注册的传输层列表
 	 */
 	private final List<McpTransport> transports = new ArrayList<>();
-
-	private McpImplementation serverInfo = DEFAULT_SERVER_INFO;
-	private McpServerCapabilities serverCapabilities;
-
 	/**
 	 * The Model Context Protocol (MCP) allows servers to expose tools that can be
 	 * invoked by language models. Tools enable models to interact with external
@@ -48,7 +44,6 @@ public class McpServer {
 	 * schema.
 	 */
 	private final List<McpToolSpecification> tools = new ArrayList<>();
-
 	/**
 	 * The Model Context Protocol (MCP) provides a standardized way for servers to
 	 * expose resources to clients. Resources allow servers to share data that
@@ -57,9 +52,7 @@ public class McpServer {
 	 * URI.
 	 */
 	private final Map<String, McpResourceSpecification> resources = new HashMap<>();
-
 	private final Map<String, McpResourceTemplateSpecification> resourceTemplates = new HashMap<>();
-
 	/**
 	 * The Model Context Protocol (MCP) provides a standardized way for servers to
 	 * expose prompt templates to clients. Prompts allow servers to provide structured
@@ -68,8 +61,51 @@ public class McpServer {
 	 * customize them.
 	 */
 	private final Map<String, McpPromptSpecification> prompts = new HashMap<>();
-
 	private final List<BiConsumer<McpServerSession, List<McpRoot>>> rootsChangeHandlers = new ArrayList<>();
+	private McpImplementation serverInfo = DEFAULT_SERVER_INFO;
+	private McpServerCapabilities serverCapabilities;
+
+	/**
+	 * 解码消息
+	 *
+	 * @param requestBody requestBody
+	 * @return JsonRpcMessage
+	 */
+	@SuppressWarnings("unchecked")
+	private static JsonRpcMessage deserializeJsonRpcMessage(byte[] requestBody) {
+		Map<String, Object> map = JsonUtil.readValue(requestBody, Map.class);
+		String jsonText = new String(requestBody);
+		log.debug("Received JSON message: {}", jsonText);
+		// Determine message type based on specific JSON structure
+		if (map.containsKey("method") && map.containsKey("id")) {
+			return JsonUtil.convertValue(map, JsonRpcRequest.class);
+		} else if (map.containsKey("method") && !map.containsKey("id")) {
+			return JsonUtil.convertValue(map, JsonRpcNotification.class);
+		} else if (map.containsKey("result") || map.containsKey("error")) {
+			return JsonUtil.convertValue(map, JsonRpcResponse.class);
+		} else {
+			throw new IllegalArgumentException("Cannot deserialize JsonRpcMessage: " + jsonText);
+		}
+	}
+
+	/**
+	 * 解析 call tool 参数
+	 *
+	 * @param arguments arguments
+	 * @return 参数 map
+	 */
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> getCallToolArguments(Object arguments) {
+		if (arguments == null) {
+			return null;
+		} else if (arguments instanceof Map) {
+			return (Map<String, Object>) arguments;
+		} else if (arguments instanceof String && StrUtil.isBlank((String) arguments)) {
+			return null;
+		} else {
+			return JsonUtil.convertValue(arguments, Map.class);
+		}
+	}
 
 	/**
 	 * Sets the server implementation information that will be shared with clients
@@ -153,7 +189,7 @@ public class McpServer {
 	 * @throws IllegalArgumentException if tool or handler is null
 	 */
 	public McpServer tool(McpTool tool,
-						  BiFunction<McpServerSession, Map<String, Object>, McpCallToolResult> handler) {
+	                      BiFunction<McpServerSession, Map<String, Object>, McpCallToolResult> handler) {
 		Objects.requireNonNull(tool, "Tool must not be null");
 		Objects.requireNonNull(handler, "Handler must not be null");
 		this.tools.add(McpToolSpecification.of(tool, handler));
@@ -187,7 +223,7 @@ public class McpServer {
 	 * @throws IllegalArgumentException if tool or handler is null
 	 */
 	public McpServer toolStream(McpTool tool,
-								BiFunction<McpServerSession, Map<String, Object>, Iterator<McpContent>> handler) {
+	                            BiFunction<McpServerSession, Map<String, Object>, Iterator<McpContent>> handler) {
 		Objects.requireNonNull(tool, "Tool must not be null");
 		Objects.requireNonNull(handler, "Handler must not be null");
 		this.tools.add(McpToolSpecification.ofStream(tool, handler));
@@ -623,47 +659,5 @@ public class McpServer {
 			return jsonRpcResponse;
 		}
 		return null;
-	}
-
-	/**
-	 * 解码消息
-	 *
-	 * @param requestBody requestBody
-	 * @return JsonRpcMessage
-	 */
-	@SuppressWarnings("unchecked")
-	private static JsonRpcMessage deserializeJsonRpcMessage(byte[] requestBody) {
-		Map<String, Object> map = JsonUtil.readValue(requestBody, Map.class);
-		String jsonText = new String(requestBody);
-		log.debug("Received JSON message: {}", jsonText);
-		// Determine message type based on specific JSON structure
-		if (map.containsKey("method") && map.containsKey("id")) {
-			return JsonUtil.convertValue(map, JsonRpcRequest.class);
-		} else if (map.containsKey("method") && !map.containsKey("id")) {
-			return JsonUtil.convertValue(map, JsonRpcNotification.class);
-		} else if (map.containsKey("result") || map.containsKey("error")) {
-			return JsonUtil.convertValue(map, JsonRpcResponse.class);
-		} else {
-			throw new IllegalArgumentException("Cannot deserialize JsonRpcMessage: " + jsonText);
-		}
-	}
-
-	/**
-	 * 解析 call tool 参数
-	 *
-	 * @param arguments arguments
-	 * @return 参数 map
-	 */
-	@SuppressWarnings("unchecked")
-	private static Map<String, Object> getCallToolArguments(Object arguments) {
-		if (arguments == null) {
-			return null;
-		} else if (arguments instanceof Map) {
-			return (Map<String, Object>) arguments;
-		} else if (arguments instanceof String && StrUtil.isBlank((String) arguments)) {
-			return null;
-		} else {
-			return JsonUtil.convertValue(arguments, Map.class);
-		}
 	}
 }

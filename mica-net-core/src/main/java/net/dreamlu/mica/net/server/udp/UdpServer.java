@@ -24,10 +24,10 @@ public class UdpServer implements Runnable {
 	private static final Logger log = LoggerFactory.getLogger(UdpServer.class);
 	private final UdpServerConfig serverConfig;
 	private final int port;
+	private final ByteBuffer readBuffer;
 	private DatagramChannel datagramChannel;
 	private Selector selector;
 	private volatile boolean isStopped = false;
-	private final ByteBuffer readBuffer;
 
 	public UdpServer(UdpServerConfig serverConfig, int port) {
 		this.serverConfig = serverConfig;

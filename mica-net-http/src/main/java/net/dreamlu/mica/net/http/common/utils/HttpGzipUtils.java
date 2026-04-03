@@ -211,7 +211,7 @@ public final class HttpGzipUtils {
 	/**
 	 * gzip
 	 *
-	 * @param request HttpRequest
+	 * @param request  HttpRequest
 	 * @param response HttpResponse
 	 */
 	public static void gzip(HttpRequest request, HttpResponse response) {

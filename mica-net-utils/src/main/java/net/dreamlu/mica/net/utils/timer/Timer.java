@@ -26,6 +26,10 @@ import java.util.concurrent.TimeUnit;
  */
 public interface Timer {
 
+	static Long getHiresClockMs() {
+		return TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+	}
+
 	/**
 	 * 添加新的任务到当前执行器（线程池），在任务过期后会执行任务。
 	 *
@@ -53,9 +57,5 @@ public interface Timer {
 	 * 关闭定时器服务，待执行的任务将不会被执行
 	 */
 	void shutdown();
-
-	static Long getHiresClockMs() {
-		return TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
-	}
 
 }

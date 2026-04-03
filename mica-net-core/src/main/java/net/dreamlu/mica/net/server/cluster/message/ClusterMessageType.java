@@ -56,10 +56,6 @@ public enum ClusterMessageType {
 		this.type = type;
 	}
 
-	public byte getType() {
-		return type;
-	}
-
 	/**
 	 * Value of byte.
 	 *
@@ -74,6 +70,10 @@ public enum ClusterMessageType {
 			}
 		}
 		throw new TioDecodeException("Unsupported ClusterMessageType type:" + value);
+	}
+
+	public byte getType() {
+		return type;
 	}
 
 }

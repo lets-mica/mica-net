@@ -234,22 +234,6 @@ public class ReconnConf {
 		this.retryCount = retryCount;
 	}
 
-	public TimerTaskService getTaskService() {
-		return taskService;
-	}
-
-	void setTaskService(TimerTaskService taskService) {
-		this.taskService = taskService;
-	}
-
-	public TioClient getTioClient() {
-		return tioClient;
-	}
-
-	void setTioClient(TioClient tioClient) {
-		this.tioClient = tioClient;
-	}
-
 	public static ReconnConf getReconnConf(ClientChannelContext clientChannelContext) {
 		TioClientConfig tioClientConfig = (TioClientConfig) clientChannelContext.tioConfig;
 		return tioClientConfig.getReconnConf();
@@ -300,6 +284,22 @@ public class ReconnConf {
 			return false;
 		}
 		return isNeedReconn(clientChannelContext, true);
+	}
+
+	public TimerTaskService getTaskService() {
+		return taskService;
+	}
+
+	void setTaskService(TimerTaskService taskService) {
+		this.taskService = taskService;
+	}
+
+	public TioClient getTioClient() {
+		return tioClient;
+	}
+
+	void setTioClient(TioClient tioClient) {
+		this.tioClient = tioClient;
 	}
 
 	/**

@@ -26,15 +26,11 @@ import java.util.Objects;
  * @author kafka、guest、L.cm
  */
 public class TimerTaskEntry implements Comparable<TimerTaskEntry> {
-	private volatile TimerTaskList list;
-
-	protected TimerTaskEntry next;
-
-	protected TimerTaskEntry prev;
-
 	private final TimerTask timerTask;
-
 	private final long expirationMs;
+	protected TimerTaskEntry next;
+	protected TimerTaskEntry prev;
+	private volatile TimerTaskList list;
 
 	/**
 	 * 构造器

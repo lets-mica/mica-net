@@ -294,6 +294,7 @@ public class Packet implements java.io.Serializable {
 
 	/**
 	 * ⭐ 位域操作：检查是否来自集群
+	 *
 	 * @return true if from cluster
 	 */
 	public boolean isFromCluster() {
@@ -302,6 +303,7 @@ public class Packet implements java.io.Serializable {
 
 	/**
 	 * ⭐ 位域操作：设置是否来自集群
+	 *
 	 * @param isFromCluster true to set, false to clear
 	 */
 	public void setFromCluster(boolean isFromCluster) {
@@ -314,6 +316,7 @@ public class Packet implements java.io.Serializable {
 
 	/**
 	 * ⭐ 位域操作：检查是否已 SSL 加密
+	 *
 	 * @return true if ssl encrypted
 	 */
 	public boolean isSslEncrypted() {
@@ -322,6 +325,7 @@ public class Packet implements java.io.Serializable {
 
 	/**
 	 * ⭐ 位域操作：设置是否已 SSL 加密
+	 *
 	 * @param isSslEncrypted true to set, false to clear
 	 */
 	public void setSslEncrypted(boolean isSslEncrypted) {

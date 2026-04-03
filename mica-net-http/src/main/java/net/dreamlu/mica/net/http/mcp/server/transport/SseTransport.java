@@ -31,13 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author L.cm
  */
 public class SseTransport implements McpTransport {
-	private static final Logger log = LoggerFactory.getLogger(SseTransport.class);
-
 	public static final String TRANSPORT_TYPE = "sse";
 	public static final String DEFAULT_SSE_ENDPOINT = "/sse";
 	public static final String DEFAULT_MESSAGE_ENDPOINT = DEFAULT_SSE_ENDPOINT + "/message";
 	public static final String ENDPOINT_EVENT_TYPE = "endpoint";
-
+	private static final Logger log = LoggerFactory.getLogger(SseTransport.class);
 	private final McpServer mcpServer;
 	private final String sseEndpoint;
 	private final String messageEndpoint;
@@ -51,6 +49,24 @@ public class SseTransport implements McpTransport {
 		this.mcpServer = mcpServer;
 		this.sseEndpoint = StrUtil.isBlank(sseEndpoint) ? DEFAULT_SSE_ENDPOINT : sseEndpoint;
 		this.messageEndpoint = StrUtil.isBlank(messageEndpoint) ? DEFAULT_MESSAGE_ENDPOINT : messageEndpoint;
+	}
+
+	/**
+	 * 解码消息
+	 */
+	private static JsonRpcMessage deserializeJsonRpcMessage(byte[] requestBody) {
+		Map<String, Object> map = JsonUtil.readValue(requestBody, Map.class);
+		String jsonText = new String(requestBody);
+		log.debug("Received JSON message: {}", jsonText);
+		if (map.containsKey("method") && map.containsKey("id")) {
+			return JsonUtil.convertValue(map, JsonRpcRequest.class);
+		} else if (map.containsKey("method") && !map.containsKey("id")) {
+			return JsonUtil.convertValue(map, JsonRpcNotification.class);
+		} else if (map.containsKey("result") || map.containsKey("error")) {
+			return JsonUtil.convertValue(map, JsonRpcResponse.class);
+		} else {
+			throw new IllegalArgumentException("Cannot deserialize JsonRpcMessage: " + jsonText);
+		}
 	}
 
 	@Override
@@ -120,24 +136,6 @@ public class SseTransport implements McpTransport {
 			log.info("JsonRpcNotification:{}", notification);
 		}
 		return response;
-	}
-
-	/**
-	 * 解码消息
-	 */
-	private static JsonRpcMessage deserializeJsonRpcMessage(byte[] requestBody) {
-		Map<String, Object> map = JsonUtil.readValue(requestBody, Map.class);
-		String jsonText = new String(requestBody);
-		log.debug("Received JSON message: {}", jsonText);
-		if (map.containsKey("method") && map.containsKey("id")) {
-			return JsonUtil.convertValue(map, JsonRpcRequest.class);
-		} else if (map.containsKey("method") && !map.containsKey("id")) {
-			return JsonUtil.convertValue(map, JsonRpcNotification.class);
-		} else if (map.containsKey("result") || map.containsKey("error")) {
-			return JsonUtil.convertValue(map, JsonRpcResponse.class);
-		} else {
-			throw new IllegalArgumentException("Cannot deserialize JsonRpcMessage: " + jsonText);
-		}
 	}
 
 	public String getSseEndpoint() {

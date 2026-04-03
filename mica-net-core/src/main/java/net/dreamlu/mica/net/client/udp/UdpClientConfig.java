@@ -48,7 +48,7 @@ public class UdpClientConfig extends TioClientConfig {
 	 * @param groupExecutor ExecutorService
 	 */
 	public UdpClientConfig(TioClientHandler tioHandler, TioClientListener tioListener,
-						   SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
+	                       SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		super(tioHandler, tioListener, null, tioExecutor, groupExecutor);
 	}
 

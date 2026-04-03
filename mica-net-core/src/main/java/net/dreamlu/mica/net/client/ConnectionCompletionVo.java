@@ -234,8 +234,8 @@ public class ConnectionCompletionVo {
 	 * @param bindPort                  bindPort
 	 */
 	public ConnectionCompletionVo(ClientChannelContext channelContext, TioClient tioClient, boolean isReconnect,
-								  AsynchronousSocketChannel asynchronousSocketChannel, Node serverNode,
-								  String bindIp, Integer bindPort) {
+	                              AsynchronousSocketChannel asynchronousSocketChannel, Node serverNode,
+	                              String bindIp, Integer bindPort) {
 		this.channelContext = channelContext;
 		this.tioClient = tioClient;
 		this.isReconnect = isReconnect;

@@ -19,21 +19,21 @@ import java.util.function.Function;
  * @author leon
  */
 final class Reader<E> extends Mapped {
-	private static final Logger log = LoggerFactory.getLogger(Reader.class);
 	static final String NAME = "data.read";
+	private static final Logger log = LoggerFactory.getLogger(Reader.class);
 	/**
 	 * Grow后，将已读完的文件放入队列。
 	 * tick后，如果队列有文件，则执行清理
 	 */
 	private final BlockingQueue<Path> clearQueue = new LinkedBlockingQueue<>(12);
-	private volatile boolean stopped = false;
-
 	private final Path path;
 	private final long mfs;
 	private final long mds;
+	private final ReentrantLock lock = new ReentrantLock();
 	Writer<E> writer;
 
 	long dataIdx;
+	private volatile boolean stopped = false;
 	private OffsetFile offset;
 	private long offsetIdx;
 	private long offsetName;
@@ -41,7 +41,6 @@ final class Reader<E> extends Mapped {
 	private long dataName;
 	private long maxDataIdx;
 	private long maxOffsetIdx;
-	private final ReentrantLock lock = new ReentrantLock();
 
 	public Reader(Path path, long mfs, long mds, Writer<E> writer) throws IOException {
 		super(path.resolve(NAME), 0, 8);

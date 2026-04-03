@@ -1,5 +1,3 @@
-
-
 package net.dreamlu.mica.net.core.udp;
 
 import net.dreamlu.mica.net.core.ChannelContext;

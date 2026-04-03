@@ -26,10 +26,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * 2017年10月19日 上午9:39:46
  */
 public abstract class ChannelContext extends MapPropSupport {
-	private static final Logger log = LoggerFactory.getLogger(ChannelContext.class);
 	public static final String UNKNOWN_ADDRESS_IP = "$UNKNOWN";
 	public static final AtomicInteger UNKNOWN_ADDRESS_PORT_SEQ = new AtomicInteger();
-
+	private static final Logger log = LoggerFactory.getLogger(ChannelContext.class);
 	// ⭐ 字段对齐优化：按照 JVM 内存对齐原则重新排列字段，减少内存填充
 	// 1. 引用类型放在一起（8字节对齐）
 	public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
@@ -41,6 +40,15 @@ public abstract class ChannelContext extends MapPropSupport {
 	public HandlerRunnable handlerRunnable;
 	public AbstractSendRunnable sendRunnable;
 	public SslFacadeContext sslFacadeContext;
+	/**
+	 * 此值不设时，心跳时间取org.tio.core.TioConfig.heartbeatTimeout
+	 * 当然这个值如果小于org.tio.core.TioConfig.heartbeatTimeout，定时检查的时间间隔还是以org.tio.core.TioConfig.heartbeatTimeout为准，只是在判断时用此值
+	 */
+	public Long heartbeatTimeout;
+	/**
+	 * 一个packet所需要的字节数（用于应用告诉框架，下一次解码所需要的字节长度，省去冗余解码带来的性能损耗）
+	 */
+	public Integer packetNeededLength;
 	private Node clientNode;
 	/**
 	 * 一些连接是代理的，譬如web服务器放在nginx后面，此时需要知道最原始的ip
@@ -51,27 +59,16 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * 该连接在哪些组中
 	 */
 	private Set<String> groups;
-
 	private String userId;
 	private String token;
 	private String bsId;
-	private String id;
 
+	// 2. 包装类型（可能为 null）
+	private String id;
 	/**
 	 * 连接关闭的原因码
 	 */
 	private CloseCode closeCode = CloseCode.INIT_STATUS;
-
-	// 2. 包装类型（可能为 null）
-	/**
-	 * 此值不设时，心跳时间取org.tio.core.TioConfig.heartbeatTimeout
-	 * 当然这个值如果小于org.tio.core.TioConfig.heartbeatTimeout，定时检查的时间间隔还是以org.tio.core.TioConfig.heartbeatTimeout为准，只是在判断时用此值
-	 */
-	public Long heartbeatTimeout;
-	/**
-	 * 一个packet所需要的字节数（用于应用告诉框架，下一次解码所需要的字节长度，省去冗余解码带来的性能损耗）
-	 */
-	public Integer packetNeededLength;
 	/**
 	 * 个性化readBufferSize
 	 */
@@ -92,7 +89,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	/**
 	 * ChannelContext
 	 *
-	 * @param tioConfig                 TioConfig
+	 * @param tioConfig TioConfig
 	 */
 	public ChannelContext(TioConfig tioConfig) {
 		super();
@@ -122,12 +119,12 @@ public abstract class ChannelContext extends MapPropSupport {
 		initOther();
 	}
 
-	protected void assignAnUnknownClientNode() {
-		setClientNode(createUnknownNode());
-	}
-
 	public static Node createUnknownNode() {
 		return new Node(UNKNOWN_ADDRESS_IP, UNKNOWN_ADDRESS_PORT_SEQ.incrementAndGet());
+	}
+
+	protected void assignAnUnknownClientNode() {
+		setClientNode(createUnknownNode());
 	}
 
 	/**
@@ -202,7 +199,7 @@ public abstract class ChannelContext extends MapPropSupport {
 		this.token = token;
 	}
 
-    // Removed init(TioConfig, AsynchronousSocketChannel) - moved logic to constructor or subclass
+	// Removed init(TioConfig, AsynchronousSocketChannel) - moved logic to constructor or subclass
 
 	void initOther() {
 		// 默认 closed 设置为 true
@@ -293,10 +290,6 @@ public abstract class ChannelContext extends MapPropSupport {
 		return getState(4);
 	}
 
-	private void setClosedState(boolean isClosed) {
-		setState(4, isClosed);
-	}
-
 	/**
 	 * @param isClosed the isClosed to set
 	 */
@@ -307,6 +300,10 @@ public abstract class ChannelContext extends MapPropSupport {
 			assignAnUnknownClientNode();
 			log.info("关闭前{}, 关闭后{}", before, this);
 		}
+	}
+
+	private void setClosedState(boolean isClosed) {
+		setState(4, isClosed);
 	}
 
 	public boolean isRemoved() {
@@ -393,6 +390,7 @@ public abstract class ChannelContext extends MapPropSupport {
 
 	/**
 	 * 设置 TioConfig 并初始化协议相关的 Runnable（由子类实现）
+	 *
 	 * @param tioConfig the tioConfig to set
 	 */
 	protected abstract void setTioConfig(TioConfig tioConfig);

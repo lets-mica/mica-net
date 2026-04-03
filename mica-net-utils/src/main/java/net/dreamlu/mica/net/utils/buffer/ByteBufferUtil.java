@@ -34,13 +34,13 @@ import java.util.Arrays;
  */
 public class ByteBufferUtil {
 
-	private ByteBufferUtil() {
-	}
-
 	/**
 	 * 空 byte 数组
 	 */
 	public static final byte[] EMPTY_BYTES = new byte[0];
+
+	private ByteBufferUtil() {
+	}
 
 	/**
 	 * 读取1个字节

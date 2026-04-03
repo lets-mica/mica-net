@@ -203,11 +203,11 @@ import java.util.concurrent.ConcurrentMap;
  * 2018年7月1日 上午9:51:04
  */
 public class HeaderName {
+	public static final HeaderName Transfer_Encoding = new HeaderName(HttpConst.ResponseHeaderKey.Transfer_Encoding);
 	/**
 	 * 缓存
 	 */
 	private static final ConcurrentMap<String, HeaderName> map = new ConcurrentHashMap<>();
-
 	public static final HeaderName SET_COOKIE = HeaderName.from(HttpConst.ResponseHeaderKey.Set_Cookie);
 	public static final HeaderName Content_Type = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Type);
 	public static final HeaderName Cache_Control = HeaderName.from(HttpConst.ResponseHeaderKey.Cache_Control);
@@ -222,7 +222,6 @@ public class HeaderName {
 	public static final HeaderName Access_Control_Allow_Credentials = HeaderName.from(HttpConst.ResponseHeaderKey.Access_Control_Allow_Credentials);
 	public static final HeaderName Content_Disposition = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Disposition);
 	public static final HeaderName Content_Encoding = HeaderName.from(HttpConst.ResponseHeaderKey.Content_Encoding);
-	public static final HeaderName Transfer_Encoding = new HeaderName(HttpConst.ResponseHeaderKey.Transfer_Encoding);
 	public static final HeaderName Date = HeaderName.from(HttpConst.ResponseHeaderKey.Date);
 	public static final HeaderName Expires = HeaderName.from(HttpConst.ResponseHeaderKey.Expires);
 	public static final HeaderName Last_Modified = HeaderName.from(HttpConst.ResponseHeaderKey.Last_Modified);

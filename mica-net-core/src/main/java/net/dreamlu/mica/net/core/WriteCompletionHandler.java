@@ -230,16 +230,24 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author tanyaowu
  */
 public class WriteCompletionHandler implements CompletionHandler<Long, WriteCompletionHandler.WriteCompletionVo> {
-	/** 日志 */
+	/**
+	 * 日志
+	 */
 	private static final Logger log = LoggerFactory.getLogger(WriteCompletionHandler.class);
 
-	/** 保护共享状态（attachment、统计信息） */
+	/**
+	 * 保护共享状态（attachment、统计信息）
+	 */
 	public final ReentrantLock lock = new ReentrantLock();
 
-	/** 配合 lock 使用，signal 后唤醒 {@link TcpSendRunnable} 中等待的线程 */
+	/**
+	 * 配合 lock 使用，signal 后唤醒 {@link TcpSendRunnable} 中等待的线程
+	 */
 	public final Condition condition = lock.newCondition();
 
-	/** TCP 连接上下文 */
+	/**
+	 * TCP 连接上下文
+	 */
 	private final TcpChannelContext channelContext;
 
 	/**
@@ -262,7 +270,7 @@ public class WriteCompletionHandler implements CompletionHandler<Long, WriteComp
 	 *   <li>若所有 buffer 均无剩余，调用 {@link #handle(long, Throwable, WriteCompletionVo)} 完成统计和业务回调</li>
 	 * </ol>
 	 *
-	 * @param bytesWritten    写入字节数（{@code write(ByteBuffer[])} 返回 {@code Long}）
+	 * @param bytesWritten      写入字节数（{@code write(ByteBuffer[])} 返回 {@code Long}）
 	 * @param writeCompletionVo 写完成附加对象，包含 buffer 数组和业务附件
 	 */
 	@Override
@@ -398,10 +406,14 @@ public class WriteCompletionHandler implements CompletionHandler<Long, WriteComp
 	 * <p>批量发送时：{@code buffers = new ByteBuffer[]{buf1, buf2, buf3, ...}}
 	 */
 	public static class WriteCompletionVo {
-		/** ByteBuffer 数组，scatter-write 使用 */
+		/**
+		 * ByteBuffer 数组，scatter-write 使用
+		 */
 		private final ByteBuffer[] buffers;
 
-		/** 业务附件：Packet 或 List<Packet> */
+		/**
+		 * 业务附件：Packet 或 List<Packet>
+		 */
 		private final Object obj;
 
 		/**

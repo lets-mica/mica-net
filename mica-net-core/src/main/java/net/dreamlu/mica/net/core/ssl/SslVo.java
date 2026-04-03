@@ -219,7 +219,7 @@ public class SslVo implements Serializable {
 	/**
 	 *
 	 * @param byteBuffer
-	 * @param obj List<Packet> or Packet
+	 * @param obj        List<Packet> or Packet
 	 */
 	public SslVo(ByteBuffer byteBuffer, Object obj) {
 		this.byteBuffer = byteBuffer;

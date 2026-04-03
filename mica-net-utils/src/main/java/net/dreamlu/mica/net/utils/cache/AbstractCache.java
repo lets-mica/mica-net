@@ -45,11 +45,6 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	 * 写的时候每个key一把锁，降低锁的粒度
 	 */
 	protected final ConcurrentHashMap<K, Lock> keyLockMap = new ConcurrentHashMap<>();
-
-	/**
-	 * 每个对象是否有单独的失效时长，用于决定清理过期对象是否有必要。
-	 */
-	protected boolean existCustomTimeout;
 	/**
 	 * 命中数，即命中缓存计数
 	 */
@@ -58,7 +53,10 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	 * 丢失数，即未命中缓存计数
 	 */
 	protected final LongAdder missCount = new LongAdder();
-
+	/**
+	 * 每个对象是否有单独的失效时长，用于决定清理过期对象是否有必要。
+	 */
+	protected boolean existCustomTimeout;
 	/**
 	 * 缓存监听
 	 */
@@ -105,6 +103,7 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	// ---------------------------------------------------------------- put end
 
 	// ---------------------------------------------------------------- get start
+
 	/**
 	 * @return 命中数
 	 */
@@ -160,6 +159,7 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	// ---------------------------------------------------------------- get end
 
 	// ---------------------------------------------------------------- prune start
+
 	/**
 	 * 清理实现<br>
 	 * 子类实现此方法时无需加锁
@@ -258,7 +258,7 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 	/**
 	 * 移除key对应的对象，不加锁
 	 *
-	 * @param key           键
+	 * @param key 键
 	 * @return 移除的对象，无返回null
 	 */
 	protected CacheObj<K, V> removeWithoutLock(K key) {
@@ -267,6 +267,7 @@ public abstract class AbstractCache<K extends Serializable, V extends Serializab
 
 	/**
 	 * 获取所有{@link CacheObj}值的{@link Iterator}形式
+	 *
 	 * @return {@link Iterator}
 	 */
 	protected Iterator<CacheObj<K, V>> cacheObjIter() {

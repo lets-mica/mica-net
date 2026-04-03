@@ -40,32 +40,6 @@ public class ClusterMessageEncoder {
 	}
 
 	/**
-	 * This is the main encoding method.
-	 * It's only visible for testing.
-	 *
-	 * @param message Cluster message to encode
-	 * @return ByteBuffer with encoded bytes
-	 */
-	public ByteBuffer encode(AbsClusterMessage message) {
-		ClusterMessageType messageType = message.getMessageType();
-		switch (messageType) {
-			case PING:
-			case PONG:
-				return encodePingPongMessage(messageType);
-			case DATA:
-				return encodeDataMessage((ClusterDataMessage) message);
-			case SYNC:
-				return encodeSyncMessage((ClusterSyncMessage) message);
-			case SYNC_ACK:
-				return encodeSyncAckMessage((ClusterSyncAckMessage) message);
-			case JOIN:
-				return encodeJoinMessage((ClusterJoinMessage) message);
-			default:
-				throw new IllegalArgumentException("暂不支持该集群消息类型");
-		}
-	}
-
-	/**
 	 * ping、pong 消息编码
 	 *
 	 * @param messageType ClusterMessageType
@@ -187,6 +161,32 @@ public class ClusterMessageEncoder {
 			return ByteBufferUtil.EMPTY_BYTES;
 		}
 		return JsonUtil.toJsonBytes(headers);
+	}
+
+	/**
+	 * This is the main encoding method.
+	 * It's only visible for testing.
+	 *
+	 * @param message Cluster message to encode
+	 * @return ByteBuffer with encoded bytes
+	 */
+	public ByteBuffer encode(AbsClusterMessage message) {
+		ClusterMessageType messageType = message.getMessageType();
+		switch (messageType) {
+			case PING:
+			case PONG:
+				return encodePingPongMessage(messageType);
+			case DATA:
+				return encodeDataMessage((ClusterDataMessage) message);
+			case SYNC:
+				return encodeSyncMessage((ClusterSyncMessage) message);
+			case SYNC_ACK:
+				return encodeSyncAckMessage((ClusterSyncAckMessage) message);
+			case JOIN:
+				return encodeJoinMessage((ClusterJoinMessage) message);
+			default:
+				throw new IllegalArgumentException("暂不支持该集群消息类型");
+		}
 	}
 
 }

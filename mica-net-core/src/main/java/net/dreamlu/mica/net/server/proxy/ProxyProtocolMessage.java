@@ -45,43 +45,23 @@ public class ProxyProtocolMessage {
 	private final int destinationPort;
 
 	public ProxyProtocolMessage(String protocol,
-								String sourceAddress,
-								String destinationAddress,
-								String sourcePort,
-								String destinationPort) {
+	                            String sourceAddress,
+	                            String destinationAddress,
+	                            String sourcePort,
+	                            String destinationPort) {
 		this(protocol, sourceAddress, destinationAddress, portStringToInt(sourcePort), portStringToInt(destinationPort));
 	}
 
 	public ProxyProtocolMessage(String protocol,
-								String sourceAddress,
-								String destinationAddress,
-								int sourcePort,
-								int destinationPort) {
+	                            String sourceAddress,
+	                            String destinationAddress,
+	                            int sourcePort,
+	                            int destinationPort) {
 		this.protocol = protocol;
 		this.sourceAddress = sourceAddress;
 		this.destinationAddress = destinationAddress;
 		this.sourcePort = sourcePort;
 		this.destinationPort = destinationPort;
-	}
-
-	public String getProtocol() {
-		return protocol;
-	}
-
-	public String getSourceAddress() {
-		return sourceAddress;
-	}
-
-	public String getDestinationAddress() {
-		return destinationAddress;
-	}
-
-	public int getSourcePort() {
-		return sourcePort;
-	}
-
-	public int getDestinationPort() {
-		return destinationPort;
 	}
 
 	/**
@@ -102,6 +82,26 @@ public class ProxyProtocolMessage {
 			throw new IllegalArgumentException("invalid port: " + value + " (expected: 1 ~ 65535)");
 		}
 		return port;
+	}
+
+	public String getProtocol() {
+		return protocol;
+	}
+
+	public String getSourceAddress() {
+		return sourceAddress;
+	}
+
+	public String getDestinationAddress() {
+		return destinationAddress;
+	}
+
+	public int getSourcePort() {
+		return sourcePort;
+	}
+
+	public int getDestinationPort() {
+		return destinationPort;
 	}
 
 	@Override

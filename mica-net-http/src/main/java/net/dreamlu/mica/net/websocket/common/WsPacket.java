@@ -200,12 +200,12 @@ import net.dreamlu.mica.net.core.intf.Packet;
  * 2017年7月30日 上午10:09:51
  */
 public class WsPacket extends Packet {
-	private static final long serialVersionUID = 4506947563506841436L;
 	public static final int MINIMUM_HEADER_LENGTH = 2;
 	/**
 	 * 最多接受的1024 * 512(半M)数据
 	 */
 	public static final int MAX_BODY_LENGTH = 1024 * 512;
+	private static final long serialVersionUID = 4506947563506841436L;
 	/**
 	 * 是否是握手包
 	 */

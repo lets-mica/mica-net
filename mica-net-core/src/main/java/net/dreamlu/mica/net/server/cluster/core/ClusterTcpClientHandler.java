@@ -45,7 +45,7 @@ public class ClusterTcpClientHandler implements TioClientHandler {
 	private final ConcurrentMap<Long, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap;
 
 	public ClusterTcpClientHandler(ClusterMessageDecoder messageDecoder,
-								   ConcurrentMap<Long, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap) {
+	                               ConcurrentMap<Long, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap) {
 		this.messageEncoder = ClusterMessageEncoder.INSTANCE;
 		this.messageDecoder = messageDecoder;
 		this.syncMessageMap = syncMessageMap;

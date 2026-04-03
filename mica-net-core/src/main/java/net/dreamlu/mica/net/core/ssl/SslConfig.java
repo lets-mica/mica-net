@@ -232,28 +232,6 @@ public class SslConfig {
 		this.tms = tms;
 	}
 
-	public ClientAuth getClientAuth() {
-		return clientAuth;
-	}
-
-	public SSLContext getSslContext() {
-		try {
-			SSLContext sslContext = SSLContext.getInstance("TLS");
-			sslContext.init(kms, tms, new SecureRandom());
-			return sslContext;
-		} catch (NoSuchAlgorithmException | KeyManagementException e) {
-			throw new IllegalArgumentException(e);
-		}
-	}
-
-	public SSLEngineCustomizer getSslEngineCustomizer() {
-		return sslEngineCustomizer;
-	}
-
-	public void setSslEngineCustomizer(SSLEngineCustomizer sslEngineCustomizer) {
-		this.sslEngineCustomizer = sslEngineCustomizer;
-	}
-
 	/**
 	 * @param keyStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
 	 * @param keyPasswd    key passwd
@@ -278,8 +256,8 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forServer(String keyStoreFile, String keyPasswd,
-									  String trustStoreFile, String trustPassword,
-									  ClientAuth clientAuth) {
+	                                  String trustStoreFile, String trustPassword,
+	                                  ClientAuth clientAuth) {
 		KeyManager[] kms = getKeyManager(keyStoreFile, keyPasswd);
 		TrustManager[] tms = getTrustManager(trustStoreFile, trustPassword);
 		return new SslConfig(clientAuth, kms, tms);
@@ -329,7 +307,6 @@ public class SslConfig {
 		return forServer(certType, keyStoreInputStream, keyPasswd, null, null, clientAuth);
 	}
 
-
 	/**
 	 * 给服务器用的
 	 *
@@ -338,8 +315,8 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forServer(InputStream keyStoreInputStream, String keyPasswd,
-									  InputStream trustStoreInputStream, String trustPassword,
-									  ClientAuth clientAuth) {
+	                                  InputStream trustStoreInputStream, String trustPassword,
+	                                  ClientAuth clientAuth) {
 		return forServer(SslCertType.JKS, keyStoreInputStream, keyPasswd, trustStoreInputStream, trustPassword, clientAuth);
 	}
 
@@ -351,8 +328,8 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forServer(SslCertType certType, InputStream keyStoreInputStream, String keyPasswd,
-									  InputStream trustStoreInputStream, String trustPassword,
-									  ClientAuth clientAuth) {
+	                                  InputStream trustStoreInputStream, String trustPassword,
+	                                  ClientAuth clientAuth) {
 		KeyManager[] kms = getKeyManager(certType, keyStoreInputStream, keyPasswd);
 		TrustManager[] tms = getTrustManager(trustStoreInputStream, trustPassword);
 		return new SslConfig(clientAuth, kms, tms);
@@ -392,7 +369,7 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forClient(String keyStoreFile, String keyPasswd,
-									  String trustStoreFile, String trustPassword) {
+	                                  String trustStoreFile, String trustPassword) {
 		KeyManager[] kms = getKeyManager(keyStoreFile, keyPasswd);
 		TrustManager[] tms = getTrustManager(trustStoreFile, trustPassword);
 		return new SslConfig(kms, tms);
@@ -422,7 +399,7 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forClient(InputStream keyStoreInputStream, String keyPasswd,
-									  InputStream trustStoreInputStream, String trustPassword) {
+	                                  InputStream trustStoreInputStream, String trustPassword) {
 		return forClient(SslCertType.JKS, keyStoreInputStream, keyPasswd, trustStoreInputStream, trustPassword);
 	}
 
@@ -432,7 +409,7 @@ public class SslConfig {
 	 * @return SslConfig
 	 */
 	public static SslConfig forClient(SslCertType certType, InputStream keyStoreInputStream, String keyPasswd,
-									  InputStream trustStoreInputStream, String trustPassword) {
+	                                  InputStream trustStoreInputStream, String trustPassword) {
 		KeyManager[] kms = getKeyManager(certType, keyStoreInputStream, keyPasswd);
 		TrustManager[] tms = getTrustManager(certType, trustStoreInputStream, trustPassword);
 		return new SslConfig(kms, tms);
@@ -514,6 +491,28 @@ public class SslConfig {
 		} catch (Exception e) {
 			throw new IllegalArgumentException(e);
 		}
+	}
+
+	public ClientAuth getClientAuth() {
+		return clientAuth;
+	}
+
+	public SSLContext getSslContext() {
+		try {
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(kms, tms, new SecureRandom());
+			return sslContext;
+		} catch (NoSuchAlgorithmException | KeyManagementException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	public SSLEngineCustomizer getSslEngineCustomizer() {
+		return sslEngineCustomizer;
+	}
+
+	public void setSslEngineCustomizer(SSLEngineCustomizer sslEngineCustomizer) {
+		this.sslEngineCustomizer = sslEngineCustomizer;
 	}
 
 }

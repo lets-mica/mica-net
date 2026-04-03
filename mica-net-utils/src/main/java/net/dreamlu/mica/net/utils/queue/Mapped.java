@@ -22,8 +22,8 @@ import java.util.function.Consumer;
  * @author leon、L.cm
  */
 public abstract class Mapped implements Closeable {
-	private static final Logger log = LoggerFactory.getLogger(Mapped.class);
 	protected static final int DATA_FILENAME_MAX_LENGTH = 19;
+	private static final Logger log = LoggerFactory.getLogger(Mapped.class);
 	protected static Consumer<MappedByteBuffer> buffCleaner;
 
 	static {
@@ -73,15 +73,19 @@ public abstract class Mapped implements Closeable {
 	}
 
 	protected boolean newed;
-	private RandomAccessFile rw;
 	protected FileChannel channel;
 	protected MappedByteBuffer buffer;
+	private RandomAccessFile rw;
 
 	protected Mapped(Path path, long pos, long size) throws IOException {
 		newed = !Files.exists(path);
 		rw = new RandomAccessFile(path.toFile(), "rw");
 		channel = rw.getChannel();
 		buffer = channel.map(FileChannel.MapMode.READ_WRITE, pos, size);
+	}
+
+	public static Path pathname(Path path, long name, String extension) {
+		return path.resolve(String.format("%0" + DATA_FILENAME_MAX_LENGTH + "d", name) + extension);
 	}
 
 	@Override
@@ -97,9 +101,5 @@ public abstract class Mapped implements Closeable {
 
 	public void force() throws IOException {
 		channel.force(true);
-	}
-
-	public static Path pathname(Path path, long name, String extension) {
-		return path.resolve(String.format("%0" + DATA_FILENAME_MAX_LENGTH + "d", name) + extension);
 	}
 }

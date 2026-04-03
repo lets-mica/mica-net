@@ -250,8 +250,8 @@ public class ZipUtil {
 	 */
 	public static byte[] unGzip(byte[] buffer, int readBufferSize) {
 		try (ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer);
-			 GZIPInputStream gzip = new GZIPInputStream(inputStream);
-			 FastByteArrayOutputStream outputStream = new FastByteArrayOutputStream()
+		     GZIPInputStream gzip = new GZIPInputStream(inputStream);
+		     FastByteArrayOutputStream outputStream = new FastByteArrayOutputStream()
 		) {
 			byte[] buf = new byte[readBufferSize];
 			int len;

@@ -268,8 +268,8 @@ public final class IpUtils {
 	 * 获取真实ip
 	 *
 	 * @param channelContext ChannelContext
-	 * @param httpConfig HttpConfig
-	 * @param httpHeaders httpHeaders
+	 * @param httpConfig     HttpConfig
+	 * @param httpHeaders    httpHeaders
 	 * @return ip
 	 */
 	public static String getRealIp(ChannelContext channelContext, HttpConfig httpConfig, Map<String, String> httpHeaders) {

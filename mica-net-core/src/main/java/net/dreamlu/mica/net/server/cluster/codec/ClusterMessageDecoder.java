@@ -34,37 +34,6 @@ import java.util.Map;
 public class ClusterMessageDecoder {
 
 	/**
-	 * @param ctx            ChannelContext
-	 * @param buffer         ByteBuffer
-	 * @param readableLength readableLength
-	 * @return Packet
-	 * @throws TioDecodeException TioDecodeException
-	 */
-	public Packet decode(ChannelContext ctx, ByteBuffer buffer, int readableLength) throws TioDecodeException {
-		// 消息长度不够读
-		if (readableLength < 1) {
-			return null;
-		}
-		ClusterMessageType messageType = ClusterMessageType.from(buffer.get());
-		switch (messageType) {
-			case PING:
-				return ClusterPingMessage.INSTANCE;
-			case PONG:
-				return ClusterPongMessage.INSTANCE;
-			case DATA:
-				return decodeDataMessage(ctx, buffer, readableLength);
-			case SYNC:
-				return decodeSyncMessage(ctx, buffer, readableLength);
-			case SYNC_ACK:
-				return decodeSyncAckMessage(ctx, buffer, readableLength);
-			case JOIN:
-				return decodeJoinMessage(ctx, buffer, readableLength);
-			default:
-				throw new TioDecodeException("暂不支持的集群消息类型");
-		}
-	}
-
-	/**
 	 * 异步数据消息解码
 	 *
 	 * @param ctx            ChannelContext
@@ -214,6 +183,37 @@ public class ClusterMessageDecoder {
 		}
 		byte[] headersBytes = ByteBufferUtil.readBytes(buffer, headersLength);
 		return JsonUtil.readMap(headersBytes, String.class, String.class);
+	}
+
+	/**
+	 * @param ctx            ChannelContext
+	 * @param buffer         ByteBuffer
+	 * @param readableLength readableLength
+	 * @return Packet
+	 * @throws TioDecodeException TioDecodeException
+	 */
+	public Packet decode(ChannelContext ctx, ByteBuffer buffer, int readableLength) throws TioDecodeException {
+		// 消息长度不够读
+		if (readableLength < 1) {
+			return null;
+		}
+		ClusterMessageType messageType = ClusterMessageType.from(buffer.get());
+		switch (messageType) {
+			case PING:
+				return ClusterPingMessage.INSTANCE;
+			case PONG:
+				return ClusterPongMessage.INSTANCE;
+			case DATA:
+				return decodeDataMessage(ctx, buffer, readableLength);
+			case SYNC:
+				return decodeSyncMessage(ctx, buffer, readableLength);
+			case SYNC_ACK:
+				return decodeSyncAckMessage(ctx, buffer, readableLength);
+			case JOIN:
+				return decodeJoinMessage(ctx, buffer, readableLength);
+			default:
+				throw new TioDecodeException("暂不支持的集群消息类型");
+		}
 	}
 
 }

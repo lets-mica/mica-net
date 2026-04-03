@@ -246,16 +246,14 @@ public abstract class TioConfig {
 	public static final long DEFAULT_HEARTBEAT_TIMEOUT = 120_000L;
 	private static final AtomicInteger ID_ATOMIC = new AtomicInteger();
 	static Logger log = LoggerFactory.getLogger(TioConfig.class);
-
+	// 引用类型（指针大小，通常8字节但可能压缩为4字节）
+	public final String id;
 	// 内存对齐优化：按字段大小分组排列（从大到小）
 	// 8字节字段
 	public long heartbeatTimeout = DEFAULT_HEARTBEAT_TIMEOUT;
 	public long startTime = System.currentTimeMillis();
-
 	// 4字节字段
 	public int maxDecodeFailCount = 10;
-	private int readBufferSize = READ_BUFFER_SIZE;
-
 	/**
 	 * 慢包检测滑动窗口大小（默认16）
 	 * 用于计算最近N次接收的平均字节数，值越大统计越平滑但响应越慢
@@ -267,9 +265,6 @@ public abstract class TioConfig {
 	 * 设置为N表示每N次解码失败才检测一次，可降低检测频率提升性能
 	 */
 	public int slowPacketCheckInterval = 1;
-
-	// 引用类型（指针大小，通常8字节但可能压缩为4字节）
-	public final String id;
 	public SslConfig sslConfig = null;
 	public GroupStat groupStat = null;
 	public PacketConverter packetConverter = null;
@@ -287,24 +282,23 @@ public abstract class TioConfig {
 	public Ids ids = new Ids();
 	public BsIds bsIds = new BsIds();
 	public ConcurrentMap<Integer, CompletableFuture<Packet>> waitingResps = new ConcurrentHashMap<>();
-	protected String name = "未命名";
-	private GroupListener groupListener = null;
-	private TioUuid tioUuid = new DefaultTioUuid();
-	private HeartbeatMode heartbeatMode = HeartbeatMode.ANY;
-	private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
-
 	// 布尔型字段（放在最后减少padding）
 	public boolean isShortConnection = false;
 	public boolean debug = false;
 	public boolean statOn = true;
 	public boolean logWhenDecodeError = false;
-	private boolean isStopped = false;
-
 	/**
 	 * 是否启用慢包攻击检测（默认true）
 	 * 关闭可以在极高QPS场景下进一步优化性能，但会失去慢包防护
 	 */
 	public boolean enableSlowPacketDetection = true;
+	protected String name = "未命名";
+	private int readBufferSize = READ_BUFFER_SIZE;
+	private GroupListener groupListener = null;
+	private TioUuid tioUuid = new DefaultTioUuid();
+	private HeartbeatMode heartbeatMode = HeartbeatMode.ANY;
+	private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
+	private boolean isStopped = false;
 
 	public TioConfig() {
 		this(null, null);
@@ -410,6 +404,7 @@ public abstract class TioConfig {
 
 	/**
 	 * 获取异步响应映射表
+	 *
 	 * @return 异步响应映射表
 	 */
 	public Map<Integer, CompletableFuture<Packet>> getWaitingResps() {

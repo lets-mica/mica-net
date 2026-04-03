@@ -54,7 +54,7 @@ public class UdpServerConfig extends TioServerConfig {
 	 * @param groupExecutor     ThreadPoolExecutor
 	 */
 	public UdpServerConfig(TioServerHandler tioServerHandler, TioServerListener tioServerListener,
-						   SynThreadPoolExecutor tioExecutor, java.util.concurrent.ThreadPoolExecutor groupExecutor) {
+	                       SynThreadPoolExecutor tioExecutor, java.util.concurrent.ThreadPoolExecutor groupExecutor) {
 		super(tioServerHandler, tioServerListener, tioExecutor, groupExecutor);
 	}
 
@@ -68,7 +68,7 @@ public class UdpServerConfig extends TioServerConfig {
 	 * @param groupExecutor     ExecutorService
 	 */
 	public UdpServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener,
-						   SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
+	                       SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		super(name, tioServerHandler, tioServerListener, tioExecutor, groupExecutor);
 	}
 

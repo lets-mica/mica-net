@@ -212,10 +212,10 @@ import java.util.Set;
  * 2017年8月4日 上午9:41:12
  */
 public final class HttpResponseEncoder {
-	private static final Logger log = LoggerFactory.getLogger(HttpResponseEncoder.class);
 	public static final int HEADER_SERVER_LENGTH = HeaderName.Server.bytes.length + HeaderValue.Server.SERVER_INFO.bytes.length + 4; // Server头长度(名称+值+冒号空格和\r\n)
 	public static final int HEADER_DATE_LENGTH = HeaderName.Date.bytes.length + 4; // Date头长度(名称+冒号空格和\r\n)
 	public static final int HEADER_FIXED_LENGTH = HEADER_SERVER_LENGTH + HEADER_DATE_LENGTH; // 固定头总长度
+	private static final Logger log = LoggerFactory.getLogger(HttpResponseEncoder.class);
 
 	private HttpResponseEncoder() {
 
@@ -302,10 +302,10 @@ public final class HttpResponseEncoder {
 	 * 编码响应头到ByteBuffer
 	 */
 	private static void encodeHeaders(ByteBuffer buffer,
-								   HttpResponseStatus httpResponseStatus,
-								   Map<HeaderName, HeaderValue> headers,
-								   List<Cookie> cookies,
-								   HeaderValue httpDateValue) {
+	                                  HttpResponseStatus httpResponseStatus,
+	                                  Map<HeaderName, HeaderValue> headers,
+	                                  List<Cookie> cookies,
+	                                  HeaderValue httpDateValue) {
 		// 写入状态行
 		buffer.put(httpResponseStatus.responseLineBinary);
 
@@ -351,16 +351,16 @@ public final class HttpResponseEncoder {
 	/**
 	 * 判断是否需要相应 Content-Length 头
 	 *
-	 * @param httpRequest HttpRequest
+	 * @param httpRequest        HttpRequest
 	 * @param httpResponseStatus HttpResponseStatus
-	 * @param headers headers
-	 * @param chunked 是否是分块传输
+	 * @param headers            headers
+	 * @param chunked            是否是分块传输
 	 * @return 是否需要相应 body 长度头
 	 */
 	private static boolean isNeedResponseContentLength(HttpRequest httpRequest,
-												HttpResponseStatus httpResponseStatus,
-												Map<HeaderName, HeaderValue> headers,
-												boolean chunked) {
+	                                                   HttpResponseStatus httpResponseStatus,
+	                                                   Map<HeaderName, HeaderValue> headers,
+	                                                   boolean chunked) {
 		// 如果是分块传输，不需要 Content-Length
 		if (chunked) {
 			return false;

@@ -8,9 +8,9 @@ import java.util.List;
  * @author L.cm
  */
 public class McpTextContent implements McpContent {
+	private final String type = "text";
 	private List<McpRole> audience;
 	private Double priority;
-	private final String type = "text";
 	private String text;
 
 	public McpTextContent() {

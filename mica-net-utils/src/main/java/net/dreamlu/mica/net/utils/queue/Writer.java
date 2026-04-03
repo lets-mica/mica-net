@@ -18,18 +18,17 @@ import java.util.function.Function;
  * @author leon
  */
 final class Writer<E> extends Mapped {
-	private static final Logger log = LoggerFactory.getLogger(Writer.class);
 	static final String NAME = "data.write";
+	private static final Logger log = LoggerFactory.getLogger(Writer.class);
 	private final Path path;
 	private final long mfs;
 	private final long mds;
 	private final ReentrantLock lock = new ReentrantLock();
 	private final Condition condition;
-
-	private OffsetFile offset;
-	private DataFile data;
 	long dataIdx;
 	long offsetIdx;
+	private OffsetFile offset;
+	private DataFile data;
 	private long maxDataIdx;
 	private long maxOffsetIdx;
 

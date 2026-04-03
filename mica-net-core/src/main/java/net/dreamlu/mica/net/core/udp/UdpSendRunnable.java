@@ -123,8 +123,8 @@ public class UdpSendRunnable extends AbstractSendRunnable {
 				} else {
 					// 未连接的 UDP，需要指定目标地址
 					Node remoteNode = channelContext.isServer()
-							? channelContext.getClientNode()
-							: channelContext.getServerNode();
+						? channelContext.getClientNode()
+						: channelContext.getServerNode();
 					udpChannelContext.datagramChannel.send(byteBuffer, remoteNode.getAsSocketAddress());
 				}
 			}

@@ -263,7 +263,7 @@ public class SlowPacketDetector {
 	/**
 	 * 创建检测器
 	 *
-	 * @param windowSize 滑动窗口大小
+	 * @param windowSize    滑动窗口大小
 	 * @param checkInterval 检测间隔（每N次失败检测一次，1表示每次都检测）
 	 */
 	public SlowPacketDetector(int windowSize, int checkInterval) {

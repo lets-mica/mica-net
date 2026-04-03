@@ -98,9 +98,10 @@ public abstract class ReentrantCache<K extends Serializable, V extends Serializa
 
 	/**
 	 * 获得值或清除过期值
-	 * @param key 键
+	 *
+	 * @param key                键
 	 * @param isUpdateLastAccess 是否更新最后访问时间
-	 * @param isUpdateCount 是否更新计数器
+	 * @param isUpdateCount      是否更新计数器
 	 * @return 值或null
 	 */
 	private V getOrRemoveExpired(final K key, final boolean isUpdateLastAccess, final boolean isUpdateCount) {
@@ -108,7 +109,7 @@ public abstract class ReentrantCache<K extends Serializable, V extends Serializa
 		lock.lock();
 		try {
 			co = getWithoutLock(key);
-			if(null != co && co.isExpired()){
+			if (null != co && co.isExpired()) {
 				//过期移除
 				removeWithoutLock(key);
 				co = null;
@@ -118,12 +119,12 @@ public abstract class ReentrantCache<K extends Serializable, V extends Serializa
 		}
 		// 未命中
 		if (null == co) {
-			if(isUpdateCount){
+			if (isUpdateCount) {
 				missCount.increment();
 			}
 			return null;
 		}
-		if(isUpdateCount){
+		if (isUpdateCount) {
 			hitCount.increment();
 		}
 		return co.get(isUpdateLastAccess);

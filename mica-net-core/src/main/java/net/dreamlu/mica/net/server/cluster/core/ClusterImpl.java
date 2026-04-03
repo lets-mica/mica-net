@@ -66,14 +66,6 @@ public class ClusterImpl implements ClusterApi {
 	 * 后加入的成员
 	 */
 	private final Set<Node> lateJoinMembers;
-	/**
-	 * tcp 集群服务
-	 */
-	private TioServer tcpClusterServer;
-	/**
-	 * tcp 客户端
-	 */
-	private TioClient tcpClusterClient;
 	private final ClusterMessageDecoder messageDecoder;
 	/**
 	 * 集群成员节点与 ChannelContext 的映射
@@ -88,6 +80,14 @@ public class ClusterImpl implements ClusterApi {
 	 * id 生产器
 	 */
 	private final Snowflake snowflake;
+	/**
+	 * tcp 集群服务
+	 */
+	private TioServer tcpClusterServer;
+	/**
+	 * tcp 客户端
+	 */
+	private TioClient tcpClusterClient;
 
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;

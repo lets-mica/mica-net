@@ -20,8 +20,8 @@ import java.util.function.Function;
  * @author leon
  */
 public final class FileQueue<E> {
-	private static final Logger log = LoggerFactory.getLogger(FileQueue.class);
 	static final Map<Path, FileQueue<?>> CACHE = new ConcurrentHashMap<>(16);
+	private static final Logger log = LoggerFactory.getLogger(FileQueue.class);
 	private final Reader<E> reader;
 	private final Writer<E> writer;
 

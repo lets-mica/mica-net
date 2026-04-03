@@ -26,31 +26,6 @@ import java.util.Map;
 public interface IntObjectMap<V> extends Map<Integer, V> {
 
 	/**
-	 * A primitive entry in the map, provided by the iterator from {@link #entries()}
-	 *
-	 * @param <V> the value type stored in the map.
-	 */
-	interface PrimitiveEntry<V> {
-		/**
-		 * Gets the key for this entry.
-		 * @return keu
-		 */
-		int key();
-
-		/**
-		 * Gets the value for this entry.
-		 * @return V
-		 */
-		V value();
-
-		/**
-		 * Sets the value for this entry.
-		 * @param value value
-		 */
-		void setValue(V value);
-	}
-
-	/**
 	 * Gets the value in the map with the specified key.
 	 *
 	 * @param key the key whose associated value is to be returned.
@@ -91,4 +66,32 @@ public interface IntObjectMap<V> extends Map<Integer, V> {
 	 * @return is has key
 	 */
 	boolean containsKey(int key);
+
+	/**
+	 * A primitive entry in the map, provided by the iterator from {@link #entries()}
+	 *
+	 * @param <V> the value type stored in the map.
+	 */
+	interface PrimitiveEntry<V> {
+		/**
+		 * Gets the key for this entry.
+		 *
+		 * @return keu
+		 */
+		int key();
+
+		/**
+		 * Gets the value for this entry.
+		 *
+		 * @return V
+		 */
+		V value();
+
+		/**
+		 * Sets the value for this entry.
+		 *
+		 * @param value value
+		 */
+		void setValue(V value);
+	}
 }

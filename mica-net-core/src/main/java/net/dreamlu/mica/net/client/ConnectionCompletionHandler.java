@@ -216,24 +216,6 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 
 	/**
 	 * @param result     result
-	 * @param attachment ConnectionCompletionVo
-	 */
-	@Override
-	public void completed(Void result, ConnectionCompletionVo attachment) {
-		handler(result, attachment, null);
-	}
-
-	/**
-	 * @param throwable  Throwable
-	 * @param attachment ConnectionCompletionVo
-	 */
-	@Override
-	public void failed(Throwable throwable, ConnectionCompletionVo attachment) {
-		handler(null, attachment, throwable);
-	}
-
-	/**
-	 * @param result     result
 	 * @param attachment attachment
 	 * @param throwable  Throwable
 	 */
@@ -331,5 +313,23 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 				log.error(e1.getMessage(), e1);
 			}
 		}
+	}
+
+	/**
+	 * @param result     result
+	 * @param attachment ConnectionCompletionVo
+	 */
+	@Override
+	public void completed(Void result, ConnectionCompletionVo attachment) {
+		handler(result, attachment, null);
+	}
+
+	/**
+	 * @param throwable  Throwable
+	 * @param attachment ConnectionCompletionVo
+	 */
+	@Override
+	public void failed(Throwable throwable, ConnectionCompletionVo attachment) {
+		handler(null, attachment, throwable);
 	}
 }

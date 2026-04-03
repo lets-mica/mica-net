@@ -210,7 +210,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SSLFacade implements ISSLFacade {
-    private static final Logger log = LoggerFactory.getLogger(SSLFacade.class);
+	private static final Logger log = LoggerFactory.getLogger(SSLFacade.class);
 
 	private final AtomicLong sslSeq = new AtomicLong();
 	private final ChannelContext channelContext;
@@ -224,7 +224,7 @@ public class SSLFacade implements ISSLFacade {
 		this.isClientMode = client;
 		// Currently there is no support for SSL session reuse,
 		// so no need to take a peerHost or port from the host application
-        SSLEngine engine = makeSSLEngine(context, client, sslConfig);
+		SSLEngine engine = makeSSLEngine(context, client, sslConfig);
 		Buffers buffers = new Buffers(engine.getSession());
 		this._worker = new Worker(engine, buffers, channelContext);
 		this._handshaker = new Handshaker(_worker, taskHandler, channelContext);

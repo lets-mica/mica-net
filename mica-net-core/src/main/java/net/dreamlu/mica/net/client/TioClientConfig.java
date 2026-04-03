@@ -222,13 +222,13 @@ import java.util.concurrent.ExecutorService;
 public class TioClientConfig extends TioConfig {
 	public final Set<ChannelContext> connecteds = ConcurrentHashMap.newKeySet();
 	public final Set<ChannelContext> closeds = ConcurrentHashMap.newKeySet();
+	private final ConnectionCompletionHandler connectionCompletionHandler;
 	/**
 	 * 重连配置
 	 */
 	protected ReconnConf reconnConf;
 	private TioClientHandler tioClientHandler = null;
 	private TioClientListener tioClientListener = null;
-	private final ConnectionCompletionHandler connectionCompletionHandler;
 	/**
 	 * taskService
 	 */

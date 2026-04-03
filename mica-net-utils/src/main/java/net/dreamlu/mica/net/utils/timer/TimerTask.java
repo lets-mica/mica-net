@@ -58,6 +58,10 @@ public abstract class TimerTask implements Runnable {
 		}
 	}
 
+	public TimerTaskEntry getTimerTaskEntry() {
+		return timerTaskEntry;
+	}
+
 	public void setTimerTaskEntry(TimerTaskEntry entry) {
 		// if this timerTask is already held by an existing timer task entry,
 		// we will remove such an entry first.
@@ -67,10 +71,6 @@ public abstract class TimerTask implements Runnable {
 			}
 			timerTaskEntry = entry;
 		}
-	}
-
-	public TimerTaskEntry getTimerTaskEntry() {
-		return timerTaskEntry;
 	}
 
 	public long getDelayMs() {

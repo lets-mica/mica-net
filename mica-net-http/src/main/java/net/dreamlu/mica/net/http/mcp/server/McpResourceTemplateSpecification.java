@@ -11,7 +11,7 @@ public class McpResourceTemplateSpecification {
 	private final BiFunction<McpServerSession, McpReadResourceRequest, McpReadResourceResult> readHandler;
 
 	public McpResourceTemplateSpecification(McpResourceTemplate resource,
-											BiFunction<McpServerSession, McpReadResourceRequest, McpReadResourceResult> readHandler) {
+	                                        BiFunction<McpServerSession, McpReadResourceRequest, McpReadResourceResult> readHandler) {
 		this.resource = resource;
 		this.readHandler = readHandler;
 	}

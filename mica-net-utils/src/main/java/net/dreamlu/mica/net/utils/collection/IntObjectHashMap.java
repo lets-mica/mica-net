@@ -44,25 +44,21 @@ public class IntObjectHashMap<V> implements IntObjectMap<V> {
 	 * (Better than using a placeholder for available: less references for GC processing.)
 	 */
 	private static final Object NULL_VALUE = new Object();
-
-	/**
-	 * The maximum number of elements allowed without allocating more space.
-	 */
-	private int maxSize;
-
 	/**
 	 * The load factor for the map. Used to calculate {@link #maxSize}.
 	 */
 	private final float loadFactor;
-
+	private final Set<Integer> keySet = new KeySet();
+	private final Set<Entry<Integer, V>> entrySet = new EntrySet();
+	private final Iterable<PrimitiveEntry<V>> entries = PrimitiveIterator::new;
+	/**
+	 * The maximum number of elements allowed without allocating more space.
+	 */
+	private int maxSize;
 	private int[] keys;
 	private V[] values;
 	private int size;
 	private int mask;
-
-	private final Set<Integer> keySet = new KeySet();
-	private final Set<Entry<Integer, V>> entrySet = new EntrySet();
-	private final Iterable<PrimitiveEntry<V>> entries = PrimitiveIterator::new;
 
 	public IntObjectHashMap() {
 		this(DEFAULT_CAPACITY, DEFAULT_LOAD_FACTOR);
@@ -103,6 +99,13 @@ public class IntObjectHashMap<V> implements IntObjectMap<V> {
 	@SuppressWarnings("unchecked")
 	private static <T> T toInternal(T value) {
 		return value == null ? (T) NULL_VALUE : value;
+	}
+
+	/**
+	 * Returns the hash code for the key.
+	 */
+	private static int hashCode(int key) {
+		return key;
 	}
 
 	@Override
@@ -359,13 +362,6 @@ public class IntObjectHashMap<V> implements IntObjectMap<V> {
 	private int hashIndex(int key) {
 		// The array lengths are always a power of two, so we can use a bitmask to stay inside the array bounds.
 		return hashCode(key) & mask;
-	}
-
-	/**
-	 * Returns the hash code for the key.
-	 */
-	private static int hashCode(int key) {
-		return key;
 	}
 
 	/**

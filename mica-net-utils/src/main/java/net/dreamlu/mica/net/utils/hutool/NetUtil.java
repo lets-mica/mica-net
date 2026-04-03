@@ -35,7 +35,7 @@ public class NetUtil {
 	 * @return 过滤后的地址对象列表
 	 */
 	public static LinkedHashSet<InetAddress> getAddressList(Predicate<NetworkInterface> networkInterfaceFilter,
-															Predicate<InetAddress> addressFilter) {
+	                                                        Predicate<InetAddress> addressFilter) {
 		Enumeration<NetworkInterface> networkInterfaces;
 		try {
 			networkInterfaces = NetworkInterface.getNetworkInterfaces();

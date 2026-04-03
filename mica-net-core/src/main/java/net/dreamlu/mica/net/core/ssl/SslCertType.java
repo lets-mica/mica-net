@@ -30,16 +30,9 @@ public enum SslCertType {
 		this.fileExtensions = fileExtensions;
 	}
 
-	public String getType() {
-		return type;
-	}
-
-	public String[] getFileExtensions() {
-		return fileExtensions;
-	}
-
 	/**
 	 * 根据文件名判断证书类型
+	 *
 	 * @param fileName fileName
 	 * @return SslCertType
 	 */
@@ -56,6 +49,14 @@ public enum SslCertType {
 			}
 		}
 		return SslCertType.JKS;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public String[] getFileExtensions() {
+		return fileExtensions;
 	}
 
 }

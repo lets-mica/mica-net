@@ -16,11 +16,6 @@ public class CacheObj<K extends Serializable, V extends Serializable> implements
 
 	protected final K key;
 	protected final V obj;
-
-	/**
-	 * 上次访问时间
-	 */
-	protected volatile long lastAccess;
 	/**
 	 * 访问次数
 	 */
@@ -29,6 +24,10 @@ public class CacheObj<K extends Serializable, V extends Serializable> implements
 	 * 对象存活时长，0表示永久存活
 	 */
 	protected final long ttl;
+	/**
+	 * 上次访问时间
+	 */
+	protected volatile long lastAccess;
 
 	/**
 	 * 构造
@@ -80,8 +79,8 @@ public class CacheObj<K extends Serializable, V extends Serializable> implements
 	 * @return 此对象的过期时间，返回{@code null}表示永不过期
 	 * @since 5.7.17
 	 */
-	public Date getExpiredTime(){
-		if(this.ttl > 0){
+	public Date getExpiredTime() {
+		if (this.ttl > 0) {
 			return new Date(this.lastAccess + this.ttl);
 		}
 		return null;

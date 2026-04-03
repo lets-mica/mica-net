@@ -19,14 +19,6 @@ final class DataFile extends Mapped {
 		super(path, pos, size);
 	}
 
-	void write(byte[] bytes) {
-		buffer.put(bytes);
-	}
-
-	void read(byte[] dst, int len) {
-		buffer.get(dst, 0, len);
-	}
-
 	private static long fmtName(File file) {
 		return Long.parseLong(file.getName().substring(0, DATA_FILENAME_MAX_LENGTH));
 	}
@@ -55,6 +47,14 @@ final class DataFile extends Mapped {
 			}
 		}
 		return -1;
+	}
+
+	void write(byte[] bytes) {
+		buffer.put(bytes);
+	}
+
+	void read(byte[] dst, int len) {
+		buffer.get(dst, 0, len);
 	}
 
 }
