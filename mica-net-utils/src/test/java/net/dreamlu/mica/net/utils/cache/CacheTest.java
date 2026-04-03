@@ -19,9 +19,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CacheTest {
 
 	@Test
-	public void fifoCacheTest(){
-		Cache<String,String> fifoCache = new FIFOCache<>(3);
-		fifoCache.setListener((key, value)->{
+	public void fifoCacheTest() {
+		Cache<String, String> fifoCache = new FIFOCache<>(3);
+		fifoCache.setListener((key, value) -> {
 			// 监听测试，此测试中只有key1被移除，测试是否监听成功
 			assertEquals("key1", key);
 			assertEquals("value1", value);
@@ -38,8 +38,8 @@ public class CacheTest {
 	}
 
 	@Test
-	public void fifoCacheCapacityTest(){
-		Cache<String,String> fifoCache = new FIFOCache<>(100);
+	public void fifoCacheCapacityTest() {
+		Cache<String, String> fifoCache = new FIFOCache<>(100);
 		for (int i = 0; i < RandomUtil.randomInt(100, 1000); i++) {
 			fifoCache.put("key" + i, "value" + i);
 		}
@@ -47,7 +47,7 @@ public class CacheTest {
 	}
 
 	@Test
-	public void lfuCacheTest(){
+	public void lfuCacheTest() {
 		Cache<String, String> lfuCache = new LFUCache<>(3);
 		lfuCache.put("key1", "value1", DateUnit.SECOND.getMillis() * 3);
 		//使用次数+1
@@ -66,14 +66,14 @@ public class CacheTest {
 	}
 
 	@Test
-	public void lfuCacheTest2(){
+	public void lfuCacheTest2() {
 		Cache<String, String> lfuCache = new LFUCache<>(3);
 		final String s = lfuCache.get(null);
 		assertNull(s);
 	}
 
 	@Test
-	public void lruCacheTest(){
+	public void lruCacheTest() {
 		Cache<String, String> lruCache = new LRUCache<>(3);
 		//通过实例化对象创建
 //		LRUCache<String, String> lruCache = new LRUCache<String, String>(3);
@@ -158,11 +158,11 @@ public class CacheTest {
 	public void reentrantCache_clear_Method_Test() {
 		final AtomicInteger removeCount = new AtomicInteger();
 		final Cache<String, String> lruCache = new LRUCache<>(4, 0, (key, cachedObject) -> removeCount.getAndIncrement());
-		lruCache.put("key1","String1");
-		lruCache.put("key2","String2");
-		lruCache.put("key3","String3");
-		lruCache.put("key1","String4");//key已经存在，原始putWithoutLock方法存在资源泄露
-		lruCache.put("key4","String5");
+		lruCache.put("key1", "String1");
+		lruCache.put("key2", "String2");
+		lruCache.put("key3", "String3");
+		lruCache.put("key1", "String4");//key已经存在，原始putWithoutLock方法存在资源泄露
+		lruCache.put("key4", "String5");
 		lruCache.clear();//ReentrantCache类clear()方法存在资源泄露
 		Assertions.assertEquals(5, removeCount.get());
 	}

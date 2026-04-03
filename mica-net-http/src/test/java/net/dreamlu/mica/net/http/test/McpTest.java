@@ -1,7 +1,6 @@
 package net.dreamlu.mica.net.http.test;
 
 import net.dreamlu.mica.net.http.mcp.schema.*;
-import org.tio.http.mcp.schema.*;
 import net.dreamlu.mica.net.http.mcp.server.McpServer;
 import net.dreamlu.mica.net.http.mcp.server.McpServerSession;
 import net.dreamlu.mica.net.http.server.HttpServerStarter;
@@ -9,11 +8,7 @@ import net.dreamlu.mica.net.utils.json.Jackson2JsonAdapter;
 import net.dreamlu.mica.net.utils.json.JsonUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * http 测试
@@ -107,8 +102,8 @@ public class McpTest {
 		mcpServer.toolStream(streamTool, (McpServerSession session, Map<String, Object> params) -> {
 			// 返回一个 Iterator，遍历过程中主动推送 chunk
 			return new Iterator<McpContent>() {
-				private int index = 0;
 				private final int total = 5;
+				private int index = 0;
 
 				@Override
 				public boolean hasNext() {

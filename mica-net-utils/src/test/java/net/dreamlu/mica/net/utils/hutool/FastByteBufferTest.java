@@ -1,8 +1,8 @@
 package net.dreamlu.mica.net.utils.hutool;
 
+import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;

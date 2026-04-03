@@ -1,10 +1,10 @@
 package net.dreamlu.mica.net.utils.queue;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.dreamlu.mica.net.utils.json.Jackson2JsonAdapter;
 import net.dreamlu.mica.net.utils.json.JsonUtil;
 import net.dreamlu.mica.net.utils.thread.ThreadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -147,10 +147,10 @@ public class FileQueueTest {
 	}
 
 	public static class Test1 {
+		private int id;
+
 		public Test1() {
 		}
-
-		private int id;
 
 		public Test1(int id) {
 			this.id = id;

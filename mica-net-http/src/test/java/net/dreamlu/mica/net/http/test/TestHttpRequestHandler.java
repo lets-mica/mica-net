@@ -1,7 +1,6 @@
 package net.dreamlu.mica.net.http.test;
 
 import net.dreamlu.mica.net.http.common.*;
-import org.tio.http.common.*;
 import net.dreamlu.mica.net.http.common.handler.HttpRequestHandler;
 import net.dreamlu.mica.net.http.common.stream.HttpStream;
 import net.dreamlu.mica.net.utils.thread.ThreadUtils;

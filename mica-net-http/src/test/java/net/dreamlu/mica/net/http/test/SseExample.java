@@ -3,11 +3,7 @@ package net.dreamlu.mica.net.http.test;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.PacketListener;
-import net.dreamlu.mica.net.http.common.HeaderName;
-import net.dreamlu.mica.net.http.common.HeaderValue;
-import net.dreamlu.mica.net.http.common.HttpRequest;
-import net.dreamlu.mica.net.http.common.HttpResponse;
-import net.dreamlu.mica.net.http.common.HttpResponseStatus;
+import net.dreamlu.mica.net.http.common.*;
 import net.dreamlu.mica.net.http.common.handler.HttpRequestHandler;
 import net.dreamlu.mica.net.http.common.stream.HttpStream;
 import net.dreamlu.mica.net.http.server.HttpServerStarter;
@@ -21,6 +17,17 @@ import net.dreamlu.mica.net.utils.thread.ThreadUtils;
  * @author L.cm
  */
 public class SseExample implements HttpRequestHandler {
+
+	public static void main(String[] args) throws Exception {
+		SseExample handler = new SseExample();
+		HttpServerStarter starter = new HttpServerStarter(8080, handler);
+		starter.start();
+		System.out.println("SSE Server started on http://localhost:8080");
+		System.out.println("Try (in browser or using curl):");
+		System.out.println("  curl -vN http://localhost:8080/sse/counter");
+		System.out.println("  curl -vN http://localhost:8080/sse/notification");
+		System.out.println("  curl -vN http://localhost:8080/sse/messages");
+	}
 
 	@Override
 	public HttpResponse handler(HttpRequest request) throws Exception {
@@ -136,16 +143,5 @@ public class SseExample implements HttpRequestHandler {
 		});
 
 		return response;
-	}
-
-	public static void main(String[] args) throws Exception {
-		SseExample handler = new SseExample();
-		HttpServerStarter starter = new HttpServerStarter(8080, handler);
-		starter.start();
-		System.out.println("SSE Server started on http://localhost:8080");
-		System.out.println("Try (in browser or using curl):");
-		System.out.println("  curl -vN http://localhost:8080/sse/counter");
-		System.out.println("  curl -vN http://localhost:8080/sse/notification");
-		System.out.println("  curl -vN http://localhost:8080/sse/messages");
 	}
 }

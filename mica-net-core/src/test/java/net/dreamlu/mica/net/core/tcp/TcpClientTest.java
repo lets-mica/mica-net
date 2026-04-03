@@ -1,7 +1,6 @@
 package net.dreamlu.mica.net.core.tcp;
 
 import net.dreamlu.mica.net.client.*;
-import org.tio.client.*;
 import net.dreamlu.mica.net.client.intf.TioClientHandler;
 import net.dreamlu.mica.net.core.Node;
 import net.dreamlu.mica.net.core.Tio;
