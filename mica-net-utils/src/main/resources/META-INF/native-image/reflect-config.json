@@ -1,7 +1,7 @@
 [
 	{
 		"condition": {
-			"typeReachable": "org.tio.utils.queue.Mapped"
+			"typeReachable": "net.dreamlu.mica.net.utils.queue.Mapped"
 		},
 		"methods": [
 			{
@@ -9,11 +9,11 @@
 				"parameterTypes": []
 			}
 		],
-		"name": "org.tio.utils.queue.DataFile"
+		"name": "net.dreamlu.mica.net.utils.queue.DataFile"
 	},
 	{
 		"condition": {
-			"typeReachable": "org.tio.utils.queue.Mapped"
+			"typeReachable": "net.dreamlu.mica.net.utils.queue.Mapped"
 		},
 		"methods": [
 			{
@@ -21,11 +21,11 @@
 				"parameterTypes": []
 			}
 		],
-		"name": "org.tio.utils.queue.OffsetFile"
+		"name": "net.dreamlu.mica.net.utils.queue.OffsetFile"
 	},
 	{
 		"condition": {
-      "typeReachable": "org.tio.utils.queue.Mapped"
+      "typeReachable": "net.dreamlu.mica.net.utils.queue.Mapped"
 		},
 		"methods": [
 			{
@@ -33,11 +33,11 @@
 				"parameterTypes": []
 			}
 		],
-    "name": "org.tio.utils.queue.Reader"
+    "name": "net.dreamlu.mica.net.utils.queue.Reader"
 	},
 	{
 		"condition": {
-      "typeReachable": "org.tio.utils.queue.Mapped"
+      "typeReachable": "net.dreamlu.mica.net.utils.queue.Mapped"
 		},
 		"methods": [
 			{
@@ -45,6 +45,6 @@
 				"parameterTypes": []
 			}
 		],
-    "name": "org.tio.utils.queue.Writer"
+    "name": "net.dreamlu.mica.net.utils.queue.Writer"
 	}
 ]

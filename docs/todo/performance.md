@@ -8,7 +8,7 @@
   * **现状**：开启 `useQueueDecode` 或 SSL 时，每次读取都会触发 `ByteBufferUtil.copy(readByteBuffer)` 进行全量深拷贝。
   * **优化**：引入 `ByteBufferPool` 池化技术。
 * **ByteBufferUtil.composite() 应改造为零拷贝实现**：
-  * **位置**：`org.tio.utils.buffer.ByteBufferUtil.composite(ByteBuffer, ByteBuffer)`。
+  * **位置**：`buffer.net.dreamlu.mica.net.utils.ByteBufferUtil.composite(ByteBuffer, ByteBuffer)`。
   * **现状**：当前实现为 `allocate() + put()` 全量物理拷贝，高频调用时造成 GC 压力。
   * **优化**：参考 Netty 的 `CompositeByteBuffer`，维护 ByteBuffer 数组 + 偏移量/长度信息，实现逻辑上的组合。读取时通过指针遍历而非拷贝，数据仅在真正需要连续内存时才合并。
 

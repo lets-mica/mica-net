@@ -300,7 +300,7 @@ synchronized(initPacket) {
 **已完成的实现：**
 
 1. ✅ **核心类 SlowPacketDetector**
-   - 位置：`org.tio.core.stat.SlowPacketDetector`
+   - 位置：`stat.core.net.dreamlu.mica.net.SlowPacketDetector`
    - 功能：环形缓冲区实现的滑动窗口统计
    - 特性：无锁设计，O(1) 时间复杂度
 

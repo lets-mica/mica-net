@@ -1,0 +1,1546 @@
+/*
+	Apache License
+	Version 2.0, January 2004
+	http://www.apache.org/licenses/
+
+	TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+	1. Definitions.
+
+	"License" shall mean the terms and conditions for use, reproduction, and
+	distribution as defined by Sections 1 through 9 of this document.
+
+	"Licensor" shall mean the copyright owner or entity authorized by the copyright
+	owner that is granting the License.
+
+	"Legal Entity" shall mean the union of the acting entity and all other entities
+	that control, are controlled by, or are under common control with that entity.
+	For the purposes of this definition, "control" means (i) the power, direct or
+	indirect, to cause the direction or management of such entity, whether by
+	contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the
+	outstanding shares, or (iii) beneficial ownership of such entity.
+
+	"You" (or "Your") shall mean an individual or Legal Entity exercising
+	permissions granted by this License.
+
+	"Source" form shall mean the preferred form for making modifications, including
+	but not limited to software source code, documentation source, and configuration
+	files.
+
+	"Object" form shall mean any form resulting from mechanical transformation or
+	translation of a Source form, including but not limited to compiled object code,
+	generated documentation, and conversions to other media types.
+
+	"Work" shall mean the work of authorship, whether in Source or Object form, made
+	available under the License, as indicated by a copyright notice that is included
+	in or attached to the work (an example is provided in the Appendix below).
+
+	"Derivative Works" shall mean any work, whether in Source or Object form, that
+	is based on (or derived from) the Work and for which the editorial revisions,
+	annotations, elaborations, or other modifications represent, as a whole, an
+	original work of authorship. For the purposes of this License, Derivative Works
+	shall not include works that remain separable from, or merely link (or bind by
+	name) to the interfaces of, the Work and Derivative Works thereof.
+
+	"Contribution" shall mean any work of authorship, including the original version
+	of the Work and any modifications or additions to that Work or Derivative Works
+	thereof, that is intentionally submitted to Licensor for inclusion in the Work
+	by the copyright owner or by an individual or Legal Entity authorized to submit
+	on behalf of the copyright owner. For the purposes of this definition,
+	"submitted" means any form of electronic, verbal, or written communication sent
+	to the Licensor or its representatives, including but not limited to
+	communication on electronic mailing lists, source code control systems, and
+	issue tracking systems that are managed by, or on behalf of, the Licensor for
+	the purpose of discussing and improving the Work, but excluding communication
+	that is conspicuously marked or otherwise designated in writing by the copyright
+	owner as "Not a Contribution."
+
+	"Contributor" shall mean Licensor and any individual or Legal Entity on behalf
+	of whom a Contribution has been received by Licensor and subsequently
+	incorporated within the Work.
+
+	2. Grant of Copyright License.
+
+	Subject to the terms and conditions of this License, each Contributor hereby
+	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
+	irrevocable copyright license to reproduce, prepare Derivative Works of,
+	publicly display, publicly perform, sublicense, and distribute the Work and such
+	Derivative Works in Source or Object form.
+
+	3. Grant of Patent License.
+
+	Subject to the terms and conditions of this License, each Contributor hereby
+	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
+	irrevocable (except as stated in this section) patent license to make, have
+	made, use, offer to sell, sell, import, and otherwise transfer the Work, where
+	such license applies only to those patent claims licensable by such Contributor
+	that are necessarily infringed by their Contribution(s) alone or by combination
+	of their Contribution(s) with the Work to which such Contribution(s) was
+	submitted. If You institute patent litigation against any entity (including a
+	cross-claim or counterclaim in a lawsuit) alleging that the Work or a
+	Contribution incorporated within the Work constitutes direct or contributory
+	patent infringement, then any patent licenses granted to You under this License
+	for that Work shall terminate as of the date such litigation is filed.
+
+	4. Redistribution.
+
+	You may reproduce and distribute copies of the Work or Derivative Works thereof
+	in any medium, with or without modifications, and in Source or Object form,
+	provided that You meet the following conditions:
+
+	You must give any other recipients of the Work or Derivative Works a copy of
+	this License; and
+	You must cause any modified files to carry prominent notices stating that You
+	changed the files; and
+	You must retain, in the Source form of any Derivative Works that You distribute,
+	all copyright, patent, trademark, and attribution notices from the Source form
+	of the Work, excluding those notices that do not pertain to any part of the
+	Derivative Works; and
+	If the Work includes a "NOTICE" text file as part of its distribution, then any
+	Derivative Works that You distribute must include a readable copy of the
+	attribution notices contained within such NOTICE file, excluding those notices
+	that do not pertain to any part of the Derivative Works, in at least one of the
+	following places: within a NOTICE text file distributed as part of the
+	Derivative Works; within the Source form or documentation, if provided along
+	with the Derivative Works; or, within a display generated by the Derivative
+	Works, if and wherever such third-party notices normally appear. The contents of
+	the NOTICE file are for informational purposes only and do not modify the
+	License. You may add Your own attribution notices within Derivative Works that
+	You distribute, alongside or as an addendum to the NOTICE text from the Work,
+	provided that such additional attribution notices cannot be construed as
+	modifying the License.
+	You may add Your own copyright statement to Your modifications and may provide
+	additional or different license terms and conditions for use, reproduction, or
+	distribution of Your modifications, or for any such Derivative Works as a whole,
+	provided Your use, reproduction, and distribution of the Work otherwise complies
+	with the conditions stated in this License.
+
+	5. Submission of Contributions.
+
+	Unless You explicitly state otherwise, any Contribution intentionally submitted
+	for inclusion in the Work by You to the Licensor shall be under the terms and
+	conditions of this License, without any additional terms or conditions.
+	Notwithstanding the above, nothing herein shall supersede or modify the terms of
+	any separate license agreement you may have executed with Licensor regarding
+	such Contributions.
+
+	6. Trademarks.
+
+	This License does not grant permission to use the trade names, trademarks,
+	service marks, or product names of the Licensor, except as required for
+	reasonable and customary use in describing the origin of the Work and
+	reproducing the content of the NOTICE file.
+
+	7. Disclaimer of Warranty.
+
+	Unless required by applicable law or agreed to in writing, Licensor provides the
+	Work (and each Contributor provides its Contributions) on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
+	including, without limitation, any warranties or conditions of TITLE,
+	NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are
+	solely responsible for determining the appropriateness of using or
+	redistributing the Work and assume any risks associated with Your exercise of
+	permissions under this License.
+
+	8. Limitation of Liability.
+
+	In no event and under no legal theory, whether in tort (including negligence),
+	contract, or otherwise, unless required by applicable law (such as deliberate
+	and grossly negligent acts) or agreed to in writing, shall any Contributor be
+	liable to You for damages, including any direct, indirect, special, incidental,
+	or consequential damages of any character arising as a result of this License or
+	out of the use or inability to use the Work (including but not limited to
+	damages for loss of goodwill, work stoppage, computer failure or malfunction, or
+	any and all other commercial damages or losses), even if such Contributor has
+	been advised of the possibility of such damages.
+
+	9. Accepting Warranty or Additional Liability.
+
+	While redistributing the Work or Derivative Works thereof, You may choose to
+	offer, and charge a fee for, acceptance of support, warranty, indemnity, or
+	other liability obligations and/or rights consistent with this License. However,
+	in accepting such obligations, You may act only on Your own behalf and on Your
+	sole responsibility, not on behalf of any other Contributor, and only if You
+	agree to indemnify, defend, and hold each Contributor harmless for any liability
+	incurred by, or claims asserted against, such Contributor by reason of your
+	accepting any such warranty or additional liability.
+
+	END OF TERMS AND CONDITIONS
+
+	APPENDIX: How to apply the Apache License to your work
+
+	To apply the Apache License to your work, attach the following boilerplate
+	notice, with the fields enclosed by brackets "{}" replaced with your own
+	identifying information. (Don't include the brackets!) The text should be
+	enclosed in the appropriate comment syntax for the file format. We also
+	recommend that a file or class name and description of purpose be included on
+	the same "printed page" as the copyright notice for easier identification within
+	third-party archives.
+
+	   Copyright 2018 JFinal
+
+	   Licensed under the Apache License, Version 2.0 (the "License");
+	   you may not use this file except in compliance with the License.
+	   You may obtain a copy of the License at
+
+	     http://www.apache.org/licenses/LICENSE-2.0
+
+	   Unless required by applicable law or agreed to in writing, software
+	   distributed under the License is distributed on an "AS IS" BASIS,
+	   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	   See the License for the specific language governing permissions and
+	   limitations under the License.
+*/
+package net.dreamlu.mica.net.core;
+
+import net.dreamlu.mica.net.client.ClientChannelContext;
+import net.dreamlu.mica.net.client.ReconnConf;
+import net.dreamlu.mica.net.client.TioClientConfig;
+import net.dreamlu.mica.net.core.ChannelContext.CloseCode;
+import net.dreamlu.mica.net.core.intf.Packet;
+import net.dreamlu.mica.net.core.intf.Packet.Meta;
+import net.dreamlu.mica.net.core.tcp.TcpChannelContext;
+import net.dreamlu.mica.net.utils.page.Page;
+import net.dreamlu.mica.net.utils.page.PageUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+/**
+ * The Class Tio. t-io用户关心的API几乎全在这
+ *
+ * @author tanyaowu
+ */
+public class Tio {
+	/**
+	 * The log.
+	 */
+	private static final Logger log = LoggerFactory.getLogger(Tio.class);
+
+	private Tio() {
+	}
+
+	/**
+	 * 绑定业务id
+	 *
+	 * @param channelContext channelContext
+	 * @param bsId           bsId
+	 */
+	public static void bindBsId(ChannelContext channelContext, String bsId) {
+		channelContext.tioConfig.bsIds.bind(channelContext, bsId);
+	}
+
+	/**
+	 * 绑定群组
+	 *
+	 * @param channelContext channelContext
+	 * @param group          group
+	 */
+	public static void bindGroup(ChannelContext channelContext, String group) {
+		channelContext.tioConfig.groups.bind(group, channelContext);
+	}
+
+	/**
+	 * 将用户绑定到群组
+	 *
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param group     group
+	 */
+	public static void bindGroup(TioConfig tioConfig, String userid, String group) {
+		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
+		if (contextSet != null) {
+			for (ChannelContext channelContext : contextSet) {
+				Tio.bindGroup(channelContext, group);
+			}
+		}
+	}
+
+	/**
+	 * 绑定token
+	 *
+	 * @param channelContext ChannelContext
+	 * @param token          token
+	 */
+	public static void bindToken(ChannelContext channelContext, String token) {
+		channelContext.tioConfig.tokens.bind(token, channelContext);
+	}
+
+	/**
+	 * 绑定用户
+	 *
+	 * @param channelContext channelContext
+	 * @param userid         userid
+	 */
+	public static void bindUser(ChannelContext channelContext, String userid) {
+		channelContext.tioConfig.users.bind(userid, channelContext);
+	}
+
+	/**
+	 * 阻塞发送消息到指定ChannelContext
+	 *
+	 * @param channelContext channelContext
+	 * @param packet         packet
+	 * @return boolean
+	 */
+	public static boolean bSend(ChannelContext channelContext, Packet packet) {
+		if (channelContext == null) {
+			return false;
+		}
+		CountDownLatch countDownLatch = new CountDownLatch(1);
+		return send(channelContext, packet, countDownLatch, PacketSendMode.SINGLE_BLOCK);
+	}
+
+	/**
+	 * 发送到指定的ip和port
+	 *
+	 * @param tioConfig tioConfig
+	 * @param ip        ip
+	 * @param port      port
+	 * @param packet    packet
+	 * @return boolean
+	 */
+	public static boolean bSend(TioConfig tioConfig, String ip, int port, Packet packet) {
+		return send(tioConfig, ip, port, packet, true);
+	}
+
+	/**
+	 * 发消息到所有连接
+	 *
+	 * @param tioConfig            tioConfig
+	 * @param packet               packet
+	 * @param channelContextFilter channelContextFilter
+	 * @return boolean
+	 */
+	public static boolean bSendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter) {
+		return sendToAll(tioConfig, packet, channelContextFilter, true);
+	}
+
+	/**
+	 * 阻塞发消息给指定业务ID
+	 *
+	 * @param tioConfig tioConfig
+	 * @param bsId      bsId
+	 * @param packet    packet
+	 * @return boolean
+	 */
+	public static boolean bSendToBsId(TioConfig tioConfig, String bsId, Packet packet) {
+		return sendToBsId(tioConfig, bsId, packet, true);
+	}
+
+	/**
+	 * 发消息到组
+	 *
+	 * @param tioConfig tioConfig
+	 * @param group     group
+	 * @param packet    packet
+	 * @return boolean
+	 */
+	public static boolean bSendToGroup(TioConfig tioConfig, String group, Packet packet) {
+		return bSendToGroup(tioConfig, group, packet, null);
+	}
+
+	/**
+	 * 发消息到组
+	 *
+	 * @param tioConfig            tioConfig
+	 * @param group                group
+	 * @param packet               packet
+	 * @param channelContextFilter channelContextFilter
+	 * @return boolean
+	 */
+	public static boolean bSendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter) {
+		return sendToGroup(tioConfig, group, packet, channelContextFilter, true);
+	}
+
+	/**
+	 * 发消息给指定ChannelContext id
+	 *
+	 * @param tioConfig        TioConfig
+	 * @param channelContextId channelContextId
+	 * @param packet           Packet
+	 * @return boolean
+	 */
+	public static boolean bSendToId(TioConfig tioConfig, String channelContextId, Packet packet) {
+		return sendToId(tioConfig, channelContextId, packet, true);
+	}
+
+	/**
+	 * 发消息到指定集合
+	 *
+	 * @param tioConfig            TioConfig
+	 * @param set                  集合
+	 * @param packet               Packet
+	 * @param channelContextFilter ChannelContextFilter
+	 * @return boolean
+	 */
+	public static boolean bSendToSet(TioConfig tioConfig, Set<ChannelContext> set, Packet packet, ChannelContextFilter channelContextFilter) {
+		return sendToSet(tioConfig, set, packet, channelContextFilter, true);
+	}
+
+	/**
+	 * 阻塞发消息到指定token
+	 *
+	 * @param tioConfig TioConfig
+	 * @param token     token
+	 * @param packet    Packet
+	 * @return boolean
+	 */
+	public static boolean bSendToToken(TioConfig tioConfig, String token, Packet packet) {
+		return sendToToken(tioConfig, token, packet, true);
+	}
+
+	/**
+	 * 阻塞发消息给指定用户
+	 *
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param packet    Packet
+	 * @return boolean
+	 */
+	public static boolean bSendToUser(TioConfig tioConfig, String userid, Packet packet) {
+		return sendToUser(tioConfig, userid, packet, true);
+	}
+
+	/**
+	 * 关闭连接
+	 *
+	 * @param channelContext ChannelContext
+	 * @param remark         remark
+	 */
+	public static void close(ChannelContext channelContext, String remark) {
+		close(channelContext, null, remark);
+	}
+
+	/**
+	 * @param channelContext ChannelContext
+	 * @param remark         remark
+	 * @param closeCode      CloseCode
+	 */
+	public static void close(ChannelContext channelContext, String remark, CloseCode closeCode) {
+		close(channelContext, null, remark, closeCode);
+	}
+
+	/**
+	 * 关闭连接
+	 *
+	 * @param context   ChannelContext
+	 * @param throwable Throwable
+	 * @param remark    remark
+	 */
+	public static void close(ChannelContext context, Throwable throwable, String remark) {
+		close(context, throwable, remark, context.isServer());
+	}
+
+	public static void close(ChannelContext context, Throwable throwable, String remark, CloseCode closeCode) {
+		close(context, throwable, remark, context.isServer(), closeCode);
+	}
+
+	public static void close(ChannelContext context, Throwable throwable, String remark, boolean isNeedRemove) {
+		close(context, throwable, remark, isNeedRemove, true);
+	}
+
+	public static void close(ChannelContext context, Throwable throwable, String remark, boolean isNeedRemove, CloseCode closeCode) {
+		close(context, throwable, remark, isNeedRemove, true, closeCode);
+	}
+
+	public static void close(ChannelContext context, Throwable throwable, String remark, boolean isNeedRemove, boolean needCloseLock) {
+		close(context, throwable, remark, isNeedRemove, needCloseLock, null);
+	}
+
+	/**
+	 * @param context       ChannelContext
+	 * @param throwable     Throwable
+	 * @param remark        remark
+	 * @param isNeedRemove  isNeedRemove
+	 * @param needCloseLock needCloseLock
+	 * @param closeCode     CloseCode
+	 */
+	public static void close(ChannelContext context, Throwable throwable, String remark, boolean isNeedRemove, boolean needCloseLock, CloseCode closeCode) {
+		if (context == null) {
+			return;
+		}
+		if (context.isWaitingClose()) {
+			log.debug("{} 正在等待被关闭", context);
+			return;
+		}
+
+		//先立即取消各项任务，这样可防止有新的任务被提交进来
+		context.decodeRunnable.setCanceled(true);
+		context.handlerRunnable.setCanceled(true);
+		context.sendRunnable.setCanceled(true);
+
+		WriteLock writeLock;
+		if (needCloseLock) {
+			writeLock = context.closeLock.writeLock();
+			boolean tryLock = writeLock.tryLock();
+			if (!tryLock) {
+				return;
+			}
+			context.setWaitingClose(true);
+			writeLock.unlock();
+		} else {
+			context.setWaitingClose(true);
+		}
+
+		if (closeCode == null) {
+			if (context.getCloseCode() == CloseCode.INIT_STATUS) {
+				context.setCloseCode(CloseCode.NO_CODE);
+			}
+		} else {
+			context.setCloseCode(closeCode);
+		}
+
+		if (!context.isUdp() && context instanceof TcpChannelContext) {
+			TcpChannelContext tcpChannelContext = (TcpChannelContext) context;
+			if (tcpChannelContext.asynchronousSocketChannel != null) {
+				try {
+					tcpChannelContext.asynchronousSocketChannel.shutdownInput();
+				} catch (Throwable e) {
+					//log.error(e.toString(), e);
+				}
+				try {
+					tcpChannelContext.asynchronousSocketChannel.shutdownOutput();
+				} catch (Throwable e) {
+					//log.error(e.toString(), e);
+				}
+				try {
+					tcpChannelContext.asynchronousSocketChannel.close();
+				} catch (Throwable e) {
+					//log.error(e.toString(), e);
+				}
+			}
+		}
+
+		context.closeMeta.setRemark(remark);
+		context.closeMeta.setThrowable(throwable);
+		if (!isNeedRemove) {
+			if (context.isServer()) {
+				isNeedRemove = true;
+			} else {
+				ClientChannelContext clientChannelContext = (ClientChannelContext) context;
+				if (!ReconnConf.isNeedReconn(clientChannelContext, false)) { //不需要重连
+					isNeedRemove = true;
+				}
+			}
+		}
+		context.closeMeta.setNeedRemove(isNeedRemove);
+
+		context.tioConfig.closeRunnable.addMsg(context);
+		context.tioConfig.closeRunnable.execute();
+	}
+
+	/**
+	 * 关闭连接
+	 *
+	 * @param tioConfig  TioConfig
+	 * @param clientIp   clientIp
+	 * @param clientPort clientPort
+	 * @param throwable  Throwable
+	 * @param remark     remark
+	 */
+	public static void close(TioConfig tioConfig, String clientIp, Integer clientPort, Throwable throwable, String remark) {
+		ChannelContext channelContext = tioConfig.clientNodes.find(clientIp, clientPort);
+		close(channelContext, throwable, remark);
+	}
+
+	/**
+	 * 关闭某群所有连接
+	 *
+	 * @param tioConfig TioConfig
+	 * @param group     group
+	 * @param remark    remark
+	 */
+	public static void closeGroup(TioConfig tioConfig, String group, String remark) {
+		closeGroup(tioConfig, group, remark, null);
+	}
+
+	/**
+	 * 关闭某群所有连接
+	 *
+	 * @param tioConfig TioConfig
+	 * @param group     group
+	 * @param remark    remark
+	 * @param closeCode CloseCode
+	 */
+	public static void closeGroup(TioConfig tioConfig, String group, String remark, CloseCode closeCode) {
+		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
+		closeSet(contextSet, remark, closeCode);
+	}
+
+	/**
+	 * 关闭用户的所有连接
+	 *
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param remark    remark
+	 */
+	public static void closeUser(TioConfig tioConfig, String userid, String remark) {
+		closeUser(tioConfig, userid, remark, null);
+	}
+
+	/**
+	 * 关闭某用户的所有连接
+	 *
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param remark    remark
+	 * @param closeCode CloseCode
+	 */
+	public static void closeUser(TioConfig tioConfig, String userid, String remark, CloseCode closeCode) {
+		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
+		closeSet(contextSet, remark, closeCode);
+	}
+
+	/**
+	 * 关闭token的所有连接
+	 *
+	 * @param tioConfig TioConfig
+	 * @param token     token
+	 * @param remark    remark
+	 */
+	public static void closeToken(TioConfig tioConfig, String token, String remark) {
+		closeToken(tioConfig, token, remark, null);
+	}
+
+	/**
+	 * 关闭某token的所有连接
+	 *
+	 * @param tioConfig TioConfig
+	 * @param token     token
+	 * @param remark    remark
+	 * @param closeCode CloseCode
+	 */
+	public static void closeToken(TioConfig tioConfig, String token, String remark, CloseCode closeCode) {
+		Set<ChannelContext> setWithLock = Tio.getByToken(tioConfig, token);
+		closeSet(setWithLock, remark, closeCode);
+	}
+
+	/**
+	 * 关闭某群所有连接
+	 *
+	 * @param tioConfig tioConfig
+	 * @param group     group
+	 * @param remark    remark
+	 */
+	public static void removeGroup(TioConfig tioConfig, String group, String remark) {
+		removeGroup(tioConfig, group, remark, null);
+	}
+
+	/**
+	 * 关闭某群所有连接
+	 *
+	 * @param tioConfig  tioConfig
+	 * @param group      group
+	 * @param remark     remark
+	 * @param removeCode removeCode
+	 */
+	public static void removeGroup(TioConfig tioConfig, String group, String remark, CloseCode removeCode) {
+		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
+		removeSet(contextSet, remark, removeCode);
+	}
+
+	/**
+	 * 关闭用户的所有连接
+	 *
+	 * @param tioConfig tioConfig
+	 * @param userid    userid
+	 * @param remark    remark
+	 */
+	public static void removeUser(TioConfig tioConfig, String userid, String remark) {
+		removeUser(tioConfig, userid, remark, null);
+	}
+
+	/**
+	 * 关闭某用户的所有连接
+	 *
+	 * @param tioConfig  tioConfig
+	 * @param userid     userid
+	 * @param remark     remark
+	 * @param removeCode removeCode
+	 */
+	public static void removeUser(TioConfig tioConfig, String userid, String remark, CloseCode removeCode) {
+		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
+		removeSet(contextSet, remark, removeCode);
+	}
+
+	/**
+	 * 关闭token的所有连接
+	 *
+	 * @param tioConfig tioConfig
+	 * @param token     token
+	 * @param remark    remark
+	 */
+	public static void removeToken(TioConfig tioConfig, String token, String remark) {
+		removeToken(tioConfig, token, remark, null);
+	}
+
+	/**
+	 * 关闭某token的所有连接
+	 *
+	 * @param tioConfig  tioConfig
+	 * @param token      token
+	 * @param remark     remark
+	 * @param removeCode removeCode
+	 */
+	public static void removeToken(TioConfig tioConfig, String token, String remark, CloseCode removeCode) {
+		Set<ChannelContext> contextSet = Tio.getByToken(tioConfig, token);
+		removeSet(contextSet, remark, removeCode);
+	}
+
+	/**
+	 * 关闭集合
+	 *
+	 * @param set       结合
+	 * @param remark    remark
+	 * @param closeCode CloseCode
+	 */
+	public static void closeSet(Set<ChannelContext> set, String remark, CloseCode closeCode) {
+		if (set != null) {
+			for (ChannelContext channelContext : set) {
+				Tio.close(channelContext, remark, closeCode);
+			}
+		}
+	}
+
+	/**
+	 * 移除集合
+	 *
+	 * @param set       集合
+	 * @param remark    remark
+	 * @param closeCode CloseCode
+	 */
+	public static void removeSet(Set<ChannelContext> set, String remark, CloseCode closeCode) {
+		if (set != null) {
+			for (ChannelContext channelContext : set) {
+				Tio.remove(channelContext, remark, closeCode);
+			}
+		}
+	}
+
+	/**
+	 * 获取所有连接，包括当前处于断开状态的
+	 *
+	 * @param tioConfig TioConfig
+	 * @return ChannelContext 集合
+	 */
+	public static Set<ChannelContext> getAll(TioConfig tioConfig) {
+		return tioConfig.connections;
+	}
+
+	/**
+	 * 此API仅供 tio client使用
+	 * 获取所有处于正常连接状态的连接
+	 *
+	 * @param tioClientConfig TioClientConfig
+	 * @return 集合
+	 */
+	public static Set<ChannelContext> getConnecteds(TioClientConfig tioClientConfig) {
+		return tioClientConfig.connecteds;
+	}
+
+	/**
+	 * 根据业务id找ChannelContext
+	 *
+	 * @param tioConfig TioConfig
+	 * @param bsId      bsId
+	 * @return ChannelContext
+	 */
+	public static ChannelContext getByBsId(TioConfig tioConfig, String bsId) {
+		return tioConfig.bsIds.find(tioConfig, bsId);
+	}
+
+	/**
+	 * 根据clientip和clientport获取ChannelContext
+	 *
+	 * @param tioConfig TioConfig
+	 * @param node      Node
+	 * @return ChannelContext
+	 */
+	public static ChannelContext getByClientNode(TioConfig tioConfig, Node node) {
+		return tioConfig.clientNodes.find(node);
+	}
+
+	/**
+	 * 根据clientip和clientport获取ChannelContext
+	 *
+	 * @param tioConfig  TioConfig
+	 * @param clientIp   clientIp
+	 * @param clientPort clientPort
+	 * @return ChannelContext
+	 */
+	public static ChannelContext getByClientNode(TioConfig tioConfig, String clientIp, Integer clientPort) {
+		return tioConfig.clientNodes.find(clientIp, clientPort);
+	}
+
+	/**
+	 * 根据ChannelContext.id获取ChannelContext
+	 *
+	 * @param tioConfig        TioConfig
+	 * @param channelContextId channelContextId
+	 * @return ChannelContext
+	 */
+	public static ChannelContext getByChannelContextId(TioConfig tioConfig, String channelContextId) {
+		return tioConfig.ids.find(tioConfig, channelContextId);
+	}
+
+	/**
+	 * 获取一个组的所有客户端
+	 *
+	 * @param tioConfig tioConfig
+	 * @param group     group
+	 * @return 集合
+	 */
+	public static Set<ChannelContext> getByGroup(TioConfig tioConfig, String group) {
+		return tioConfig.groups.clients(tioConfig, group);
+	}
+
+	/**
+	 * 根据token获取SetWithLock<ChannelContext>
+	 *
+	 * @param tioConfig tioConfig
+	 * @param token     token
+	 * @return 集合
+	 */
+	public static Set<ChannelContext> getByToken(TioConfig tioConfig, String token) {
+		return tioConfig.tokens.find(tioConfig, token);
+	}
+
+	/**
+	 * 根据userid获取SetWithLock<ChannelContext>
+	 *
+	 * @param tioConfig tioConfig
+	 * @param userid    userid
+	 * @return 集合
+	 */
+	public static Set<ChannelContext> getByUserid(TioConfig tioConfig, String userid) {
+		return tioConfig.users.find(tioConfig, userid);
+	}
+
+	/**
+	 * 服务端，获取所有的连接
+	 *
+	 * @param tioConfig tioConfig
+	 * @param pageIndex pageIndex
+	 * @param pageSize  pageSize
+	 * @return Page
+	 */
+	public static Page<ChannelContext> getPageOfAll(TioConfig tioConfig, Integer pageIndex, Integer pageSize) {
+		return getPageOfAll(tioConfig, pageIndex, pageSize, null);
+	}
+
+	/**
+	 * 服务端，获取所有的连接
+	 *
+	 * @param tioConfig tioConfig
+	 * @param pageIndex pageIndex
+	 * @param pageSize  pageSize
+	 * @param converter converter
+	 * @return 分页 page
+	 */
+	public static <T> Page<T> getPageOfAll(TioConfig tioConfig, Integer pageIndex, Integer pageSize, Function<ChannelContext, T> converter) {
+		Set<ChannelContext> contextSet = Tio.getAll(tioConfig);
+		return PageUtils.fromSet(contextSet, pageIndex, pageSize, converter);
+	}
+
+	/**
+	 * 服务端，获取所有的连接
+	 *
+	 * @param tioConfig tioConfig
+	 * @param pageIndex pageIndex
+	 * @param pageSize  pageSize
+	 * @param converter converter
+	 * @return 分页 page
+	 */
+	public static <T> Page<T> getPageOfAll(TioConfig tioConfig, Integer pageIndex, Integer pageSize, Predicate<ChannelContext> filter, Function<ChannelContext, T> converter) {
+		Set<ChannelContext> contextSet = Tio.getAll(tioConfig);
+		return PageUtils.fromSet(contextSet, pageIndex, pageSize, filter, converter);
+	}
+
+	/**
+	 * 这个方法是给客户器端用的
+	 *
+	 * @param tioClientConfig tioClientConfig
+	 * @param pageIndex       pageIndex
+	 * @param pageSize        pageSize
+	 * @return Page
+	 */
+	public static Page<ChannelContext> getPageOfConnecteds(TioClientConfig tioClientConfig, Integer pageIndex, Integer pageSize) {
+		return getPageOfConnecteds(tioClientConfig, pageIndex, pageSize, null);
+	}
+
+	/**
+	 * 这个方法是给客户器端用的
+	 *
+	 * @param tioClientConfig tioClientConfig
+	 * @param pageIndex       pageIndex
+	 * @param pageSize        pageSize
+	 * @param converter       converter
+	 * @return Page
+	 */
+	public static <T> Page<T> getPageOfConnecteds(TioClientConfig tioClientConfig, Integer pageIndex, Integer pageSize, Function<ChannelContext, T> converter) {
+		Set<ChannelContext> contextSet = Tio.getConnecteds(tioClientConfig);
+		return PageUtils.fromSet(contextSet, pageIndex, pageSize, converter);
+	}
+
+	/**
+	 * @param tioConfig TioConfig
+	 * @param group     group
+	 * @param pageIndex pageIndex
+	 * @param pageSize  pageSize
+	 * @return 分页
+	 */
+	public static Page<ChannelContext> getPageOfGroup(TioConfig tioConfig, String group, Integer pageIndex, Integer pageSize) {
+		return getPageOfGroup(tioConfig, group, pageIndex, pageSize, null);
+	}
+
+	/**
+	 * @param tioConfig TioConfig
+	 * @param group     group
+	 * @param pageIndex pageIndex
+	 * @param pageSize  pageSize
+	 * @param converter converter
+	 * @return 分页
+	 */
+	public static <T> Page<T> getPageOfGroup(TioConfig tioConfig, String group, Integer pageIndex, Integer pageSize, Function<ChannelContext, T> converter) {
+		Set<ChannelContext> contextSet = Tio.getByGroup(tioConfig, group);
+		return PageUtils.fromSet(contextSet, pageIndex, pageSize, converter);
+	}
+
+	/**
+	 * 群组有多少个连接
+	 *
+	 * @param tioConfig TioConfig
+	 * @param group     group
+	 * @return size
+	 */
+	public static int groupCount(TioConfig tioConfig, String group) {
+		Set<ChannelContext> contextSet = tioConfig.groups.clients(tioConfig, group);
+		if (contextSet == null) {
+			return 0;
+		}
+		return contextSet.size();
+	}
+
+	/**
+	 * 某通道是否在某群组中
+	 *
+	 * @param group          group
+	 * @param channelContext channelContext
+	 * @return true：在该群组
+	 */
+	public static boolean isInGroup(String group, ChannelContext channelContext) {
+		Set<String> groupSet = channelContext.getGroups();
+		if (groupSet == null || groupSet.isEmpty()) {
+			return false;
+		}
+		return groupSet.contains(group);
+	}
+
+	/**
+	 * 和close方法对应，只不过不再进行重连等维护性的操作
+	 *
+	 * @param channelContext ChannelContext
+	 * @param remark         remark
+	 */
+	public static void remove(ChannelContext channelContext, String remark) {
+		remove(channelContext, remark, null);
+	}
+
+	/**
+	 * 和close方法对应，只不过不再进行重连等维护性的操作
+	 *
+	 * @param channelContext ChannelContext
+	 * @param remark         remark
+	 * @param closeCode      closeCode
+	 */
+	public static void remove(ChannelContext channelContext, String remark, CloseCode closeCode) {
+		remove(channelContext, null, remark, closeCode);
+	}
+
+	/**
+	 * 和close方法对应，只不过不再进行重连等维护性的操作
+	 *
+	 * @param channelContext ChannelContext
+	 * @param throwable      Throwable
+	 * @param remark         remark
+	 */
+	public static void remove(ChannelContext channelContext, Throwable throwable, String remark) {
+		remove(channelContext, throwable, remark, null);
+	}
+
+	/**
+	 * 和close方法对应，只不过不再进行重连等维护性的操作
+	 *
+	 * @param channelContext ChannelContext
+	 * @param throwable      Throwable
+	 * @param remark         remark
+	 * @param closeCode      closeCode
+	 */
+	public static void remove(ChannelContext channelContext, Throwable throwable, String remark, CloseCode closeCode) {
+		close(channelContext, throwable, remark, true, closeCode);
+	}
+
+	/**
+	 * 和close方法对应，只不过不再进行重连等维护性的操作
+	 *
+	 * @param tioConfig  tioConfig
+	 * @param clientIp   clientIp
+	 * @param clientPort clientPort
+	 * @param throwable  throwable
+	 * @param remark     remark
+	 */
+	public static void remove(TioConfig tioConfig, String clientIp, Integer clientPort, Throwable throwable, String remark) {
+		remove(tioConfig, clientIp, clientPort, throwable, remark, null);
+	}
+
+	/**
+	 * 删除clientip和clientPort为指定值的连接
+	 *
+	 * @param tioConfig  tioConfig
+	 * @param clientIp   clientIp
+	 * @param clientPort clientPort
+	 * @param throwable  throwable
+	 * @param remark     remark
+	 * @param closeCode  closeCode
+	 */
+	public static void remove(TioConfig tioConfig, String clientIp, Integer clientPort, Throwable throwable, String remark, CloseCode closeCode) {
+		ChannelContext channelContext = tioConfig.clientNodes.find(clientIp, clientPort);
+		remove(channelContext, throwable, remark, closeCode);
+	}
+
+	/**
+	 * 发送消息到指定ChannelContext
+	 *
+	 * @param channelContext channelContext
+	 * @param packet         packet
+	 * @return 是否成功
+	 */
+	public static boolean send(ChannelContext channelContext, Packet packet) {
+		return send(channelContext, packet, null, null);
+	}
+
+	/**
+	 * @param channelContext channelContext
+	 * @param packet         Packet
+	 * @param countDownLatch CountDownLatch
+	 * @param packetSendMode PacketSendMode
+	 * @return 是否成功
+	 */
+	private static boolean send(final ChannelContext channelContext, Packet packet, CountDownLatch countDownLatch, PacketSendMode packetSendMode) {
+		try {
+			if (packet == null || channelContext == null) {
+				if (countDownLatch != null) {
+					countDownLatch.countDown();
+				}
+				return false;
+			}
+			if (channelContext.isVirtual()) {
+				if (countDownLatch != null) {
+					countDownLatch.countDown();
+				}
+				return true;
+			}
+
+			if (channelContext.isClosed() || channelContext.isRemoved()) {
+				if (countDownLatch != null) {
+					countDownLatch.countDown();
+				}
+				if (channelContext != null) {
+					log.info("can't send data, {}, isClosed:{}, isRemoved:{}", channelContext, channelContext.isClosed(), channelContext.isRemoved());
+				}
+				return false;
+			}
+
+			if (channelContext.tioConfig.packetConverter != null) {
+				Packet packet1 = channelContext.tioConfig.packetConverter.convert(packet, channelContext);
+				if (packet1 == null) {
+					if (log.isInfoEnabled()) {
+						log.info("channelContext:{} packet:{} convert后为null，表示不需要发送", channelContext, packet.logstr());
+					}
+					return true;
+				}
+				packet = packet1;
+			}
+
+			boolean isSingleBlock = countDownLatch != null && packetSendMode == PacketSendMode.SINGLE_BLOCK;
+
+			boolean isAdded;
+			if (countDownLatch != null) {
+				Meta meta = new Meta(countDownLatch);
+				packet.setMeta(meta);
+			}
+
+			if (channelContext.tioConfig.useQueueSend) {
+				isAdded = channelContext.sendRunnable.addMsg(packet);
+			} else {
+				isAdded = channelContext.sendRunnable.sendPacket(packet);
+			}
+
+			if (!isAdded) {
+				if (countDownLatch != null) {
+					countDownLatch.countDown();
+				}
+				return false;
+			}
+			if (channelContext.tioConfig.useQueueSend) {
+				channelContext.sendRunnable.execute();
+			}
+
+			if (isSingleBlock) {
+				long timeout = 10;
+				try {
+					boolean awaitFlag = countDownLatch.await(timeout, TimeUnit.SECONDS);
+					if (!awaitFlag) {
+						log.error("{}, 阻塞发送超时, timeout:{}s, packet:{}", channelContext, timeout, packet.logstr());
+					}
+				} catch (InterruptedException e) {
+					log.error(e.getMessage(), e);
+				}
+				return packet.getMeta().isSentSuccess();
+			} else {
+				return true;
+			}
+		} catch (Throwable e) {
+			log.error("channelContext:{}, error:", channelContext, e);
+			return false;
+		}
+	}
+
+	/**
+	 * 发送到指定的ip和port
+	 *
+	 * @param tioConfig tioConfig
+	 * @param ip        ip
+	 * @param port      port
+	 * @param packet    packet
+	 * @return 是否成功
+	 */
+	public static boolean send(TioConfig tioConfig, String ip, int port, Packet packet) {
+		return send(tioConfig, ip, port, packet, false);
+	}
+
+	/**
+	 * 发送到指定的ip和port
+	 *
+	 * @param tioConfig tioConfig
+	 * @param ip        ip
+	 * @param port      port
+	 * @param packet    packet
+	 * @param isBlock   isBlock
+	 * @return 是否成功
+	 */
+	private static boolean send(TioConfig tioConfig, String ip, int port, Packet packet, boolean isBlock) {
+		ChannelContext channelContext = tioConfig.clientNodes.find(ip, port);
+		if (channelContext != null) {
+			if (isBlock) {
+				return bSend(channelContext, packet);
+			} else {
+				return send(channelContext, packet);
+			}
+		} else {
+			log.info("{}, can find channelContext by {}:{}", tioConfig.getName(), ip, port);
+			return false;
+		}
+	}
+
+	/**
+	 * 发消息到所有连接
+	 *
+	 * @param tioConfig tioConfig
+	 * @param packet    packet
+	 */
+	public static void sendToAll(TioConfig tioConfig, Packet packet) {
+		sendToAll(tioConfig, packet, null);
+	}
+
+	/**
+	 * 发消息到所有连接
+	 *
+	 * @param tioConfig            tioConfig
+	 * @param packet               packet
+	 * @param channelContextFilter channelContextFilter
+	 */
+	public static void sendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter) {
+		sendToAll(tioConfig, packet, channelContextFilter, false);
+	}
+
+	/**
+	 * @param tioConfig            tioConfig
+	 * @param packet               packet
+	 * @param channelContextFilter channelContextFilter
+	 * @param isBlock              isBlock
+	 * @return 是否成功
+	 */
+	private static boolean sendToAll(TioConfig tioConfig, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
+		return sendToSet(tioConfig, tioConfig.connections, packet, channelContextFilter, isBlock);
+	}
+
+	/**
+	 * 发消息给指定业务ID
+	 *
+	 * @param tioConfig tioConfig
+	 * @param bsId      bsId
+	 * @param packet    packet
+	 * @return 是否成功
+	 */
+	public static boolean sendToBsId(TioConfig tioConfig, String bsId, Packet packet) {
+		return sendToBsId(tioConfig, bsId, packet, false);
+	}
+
+	/**
+	 * 发消息给指定业务ID
+	 *
+	 * @param tioConfig tioConfig
+	 * @param bsId      bsId
+	 * @param packet    packet
+	 * @param isBlock   isBlock
+	 * @return 是否成功
+	 */
+	private static boolean sendToBsId(TioConfig tioConfig, String bsId, Packet packet, boolean isBlock) {
+		ChannelContext channelContext = Tio.getByBsId(tioConfig, bsId);
+		if (channelContext == null) {
+			return false;
+		}
+		if (isBlock) {
+			return bSend(channelContext, packet);
+		} else {
+			return send(channelContext, packet);
+		}
+	}
+
+	/**
+	 * 发消息到组
+	 *
+	 * @param tioConfig tioConfig
+	 * @param group     group
+	 * @param packet    packet
+	 */
+	public static void sendToGroup(TioConfig tioConfig, String group, Packet packet) {
+		sendToGroup(tioConfig, group, packet, null);
+	}
+
+	/**
+	 * 发消息到组
+	 *
+	 * @param tioConfig            tioConfig
+	 * @param group                group
+	 * @param packet               packet
+	 * @param channelContextFilter channelContextFilter
+	 */
+	public static void sendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter) {
+		sendToGroup(tioConfig, group, packet, channelContextFilter, false);
+	}
+
+	/**
+	 * 发消息到组
+	 *
+	 * @param tioConfig            tioConfig
+	 * @param group                group
+	 * @param packet               packet
+	 * @param channelContextFilter channelContextFilter
+	 * @param isBlock              isBlock
+	 * @return 是否成功
+	 */
+	private static boolean sendToGroup(TioConfig tioConfig, String group, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
+		Set<ChannelContext> contextSet = tioConfig.groups.clients(tioConfig, group);
+		if (contextSet == null) {
+			log.debug("{}, 组[{}]不存在", tioConfig.getName(), group);
+			return false;
+		}
+		return sendToSet(tioConfig, contextSet, packet, channelContextFilter, isBlock);
+	}
+
+	/**
+	 * 发消息给指定ChannelContext id
+	 *
+	 * @param tioConfig        tioConfig
+	 * @param channelContextId channelContextId
+	 * @param packet           packet
+	 * @return 是否成功
+	 */
+	public static boolean sendToId(TioConfig tioConfig, String channelContextId, Packet packet) {
+		return sendToId(tioConfig, channelContextId, packet, false);
+	}
+
+	/**
+	 * 发消息给指定ChannelContext id
+	 *
+	 * @param tioConfig        tioConfig
+	 * @param channelContextId channelContextId
+	 * @param packet           packet
+	 * @param isBlock          isBlock
+	 * @return 是否成功
+	 */
+	private static boolean sendToId(TioConfig tioConfig, String channelContextId, Packet packet, boolean isBlock) {
+		ChannelContext channelContext = Tio.getByChannelContextId(tioConfig, channelContextId);
+		if (channelContext == null) {
+			return false;
+		}
+		if (isBlock) {
+			return bSend(channelContext, packet);
+		} else {
+			return send(channelContext, packet);
+		}
+	}
+
+	/**
+	 * 发消息到指定集合
+	 *
+	 * @param tioConfig            tioConfig
+	 * @param set                  set
+	 * @param packet               packet
+	 * @param channelContextFilter channelContextFilter
+	 */
+	public static void sendToSet(TioConfig tioConfig, Set<ChannelContext> set, Packet packet, ChannelContextFilter channelContextFilter) {
+		sendToSet(tioConfig, set, packet, channelContextFilter, false);
+	}
+
+	/**
+	 * 发消息到指定集合
+	 *
+	 * @param tioConfig            tioConfig
+	 * @param set                  set
+	 * @param packet               packet
+	 * @param channelContextFilter channelContextFilter
+	 * @param isBlock              isBlock
+	 * @return 是否成功
+	 */
+	private static boolean sendToSet(TioConfig tioConfig, Set<ChannelContext> set, Packet packet, ChannelContextFilter channelContextFilter, boolean isBlock) {
+		if (set == null || set.isEmpty()) {
+			log.debug("{}, ChannelContext 集合为空", tioConfig.getName());
+			return false;
+		}
+		try {
+			CountDownLatch countDownLatch = null;
+			if (isBlock) {
+				countDownLatch = new CountDownLatch(set.size());
+			}
+			int sendCount = 0;
+			for (ChannelContext channelContext : set) {
+				if (channelContextFilter != null) {
+					boolean isFilter = channelContextFilter.filter(channelContext);
+					if (!isFilter) {
+						if (isBlock) {
+							countDownLatch.countDown();
+						}
+						continue;
+					}
+				}
+				sendCount++;
+				if (isBlock) {
+					send(channelContext, packet, countDownLatch, PacketSendMode.GROUP_BLOCK);
+				} else {
+					send(channelContext, packet, null, null);
+				}
+			}
+			if (sendCount == 0) {
+				return false;
+			}
+			if (isBlock) {
+				try {
+					long timeout = sendCount / 5;
+					timeout = Math.max(timeout, 10);
+					boolean awaitFlag = countDownLatch.await(timeout, TimeUnit.SECONDS);
+					if (!awaitFlag) {
+						log.error("{}, 同步群发超时, size:{}, timeout:{}, packet:{}", tioConfig.getName(), set.size(), timeout, packet.logstr());
+						return false;
+					} else {
+						return true;
+					}
+				} catch (InterruptedException e) {
+					log.error(e.getMessage(), e);
+					return false;
+				}
+			} else {
+				return true;
+			}
+		} catch (Throwable e) {
+			log.error(e.getMessage(), e);
+			return false;
+		}
+	}
+
+	/**
+	 * 发消息到指定token
+	 *
+	 * @param tioConfig tioConfig
+	 * @param token     token
+	 * @param packet    packet
+	 * @return 是否成功
+	 */
+	public static boolean sendToToken(TioConfig tioConfig, String token, Packet packet) {
+		return sendToToken(tioConfig, token, packet, false);
+	}
+
+	/**
+	 * 发消息给指定token
+	 *
+	 * @param tioConfig TioConfig
+	 * @param token     token
+	 * @param packet    Packet
+	 * @param isBlock   isBlock
+	 * @return 是否成功
+	 */
+	private static boolean sendToToken(TioConfig tioConfig, String token, Packet packet, boolean isBlock) {
+		Set<ChannelContext> contextSet = tioConfig.tokens.find(tioConfig, token);
+		if (contextSet == null) {
+			return false;
+		}
+		try {
+			boolean ret = false;
+			for (ChannelContext channelContext : contextSet) {
+				boolean singleRet;
+				// 不要用 a = a || b()，容易漏执行后面的函数
+				if (isBlock) {
+					singleRet = bSend(channelContext, packet);
+				} else {
+					singleRet = send(channelContext, packet);
+				}
+				if (singleRet) {
+					ret = true;
+				}
+			}
+			return ret;
+		} catch (Throwable e) {
+			log.error(e.getMessage(), e);
+		}
+		return false;
+	}
+
+	/**
+	 * 发消息给指定用户
+	 *
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param packet    Packet
+	 * @return 是否成功
+	 */
+	public static boolean sendToUser(TioConfig tioConfig, String userid, Packet packet) {
+		return sendToUser(tioConfig, userid, packet, false);
+	}
+
+	/**
+	 * 发消息给指定用户
+	 *
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param packet    Packet
+	 * @param isBlock   isBlock
+	 * @return 是否成功
+	 */
+	private static boolean sendToUser(TioConfig tioConfig, String userid, Packet packet, boolean isBlock) {
+		Set<ChannelContext> contextSet = tioConfig.users.find(tioConfig, userid);
+		if (contextSet == null) {
+			return false;
+		}
+		try {
+			boolean ret = false;
+			for (ChannelContext channelContext : contextSet) {
+				boolean singleRet;
+				// 不要用 a = a || b()，容易漏执行后面的函数
+				if (isBlock) {
+					singleRet = bSend(channelContext, packet);
+				} else {
+					singleRet = send(channelContext, packet);
+				}
+				if (singleRet) {
+					ret = true;
+				}
+			}
+			return ret;
+		} catch (Throwable e) {
+			log.error(e.getMessage(), e);
+		}
+		return false;
+	}
+
+	/**
+	 * 解绑业务id
+	 *
+	 * @param channelContext ChannelContext
+	 */
+	public static void unbindBsId(ChannelContext channelContext) {
+		channelContext.tioConfig.bsIds.unbind(channelContext);
+	}
+
+	/**
+	 * 与所有组解除解绑关系
+	 *
+	 * @param channelContext ChannelContext
+	 */
+	public static void unbindGroup(ChannelContext channelContext) {
+		channelContext.tioConfig.groups.unbind(channelContext);
+	}
+
+	/**
+	 * 与指定组解除绑定关系
+	 *
+	 * @param group          group
+	 * @param channelContext ChannelContext
+	 */
+	public static void unbindGroup(String group, ChannelContext channelContext) {
+		channelContext.tioConfig.groups.unbind(group, channelContext);
+	}
+
+	/**
+	 * 将某用户从组中解除绑定
+	 *
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 * @param group     group
+	 */
+	public static void unbindGroup(TioConfig tioConfig, String userid, String group) {
+		Set<ChannelContext> contextSet = Tio.getByUserid(tioConfig, userid);
+		if (contextSet != null) {
+			for (ChannelContext channelContext : contextSet) {
+				Tio.unbindGroup(group, channelContext);
+			}
+		}
+	}
+
+	/**
+	 * 解除channelContext绑定的token
+	 *
+	 * @param channelContext ChannelContext
+	 */
+	public static void unbindToken(ChannelContext channelContext) {
+		channelContext.tioConfig.tokens.unbind(channelContext);
+	}
+
+	/**
+	 * 解除token
+	 *
+	 * @param tioConfig TioConfig
+	 * @param token     token
+	 */
+	public static void unbindToken(TioConfig tioConfig, String token) {
+		tioConfig.tokens.unbind(tioConfig, token);
+	}
+
+	/**
+	 * 解除channelContext绑定的userid
+	 *
+	 * @param channelContext ChannelContext
+	 */
+	public static void unbindUser(ChannelContext channelContext) {
+		channelContext.tioConfig.users.unbind(channelContext);
+	}
+
+	/**
+	 * 解除userid的绑定。一般用于多地登录，踢掉前面登录的场景
+	 *
+	 * @param tioConfig TioConfig
+	 * @param userid    userid
+	 */
+	public static void unbindUser(TioConfig tioConfig, String userid) {
+		tioConfig.users.unbind(tioConfig, userid);
+	}
+
+}

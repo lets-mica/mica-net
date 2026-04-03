@@ -1,19 +1,19 @@
 open module net.dreamlu.mica.net.http {
 	requires transitive net.dreamlu.mica.net.core;
 	// http
-	exports org.tio.http.common;
-	exports org.tio.http.common.handler;
-	exports org.tio.http.common.sse;
-	exports org.tio.http.common.stream;
-	exports org.tio.http.common.utils;
-	exports org.tio.http.jsonrpc;
-	exports org.tio.http.mcp;
-	exports org.tio.http.mcp.schema;
-	exports org.tio.http.mcp.server;
-	exports org.tio.http.mcp.util;
-	exports org.tio.http.server;
+	exports net.dreamlu.mica.net.http.common;
+	exports net.dreamlu.mica.net.http.common.handler;
+	exports net.dreamlu.mica.net.http.common.sse;
+	exports net.dreamlu.mica.net.http.common.stream;
+	exports net.dreamlu.mica.net.http.common.utils;
+	exports net.dreamlu.mica.net.http.jsonrpc;
+	exports net.dreamlu.mica.net.http.mcp;
+	exports net.dreamlu.mica.net.http.mcp.schema;
+	exports net.dreamlu.mica.net.http.mcp.server;
+	exports net.dreamlu.mica.net.http.mcp.util;
+	exports net.dreamlu.mica.net.http.server;
 	// websocket
-	exports org.tio.websocket.common;
-	exports org.tio.websocket.server;
-	exports org.tio.websocket.server.handler;
+	exports net.dreamlu.mica.net.websocket.common;
+	exports net.dreamlu.mica.net.websocket.server;
+	exports net.dreamlu.mica.net.websocket.server.handler;
 }

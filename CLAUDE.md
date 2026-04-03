@@ -47,7 +47,7 @@ ReadCompletionHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 ### Core Components
 
-**Tio (org.tio.core.Tio)**: Main API entry point for all operations (send, close, bind, unbind)
+**Tio (net.dreamlu.mica.net.core.Tio)**: Main API entry point for all operations (send, close, bind, unbind)
 
 **ChannelContext**: Connection context that exists per TCP/UDP connection. Contains:
 - Connection state, statistics, and binding relationships

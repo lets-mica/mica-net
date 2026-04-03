@@ -125,20 +125,20 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 ------
 
-## 注意（开发细节）
+## 🔊 注意（开发细节）
 
 - 客户端主动断开用 close(Tio.close)，服务端主动断开用（Tio.remove）。
 
-## TCP 相关知识
+## 💡 TCP 相关知识
 
 - [大小端处理](docs/tcp/大小端.md)
 - [无符号处理](docs/tcp/无符号.md)
 
-## 声明
+## 📄 声明
 
 该项目基于 t-io（Apache License v2）简化而来，并且完全遵循 **Apache License v2** 协议。
 
-## 变更内容
+## 📝 变更内容
 
 ### 基础改造
 
