@@ -26,6 +26,7 @@ import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
  * 开启 nginx 代理协议时需要开启，转发代理 ip 信息
@@ -38,7 +39,7 @@ import java.nio.charset.StandardCharsets;
  */
 public final class ProxyProtocolDecoder {
 	/**
-	 * 最小头 “PROXY ” 用来判定是否 v1 的协议
+	 * 最小头 “PROXY “ 用来判定是否 v1 的协议
 	 */
 	private static final int V1_MIN_HEAD_LENGTH = 6;
 	/**
@@ -53,6 +54,48 @@ public final class ProxyProtocolDecoder {
 	 * PROXY UNKNOWN\r\n
 	 */
 	private static final String UNKNOWN = "UNKNOWN";
+
+	// ==================== V2 Protocol Constants ====================
+	/**
+	 * V2 固定签名: \x0D \x0A \x0D \x0A \x00 \x0D \x0A \x51 \x55 \x49 \x54 \x0A
+	 */
+	private static final byte[] V2_SIGNATURE = new byte[] {
+		0x0D, 0x0A, 0x0D, 0x0A, 0x00, 0x0D, 0x0A, 0x51, 0x55, 0x49, 0x54, 0x0A
+	};
+	/**
+	 * V2 固定头部长度
+	 */
+	private static final int V2_HEADER_LENGTH = 16;
+	/**
+	 * V2 最小头部检测长度
+	 */
+	private static final int V2_MIN_HEAD_LENGTH = 16;
+
+	// V2 命令 (低4位)
+	private static final byte V2_CMD_LOCAL = 0x00;
+	private static final byte V2_CMD_PROXY = 0x01;
+
+	// V2 地址族 (高4位)
+	private static final byte V2_AF_UNSPEC = 0x00;
+	private static final byte V2_AF_INET = 0x10;   // IPv4
+	private static final byte V2_AF_INET6 = 0x20;  // IPv6
+	private static final byte V2_AF_UNIX = 0x30;   // UNIX
+
+	// V2 协议 (低4位)
+	private static final byte V2_PROTO_UNSPEC = 0x00;
+	private static final byte V2_PROTO_STREAM = 0x01;  // TCP/SOCK_STREAM
+	private static final byte V2_PROTO_DGRAM = 0x02;    // UDP/SOCK_DGRAM
+
+	// 常用组合
+	private static final byte V2_TCP4 = 0x11;  // TCP over IPv4
+	private static final byte V2_TCP6 = 0x21;  // TCP over IPv6
+	private static final byte V2_UDP4 = 0x12;  // UDP over IPv4
+	private static final byte V2_UDP6 = 0x22;  // UDP over IPv6
+
+	// V2 地址长度
+	private static final int V2_ADDR_LEN_IPV4 = 12;  // 4+4+2+2
+	private static final int V2_ADDR_LEN_IPV6 = 36;  // 16+16+2+2
+	private static final int V2_ADDR_LEN_UNIX = 216; // 108+108
 
 	private ProxyProtocolDecoder() {
 	}
@@ -121,6 +164,13 @@ public final class ProxyProtocolDecoder {
 		}
 		// 标记
 		buffer.mark();
+
+		// 优先检测 V2 签名
+		if (readableLength >= V2_MIN_HEAD_LENGTH && isV2Signature(buffer)) {
+			buffer.reset();
+			return decodeV2(context, buffer, readableLength, next);
+		}
+
 		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
 		String proxyPrefix = ByteBufferUtil.readString(buffer, V1_MIN_HEAD_LENGTH, StandardCharsets.US_ASCII);
 		// 非 PROXY 协议，直接返回
@@ -233,6 +283,290 @@ public final class ProxyProtocolDecoder {
 			}
 		}
 		return -1;  // Not found.
+	}
+
+	// ==================== V2 Protocol Implementation ====================
+
+	/**
+	 * 检测 V2 签名
+	 */
+	private static boolean isV2Signature(ByteBuffer buffer) {
+		buffer.mark();
+		byte[] sig = new byte[12];
+		buffer.get(sig);
+		buffer.reset();
+		return Arrays.equals(sig, V2_SIGNATURE);
+	}
+
+	/**
+	 * 解码 V2 proxy protocol
+	 *
+	 * @param context        ChannelContext
+	 * @param buffer         ByteBuffer
+	 * @param readableLength readableLength
+	 * @param next           下一个解码器
+	 * @return Packet
+	 * @throws TioDecodeException TioDecodeException
+	 */
+	private static Packet decodeV2(ChannelContext context, ByteBuffer buffer, int readableLength, DecoderFunction next) throws TioDecodeException {
+		// 检查最小长度
+		if (readableLength < V2_HEADER_LENGTH) {
+			return next.apply(context, buffer, readableLength);
+		}
+
+		// 读取 V2 头部
+		// 跳过 12 字节签名
+		ByteBufferUtil.skipBytes(buffer, 12);
+
+		// 读取版本和命令
+		byte verCmd = buffer.get();
+		byte version = (byte) ((verCmd & 0xF0) >> 4);
+		byte cmd = (byte) (verCmd & 0x0F);
+
+		// 版本必须是 2
+		if (version != 2) {
+			throw new TioDecodeException("invalid v2 proxy protocol version: " + version);
+		}
+
+		// 读取地址族和协议
+		byte fam = buffer.get();
+
+		// 读取地址长度 (网络字节序)
+		short addrLen = buffer.getShort();
+		addrLen = (short) (((addrLen & 0xFF) << 8) | ((addrLen >> 8) & 0xFF));
+
+		// 检查数据完整性: 16(header) + addrLen
+		int totalLength = V2_HEADER_LENGTH + addrLen;
+		if (readableLength < totalLength) {
+			return next.apply(context, buffer, readableLength);
+		}
+
+		// 根据命令处理
+		if (cmd == V2_CMD_LOCAL) {
+			// LOCAL: 跳过地址信息
+			ByteBufferUtil.skipBytes(buffer, addrLen);
+			// 清除协议 key
+			context.remove(PROXY_PROTOCOL_KEY);
+		} else if (cmd == V2_CMD_PROXY) {
+			// PROXY: 解析地址
+			decodeV2Address(context, buffer, fam, addrLen);
+			// 清除协议 key
+			context.remove(PROXY_PROTOCOL_KEY);
+		} else {
+			throw new TioDecodeException("invalid v2 proxy protocol command: " + cmd);
+		}
+
+		// 跳过 TLV (如果有)
+		if (addrLen > 0) {
+			int tlvsLength = readableLength - totalLength;
+			if (tlvsLength > 0) {
+				ByteBufferUtil.skipBytes(buffer, tlvsLength);
+			}
+		}
+
+		if (buffer.hasRemaining()) {
+			return next.apply(context, buffer, readableLength);
+		} else {
+			return IgnorePacket.INSTANCE;
+		}
+	}
+
+	/**
+	 * 解码 V2 地址
+	 */
+	private static void decodeV2Address(ChannelContext context, ByteBuffer buffer, byte fam, int addrLen) throws TioDecodeException {
+		byte addrFamily = (byte) (fam & 0xF0);
+		byte proto = (byte) (fam & 0x0F);
+
+		if (addrFamily == V2_AF_INET) {
+			if (proto == V2_PROTO_STREAM || proto == V2_PROTO_DGRAM) {
+				// IPv4: 4+4+2+2 = 12 bytes
+				if (addrLen < V2_ADDR_LEN_IPV4) {
+					throw new TioDecodeException("invalid v2 ipv4 address length: " + addrLen);
+				}
+				byte[] srcAddr = new byte[4];
+				byte[] dstAddr = new byte[4];
+				buffer.get(srcAddr);
+				buffer.get(dstAddr);
+				int srcPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
+				int dstPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
+
+				String srcIp = bytesToIp(srcAddr);
+				String dstIp = bytesToIp(dstAddr);
+
+				context.setClientNode(new Node(srcIp, srcPort));
+				context.setProxyClientNode(new Node(dstIp, dstPort));
+			} else {
+				throw new TioDecodeException("unsupported v2 protocol for IPv4: " + proto);
+			}
+		} else if (addrFamily == V2_AF_INET6) {
+			if (proto == V2_PROTO_STREAM || proto == V2_PROTO_DGRAM) {
+				// IPv6: 16+16+2+2 = 36 bytes
+				if (addrLen < V2_ADDR_LEN_IPV6) {
+					throw new TioDecodeException("invalid v2 ipv6 address length: " + addrLen);
+				}
+				byte[] srcAddr = new byte[16];
+				byte[] dstAddr = new byte[16];
+				buffer.get(srcAddr);
+				buffer.get(dstAddr);
+				int srcPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
+				int dstPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
+
+				String srcIp = bytesToIpv6(srcAddr);
+				String dstIp = bytesToIpv6(dstAddr);
+
+				context.setClientNode(new Node(srcIp, srcPort));
+				context.setProxyClientNode(new Node(dstIp, dstPort));
+			} else {
+				throw new TioDecodeException("unsupported v2 protocol for IPv6: " + proto);
+			}
+		} else if (addrFamily == V2_AF_UNIX) {
+			if (proto == V2_PROTO_STREAM || proto == V2_PROTO_DGRAM) {
+				// UNIX: 108+108 = 216 bytes
+				if (addrLen < V2_ADDR_LEN_UNIX) {
+					throw new TioDecodeException("invalid v2 unix address length: " + addrLen);
+				}
+				byte[] srcAddr = new byte[108];
+				byte[] dstAddr = new byte[108];
+				buffer.get(srcAddr);
+				buffer.get(dstAddr);
+
+				String srcPath = new String(srcAddr, StandardCharsets.US_ASCII).trim();
+				String dstPath = new String(dstAddr, StandardCharsets.US_ASCII).trim();
+
+				context.setClientNode(new Node(srcPath, 0));
+				context.setProxyClientNode(new Node(dstPath, 0));
+			} else {
+				throw new TioDecodeException("unsupported v2 protocol for UNIX: " + proto);
+			}
+		} else if (addrFamily == V2_AF_UNSPEC) {
+			// UNSPEC: 跳过地址信息，不设置节点
+			if (addrLen > 0) {
+				ByteBufferUtil.skipBytes(buffer, addrLen);
+			}
+		} else {
+			throw new TioDecodeException("unsupported v2 address family: " + addrFamily);
+		}
+	}
+
+	/**
+	 * 将字节数组转换为 IPv4 地址字符串
+	 */
+	private static String bytesToIp(byte[] ip) {
+		return (ip[0] & 0xFF) + "." + (ip[1] & 0xFF) + "." + (ip[2] & 0xFF) + "." + (ip[3] & 0xFF);
+	}
+
+	/**
+	 * 将字节数组转换为 IPv6 地址字符串
+	 */
+	private static String bytesToIpv6(byte[] ip) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 16; i += 2) {
+			if (i > 0) {
+				sb.append(':');
+			}
+			int val = ((ip[i] & 0xFF) << 8) | (ip[i + 1] & 0xFF);
+			sb.append(String.format("%x", val));
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * 解码 V2 proxy protocol (for test)
+	 *
+	 * @param buffer         ByteBuffer
+	 * @param readableLength readableLength
+	 * @return ProxyProtocolMessage
+	 * @throws TioDecodeException TioDecodeException
+	 */
+	public static ProxyProtocolMessage decodeV2ForTest(ByteBuffer buffer, int readableLength) throws TioDecodeException {
+		if (readableLength < V2_HEADER_LENGTH) {
+			throw new TioDecodeException("insufficient data for v2 header, need at least " + V2_HEADER_LENGTH + " bytes");
+		}
+
+		// 检测签名
+		byte[] sig = new byte[12];
+		buffer.get(sig);
+		if (!Arrays.equals(sig, V2_SIGNATURE)) {
+			throw new TioDecodeException("invalid v2 signature");
+		}
+
+		// 读取版本和命令
+		byte verCmd = buffer.get();
+		byte version = (byte) ((verCmd & 0xF0) >> 4);
+		byte cmd = (byte) (verCmd & 0x0F);
+
+		if (version != 2) {
+			throw new TioDecodeException("invalid v2 proxy protocol version: " + version);
+		}
+
+		// 读取地址族和协议
+		byte fam = buffer.get();
+
+		// 读取地址长度 (网络字节序)
+		short addrLen = buffer.getShort();
+		addrLen = (short) (((addrLen & 0xFF) << 8) | ((addrLen >> 8) & 0xFF));
+
+		// 根据命令处理
+		if (cmd == V2_CMD_LOCAL) {
+			// LOCAL: 返回空消息
+			return new ProxyProtocolMessage("LOCAL", null, null, 0, 0);
+		} else if (cmd == V2_CMD_PROXY) {
+			// PROXY: 解析地址
+			return decodeV2AddressForTest(buffer, fam, addrLen);
+		} else {
+			throw new TioDecodeException("invalid v2 proxy protocol command: " + cmd);
+		}
+	}
+
+	/**
+	 * 解码 V2 地址 (for test)
+	 */
+	private static ProxyProtocolMessage decodeV2AddressForTest(ByteBuffer buffer, byte fam, int addrLen) throws TioDecodeException {
+		byte addrFamily = (byte) (fam & 0xF0);
+		byte proto = (byte) (fam & 0x0F);
+
+		if (addrFamily == V2_AF_INET) {
+			if (proto == V2_PROTO_STREAM || proto == V2_PROTO_DGRAM) {
+				if (addrLen < V2_ADDR_LEN_IPV4) {
+					throw new TioDecodeException("invalid v2 ipv4 address length: " + addrLen);
+				}
+				byte[] srcAddr = new byte[4];
+				byte[] dstAddr = new byte[4];
+				buffer.get(srcAddr);
+				buffer.get(dstAddr);
+				int srcPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
+				int dstPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
+
+				String protocol = (proto == V2_PROTO_STREAM) ? "TCP4" : "UDP4";
+				return new ProxyProtocolMessage(protocol, bytesToIp(srcAddr), bytesToIp(dstAddr), srcPort, dstPort);
+			} else {
+				throw new TioDecodeException("unsupported v2 protocol for IPv4: " + proto);
+			}
+		} else if (addrFamily == V2_AF_INET6) {
+			if (proto == V2_PROTO_STREAM || proto == V2_PROTO_DGRAM) {
+				if (addrLen < V2_ADDR_LEN_IPV6) {
+					throw new TioDecodeException("invalid v2 ipv6 address length: " + addrLen);
+				}
+				byte[] srcAddr = new byte[16];
+				byte[] dstAddr = new byte[16];
+				buffer.get(srcAddr);
+				buffer.get(dstAddr);
+				int srcPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
+				int dstPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
+
+				String protocol = (proto == V2_PROTO_STREAM) ? "TCP6" : "UDP6";
+				return new ProxyProtocolMessage(protocol, bytesToIpv6(srcAddr), bytesToIpv6(dstAddr), srcPort, dstPort);
+			} else {
+				throw new TioDecodeException("unsupported v2 protocol for IPv6: " + proto);
+			}
+		} else if (addrFamily == V2_AF_UNIX) {
+			throw new TioDecodeException("unsupported v2 address family: UNIX (not typically used in tests)");
+		} else if (addrFamily == V2_AF_UNSPEC) {
+			return new ProxyProtocolMessage("UNSPEC", null, null, 0, 0);
+		} else {
+			throw new TioDecodeException("unsupported v2 address family: " + addrFamily);
+		}
 	}
 
 }
