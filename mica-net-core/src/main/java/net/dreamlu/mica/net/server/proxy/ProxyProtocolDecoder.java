@@ -86,12 +86,6 @@ public final class ProxyProtocolDecoder {
 	private static final byte V2_PROTO_STREAM = 0x01;  // TCP/SOCK_STREAM
 	private static final byte V2_PROTO_DGRAM = 0x02;    // UDP/SOCK_DGRAM
 
-	// 常用组合
-	private static final byte V2_TCP4 = 0x11;  // TCP over IPv4
-	private static final byte V2_TCP6 = 0x21;  // TCP over IPv6
-	private static final byte V2_UDP4 = 0x12;  // UDP over IPv4
-	private static final byte V2_UDP6 = 0x22;  // UDP over IPv6
-
 	// V2 地址长度
 	private static final int V2_ADDR_LEN_IPV4 = 12;  // 4+4+2+2
 	private static final int V2_ADDR_LEN_IPV6 = 36;  // 16+16+2+2
@@ -457,16 +451,16 @@ public final class ProxyProtocolDecoder {
 	}
 
 	/**
-	 * 将字节数组转换为 IPv6 地址字符串
+	 * 将字节数组转换为 IPv6 地址字符串 (标准格式，小写)
 	 */
 	private static String bytesToIpv6(byte[] ip) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < 16; i += 2) {
+		StringBuilder sb = new StringBuilder(39);
+		for (int i = 0; i < 8; i++) {
 			if (i > 0) {
 				sb.append(':');
 			}
-			int val = ((ip[i] & 0xFF) << 8) | (ip[i + 1] & 0xFF);
-			sb.append(String.format("%x", val));
+			int val = ((ip[i * 2] & 0xFF) << 8) | (ip[i * 2 + 1] & 0xFF);
+			sb.append(Integer.toHexString(val));
 		}
 		return sb.toString();
 	}
