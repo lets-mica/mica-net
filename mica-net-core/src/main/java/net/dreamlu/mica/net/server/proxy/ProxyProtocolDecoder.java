@@ -161,7 +161,7 @@ public final class ProxyProtocolDecoder {
 
 		// 优先检测 V2 签名
 		if (readableLength >= V2_MIN_HEAD_LENGTH && isV2Signature(buffer)) {
-			buffer.reset();
+			// isV2Signature 内部已 reset，decodeV2 会 skip 签名
 			return decodeV2(context, buffer, readableLength, next);
 		}
 
@@ -286,8 +286,7 @@ public final class ProxyProtocolDecoder {
 	 */
 	private static boolean isV2Signature(ByteBuffer buffer) {
 		buffer.mark();
-		byte[] sig = new byte[12];
-		buffer.get(sig);
+		byte[] sig = ByteBufferUtil.readBytes(buffer, 12);
 		buffer.reset();
 		return Arrays.equals(sig, V2_SIGNATURE);
 	}
@@ -308,8 +307,7 @@ public final class ProxyProtocolDecoder {
 			return next.apply(context, buffer, readableLength);
 		}
 
-		// 读取 V2 头部
-		// 跳过 12 字节签名
+		// 读取 V2 头部，跳过 12 字节签名
 		ByteBufferUtil.skipBytes(buffer, 12);
 
 		// 读取版本和命令
@@ -325,16 +323,15 @@ public final class ProxyProtocolDecoder {
 		// 读取地址族和协议
 		byte fam = buffer.get();
 
-		// 读取地址长度 (网络字节序)
-		short addrLen = buffer.getShort();
-		addrLen = (short) (((addrLen & 0xFF) << 8) | ((addrLen >> 8) & 0xFF));
-
+		// 读取地址长度 (网络字节序 = 大端)
+		short addrLen = ByteBufferUtil.readShortBE(buffer);
 		// 检查数据完整性: 16(header) + addrLen
 		int totalLength = V2_HEADER_LENGTH + addrLen;
 		if (readableLength < totalLength) {
-			return next.apply(context, buffer, readableLength);
+			buffer.reset();
+			// 包长度不够，不够读
+			return null;
 		}
-
 		// 根据命令处理
 		if (cmd == V2_CMD_LOCAL) {
 			// LOCAL: 跳过地址信息
@@ -351,11 +348,9 @@ public final class ProxyProtocolDecoder {
 		}
 
 		// 跳过 TLV (如果有)
-		if (addrLen > 0) {
-			int tlvsLength = readableLength - totalLength;
-			if (tlvsLength > 0) {
-				ByteBufferUtil.skipBytes(buffer, tlvsLength);
-			}
+		int tlvsLength = readableLength - totalLength;
+		if (tlvsLength > 0) {
+			ByteBufferUtil.skipBytes(buffer, tlvsLength);
 		}
 
 		if (buffer.hasRemaining()) {
@@ -369,8 +364,8 @@ public final class ProxyProtocolDecoder {
 	 * 解码 V2 地址
 	 */
 	private static void decodeV2Address(ChannelContext context, ByteBuffer buffer, byte fam, int addrLen) throws TioDecodeException {
-		byte addrFamily = (byte) (fam & 0xF0);
-		byte proto = (byte) (fam & 0x0F);
+		int addrFamily = fam & 0xFF & 0xF0;
+		int proto = fam & 0x0F;
 
 		if (addrFamily == V2_AF_INET) {
 			if (proto == V2_PROTO_STREAM || proto == V2_PROTO_DGRAM) {
@@ -382,8 +377,8 @@ public final class ProxyProtocolDecoder {
 				byte[] dstAddr = new byte[4];
 				buffer.get(srcAddr);
 				buffer.get(dstAddr);
-				int srcPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
-				int dstPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
+				int srcPort = ByteBufferUtil.readUnsignedShortBE(buffer);
+				int dstPort = ByteBufferUtil.readUnsignedShortBE(buffer);
 
 				String srcIp = bytesToIp(srcAddr);
 				String dstIp = bytesToIp(dstAddr);
@@ -403,8 +398,8 @@ public final class ProxyProtocolDecoder {
 				byte[] dstAddr = new byte[16];
 				buffer.get(srcAddr);
 				buffer.get(dstAddr);
-				int srcPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
-				int dstPort = ((buffer.get() & 0xFF) << 8) | (buffer.get() & 0xFF);
+				int srcPort = ByteBufferUtil.readUnsignedShortBE(buffer);
+				int dstPort = ByteBufferUtil.readUnsignedShortBE(buffer);
 
 				String srcIp = bytesToIpv6(srcAddr);
 				String dstIp = bytesToIpv6(dstAddr);
@@ -487,8 +482,8 @@ public final class ProxyProtocolDecoder {
 
 		// 读取版本和命令
 		byte verCmd = buffer.get();
-		byte version = (byte) ((verCmd & 0xF0) >> 4);
-		byte cmd = (byte) (verCmd & 0x0F);
+		int version = (verCmd & 0xFF) >>> 4;
+		int cmd = verCmd & 0x0F;
 
 		if (version != 2) {
 			throw new TioDecodeException("invalid v2 proxy protocol version: " + version);
@@ -497,9 +492,8 @@ public final class ProxyProtocolDecoder {
 		// 读取地址族和协议
 		byte fam = buffer.get();
 
-		// 读取地址长度 (网络字节序)
-		short addrLen = buffer.getShort();
-		addrLen = (short) (((addrLen & 0xFF) << 8) | ((addrLen >> 8) & 0xFF));
+		// 读取地址长度 (网络字节序 = 大端)
+		short addrLen = ByteBufferUtil.readShortBE(buffer);
 
 		// 根据命令处理
 		if (cmd == V2_CMD_LOCAL) {
@@ -517,8 +511,8 @@ public final class ProxyProtocolDecoder {
 	 * 解码 V2 地址 (for test)
 	 */
 	private static ProxyProtocolMessage decodeV2AddressForTest(ByteBuffer buffer, byte fam, int addrLen) throws TioDecodeException {
-		byte addrFamily = (byte) (fam & 0xF0);
-		byte proto = (byte) (fam & 0x0F);
+		int addrFamily = fam & 0xFF & 0xF0;
+		int proto = fam & 0x0F;
 
 		if (addrFamily == V2_AF_INET) {
 			if (proto == V2_PROTO_STREAM || proto == V2_PROTO_DGRAM) {
