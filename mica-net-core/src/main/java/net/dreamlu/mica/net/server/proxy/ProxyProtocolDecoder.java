@@ -442,7 +442,11 @@ public final class ProxyProtocolDecoder {
 	 * 将字节数组转换为 IPv4 地址字符串
 	 */
 	private static String bytesToIp(byte[] ip) {
-		return (ip[0] & 0xFF) + "." + (ip[1] & 0xFF) + "." + (ip[2] & 0xFF) + "." + (ip[3] & 0xFF);
+		// 最大长度 xxx.xxx.xxx.xxx
+		return String.valueOf(ip[0] & 0xFF) +
+			'.' + (ip[1] & 0xFF) +
+			'.' + (ip[2] & 0xFF) +
+			'.' + (ip[3] & 0xFF);
 	}
 
 	/**
