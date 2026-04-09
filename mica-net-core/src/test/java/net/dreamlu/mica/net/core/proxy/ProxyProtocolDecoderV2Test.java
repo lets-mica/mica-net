@@ -216,14 +216,80 @@ class ProxyProtocolDecoderV2Test {
 		});
 	}
 
+	// ==================== 半包测试 ====================
+
 	/**
-	 * V2 半包测试 (数据不完整)
+	 * V2 半包测试：签名不完整
 	 */
 	@Test
-	void testV2HalfPacket() {
-		// 只发送部分数据
+	void testV2HalfPacketSignatureIncomplete() {
 		ByteBuffer buffer = ByteBuffer.allocate(10);
 		buffer.put(V2_SIGNATURE, 0, 10);
+		buffer.flip();
+
+		Assertions.assertThrows(TioDecodeException.class, () -> {
+			ProxyProtocolDecoder.decodeV2ForTest(buffer, buffer.limit());
+		});
+	}
+
+	/**
+	 * V2 半包测试：只有签名，缺少头部字段
+	 */
+	@Test
+	void testV2HalfPacketSignatureOnly() {
+		ByteBuffer buffer = ByteBuffer.allocate(12);
+		buffer.put(V2_SIGNATURE);
+		buffer.flip();
+
+		Assertions.assertThrows(TioDecodeException.class, () -> {
+			ProxyProtocolDecoder.decodeV2ForTest(buffer, buffer.limit());
+		});
+	}
+
+	/**
+	 * V2 半包测试：签名+ver_cmd，缺少fam和addrLen
+	 */
+	@Test
+	void testV2HalfPacketMissingFamAndAddrLen() {
+		ByteBuffer buffer = ByteBuffer.allocate(13);
+		buffer.put(V2_SIGNATURE);
+		buffer.put((byte) 0x21); // ver_cmd
+		buffer.flip();
+
+		Assertions.assertThrows(TioDecodeException.class, () -> {
+			ProxyProtocolDecoder.decodeV2ForTest(buffer, buffer.limit());
+		});
+	}
+
+	/**
+	 * V2 半包测试：签名+ver_cmd+fam，缺少addrLen
+	 */
+	@Test
+	void testV2HalfPacketMissingAddrLen() {
+		ByteBuffer buffer = ByteBuffer.allocate(14);
+		buffer.put(V2_SIGNATURE);
+		buffer.put((byte) 0x21); // ver_cmd
+		buffer.put((byte) 0x11); // fam (TCP4)
+		buffer.flip();
+
+		Assertions.assertThrows(TioDecodeException.class, () -> {
+			ProxyProtocolDecoder.decodeV2ForTest(buffer, buffer.limit());
+		});
+	}
+
+	/**
+	 * V2 半包测试：完整头但地址数据不完整
+	 */
+	@Test
+	void testV2HalfPacketIncompleteAddress() {
+		// 完整头(16) + 部分地址(8字节，但需要12字节)
+		ByteBuffer buffer = ByteBuffer.allocate(24);
+		buffer.put(V2_SIGNATURE);
+		buffer.put((byte) 0x21); // ver_cmd
+		buffer.put((byte) 0x11); // fam (TCP4)
+		buffer.putShort((short) 12); // addrLen = 12
+		// 只放8字节地址（需要12字节）
+		buffer.put(new byte[]{1, 2, 3, 4, 5, 6, 7, 8});
 		buffer.flip();
 
 		Assertions.assertThrows(TioDecodeException.class, () -> {

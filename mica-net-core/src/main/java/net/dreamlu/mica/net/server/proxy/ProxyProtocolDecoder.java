@@ -522,7 +522,7 @@ public final class ProxyProtocolDecoder {
 
 		if (addrFamily == V2_AF_INET) {
 			if (proto == V2_PROTO_STREAM || proto == V2_PROTO_DGRAM) {
-				if (addrLen < V2_ADDR_LEN_IPV4) {
+				if (addrLen < V2_ADDR_LEN_IPV4 || buffer.remaining() < addrLen) {
 					throw new TioDecodeException("invalid v2 ipv4 address length: " + addrLen);
 				}
 				byte[] srcAddr = new byte[4];
@@ -539,7 +539,7 @@ public final class ProxyProtocolDecoder {
 			}
 		} else if (addrFamily == V2_AF_INET6) {
 			if (proto == V2_PROTO_STREAM || proto == V2_PROTO_DGRAM) {
-				if (addrLen < V2_ADDR_LEN_IPV6) {
+				if (addrLen < V2_ADDR_LEN_IPV6 || buffer.remaining() < addrLen) {
 					throw new TioDecodeException("invalid v2 ipv6 address length: " + addrLen);
 				}
 				byte[] srcAddr = new byte[16];

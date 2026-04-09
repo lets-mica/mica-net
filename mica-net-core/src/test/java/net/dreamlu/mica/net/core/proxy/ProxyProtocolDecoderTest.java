@@ -141,4 +141,50 @@ class ProxyProtocolDecoderTest {
 		});
 	}
 
+	// ==================== 半包测试 ====================
+
+	/**
+	 * V1 半包测试：只有前缀，没有完整行
+	 */
+	@Test
+	void testV1HalfPacketPrefixOnly() throws TioDecodeException {
+		final String header = "PROXY ";
+		ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
+		ProxyProtocolMessage msg = ProxyProtocolDecoder.decodeForTest(byteBuffer, byteBuffer.limit());
+		Assertions.assertNull(msg);
+	}
+
+	/**
+	 * V1 半包测试：有前缀和协议类型，缺少地址信息
+	 */
+	@Test
+	void testV1HalfPacketMissingAddresses() throws TioDecodeException {
+		final String header = "PROXY TCP4 192.168.0.1";
+		ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
+		ProxyProtocolMessage msg = ProxyProtocolDecoder.decodeForTest(byteBuffer, byteBuffer.limit());
+		Assertions.assertNull(msg);
+	}
+
+	/**
+	 * V1 半包测试：有完整地址但缺少 \r\n
+	 */
+	@Test
+	void testV1HalfPacketMissingCRLF() throws TioDecodeException {
+		final String header = "PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\n";
+		ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
+		ProxyProtocolMessage msg = ProxyProtocolDecoder.decodeForTest(byteBuffer, byteBuffer.limit());
+		Assertions.assertNull(msg);
+	}
+
+	/**
+	 * V1 半包测试：有 \r 但没有 \n
+	 */
+	@Test
+	void testV1HalfPacketMissingLF() throws TioDecodeException {
+		final String header = "PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r";
+		ByteBuffer byteBuffer = ByteBuffer.wrap(header.getBytes(StandardCharsets.US_ASCII));
+		ProxyProtocolMessage msg = ProxyProtocolDecoder.decodeForTest(byteBuffer, byteBuffer.limit());
+		Assertions.assertNull(msg);
+	}
+
 }
