@@ -171,7 +171,7 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 ### 网络与协议
 
 - **UDP 重构**：UDP 重构为 NIO UDP 形式，统一 TCP、UDP 编解码和处理
-- **TCP Proxy Protocol v1**：支持 nginx、ELB 转发原始 IP
+- **TCP Proxy Protocol v1和v2**：支持 nginx、ELB 转发原始 IP
 - **SSL 双向认证**：支持客户端和服务端双向认证，客户端可跳过域名校验
 - **PKCS12 证书支持**：SSL 支持 PKCS12 证书格式
 - **backlog 配置**：服务端添加 backlog 配置项
