@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v2.0.1 - 2026-04-12
+- feat(proxy): 支持 PROXY protocol V2 解析功能
+- refactor(core): 将 ChannelContext 中的 Runnable 和 sslFacadeContext 改为抽象方法获取
+
 ### v2.0.0 - 2026-04-07
 - feat(core): 包名调整，从 `org.tio` 迁移到 `net.dreamlu.mica.net` 避免跟原版 `t-io` 包冲突。
 - perf(tcp): 优化异步写入为零拷贝 scatter-write 批量发送。

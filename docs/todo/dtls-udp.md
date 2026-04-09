@@ -1,5 +1,10 @@
 # UDP DTLS 改造计划
 
+> **状态**：暂不实现（2026-04-09 评估）
+> **原因**：UDP 场景使用较少，当前能满足需求，暂无投入产出比
+
+---
+
 基于对 `mica-net` 当前源码的分析，UDP 的实现与 TCP 的实现有着良好的解耦。为了在不影响现有 TCP 实现的前提下加入 DTLS (Datagram Transport Layer Security) 支持，计划采用以下改造步骤和架构设计：
 
 ## 1. 独立 DTLS 状态管理 (不影响 TCP 的 SslFacadeContext)
@@ -34,4 +39,26 @@
     * **MTU 限制**：由于标准 DTLS 不会自动对应用数据进行分片，必须确保加密后的包大小不超过网络 MTU。可以在加密前增加一层校验，超长则抛出异常或在应用层切片。
 
 ## 5. 总结与设计原则
-整体原则是**“旁路拦截，独立上下文”**。将 DTLS 的引擎（`unwrap`/`wrap`）作为拦截器，插入到 `DatagramChannel` 的读写与 `UdpDecodeRunnable`/`UdpSendRunnable` 之间，完全避开 `TcpChannelContext` 和现有的 TCP TLS 流程。这需要 JDK 9+ 的支持，或者引入 BouncyCastle 作为底层 Provider。
+整体原则是**”旁路拦截，独立上下文”**。将 DTLS 的引擎（`unwrap`/`wrap`）作为拦截器，插入到 `DatagramChannel` 的读写与 `UdpDecodeRunnable`/`UdpSendRunnable` 之间，完全避开 `TcpChannelContext` 和现有的 TCP TLS 流程。这需要 JDK 9+ 的支持，或者引入 BouncyCastle 作为底层 Provider。
+
+---
+
+## ⚠️ 评估结论（2026-04-09）
+
+### 重大障碍
+
+| 障碍 | 说明 |
+|------|------|
+| **Java 版本不兼容** | 项目最低支持 Java 1.8，但 `SSLEngine` 的 DTLS 模式需要 JDK 9+。若要支持需引入 BouncyCastle（约 5MB 依赖），或提升最低版本要求 |
+
+### 需澄清点
+
+1. **MTU 分片**：DTLS 1.2 规范定义了分片机制，但 Java 原生 `SSLEngine` 不自动处理，需应用层实现
+2. **握手状态机**：重传机制、epoch 切换、防重放等均需自行实现，工作量较大
+3. **useQueueDecode=false 路径**：需同时覆盖队列模式和直接处理两条数据路径的 DTLS 解密拦截
+
+### 后续若要重启
+
+1. 确定 Java 版本策略（BouncyCastle 或升 JDK）
+2. 设计 MTU 分片处理方案
+3. 细化 `UdpDtlsFacadeContext` 与现有 Runnables 的拦截点
