@@ -238,8 +238,8 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 					channelContext.setAsynchronousSocketChannel(asynchronousSocketChannel);
 					// ssl 如果是服务端重启，需要重新生成 SSLContext 对象
 					channelContext.setUpSSL();
-					channelContext.handlerRunnable.setCanceled(false);
-					channelContext.sendRunnable.setCanceled(false);
+					channelContext.getHandlerRunnable().setCanceled(false);
+					channelContext.getSendRunnable().setCanceled(false);
 					tioClientConfig.closeds.remove(channelContext);
 				} else {
 					channelContext = new ClientChannelContext(tioClientConfig, asynchronousSocketChannel);

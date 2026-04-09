@@ -257,13 +257,13 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 						return;
 					}
 					//必须先取消任务再清空队列
-					channelContext.decodeRunnable.setCanceled(true);
-					channelContext.handlerRunnable.setCanceled(true);
-					channelContext.sendRunnable.setCanceled(true);
+					channelContext.getDecodeRunnable().setCanceled(true);
+					channelContext.getHandlerRunnable().setCanceled(true);
+					channelContext.getSendRunnable().setCanceled(true);
 
-					channelContext.decodeRunnable.clearMsgQueue();
-					channelContext.handlerRunnable.clearMsgQueue();
-					channelContext.sendRunnable.clearMsgQueue();
+					channelContext.getDecodeRunnable().clearMsgQueue();
+					channelContext.getHandlerRunnable().clearMsgQueue();
+					channelContext.getSendRunnable().clearMsgQueue();
 
 					log.info("{}, {} 准备关闭连接, isNeedRemove:{}, {}", channelContext.tioConfig, channelContext, isNeedRemove, remark);
 

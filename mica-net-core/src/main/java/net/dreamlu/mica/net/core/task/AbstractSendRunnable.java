@@ -108,7 +108,7 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 			log.info("{}, 任务已经取消，{}添加到发送队列失败", channelContext, packet.logstr());
 			return false;
 		}
-		if (channelContext.sslFacadeContext != null && !channelContext.sslFacadeContext.isHandshakeCompleted() && SslUtils.needSslEncrypt(packet, tioConfig)) {
+		if (channelContext.getSslFacadeContext() != null && !channelContext.getSslFacadeContext().isHandshakeCompleted() && SslUtils.needSslEncrypt(packet, tioConfig)) {
 			return this.getForSendAfterSslHandshakeCompleted(true).add(packet);
 		} else {
 			return msgQueue.add(packet);
@@ -154,7 +154,7 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 		if (isSsl && !packet.isSslEncrypted()) {
 			SslVo sslVo = new SslVo(byteBuffer, packet);
 			try {
-				channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
+				channelContext.getSslFacadeContext().getSslFacade().encrypt(sslVo);
 				return sslVo.getByteBuffer();
 			} catch (SSLException e) {
 				log.error("{}, 进行SSL加密时发生了异常", channelContext, e);
@@ -183,7 +183,7 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 
 			SslVo sslVo = new SslVo(mergedBuffer, packets);
 			try {
-				channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
+				channelContext.getSslFacadeContext().getSslFacade().encrypt(sslVo);
 				return new ByteBuffer[]{sslVo.getByteBuffer()};
 			} catch (SSLException e) {
 				log.error("{}, 进行SSL加密时发生了异常", channelContext, e);

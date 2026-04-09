@@ -472,9 +472,9 @@ public class Tio {
 		}
 
 		//先立即取消各项任务，这样可防止有新的任务被提交进来
-		context.decodeRunnable.setCanceled(true);
-		context.handlerRunnable.setCanceled(true);
-		context.sendRunnable.setCanceled(true);
+		context.getDecodeRunnable().setCanceled(true);
+		context.getHandlerRunnable().setCanceled(true);
+		context.getSendRunnable().setCanceled(true);
 
 		WriteLock writeLock;
 		if (needCloseLock) {
@@ -1078,9 +1078,9 @@ public class Tio {
 			}
 
 			if (channelContext.tioConfig.useQueueSend) {
-				isAdded = channelContext.sendRunnable.addMsg(packet);
+				isAdded = channelContext.getSendRunnable().addMsg(packet);
 			} else {
-				isAdded = channelContext.sendRunnable.sendPacket(packet);
+				isAdded = channelContext.getSendRunnable().sendPacket(packet);
 			}
 
 			if (!isAdded) {
@@ -1090,7 +1090,7 @@ public class Tio {
 				return false;
 			}
 			if (channelContext.tioConfig.useQueueSend) {
-				channelContext.sendRunnable.execute();
+				channelContext.getSendRunnable().execute();
 			}
 
 			if (isSingleBlock) {

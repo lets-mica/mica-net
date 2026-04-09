@@ -224,7 +224,7 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 	@Override
 	public void onComplete() {
 		log.info("{}, 完成SSL握手", channelContext);
-		channelContext.sslFacadeContext.setHandshakeCompleted(true);
+		channelContext.getSslFacadeContext().setHandshakeCompleted(true);
 
 		// 获取配置
 		TioConfig tioConfig = channelContext.tioConfig;
@@ -242,7 +242,7 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 			}
 		}
 
-		AbstractSendRunnable sendRunnable = channelContext.sendRunnable;
+		AbstractSendRunnable sendRunnable = channelContext.getSendRunnable();
 		Queue<Packet> forSendAfterSslHandshakeCompleted = sendRunnable.getForSendAfterSslHandshakeCompleted(false);
 		if (forSendAfterSslHandshakeCompleted == null || forSendAfterSslHandshakeCompleted.isEmpty()) {
 			return;

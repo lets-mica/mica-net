@@ -241,12 +241,12 @@ public class SslListener implements ISSLListener {
 			//			log.info("clone packet:{}", Json.toJson(obj));
 
 			if (channelContext.tioConfig.useQueueSend) {
-				boolean isAdded = channelContext.sendRunnable.addMsg(p);
+				boolean isAdded = channelContext.getSendRunnable().addMsg(p);
 				if (isAdded) {
-					channelContext.sendRunnable.execute();
+					channelContext.getSendRunnable().execute();
 				}
 			} else {
-				channelContext.sendRunnable.sendPacket(p, true);
+				channelContext.getSendRunnable().sendPacket(p, true);
 			}
 		}
 
@@ -256,7 +256,7 @@ public class SslListener implements ISSLListener {
 	public void onPlainData(ByteBuffer plainBuffer) {
 		//This is the deciphered payload for your app to consume
 		//		ByteBuffer plainBytes = sslVo.getByteBuffer();
-		SslFacadeContext sslFacadeContext = channelContext.sslFacadeContext;
+		SslFacadeContext sslFacadeContext = channelContext.getSslFacadeContext();
 		//plainBytes:java.nio.HeapByteBuffer[pos=0 lim=507 cap=507]
 
 		if (sslFacadeContext.isHandshakeCompleted()) {
@@ -268,11 +268,11 @@ public class SslListener implements ISSLListener {
 			//			channelContext.decodeRunnable.run();
 			if (channelContext.tioConfig.useQueueDecode) {
 				ByteBuffer copiedByteBuffer = ByteBufferUtil.copy(plainBuffer);
-				channelContext.decodeRunnable.addMsg(copiedByteBuffer);
-				channelContext.decodeRunnable.execute();
+				channelContext.getDecodeRunnable().addMsg(copiedByteBuffer);
+				channelContext.getDecodeRunnable().execute();
 			} else {
-				channelContext.decodeRunnable.setNewReceivedByteBuffer(plainBuffer);
-				channelContext.decodeRunnable.decode();
+				channelContext.getDecodeRunnable().setNewReceivedByteBuffer(plainBuffer);
+				channelContext.getDecodeRunnable().decode();
 			}
 		} else {
 			if (log.isDebugEnabled()) {

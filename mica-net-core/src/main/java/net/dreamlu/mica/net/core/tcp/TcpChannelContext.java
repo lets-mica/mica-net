@@ -18,6 +18,7 @@ package net.dreamlu.mica.net.core.tcp;
 
 import net.dreamlu.mica.net.core.*;
 import net.dreamlu.mica.net.core.ssl.SslFacadeContext;
+import net.dreamlu.mica.net.core.task.AbstractDecodeRunnable;
 import net.dreamlu.mica.net.core.task.HandlerRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +33,14 @@ import java.nio.channels.AsynchronousSocketChannel;
  */
 public abstract class TcpChannelContext extends ChannelContext {
 	private static final Logger log = LoggerFactory.getLogger(TcpChannelContext.class);
-
 	public AsynchronousSocketChannel asynchronousSocketChannel;
 	public WriteCompletionHandler writeCompletionHandler;
 	private ReadCompletionHandler readCompletionHandler;
+	// TCP 专用 Runnable（实现基类抽象方法）
+	private TcpDecodeRunnable decodeRunnable;
+	private HandlerRunnable handlerRunnable;
+	private TcpSendRunnable sendRunnable;
+	private SslFacadeContext sslFacadeContext;
 
 	public TcpChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
 		super(tioConfig);
@@ -130,6 +135,26 @@ public abstract class TcpChannelContext extends ChannelContext {
 			sendRunnable = new TcpSendRunnable(this, tioConfig.tioExecutor);
 			tioConfig.connections.add(this);
 		}
+	}
+
+	@Override
+	public AbstractDecodeRunnable getDecodeRunnable() {
+		return decodeRunnable;
+	}
+
+	@Override
+	public HandlerRunnable getHandlerRunnable() {
+		return handlerRunnable;
+	}
+
+	@Override
+	public TcpSendRunnable getSendRunnable() {
+		return sendRunnable;
+	}
+
+	@Override
+	public SslFacadeContext getSslFacadeContext() {
+		return sslFacadeContext;
 	}
 
 	public void setAsynchronousSocketChannel(AsynchronousSocketChannel asynchronousSocketChannel) {

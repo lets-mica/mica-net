@@ -242,13 +242,13 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			}
 
 			readByteBuffer.flip();
-			if (channelContext.sslFacadeContext == null) {
+			if (channelContext.getSslFacadeContext() == null) {
 				if (tioConfig.useQueueDecode) {
-					channelContext.decodeRunnable.addMsg(ByteBufferUtil.copy(readByteBuffer));
-					channelContext.decodeRunnable.execute();
+					channelContext.getDecodeRunnable().addMsg(ByteBufferUtil.copy(readByteBuffer));
+					channelContext.getDecodeRunnable().execute();
 				} else {
-					channelContext.decodeRunnable.setNewReceivedByteBuffer(readByteBuffer);
-					channelContext.decodeRunnable.decode();
+					channelContext.getDecodeRunnable().setNewReceivedByteBuffer(readByteBuffer);
+					channelContext.getDecodeRunnable().decode();
 				}
 			} else {
 				try {
@@ -258,7 +258,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 					// 下次 read() 会重新初始化 readByteBuffer，不会复用已有数据的 slice
 					ByteBuffer plainBuffer = readByteBuffer.slice();
 					log.debug("{}, 丢给SslFacade解密:{}", channelContext, plainBuffer);
-					channelContext.sslFacadeContext.getSslFacade().decrypt(plainBuffer);
+					channelContext.getSslFacadeContext().getSslFacade().decrypt(plainBuffer);
 				} catch (Exception e) {
 					log.error("{}, 丢给SslFacade解密失败:{}", channelContext, e.getMessage(), e);
 					Tio.close(channelContext, e, e.getMessage(), CloseCode.SSL_DECRYPT_ERROR);

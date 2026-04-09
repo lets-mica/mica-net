@@ -36,10 +36,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	public final CloseMeta closeMeta = new CloseMeta();
 
 	public TioConfig tioConfig;
-	public AbstractDecodeRunnable decodeRunnable;
-	public HandlerRunnable handlerRunnable;
-	public AbstractSendRunnable sendRunnable;
-	public SslFacadeContext sslFacadeContext;
 	/**
 	 * 此值不设时，心跳时间取net.dreamlu.mica.net.TioConfig.heartbeatTimeout
 	 * 当然这个值如果小于net.dreamlu.mica.net.TioConfig.heartbeatTimeout，定时检查的时间间隔还是以net.dreamlu.mica.net.TioConfig.heartbeatTimeout为准，只是在判断时用此值
@@ -140,7 +136,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * @return the ssl
 	 */
 	public boolean isSsl() {
-		return sslFacadeContext != null;
+		return getSslFacadeContext() != null;
 	}
 
 	/**
@@ -226,7 +222,8 @@ public abstract class ChannelContext extends MapPropSupport {
 				log.debug("{} 已经发送 {}", this, packet.logstr());
 			}
 			//非SSL or SSL已经握手
-			if (this.sslFacadeContext == null || this.sslFacadeContext.isHandshakeCompleted()) {
+			SslFacadeContext sslCtx = getSslFacadeContext();
+			if (sslCtx == null || sslCtx.isHandshakeCompleted()) {
 				TioListener tioListener = tioConfig.getTioListener();
 				if (tioListener != null) {
 					try {
@@ -251,7 +248,6 @@ public abstract class ChannelContext extends MapPropSupport {
 				log.error(e.getMessage(), e);
 			}
 		}
-
 	}
 
 	public boolean isVirtual() {
@@ -340,19 +336,6 @@ public abstract class ChannelContext extends MapPropSupport {
 		this.packetNeededLength = packetNeededLength;
 	}
 
-	public SslFacadeContext getSslFacadeContext() {
-		return sslFacadeContext;
-	}
-
-	/**
-	 * 设置 SslFacadeContext 用于动态 ssl 的过程
-	 *
-	 * @param sslFacadeContext sslFacadeContext
-	 */
-	public void setSslFacadeContext(SslFacadeContext sslFacadeContext) {
-		this.sslFacadeContext = sslFacadeContext;
-	}
-
 	/**
 	 * 获取 用户 id
 	 *
@@ -387,6 +370,34 @@ public abstract class ChannelContext extends MapPropSupport {
 	public TioConfig getTioConfig() {
 		return tioConfig;
 	}
+
+	/**
+	 * 获取解码 Runnable
+	 *
+	 * @return AbstractDecodeRunnable
+	 */
+	public abstract AbstractDecodeRunnable getDecodeRunnable();
+
+	/**
+	 * 获取处理器 Runnable
+	 *
+	 * @return HandlerRunnable
+	 */
+	public abstract HandlerRunnable getHandlerRunnable();
+
+	/**
+	 * 获取发送 Runnable
+	 *
+	 * @return AbstractSendRunnable
+	 */
+	public abstract AbstractSendRunnable getSendRunnable();
+
+	/**
+	 * 获取 SSL 上下文（TCP 子类才有值，UDP 返回 null）
+	 *
+	 * @return SslFacadeContext
+	 */
+	public abstract SslFacadeContext getSslFacadeContext();
 
 	/**
 	 * 设置 TioConfig 并初始化协议相关的 Runnable（由子类实现）
@@ -500,7 +511,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * @return 数据量
 	 */
 	public int getDecodeQueueSize() {
-		return this.decodeRunnable.getMsgQueueSize();
+		return getDecodeRunnable().getMsgQueueSize();
 	}
 
 	/**
@@ -509,7 +520,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * @return 数据量
 	 */
 	public int getHandlerQueueSize() {
-		return this.handlerRunnable.getMsgQueueSize();
+		return getHandlerRunnable().getMsgQueueSize();
 	}
 
 	/**
@@ -518,7 +529,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * @return 数据量
 	 */
 	public int getSendQueueSize() {
-		return this.sendRunnable.getMsgQueueSize();
+		return getSendRunnable().getMsgQueueSize();
 	}
 
 	@Override

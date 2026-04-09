@@ -70,12 +70,12 @@ public abstract class AbstractDecodeRunnable extends AbstractQueueRunnable<ByteB
 		// 包处理方式，默认单线程
 		switch (tioConfig.packetHandlerMode) {
 			case QUEUE:
-				channelContext.handlerRunnable.addMsg(packet);
-				channelContext.handlerRunnable.execute();
+				channelContext.getHandlerRunnable().addMsg(packet);
+				channelContext.getHandlerRunnable().execute();
 				break;
 			case SINGLE_THREAD:
 			default:
-				channelContext.handlerRunnable.handler(packet);
+				channelContext.getHandlerRunnable().handler(packet);
 				break;
 		}
 	}

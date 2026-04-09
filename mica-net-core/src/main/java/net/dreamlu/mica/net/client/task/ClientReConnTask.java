@@ -44,7 +44,7 @@ public class ClientReConnTask extends TimerTask {
 		if (channelContext.isRemoved()) {
 			return;
 		}
-		SslFacadeContext sslFacadeContext = channelContext.sslFacadeContext;
+		SslFacadeContext sslFacadeContext = channelContext.getSslFacadeContext();
 		if (sslFacadeContext != null) {
 			sslFacadeContext.setHandshakeCompleted(false);
 		}

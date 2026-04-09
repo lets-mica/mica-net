@@ -20,6 +20,9 @@ import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.Node;
 import net.dreamlu.mica.net.core.Tio;
 import net.dreamlu.mica.net.core.TioConfig;
+import net.dreamlu.mica.net.core.ssl.SslFacadeContext;
+import net.dreamlu.mica.net.core.task.AbstractDecodeRunnable;
+import net.dreamlu.mica.net.core.task.AbstractSendRunnable;
 import net.dreamlu.mica.net.core.task.HandlerRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +38,10 @@ import java.nio.channels.DatagramChannel;
 public class UdpChannelContext extends ChannelContext {
 	private static final Logger log = LoggerFactory.getLogger(UdpChannelContext.class);
 	public DatagramChannel datagramChannel;
+	// UDP 专用 Runnable（实现基类抽象方法）
+	private UdpDecodeRunnable decodeRunnable;
+	private HandlerRunnable handlerRunnable;
+	private UdpSendRunnable sendRunnable;
 
 	public UdpChannelContext(TioConfig tioConfig, DatagramChannel datagramChannel, Node remoteNode) {
 		super(tioConfig);
@@ -111,5 +118,26 @@ public class UdpChannelContext extends ChannelContext {
 			sendRunnable = new UdpSendRunnable(this, tioConfig.tioExecutor);
 			tioConfig.connections.add(this);
 		}
+	}
+
+	@Override
+	public AbstractDecodeRunnable getDecodeRunnable() {
+		return decodeRunnable;
+	}
+
+	@Override
+	public HandlerRunnable getHandlerRunnable() {
+		return handlerRunnable;
+	}
+
+	@Override
+	public AbstractSendRunnable getSendRunnable() {
+		return sendRunnable;
+	}
+
+	@Override
+	public SslFacadeContext getSslFacadeContext() {
+		// UDP 不支持 SSL
+		return null;
 	}
 }

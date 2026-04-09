@@ -369,7 +369,7 @@ public class WriteCompletionHandler implements CompletionHandler<Long, WriteComp
 			lock.unlock();
 		}
 		// TCP 专用：写操作完成后，触发下一批消息发送
-		((TcpSendRunnable) channelContext.sendRunnable).onWriteCompleted();
+		channelContext.getSendRunnable().onWriteCompleted();
 	}
 
 	/**
