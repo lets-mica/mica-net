@@ -156,14 +156,14 @@ public final class ProxyProtocolDecoder {
 		if (readableLength < V1_MIN_HEAD_LENGTH) {
 			return next.apply(context, buffer, readableLength);
 		}
-		// 标记
-		buffer.mark();
 
 		// 优先检测 V2 签名
 		if (readableLength >= V2_MIN_HEAD_LENGTH && isV2Signature(buffer)) {
-			// isV2Signature 内部已 reset，decodeV2 会 skip 签名
 			return decodeV2(context, buffer, readableLength, next);
 		}
+
+		// 标记
+		buffer.mark();
 
 		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
 		String proxyPrefix = ByteBufferUtil.readString(buffer, V1_MIN_HEAD_LENGTH, StandardCharsets.US_ASCII);
@@ -307,6 +307,8 @@ public final class ProxyProtocolDecoder {
 			return next.apply(context, buffer, readableLength);
 		}
 
+		// 标记
+		buffer.mark();
 		// 读取 V2 头部，跳过 12 字节签名
 		ByteBufferUtil.skipBytes(buffer, 12);
 
