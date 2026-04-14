@@ -290,8 +290,8 @@ public class WriteCompletionHandler implements CompletionHandler<Long, WriteComp
 		for (int i = startIndex; i < buffers.length; i++) {
 			if (buffers[i].hasRemaining()) {
 				writeCompletionVo.index = i;
-				if (log.isInfoEnabled()) {
-					log.info("{} gather write, buffer {}/{} has remaining {} bytes",
+				if (log.isDebugEnabled()) {
+					log.debug("{} gather write, buffer {}/{} has remaining {} bytes",
 						channelContext, i + 1, buffers.length, buffers[i].remaining());
 				}
 				// 原数组 + 偏移量 + 长度，直接走 write(ByteBuffer[], offset, length)
