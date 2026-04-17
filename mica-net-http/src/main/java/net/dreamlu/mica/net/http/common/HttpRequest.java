@@ -764,6 +764,17 @@ public class HttpRequest extends HttpPacket {
 		return params.get(name);
 	}
 
+	/**
+	 * 获取路径参数（通过路由器注入）
+	 *
+	 * @param name 参数名
+	 * @return 参数值
+	 */
+	public String getPathParam(String name) {
+		Object value = getAttribute(name);
+		return value != null ? value.toString() : null;
+	}
+
 	public Node getRemote() {
 		return remote;
 	}

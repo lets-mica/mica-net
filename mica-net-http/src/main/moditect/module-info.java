@@ -3,6 +3,7 @@ open module net.dreamlu.mica.net.http {
 	// http
 	exports net.dreamlu.mica.net.http.common;
 	exports net.dreamlu.mica.net.http.common.handler;
+	exports net.dreamlu.mica.net.http.common.router;
 	exports net.dreamlu.mica.net.http.common.sse;
 	exports net.dreamlu.mica.net.http.common.stream;
 	exports net.dreamlu.mica.net.http.common.utils;
