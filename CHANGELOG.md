@@ -2,6 +2,9 @@
 
 ## 发行版本
 
+### v2.0.2 - 2026-04-18
+- fix(core): 删除 WriteCompletionHandler 中 gather write 日志
+
 ### v2.0.1 - 2026-04-10
 - feat(proxy): 支持 PROXY protocol V2 解析功能
 - refactor(core): 将 ChannelContext 中的 Runnable 和 sslFacadeContext 改为抽象方法获取
