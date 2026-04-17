@@ -97,6 +97,7 @@ public class RouterExample {
 
 		// 9. 异常处理
 		router.error((request, error) -> {
+			request.setAttribute("javax.servlet.error.exception", error);
 			HttpResponse resp = new HttpResponse(request);
 			resp.setStatus(HttpResponseStatus.C500);
 			resp.setBody(("Error: " + error.getMessage()).getBytes(StandardCharsets.UTF_8));

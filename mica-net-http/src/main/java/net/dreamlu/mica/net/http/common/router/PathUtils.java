@@ -93,7 +93,7 @@ class PathUtils {
 		}
 		if (pattern.endsWith("/**")) {
 			String prefix = pattern.substring(0, pattern.length() - 3);
-			return path.equals(prefix) || path.startsWith(prefix + "/");
+			return path.startsWith(prefix + "/");
 		}
 		if (pattern.endsWith("/*")) {
 			String prefix = pattern.substring(0, pattern.length() - 2);
