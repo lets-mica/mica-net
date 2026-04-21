@@ -1,10 +1,8 @@
 package net.dreamlu.mica.net.http.common.router;
 
-import net.dreamlu.mica.net.http.common.HttpRequest;
-import net.dreamlu.mica.net.http.common.HttpResponse;
-import net.dreamlu.mica.net.http.common.HttpResponseStatus;
-import net.dreamlu.mica.net.http.common.Method;
+import net.dreamlu.mica.net.http.common.*;
 import net.dreamlu.mica.net.http.common.handler.HttpRequestHandler;
+import net.dreamlu.mica.net.utils.hutool.StrUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -94,8 +92,8 @@ public class HttpRouter implements HttpRequestHandler {
 	}
 
 	public HttpRouter filter(String pathPattern, HttpFilter filter) {
-		if (pathPattern == null || pathPattern.isEmpty()) {
-			throw new IllegalArgumentException("pathPattern cannot be null or empty");
+		if (StrUtil.isBlank(pathPattern)) {
+			throw new IllegalArgumentException("pathPattern 不能为空");
 		}
 		if (!pathPattern.startsWith("/")) {
 			pathPattern = "/" + pathPattern;
@@ -120,8 +118,9 @@ public class HttpRouter implements HttpRequestHandler {
 
 	@Override
 	public HttpResponse handler(HttpRequest request) throws Exception {
-		String path = request.getRequestLine().getPath();
-		Method method = request.getRequestLine().getMethod();
+		RequestLine requestLine = request.getRequestLine();
+		String path = requestLine.getPath();
+		Method method = requestLine.getMethod();
 
 		Map<String, String> params = new HashMap<>();
 		TrieNode matchNode = matchNode(root, PathUtils.splitPath(path), 0, params);
@@ -175,7 +174,7 @@ public class HttpRouter implements HttpRequestHandler {
 	 */
 	private TrieNode matchNode(TrieNode node, String[] segments, int index, Map<String, String> params) {
 		if (index > MAX_ROUTE_DEPTH) {
-			throw new IllegalStateException("Route depth exceeds maximum allowed: " + MAX_ROUTE_DEPTH);
+			throw new IllegalStateException("路由深度超出最大允许值：" + MAX_ROUTE_DEPTH);
 		}
 		if (index == segments.length) {
 			return node;
@@ -220,20 +219,4 @@ public class HttpRouter implements HttpRequestHandler {
 			this.filter = filter;
 		}
 	}
-
-	public static class RouteInfo {
-		public final String methods;
-		public final String path;
-
-		public RouteInfo(String methods, String path) {
-			this.methods = methods;
-			this.path = path;
-		}
-
-		@Override
-		public String toString() {
-			return methods + "  " + path;
-		}
-	}
-
 }
