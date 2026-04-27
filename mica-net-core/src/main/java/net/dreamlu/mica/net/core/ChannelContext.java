@@ -291,11 +291,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	 */
 	public void setClosed(boolean isClosed) {
 		setClosedState(isClosed);
-		if (isClosed && (clientNode == null || !UNKNOWN_ADDRESS_IP.equals(clientNode.getIp()))) {
-			String before = this.toString();
-			assignAnUnknownClientNode();
-			log.info("关闭前{}, 关闭后{}", before, this);
-		}
 	}
 
 	private void setClosedState(boolean isClosed) {
