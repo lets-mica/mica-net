@@ -310,6 +310,9 @@ public abstract class TioConfig {
 	 */
 	public TioConfig(SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		super();
+		// 1. 先设置id
+		this.id = Integer.toString(ID_ATOMIC.incrementAndGet());
+		// 2. 在添加
 		ALL_GROUP_CONTEXTS.add(this);
 		if (this instanceof TioServerConfig) {
 			ALL_SERVER_GROUP_CONTEXTS.add((TioServerConfig) this);
@@ -319,7 +322,6 @@ public abstract class TioConfig {
 		if (ALL_GROUP_CONTEXTS.size() > 20) {
 			log.warn("已经产生{}个TioConfig对象，t-io作者怀疑你在误用t-io", ALL_GROUP_CONTEXTS.size());
 		}
-		this.id = Integer.toString(ID_ATOMIC.incrementAndGet());
 		this.tioExecutor = tioExecutor;
 		if (this.tioExecutor == null) {
 			this.tioExecutor = ThreadUtils.getTioExecutor();
