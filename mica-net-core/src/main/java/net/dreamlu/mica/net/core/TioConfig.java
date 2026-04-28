@@ -312,7 +312,7 @@ public abstract class TioConfig {
 		super();
 		// 1. 先设置id
 		this.id = Integer.toString(ID_ATOMIC.incrementAndGet());
-		// 2. 在添加
+		// 2. 再添加，避免 remove 不掉
 		ALL_GROUP_CONTEXTS.add(this);
 		if (this instanceof TioServerConfig) {
 			ALL_SERVER_GROUP_CONTEXTS.add((TioServerConfig) this);
