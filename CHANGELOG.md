@@ -3,8 +3,9 @@
 ## 发行版本
 
 ### v2.0.3 - 2026-05-05
-- refactor(net): 优化 ChannelContext 简化 setClosed 方法逻辑。
-- refactor(router): mica-net-http 新增 HttpRouter 路由，方便使用。
+- refactor(core): 优化 ChannelContext 简化 setClosed 方法逻辑。
+- refactor(http): mica-net-http 新增 HttpRouter 路由，方便使用。
+- fix(core): 修正 TioConfig 构造函数中 id 设置顺序，导致 `remove()` 不掉。
 
 ### v2.0.2 - 2026-04-18
 - fix(core): 删除 WriteCompletionHandler 中 gather write 日志
