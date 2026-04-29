@@ -66,24 +66,24 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 ### 接收数据流程
 
 ```
-1. AsynchronousSocketChannel.read() 
+1. AsynchronousSocketChannel.read()
    ↓ [异步读取]
 2. ReadCompletionHandler.completed()
    ├─ 统计接收字节数、更新时间戳
-   ├─ SSL? → SSL解密
-   └─ 添加到解码队列
+   ├─ SSL? → SslFacade.decrypt() 解密后直接触发解码
+   └─ 非SSL? → useQueueDecode? 添加到队列 : 直接解码
    ↓
-3. DecodeRunnable.decode()
-   ├─ 处理lastByteBuffer（上次剩余数据）
-   ├─ 循环解码：TioHandler.decode()
-   ├─ 检测慢包攻击（连续解码失败检测）
-   ├─ 解码成功 → 放入HandlerRunnable
-   └─ 解码失败 → 保存lastByteBuffer等待更多数据
+3. TcpDecodeRunnable.decode()
+   ├─ 流式拼接：lastByteBuffer + 本次数据
+   ├─ 循环解包：while(true) 调用 TioHandler.decode()
+   ├─ 检测慢包攻击（滑动窗口算法）
+   ├─ 解码成功 → onDecodeSuccess() → HandlerRunnable
+   └─ 数据不够 → 保存 lastByteBuffer 等待更多数据
    ↓
 4. HandlerRunnable.handler()
-   ├─ 同步消息处理（synSeq机制）
-   ├─ 业务处理：TioHandler.handler()
-   └─ 统计处理时长
+   ├─ synSeq > 0? → CompletableFuture 异步响应
+   ├─ synSeq == 0 → TioHandler.handler() 业务处理
+   └─ 统计处理时长、更新 ChannelStat
 ```
 
 ------
@@ -95,31 +95,34 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 ```
 1. Tio.send(channelContext, packet)
    ├─ 检查连接状态
-   ├─ PacketConverter转换（可选）
-   ├─ useQueueSend? 
-   │   ├─ true → 添加到队列
+   ├─ PacketConverter 转换（可选）
+   ├─ useQueueSend?
+   │   ├─ true → 添加到队列，触发 SendRunnable
    │   └─ false → 直接发送
-   └─ 触发SendRunnable.execute()
+   └─ 触发 SendRunnable.execute()
    ↓
-2. SendRunnable.runTask()
-   ├─ 单包？→ 直接发送
-   └─ 多包？→ 批量合并发送
+2. TcpSendRunnable.runTask()
+   ├─ writing.get()? → 有写操作进行中，直接返回
+   ├─ 单包 → sendPacket() 编码 + SSL + sendByteBuffer()
+   └─ 多包 → batchEncode() 批量编码
        ├─ 自适应批量大小（根据队列积压）
-       ├─ 编码：TioHandler.encode()
-       ├─ SSL? → SSL加密
-       ├─ 合并多个ByteBuffer
-       └─ 调用sendByteBuffer()
+       ├─ TioHandler.encode() 编码
+       ├─ SSL 加密（encryptBatchIfNeeded）
+       └─ sendByteBuffers() gather-write 零拷贝
    ↓
-3. sendByteBuffer()
-   ├─ 设置writing标记（防止WritePendingException）
-   └─ AsynchronousSocketChannel.write()
+3. sendByteBuffer() / sendByteBuffers()
+   ├─ 设置 writing.set(true) 防 WritePendingException
+   └─ 统一 scatter-write：AsynchronousSocketChannel.write(ByteBuffer[])
    ↓
 4. WriteCompletionHandler.completed()
-   ├─ hasRemaining? → 继续写入
-   ├─ 统计发送字节数
-   ├─ 回调：channelContext.processAfterSent()
+   ├─ hasRemaining? → scatter-write 续写（利用 offset+length 参数）
+   ├─ 所有 buffer 发送完毕 → handle()
+   │   ├─ signal condition 唤醒等待线程
+   │   ├─ 统计发送字节数
+   │   ├─ processAfterSent() 回调
+   │   └─ 失败时关闭连接
    └─ onWriteCompleted()
-       ├─ 清除writing标记
+       ├─ 清除 writing.set(false)
        └─ 触发下一批发送
 ```
 
