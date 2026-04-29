@@ -192,5 +192,4 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 - **简化 TioConfig**：不继承 `MapPropSupport`，使用更简洁
 - **FileQueue**：内置文件队列，支持 GraalVM
-- **NodeSelector**：为客户端集群做准备
 - **JacksonJsonAdapter**：调整默认配置，优化序列化/反序列化行为
