@@ -251,8 +251,12 @@ public final class HttpRequestDecoder {
 			contentLength = 0;
 		} else {
 			contentLength = Integer.parseInt(contentLengthStr);
+			// 安全检查：Content-Length 不能为负数
+			if (contentLength < 0) {
+				throw new TioDecodeException("Content-Length 不能为负数");
+			}
 			if (contentLength > httpConfig.getMaxLengthOfPostBody()) {
-				throw new TioDecodeException("post body length is too big[" + contentLength + "], max length is " + httpConfig.getMaxLengthOfPostBody() + " byte");
+				throw new TioDecodeException("请求体长度超出限制");
 			}
 		}
 
@@ -438,7 +442,11 @@ public final class HttpRequestDecoder {
 		if (StrUtil.isNotBlank(contentType)) {
 			String charset = HttpParseUtils.getSubAttribute(contentType, "charset");
 			if (StrUtil.isNotBlank(charset)) {
-				httpRequest.setCharset(Charset.forName(charset));
+				try {
+					httpRequest.setCharset(Charset.forName(charset));
+				} catch (Exception e) {
+					httpRequest.setCharset(SysConst.DEFAULT_CHARSET);
+				}
 			} else {
 				httpRequest.setCharset(SysConst.DEFAULT_CHARSET);
 			}
@@ -515,6 +523,10 @@ public final class HttpRequestDecoder {
 							len = buffer.position() - lastPosition - 2;
 						}
 						value = new String(allBs, lastPosition, len);
+						// 安全检查：防止 HTTP 头部注入攻击
+						if (value.contains("\r") || value.contains("\n")) {
+							throw new TioDecodeException("头部值包含非法字符（换行符）");
+						}
 						headers.put(name.toLowerCase(), StrUtil.trimEnd(value));
 						break;
 					} else {
