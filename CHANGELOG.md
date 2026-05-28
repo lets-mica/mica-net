@@ -2,6 +2,9 @@
 
 ## 发行版本
 
+### v2.0.4 - 2026-05-28
+- refactor(core): ClassUtil 添加 newInstance 方法。
+
 ### v2.0.3 - 2026-04-29
 - refactor(core): 优化 ChannelContext 简化 setClosed 方法逻辑。
 - refactor(http): mica-net-http 新增 HttpRouter 路由，方便使用。
