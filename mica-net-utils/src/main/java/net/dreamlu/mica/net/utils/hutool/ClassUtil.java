@@ -16,6 +16,8 @@
 
 package net.dreamlu.mica.net.utils.hutool;
 
+import net.dreamlu.mica.net.utils.mica.ExceptionUtils;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -53,6 +55,20 @@ public class ClassUtil {
 			return true;
 		} catch (Throwable ex) {
 			return false;
+		}
+	}
+
+	/**
+	 * 根据类名实例化一个对象
+	 *
+	 * @param clazz 类
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T newInstance(Class<?> clazz) {
+		try {
+			return (T) clazz.getDeclaredConstructor().newInstance();
+		} catch (Exception e) {
+			throw ExceptionUtils.unchecked(e);
 		}
 	}
 
