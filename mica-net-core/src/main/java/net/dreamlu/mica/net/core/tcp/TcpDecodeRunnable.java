@@ -24,7 +24,6 @@ import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.stat.ChannelStat;
 import net.dreamlu.mica.net.core.stat.SlowPacketDetector;
 import net.dreamlu.mica.net.core.task.AbstractDecodeRunnable;
-import net.dreamlu.mica.net.server.proxy.ProxyProtocolDecoder;
 import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,11 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 
 /**
- * TCP 专用解码任务 - 支持流式拼接、慢包检测、ProxyProtocol
+ * TCP 专用解码任务 - 支持流式拼接、慢包检测。
+ * <p>
+ * ProxyProtocol 解析已上移到 {@link net.dreamlu.mica.net.core.ReadCompletionHandler}，
+ * 本类只负责业务协议的解码。
+ * </p>
  *
  * @author L.cm
  */
@@ -74,7 +77,6 @@ public class TcpDecodeRunnable extends AbstractDecodeRunnable {
 	 */
 	@Override
 	public void decode() {
-		boolean isServer = tioConfig.isServer();
 		ByteBuffer byteBuffer = newReceivedByteBuffer;
 
 		// TCP 流式拼接：将上次未完成的数据与本次数据合并
@@ -98,11 +100,11 @@ public class TcpDecodeRunnable extends AbstractDecodeRunnable {
 						log.debug("{}, 解码所需长度:{}", channelContext, packetNeededLength);
 					}
 					if (readableLength >= packetNeededLength) {
-						packet = decodePacket(isServer, byteBuffer, limit, initPosition, readableLength);
+						packet = tioHandler.decode(byteBuffer, limit, initPosition, readableLength, channelContext);
 					}
 				} else {
 					try {
-						packet = decodePacket(isServer, byteBuffer, limit, initPosition, readableLength);
+						packet = tioHandler.decode(byteBuffer, limit, initPosition, readableLength, channelContext);
 					} catch (BufferUnderflowException e) {
 						//数据不够读
 					}
@@ -201,17 +203,4 @@ public class TcpDecodeRunnable extends AbstractDecodeRunnable {
 		}
 	}
 
-	/**
-	 * TCP 专用解码：支持 ProxyProtocol
-	 */
-	private Packet decodePacket(boolean isServer, ByteBuffer byteBuffer, int limit, int initPosition, int readableLength) throws TioDecodeException {
-		if (isServer) {
-			// TCP Server 支持 ProxyProtocol v1（用于 nginx/ELB 转发）
-			return ProxyProtocolDecoder.decodeIfEnable(channelContext, byteBuffer, readableLength, (context, buffer, readableLen) ->
-				tioHandler.decode(buffer, limit, initPosition, readableLen, context)
-			);
-		} else {
-			return tioHandler.decode(byteBuffer, limit, initPosition, readableLength, channelContext);
-		}
-	}
 }

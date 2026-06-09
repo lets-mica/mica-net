@@ -194,12 +194,12 @@
 package net.dreamlu.mica.net.core;
 
 import net.dreamlu.mica.net.core.ChannelContext.CloseCode;
-import net.dreamlu.mica.net.core.intf.IgnorePacket;
 import net.dreamlu.mica.net.core.intf.TioListener;
 import net.dreamlu.mica.net.core.tcp.TcpChannelContext;
 import net.dreamlu.mica.net.core.utils.TioUtils;
 import net.dreamlu.mica.net.server.TioServerConfig;
 import net.dreamlu.mica.net.server.proxy.ProxyProtocolDecoder;
+import net.dreamlu.mica.net.server.proxy.ProxyProtocolPreParser;
 import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,24 +213,20 @@ import java.nio.channels.CompletionHandler;
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
 	private static final Logger log = LoggerFactory.getLogger(ReadCompletionHandler.class);
-	/**
-	 * SSL + ProxyProtocol 场景下，预解码代理头时的累积缓冲区初始大小。
-	 * V1 最大 108 字节，V2 含 TLV 可达 64K+，4096 能覆盖绝大多数真实场景。
-	 */
-	private static final int PRE_SSL_PROXY_BUFFER_SIZE = 4096;
-	/**
-	 * SSL + ProxyProtocol 场景下，累积缓冲区的最大尺寸（64KB），
-	 * 超过此尺寸仍未解析出 PROXY 头则回退到 SSL。
-	 */
-	private static final int MAX_PRE_SSL_PROXY_BUFFER_SIZE = 64 * 1024;
 
 	private final TcpChannelContext channelContext;
 	private ByteBuffer readByteBuffer;
 	/**
-	 * SSL + ProxyProtocol 场景下，累积首批数据用于解析代理头。
-	 * 仅在 {@code preSslProxyBuffer != null} 期间生效，解析完成后置空。
+	 * ProxyProtocol 预解析器（懒加载）。
+	 * <p>
+	 * 非 null 表示正在累积首批数据等待代理头解析完成。
+	 * 解析成功后置空，下一次数据按 SSL 是否启用分别路由到 SSL 或 decode runnable。
+	 * </p>
+	 * <p>
+	 * 累积/解析/状态管理已封装到 {@link ProxyProtocolPreParser}，本类只负责按结果路由。
+	 * </p>
 	 */
-	private ByteBuffer preSslProxyBuffer;
+	private ProxyProtocolPreParser preParser;
 
 	public ReadCompletionHandler(TcpChannelContext channelContext) {
 		this.channelContext = channelContext;
@@ -261,17 +257,15 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			}
 
 			readByteBuffer.flip();
-			if (channelContext.getSslFacadeContext() == null) {
-				// 情况 1：非 SSL（可能配了 Proxy / 没配），走原有 decode runnable 路径
-				feedToDecodeRunnable(readByteBuffer);
-			} else if (preSslProxyBuffer != null || isServerProxyProtocolEnabled()) {
-				// 情况 2：SSL + ProxyProtocol。代理头是明文，必须在 SSL 握手前解析。
-				// 第一次进来时 preSslProxyBuffer 为 null，从累积开始；
-				// 之后若数据未完整则一直累积，解析完成后切换到正常 SSL 路径。
-				handlePreSslProxy(readByteBuffer);
-			} else {
-				// 情况 3：纯 SSL，无 Proxy。触发握手后走 SSL 解密。
+			if (preParser != null || isServerProxyProtocolEnabled()) {
+				// 情况 1：ProxyProtocol 待解析（SSL / 非 SSL 都先走这一条）。
+				handlePreProxy(readByteBuffer);
+			} else if (channelContext.getSslFacadeContext() != null) {
+				// 情况 2：纯 SSL，无 Proxy。触发握手后走 SSL 解密。
 				handleSsl(readByteBuffer);
+			} else {
+				// 情况 3：非 SSL，无 Proxy。直接喂 decode runnable。
+				feedToDecodeRunnable(readByteBuffer);
 			}
 
 			if (TioUtils.checkBeforeIO(channelContext)) {
@@ -307,7 +301,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 	}
 
 	/**
-	 * 喂给 decode runnable（非 SSL 路径）。
+	 * 喂给 decode runnable（非 SSL 路径，或 SSL+Proxy 解析完代理头后）。
 	 */
 	private void feedToDecodeRunnable(ByteBuffer buf) {
 		TioConfig tioConfig = channelContext.tioConfig;
@@ -325,7 +319,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 	 */
 	private void handleSsl(ByteBuffer buf) {
 		try {
-			((TcpChannelContext) channelContext).beginSslHandshakeIfNeeded();
+			channelContext.beginSslHandshakeIfNeeded();
 		} catch (Exception e) {
 			log.error("{}, SSL 握手启动失败:{}", channelContext, e.getMessage(), e);
 			Tio.close(channelContext, e, e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
@@ -346,128 +340,66 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 	}
 
 	/**
-	 * SSL + ProxyProtocol 路径：累积首批数据 → 解析代理头 → 触发 SSL 握手 → 把剩余数据喂 SSL。
+	 * ProxyProtocol 路径（统一处理 SSL 和非 SSL）。
+	 * <p>
+	 * 累积/解析等代理头相关逻辑已封装到 {@link ProxyProtocolPreParser }，
+	 * 本方法只负责按解析结果路由数据到 SSL 或 decode runnable。
+	 * </p>
 	 */
-	private void handlePreSslProxy(ByteBuffer buf) {
-		// 1) 累积到 preSslProxyBuffer
-		if (preSslProxyBuffer == null) {
-			preSslProxyBuffer = ByteBuffer.allocate(PRE_SSL_PROXY_BUFFER_SIZE);
+	private void handlePreProxy(ByteBuffer buf) {
+		if (preParser == null) {
+			preParser = new ProxyProtocolPreParser(channelContext);
 		}
-		int toCopy = Math.min(buf.remaining(), preSslProxyBuffer.remaining());
-		if (toCopy < buf.remaining()) {
-			// 缓冲区装不下当前数据
-			int needed = preSslProxyBuffer.position() + buf.remaining();
-			if (needed > MAX_PRE_SSL_PROXY_BUFFER_SIZE) {
-				// 累积超过最大尺寸（64KB）仍未识别为 PROXY 头，回退到 SSL（合并所有数据）
-				log.warn("{}, PROXY 头累积超过 {} 字节仍无法解析，回退到 SSL", channelContext, MAX_PRE_SSL_PROXY_BUFFER_SIZE);
-				fallbackToSsl(buf);
+		ProxyProtocolPreParser.Result result = preParser.feed(buf);
+		boolean sslEnabled = channelContext.getSslFacadeContext() != null;
+		// 按状态处理
+		switch (result.state) {
+			case NEED_MORE:
+				// 半包，preParser 继续累积，等下一批数据
 				return;
-			}
-			// 扩大缓冲区到能装下当前数据
-			int newCapacity = Math.min(Math.max(preSslProxyBuffer.capacity() * 2, needed),
-				MAX_PRE_SSL_PROXY_BUFFER_SIZE);
-			ByteBuffer newBuf = ByteBuffer.allocate(newCapacity);
-			preSslProxyBuffer.flip();
-			newBuf.put(preSslProxyBuffer);
-			preSslProxyBuffer = newBuf;
-			toCopy = Math.min(buf.remaining(), preSslProxyBuffer.remaining());
-		}
-		if (toCopy > 0) {
-			int oldLimit = buf.limit();
-			buf.limit(buf.position() + toCopy);
-			preSslProxyBuffer.put(buf);
-			buf.limit(oldLimit);
-		}
-
-		// 2) 准备解析
-		preSslProxyBuffer.flip();
-		int readableLength = preSslProxyBuffer.remaining();
-
-		// 至少需要 V1_MIN_HEAD_LENGTH(6) 字节才能判定
-		if (readableLength < 6) {
-			preSslProxyBuffer.position(preSslProxyBuffer.limit());
-			preSslProxyBuffer.limit(preSslProxyBuffer.capacity());
-			return;
-		}
-
-		// 3) 复制一份用于解析（不破坏 preSslProxyBuffer 的回退可能）
-		ByteBuffer proxyBuf = ByteBuffer.allocate(readableLength);
-		proxyBuf.put(preSslProxyBuffer);
-		proxyBuf.flip();
-		int startPos = proxyBuf.position();
-
-		try {
-			// 用 no-op next，解析成功时不会触发后续业务解码；剩余数据由我们自己处理
-			ProxyProtocolDecoder.decode(channelContext, proxyBuf, readableLength,
-				(context, buffer, len) -> IgnorePacket.INSTANCE);
-		} catch (Exception e) {
-			// 解析异常（V1/V2 头格式错误等），回退到 SSL
-			log.warn("{}, PROXY 头解析异常，回退到 SSL: {}", channelContext, e.getMessage());
-			fallbackToSsl(buf);
-			return;
-		}
-
-		// 4) 检查解析结果
-		boolean isProxyStillEnabled = ProxyProtocolDecoder.isProxyProtocolEnabled(channelContext);
-		int consumed = proxyBuf.position() - startPos;
-
-		if (isProxyStillEnabled) {
-			// 半包（< 6 字节已在前面 return；这里是 V1 \r\n 未到达等半包情况）
-			preSslProxyBuffer.position(preSslProxyBuffer.limit());
-			preSslProxyBuffer.limit(preSslProxyBuffer.capacity());
-			return;
-		}
-
-		// 5) 代理头处理完成
-		preSslProxyBuffer = null;
-
-		if (consumed == 0) {
-			// 不是 PROXY 头（decode 读到非 "PROXY " 前缀后会 remove key + reset buffer）
-			// 用全部累积数据回退到 SSL
-			proxyBuf.position(0);
-			proxyBuf.limit(readableLength);
-			handleSsl(proxyBuf);
-		} else {
-			// PROXY 头解析成功，剩余数据（ClientHello）作为 SSL 引擎的初始输入
-			if (proxyBuf.hasRemaining()) {
-				ByteBuffer remaining = ByteBuffer.allocate(proxyBuf.remaining());
-				remaining.put(proxyBuf);
-				remaining.flip();
-				handleSsl(remaining);
-			} else {
-				// 极端情况：首批数据刚好是完整代理头，无剩余
-				// 也需要触发握手，等待后续 ClientHello
-				try {
-					((TcpChannelContext) channelContext).beginSslHandshakeIfNeeded();
-				} catch (Exception e) {
-					log.error("{}, SSL 握手启动失败:{}", channelContext, e.getMessage(), e);
-					Tio.close(channelContext, e, e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
+			case PARSED:
+				// 代理头解析成功
+				preParser = null;
+				if (result.data.hasRemaining()) {
+					dispatchBySsl(result.data, sslEnabled);
+				} else if (sslEnabled) {
+					// 首批数据刚好是完整代理头，无剩余 → 触发握手
+					try {
+						channelContext.beginSslHandshakeIfNeeded();
+					} catch (Exception e) {
+						log.error("{}, SSL 握手启动失败:{}", channelContext, e.getMessage(), e);
+						Tio.close(channelContext, e, e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
+					}
 				}
-			}
+				// 非 SSL + 无剩余：什么都不做，等下一批数据
+				return;
+			case NOT_PROXY:
+				// 不是代理头，全部数据回退到 SSL 或 decode runnable
+				log.warn("{}, PROXY 头累积超过 {} 字节仍无法解析，回退",
+					channelContext, ProxyProtocolPreParser.DEFAULT_MAX_SIZE);
+				preParser = null;
+				dispatchBySsl(result.data, sslEnabled);
+				return;
+			case ERROR:
+				// 解析异常，回退
+				log.warn("{}, PROXY 头解析异常，回退: {}", channelContext, result.error.getMessage());
+				preParser = null;
+				dispatchBySsl(result.data, sslEnabled);
+				return;
+			default:
+				throw new IllegalStateException("未知的 state: " + result.state);
 		}
 	}
 
 	/**
-	 * 把累积的全部数据 + 当前 buf 剩余数据回退到 SSL 路径。
-	 *
-	 * @param pendingBuf 当前 readByteBuffer 中尚未消费的数据（可能为 null 或已空）
+	 * 按 SSL 状态把数据路由到对应处理路径。
 	 */
-	private void fallbackToSsl(ByteBuffer pendingBuf) {
-		preSslProxyBuffer.flip();
-		int accumulatedLength = preSslProxyBuffer.remaining();
-		int pendingLength = pendingBuf == null ? 0 : pendingBuf.remaining();
-		int totalLength = accumulatedLength + pendingLength;
-
-		ByteBuffer fallback = ByteBuffer.allocate(totalLength);
-		fallback.put(preSslProxyBuffer);
-		if (pendingLength > 0) {
-			fallback.put(pendingBuf);
+	private void dispatchBySsl(ByteBuffer buf, boolean sslEnabled) {
+		if (sslEnabled) {
+			handleSsl(buf);
+		} else {
+			feedToDecodeRunnable(buf);
 		}
-		fallback.flip();
-		preSslProxyBuffer = null;
-		// 清除 proxy 标记，避免后续再次进入预解析路径
-		ProxyProtocolDecoder.removeProxyProtocol(channelContext);
-		handleSsl(fallback);
 	}
 
 	private void read() {
