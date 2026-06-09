@@ -200,8 +200,6 @@ import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.TioListener;
 import net.dreamlu.mica.net.core.ssl.facade.IHandshakeCompletedListener;
 import net.dreamlu.mica.net.core.task.AbstractSendRunnable;
-import net.dreamlu.mica.net.server.TioServerConfig;
-import net.dreamlu.mica.net.server.proxy.ProxyProtocolDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -226,12 +224,12 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 		log.info("{}, 完成SSL握手", channelContext);
 		channelContext.getSslFacadeContext().setHandshakeCompleted(true);
 
+		// 注意：ProxyProtocol 标志已经在 AcceptCompletionHandler.completed() 中预先开启，
+		// 并由 ReadCompletionHandler 在首批数据到达时按需解析（SSL 握手前），
+		// 此处无需再调用 ProxyProtocolDecoder.enableProxyProtocol(...)
+
 		// 获取配置
 		TioConfig tioConfig = channelContext.tioConfig;
-		// 判断是否开启代理协议
-		if (tioConfig.isServer() && ((TioServerConfig) tioConfig).isProxyProtocolEnabled()) {
-			ProxyProtocolDecoder.enableProxyProtocol(channelContext);
-		}
 		// 监听器
 		TioListener tioListener = tioConfig.getTioListener();
 		if (tioListener != null) {

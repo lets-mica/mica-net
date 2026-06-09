@@ -235,13 +235,15 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			channelContext.setServerNode(tioServer.getServerNode());
 			boolean isConnected = true;
 			boolean isReconnect = false;
+			// 统一开启代理协议（不论是否 SSL）。
+			// 对于 SSL 场景，代理头是明文，必须在 SSL 握手前由 ReadCompletionHandler 解析；
+			// 此处先打上标记，由读回调触发实际的解析与握手。
+			if (tioServerConfig.isProxyProtocolEnabled()) {
+				ProxyProtocolDecoder.enableProxyProtocol(channelContext);
+			}
 			// 如果非 ssl
 			if (!SslUtils.isSsl(channelContext.tioConfig)) {
-				// 判断是否开启代理协议
-				if (tioServerConfig.isProxyProtocolEnabled()) {
-					ProxyProtocolDecoder.enableProxyProtocol(channelContext);
-				}
-				// 监听器
+				// 监听器（非 SSL 场景下直接触发，SSL 场景下由 SslHandshakeCompletedListener 触发）
 				TioServerListener serverListener = tioServerConfig.getTioServerListener();
 				if (serverListener != null) {
 					try {

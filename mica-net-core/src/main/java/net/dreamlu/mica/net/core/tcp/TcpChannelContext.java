@@ -41,6 +41,12 @@ public abstract class TcpChannelContext extends ChannelContext {
 	private HandlerRunnable handlerRunnable;
 	private TcpSendRunnable sendRunnable;
 	private SslFacadeContext sslFacadeContext;
+	/**
+	 * 服务端 SSL 握手是否已触发。
+	 * 仅对服务端有意义：setUpSSL() 阶段不再立即 beginHandshake，
+	 * 留给 ReadCompletionHandler 在第一批数据到来时按需触发（兼容 ProxyProtocol 场景）。
+	 */
+	private boolean sslHandshakeStarted;
 
 	public TcpChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
 		super(tioConfig);
@@ -69,21 +75,48 @@ public abstract class TcpChannelContext extends ChannelContext {
 	}
 
 	/**
-	 * 设置 SSL/TLS（仅 TCP 支持）
+	 * 设置 SSL/TLS（仅 TCP 支持）。
+	 * <p>
+	 * 服务端不再立即 beginHandshake，而是等到 ReadCompletionHandler 第一次收到数据时
+	 * 再触发握手，以兼容 SSL + ProxyProtocol 场景：ProxyProtocol 头是明文，必须先解析再走 SSL。
+	 * 纯 SSL 场景下，ReadCompletionHandler 会在首次读取时调用 {@link #beginSslHandshakeIfNeeded()}，
+	 * 行为与原先立即 beginHandshake 等价。
+	 * </p>
 	 */
 	@Override
 	public void setUpSSL() {
-		if (tioConfig.sslConfig != null) {
+		if (tioConfig.sslConfig != null && sslFacadeContext == null) {
 			try {
 				this.sslFacadeContext = new SslFacadeContext(this);
-				if (tioConfig.isServer()) {
-					this.sslFacadeContext.beginHandshake();
-				}
+				// 服务端延迟握手，触发点交由 ReadCompletionHandler
 			} catch (Exception e) {
-				log.error("在开始SSL握手时发生了异常", e);
-				Tio.close(this, "在开始SSL握手时发生了异常" + e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
+				log.error("在初始化SSL时发生了异常", e);
+				Tio.close(this, "在初始化SSL时发生了异常" + e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
 			}
 		}
+	}
+
+	/**
+	 * 触发服务端 SSL 握手（幂等）。
+	 * <p>
+	 * 由 ReadCompletionHandler 在确认首批数据是 SSL ClientHello 时调用；
+	 * 在 SSL + ProxyProtocol 场景下，需要先解析完代理头再调用本方法。
+	 * </p>
+	 *
+	 * @throws Exception 握手启动异常
+	 */
+	public void beginSslHandshakeIfNeeded() throws Exception {
+		if (sslFacadeContext != null && !sslHandshakeStarted && tioConfig.isServer()) {
+			sslFacadeContext.beginHandshake();
+			sslHandshakeStarted = true;
+		}
+	}
+
+	/**
+	 * 重置 SSL 握手标记（用于断线重连后重新触发握手）。
+	 */
+	public void resetSslHandshake() {
+		this.sslHandshakeStarted = false;
 	}
 
 	/**
