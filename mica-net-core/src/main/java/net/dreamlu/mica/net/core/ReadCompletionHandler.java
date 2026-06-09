@@ -199,7 +199,6 @@ import net.dreamlu.mica.net.core.tcp.TcpChannelContext;
 import net.dreamlu.mica.net.core.utils.TioUtils;
 import net.dreamlu.mica.net.server.TioServerConfig;
 import net.dreamlu.mica.net.server.proxy.ProxyProtocolDecoder;
-import net.dreamlu.mica.net.server.proxy.ProxyProtocolPreParser;
 import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -223,10 +222,10 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 	 * 解析成功后置空，下一次数据按 SSL 是否启用分别路由到 SSL 或 decode runnable。
 	 * </p>
 	 * <p>
-	 * 累积/解析/状态管理已封装到 {@link ProxyProtocolPreParser}，本类只负责按结果路由。
+	 * 累积/解析/状态管理已封装到 {@link ProxyProtocolDecoder.PreParser}，本类只负责按结果路由。
 	 * </p>
 	 */
-	private ProxyProtocolPreParser preParser;
+	private ProxyProtocolDecoder.PreParser preParser;
 
 	public ReadCompletionHandler(TcpChannelContext channelContext) {
 		this.channelContext = channelContext;
@@ -342,15 +341,15 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 	/**
 	 * ProxyProtocol 路径（统一处理 SSL 和非 SSL）。
 	 * <p>
-	 * 累积/解析等代理头相关逻辑已封装到 {@link ProxyProtocolPreParser }，
+	 * 累积/解析等代理头相关逻辑已封装到 {@link ProxyProtocolDecoder.PreParser}，
 	 * 本方法只负责按解析结果路由数据到 SSL 或 decode runnable。
 	 * </p>
 	 */
 	private void handlePreProxy(ByteBuffer buf) {
 		if (preParser == null) {
-			preParser = new ProxyProtocolPreParser(channelContext);
+			preParser = new ProxyProtocolDecoder.PreParser(channelContext);
 		}
-		ProxyProtocolPreParser.Result result = preParser.feed(buf);
+		ProxyProtocolDecoder.PreParser.Result result = preParser.feed(buf);
 		boolean sslEnabled = channelContext.getSslFacadeContext() != null;
 		// 按状态处理
 		switch (result.state) {
@@ -376,7 +375,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			case NOT_PROXY:
 				// 不是代理头，全部数据回退到 SSL 或 decode runnable
 				log.warn("{}, PROXY 头累积超过 {} 字节仍无法解析，回退",
-					channelContext, ProxyProtocolPreParser.DEFAULT_MAX_SIZE);
+					channelContext, ProxyProtocolDecoder.DEFAULT_MAX_SIZE);
 				preParser = null;
 				dispatchBySsl(result.data, sslEnabled);
 				return;
