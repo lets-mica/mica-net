@@ -236,8 +236,9 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 				if (isReconnect) {
 					// 设置异步连接处理器
 					channelContext.setAsynchronousSocketChannel(asynchronousSocketChannel);
-					// ssl 如果是服务端重启，需要重新生成 SSLContext 对象
-					channelContext.setUpSSL();
+					// 服务端重启后必须重建 SSLEngine / 清空 Proxy 半包缓冲，否则 SSL 握手会卡死
+					channelContext.resetForReconnect();
+					channelContext.getDecodeRunnable().setCanceled(false);
 					channelContext.getHandlerRunnable().setCanceled(false);
 					channelContext.getSendRunnable().setCanceled(false);
 					tioClientConfig.closeds.remove(channelContext);

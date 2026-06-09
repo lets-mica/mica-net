@@ -233,6 +233,13 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 		this.readByteBuffer.order(channelContext.tioConfig.getByteOrder());
 	}
 
+	/**
+	 * 重置 ProxyProtocol 预解析状态（断线重连或连接关闭后调用）。
+	 */
+	public void resetProxyProtocolState() {
+		this.preParser = null;
+	}
+
 	@Override
 	public void completed(Integer result, ByteBuffer byteBuffer) {
 		if (result > 0) {

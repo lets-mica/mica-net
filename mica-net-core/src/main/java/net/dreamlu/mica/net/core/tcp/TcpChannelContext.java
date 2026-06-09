@@ -120,6 +120,20 @@ public abstract class TcpChannelContext extends ChannelContext {
 	}
 
 	/**
+	 * 断线重连前重置 I/O 层状态（SSL 引擎、Proxy 预解析缓冲等）。
+	 * <p>
+	 * 服务端新连接由 {@link net.dreamlu.mica.net.server.AcceptCompletionHandler} 创建全新
+	 * ChannelContext，无需调用；客户端重连必须调用，否则旧 SSLEngine 会导致握手失败。
+	 * </p>
+	 */
+	public void resetForReconnect() {
+		this.sslFacadeContext = null;
+		this.sslHandshakeStarted = false;
+		this.readCompletionHandler.resetProxyProtocolState();
+		setUpSSL();
+	}
+
+	/**
 	 * Initialize client node from AsynchronousSocketChannel
 	 * This method unifies the duplicate logic from constructor and setter
 	 */

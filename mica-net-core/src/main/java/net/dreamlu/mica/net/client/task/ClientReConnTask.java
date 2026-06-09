@@ -48,6 +48,8 @@ public class ClientReConnTask extends TimerTask {
 		if (sslFacadeContext != null) {
 			sslFacadeContext.setHandshakeCompleted(false);
 		}
+		// 重置 SSL 握手标记，重连成功后 resetForReconnect 会重建 SSLEngine
+		channelContext.resetSslHandshake();
 		// 已经删除的和已经连上的，不需要重新再连
 		if (channelContext.isRemoved() || !channelContext.isClosed()) {
 			return;
