@@ -182,8 +182,13 @@ public final class ProxyProtocolDecoder {
 			return ParseResult.needMore();
 		}
 		int startPos = buffer.position();
-		// 优先检测 V2 签名（12 字节固定头）
-		if (readableLength >= V2_MIN_HEAD_LENGTH && isV2Signature(buffer)) {
+		// V2：完整签名或半包前缀均走 V2 路径。
+		// HAProxy 默认 send-proxy-v2，TCP 拆包时可能先到达不足 16 字节的 v2 头；
+		// 若误判为 NOT_PROXY 会把 v2 二进制头喂给 SSL，握手永久失败。
+		if (looksLikeV2(buffer, readableLength)) {
+			if (readableLength < V2_HEADER_LENGTH) {
+				return ParseResult.needMore();
+			}
 			return parseV2InPlace(context, buffer, readableLength, startPos);
 		}
 		// V1: PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
@@ -459,6 +464,20 @@ public final class ProxyProtocolDecoder {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * 判断是否像 V2 代理头（含 TCP 半包：可读字节为 v2 签名的前缀也算）。
+	 */
+	private static boolean looksLikeV2(ByteBuffer buffer, int readableLength) {
+		int pos = buffer.position();
+		int checkLen = Math.min(readableLength, V2_SIGNATURE.length);
+		for (int i = 0; i < checkLen; i++) {
+			if (buffer.get(pos + i) != V2_SIGNATURE[i]) {
+				return false;
+			}
+		}
+		return checkLen > 0;
 	}
 
 	/**

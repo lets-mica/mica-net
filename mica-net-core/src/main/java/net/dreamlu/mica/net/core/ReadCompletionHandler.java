@@ -368,21 +368,12 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 				preParser = null;
 				if (result.data.hasRemaining()) {
 					dispatchBySsl(result.data, sslEnabled);
-				} else if (sslEnabled) {
-					// 首批数据刚好是完整代理头，无剩余 → 触发握手
-					try {
-						channelContext.beginSslHandshakeIfNeeded();
-					} catch (Exception e) {
-						log.error("{}, SSL 握手启动失败:{}", channelContext, e.getMessage(), e);
-						Tio.close(channelContext, e, e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
-					}
 				}
-				// 非 SSL + 无剩余：什么都不做，等下一批数据
+				// 无剩余数据：等下一批读事件，由 handleSsl 统一触发握手+解密（与直连 NOT_PROXY 路径一致）
 				return;
 			case NOT_PROXY:
-				// 不是代理头，全部数据回退到 SSL 或 decode runnable
-				log.warn("{}, PROXY 头累积超过 {} 字节仍无法解析，回退",
-					channelContext, ProxyProtocolDecoder.DEFAULT_MAX_SIZE);
+				// 确认不是代理头（如直连 SSL ClientHello），全部数据回退到 SSL 或 decode runnable
+				log.warn("{}, 不是 PROXY 协议头，回退到 SSL/业务解码", channelContext);
 				preParser = null;
 				dispatchBySsl(result.data, sslEnabled);
 				return;
