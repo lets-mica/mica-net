@@ -139,6 +139,7 @@ public final class ProxyProtocolDecoder {
 	 * @throws TioDecodeException TioDecodeException
 	 */
 	public static ProxyProtocolMessage decodeForTest(ByteBuffer buffer, int readableLength) throws TioDecodeException {
+		// PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
 		String proxyPrefix = ByteBufferUtil.readString(buffer, V1_MIN_HEAD_LENGTH, StandardCharsets.US_ASCII);
 		if (!"PROXY ".equals(proxyPrefix)) {
 			throw new TioDecodeException("unknown identifier: " + proxyPrefix);
@@ -158,6 +159,7 @@ public final class ProxyProtocolDecoder {
 		if (readableLength < V2_HEADER_LENGTH) {
 			throw new TioDecodeException("insufficient data for v2 header, need at least " + V2_HEADER_LENGTH + " bytes");
 		}
+		// 检测签名
 		byte[] sig = ByteBufferUtil.readBytes(buffer, 12);
 		if (!Arrays.equals(sig, V2_SIGNATURE)) {
 			throw new TioDecodeException("invalid v2 signature");
@@ -169,58 +171,79 @@ public final class ProxyProtocolDecoder {
 
 	/**
 	 * 在 buffer 上原地解析代理头；成功时推进 position 并写入 context。
+	 *
+	 * @param context        连接上下文
+	 * @param buffer         待解析数据（position 指向起始位置）
+	 * @param readableLength 可读字节数
 	 */
-	private static HeaderParse parseInPlace(ChannelContext context, ByteBuffer buffer, int readableLength) throws TioDecodeException {
+	private static ParseResult parseInPlace(ChannelContext context, ByteBuffer buffer, int readableLength) throws TioDecodeException {
+		// 至少需要 6 字节才能判定 V1 前缀
 		if (readableLength < V1_MIN_HEAD_LENGTH) {
-			return HeaderParse.needMore();
+			return ParseResult.needMore();
 		}
 		int startPos = buffer.position();
+		// 优先检测 V2 签名（12 字节固定头）
 		if (readableLength >= V2_MIN_HEAD_LENGTH && isV2Signature(buffer)) {
 			return parseV2InPlace(context, buffer, readableLength, startPos);
 		}
+		// V1: PROXY TCP4 192.168.0.1 192.168.0.11 56324 443\r\n
 		buffer.mark();
 		String proxyPrefix = ByteBufferUtil.readString(buffer, V1_MIN_HEAD_LENGTH, StandardCharsets.US_ASCII);
 		if (!"PROXY ".equals(proxyPrefix)) {
+			// 非 PROXY 协议，清除 key 并回退
 			buffer.reset();
 			removeProxyProtocol(context);
-			return HeaderParse.notProxy();
+			return ParseResult.notProxy();
 		}
 		ProxyProtocolMessage message = parseV1Message(buffer, readableLength);
 		if (message == null) {
+			// 半包（如 \r\n 未到达），恢复 position 等待更多数据
 			buffer.reset();
-			return HeaderParse.needMore();
+			return ParseResult.needMore();
 		}
 		removeProxyProtocol(context);
 		applyMessage(context, message);
-		return HeaderParse.parsed(buffer.position() - startPos);
+		return ParseResult.parsed(buffer.position() - startPos);
 	}
 
-	private static HeaderParse parseV2InPlace(ChannelContext context, ByteBuffer buffer, int readableLength, int startPos) throws TioDecodeException {
+	/**
+	 * 原地解析 V2 代理头。
+	 */
+	private static ParseResult parseV2InPlace(ChannelContext context, ByteBuffer buffer, int readableLength, int startPos) throws TioDecodeException {
 		if (readableLength < V2_HEADER_LENGTH) {
-			return HeaderParse.needMore();
+			return ParseResult.needMore();
 		}
 		buffer.mark();
+		// 跳过 12 字节签名
 		ByteBufferUtil.skipBytes(buffer, 12);
+		// 读取版本和命令
 		byte verCmd = buffer.get();
 		byte version = (byte) ((verCmd & 0xF0) >> 4);
 		byte cmd = (byte) (verCmd & 0x0F);
 		if (version != 2) {
 			throw new TioDecodeException("invalid v2 proxy protocol version: " + version);
 		}
+		// 读取地址族和协议
 		byte fam = buffer.get();
+		// 读取地址长度（网络字节序 = 大端）
 		short addrLen = ByteBufferUtil.readShortBE(buffer);
+		// 检查数据完整性: 16(header) + addrLen
 		int totalLength = V2_HEADER_LENGTH + (addrLen & 0xFFFF);
 		if (readableLength < totalLength) {
 			buffer.reset();
-			return HeaderParse.needMore();
+			// 包长度不够，等待更多数据
+			return ParseResult.needMore();
 		}
 		ProxyProtocolMessage message;
 		if (cmd == V2_CMD_LOCAL) {
+			// LOCAL: 跳过地址信息，不设置节点
 			message = new ProxyProtocolMessage("LOCAL", null, null, 0, 0);
 			ByteBufferUtil.skipBytes(buffer, addrLen & 0xFFFF);
 		} else if (cmd == V2_CMD_PROXY) {
+			// PROXY: 解析地址
 			int addrStart = buffer.position();
 			message = parseV2AddressMessage(buffer, fam, addrLen & 0xFFFF);
+			// addrLen 可能大于实际地址块，跳过剩余填充字节
 			int addrRemaining = (addrLen & 0xFFFF) - (buffer.position() - addrStart);
 			if (addrRemaining > 0) {
 				ByteBufferUtil.skipBytes(buffer, addrRemaining);
@@ -228,6 +251,7 @@ public final class ProxyProtocolDecoder {
 		} else {
 			throw new TioDecodeException("invalid v2 proxy protocol command: " + cmd);
 		}
+		// 跳过 TLV 扩展（如果有）
 		int tlvsLength = readableLength - totalLength;
 		if (tlvsLength > 0) {
 			ByteBufferUtil.skipBytes(buffer, tlvsLength);
@@ -236,18 +260,21 @@ public final class ProxyProtocolDecoder {
 		if (cmd == V2_CMD_PROXY) {
 			applyMessage(context, message);
 		}
-		return HeaderParse.parsed(buffer.position() - startPos);
+		return ParseResult.parsed(buffer.position() - startPos);
 	}
 
 	/**
-	 * 解析 V2 地址块（buffer 当前位置在 fam/addrLen 之后）。
+	 * 解析 V2 地址块（buffer 当前位置在 verCmd 之后，或 fam/addrLen 之后）。
 	 *
-	 * @param fam 地址族字节；为 null 时从 buffer 读取（测试路径已在签名后消费 fam/addrLen）
+	 * @param buffer     数据缓冲区
+	 * @param bodyLength 签名之后的剩余可读长度（生产路径已由 parseV2InPlace 消费 fam/addrLen）
+	 * @param fam        地址族字节；为 null 时从 buffer 读取（测试路径签名后尚未读 fam/addrLen）
 	 */
 	private static ProxyProtocolMessage parseV2Body(ByteBuffer buffer, int bodyLength, Byte fam) throws TioDecodeException {
 		byte famByte;
 		int addrLen;
 		if (fam == null) {
+			// 测试路径：decodeV2ForTest 已消费签名，此处继续读头部
 			byte verCmd = buffer.get();
 			byte version = (byte) ((verCmd & 0xF0) >> 4);
 			byte cmd = (byte) (verCmd & 0x0F);
@@ -269,15 +296,24 @@ public final class ProxyProtocolDecoder {
 		return parseV2AddressMessage(buffer, famByte, addrLen);
 	}
 
+	/**
+	 * 解析 V1 消息体（调用前 buffer 已消费 "PROXY " 前缀）。
+	 *
+	 * @return 完整消息；半包时返回 null
+	 */
 	private static ProxyProtocolMessage parseV1Message(ByteBuffer buffer, int readableLength) throws TioDecodeException {
 		int endOfLine = findEndOfLine(buffer);
+		// 超长可能是半包多次进入，也可能是恶意数据
 		if (endOfLine > V1_MAX_LENGTH || (readableLength > V1_MAX_LENGTH && endOfLine == -1)) {
 			throw new TioDecodeException("Error v1 proxy protocol, readableLength: " + readableLength);
 		}
 		if (endOfLine == -1) {
+			// 半包，\r\n 未到达
 			return null;
 		}
+		// PROXY TCP4 ... \r\n → 去除前缀后: TCP4 192.168.0.1 192.168.0.11 56324 443
 		String header = ByteBufferUtil.readString(buffer, endOfLine - buffer.position(), StandardCharsets.US_ASCII);
+		// 跳过 \r\n
 		ByteBufferUtil.skipBytes(buffer, 2);
 		String[] parts = header.split(" ");
 		int numParts = parts.length;
@@ -297,9 +333,12 @@ public final class ProxyProtocolDecoder {
 		return new ProxyProtocolMessage(proxyProtocol, parts[1], parts[2], parts[3], parts[4]);
 	}
 
+	/**
+	 * 解析 V2 地址块并构造消息（生产/测试共用）。
+	 */
 	private static ProxyProtocolMessage parseV2AddressMessage(ByteBuffer buffer, byte fam, int addrLen) throws TioDecodeException {
-		int addrFamily = fam & 0xFF & 0xF0;
-		int proto = fam & 0x0F;
+		int addrFamily = fam & 0xFF & 0xF0; // 高 4 位：地址族
+		int proto = fam & 0x0F;             // 低 4 位：传输协议
 
 		if (addrFamily == V2_AF_INET) {
 			if (proto != V2_PROTO_STREAM && proto != V2_PROTO_DGRAM) {
@@ -308,6 +347,7 @@ public final class ProxyProtocolDecoder {
 			if (addrLen < V2_ADDR_LEN_IPV4 || buffer.remaining() < addrLen) {
 				throw new TioDecodeException("invalid v2 ipv4 address length: " + addrLen);
 			}
+			// IPv4: 4+4+2+2 = 12 bytes
 			byte[] srcAddr = new byte[4];
 			byte[] dstAddr = new byte[4];
 			buffer.get(srcAddr);
@@ -324,6 +364,7 @@ public final class ProxyProtocolDecoder {
 			if (addrLen < V2_ADDR_LEN_IPV6 || buffer.remaining() < addrLen) {
 				throw new TioDecodeException("invalid v2 ipv6 address length: " + addrLen);
 			}
+			// IPv6: 16+16+2+2 = 36 bytes
 			byte[] srcAddr = new byte[16];
 			byte[] dstAddr = new byte[16];
 			buffer.get(srcAddr);
@@ -340,6 +381,7 @@ public final class ProxyProtocolDecoder {
 			if (addrLen < V2_ADDR_LEN_UNIX || buffer.remaining() < addrLen) {
 				throw new TioDecodeException("invalid v2 unix address length: " + addrLen);
 			}
+			// UNIX: 108+108 = 216 bytes
 			byte[] srcAddr = new byte[108];
 			byte[] dstAddr = new byte[108];
 			buffer.get(srcAddr);
@@ -349,6 +391,7 @@ public final class ProxyProtocolDecoder {
 			return new ProxyProtocolMessage("UNIX", srcPath, dstPath, 0, 0);
 		}
 		if (addrFamily == V2_AF_UNSPEC) {
+			// UNSPEC: 跳过地址信息，不设置节点
 			if (addrLen > 0 && buffer.remaining() < addrLen) {
 				throw new TioDecodeException("invalid v2 unspec address length: " + addrLen);
 			}
@@ -360,34 +403,51 @@ public final class ProxyProtocolDecoder {
 		throw new TioDecodeException("unsupported v2 address family: " + addrFamily);
 	}
 
+	/**
+	 * 将解析结果写入 ChannelContext（设置真实客户端地址）。
+	 */
 	private static void applyMessage(ChannelContext context, ProxyProtocolMessage message) {
 		String protocol = message.getProtocol();
 		if (UNKNOWN.equals(protocol)) {
+			// UNKNOWN 协议按规范丢弃其他头字段，仅标记代理节点
 			context.setProxyClientNode(new Node(UNKNOWN, message.getDestinationPort()));
 			return;
 		}
 		if ("LOCAL".equals(protocol) || "UNSPEC".equals(protocol)) {
+			// LOCAL/UNSPEC 不携带地址信息
 			return;
 		}
 		context.setClientNode(new Node(message.getSourceAddress(), message.getSourcePort()));
 		context.setProxyClientNode(new Node(message.getDestinationAddress(), message.getDestinationPort()));
 	}
 
+	/**
+	 * Proxy protocol message for 'UNKNOWN' proxied protocols. Per spec, when the proxied protocol is
+	 * 'UNKNOWN' we must discard all other header values.
+	 */
 	private static ProxyProtocolMessage unknownMsg() {
 		return new ProxyProtocolMessage(UNKNOWN, null, null, 0, 0);
 	}
 
+	/**
+	 * 查找 \r\n 结束位置。
+	 *
+	 * @return \r 的字节索引；未找到返回 -1
+	 */
 	private static int findEndOfLine(final ByteBuffer buffer) {
 		final int n = buffer.limit();
 		for (int i = buffer.position(); i < n; i++) {
 			final byte b = buffer.get(i);
 			if (b == '\r' && i < n - 1 && buffer.get(i + 1) == '\n') {
-				return i;
+				return i;  // \r\n
 			}
 		}
-		return -1;
+		return -1;  // Not found.
 	}
 
+	/**
+	 * 检测 V2 签名（不推进 buffer position，避免 mark/reset 开销）。
+	 */
 	private static boolean isV2Signature(ByteBuffer buffer) {
 		if (buffer.remaining() < 12) {
 			return false;
@@ -401,13 +461,20 @@ public final class ProxyProtocolDecoder {
 		return true;
 	}
 
+	/**
+	 * 将字节数组转换为 IPv4 地址字符串。
+	 */
 	private static String bytesToIp(byte[] ip) {
+		// 最大长度 xxx.xxx.xxx.xxx
 		return String.valueOf(ip[0] & 0xFF) +
 			'.' + (ip[1] & 0xFF) +
 			'.' + (ip[2] & 0xFF) +
 			'.' + (ip[3] & 0xFF);
 	}
 
+	/**
+	 * 将字节数组转换为 IPv6 地址字符串（标准格式，小写）。
+	 */
 	private static String bytesToIpv6(byte[] ip) {
 		StringBuilder sb = new StringBuilder(39);
 		for (int i = 0; i < 8; i++) {
@@ -420,29 +487,56 @@ public final class ProxyProtocolDecoder {
 		return sb.toString();
 	}
 
-	private static final class HeaderParse {
-		enum Status {
-			NEED_MORE, NOT_PROXY, PARSED
+	/**
+	 * 代理协议解析状态与结果（{@link PreParser#feed} 与 {@link #parseInPlace} 共用）。
+	 */
+	public static final class ParseResult {
+		/**
+		 * 解析状态。
+		 */
+		public enum State {
+			/** 半包，需要更多数据 */
+			NEED_MORE,
+			/** 不是代理头，data 是全部数据 */
+			NOT_PROXY,
+			/** 代理头解析成功，data 是代理头之后的剩余数据（可能为空） */
+			PARSED,
+			/** 解析异常，data 是全部数据，error 是异常 */
+			ERROR
 		}
 
-		final Status status;
-		final int consumed;
+		/** 单例 NEED_MORE 结果，避免重复创建 */
+		private static final ParseResult NEED_MORE_INSTANCE = new ParseResult(State.NEED_MORE, null, 0, null);
 
-		private HeaderParse(Status status, int consumed) {
-			this.status = status;
+		public final State state;
+		/** 待路由的数据（NEED_MORE 时为 null） */
+		public final ByteBuffer data;
+		/** 已消费的字节数（parseInPlace 产出；仅 PARSED 时有意义） */
+		public final int consumed;
+		/** 异常（仅 ERROR 时有值） */
+		public final Throwable error;
+
+		private ParseResult(State state, ByteBuffer data, int consumed, Throwable error) {
+			this.state = state;
+			this.data = data;
 			this.consumed = consumed;
+			this.error = error;
 		}
 
-		static HeaderParse needMore() {
-			return new HeaderParse(Status.NEED_MORE, 0);
+		static ParseResult needMore() {
+			return NEED_MORE_INSTANCE;
 		}
 
-		static HeaderParse notProxy() {
-			return new HeaderParse(Status.NOT_PROXY, 0);
+		static ParseResult notProxy() {
+			return new ParseResult(State.NOT_PROXY, null, 0, null);
 		}
 
-		static HeaderParse parsed(int consumed) {
-			return new HeaderParse(Status.PARSED, consumed);
+		static ParseResult parsed(int consumed) {
+			return new ParseResult(State.PARSED, null, consumed, null);
+		}
+
+		static ParseResult of(State state, ByteBuffer data, Throwable error) {
+			return new ParseResult(state, data, 0, error);
 		}
 	}
 
@@ -461,6 +555,7 @@ public final class ProxyProtocolDecoder {
 		private final ChannelContext context;
 		private final int initialSize;
 		private final int maxSize;
+		/** 半包累积缓冲区；null 表示尚未开始累积或已解析完成 */
 		private ByteBuffer buffer;
 
 		public PreParser(ChannelContext context) {
@@ -473,23 +568,36 @@ public final class ProxyProtocolDecoder {
 			this.maxSize = maxSize;
 		}
 
+		/**
+		 * 判断是否仍在累积（半包等待中）。
+		 */
 		public boolean isActive() {
 			return buffer != null;
 		}
 
-		public Result feed(ByteBuffer newData) {
+		/**
+		 * 喂入新数据并尝试解析代理头。
+		 *
+		 * @param newData 新到的数据（方法会消费其中能装入累积缓冲区的部分）
+		 * @return 解析结果，调用方根据 {@link ParseResult#state} 决定路由
+		 */
+		public ParseResult feed(ByteBuffer newData) {
+			// 1) 累积
 			if (buffer == null) {
 				buffer = ByteBuffer.allocate(initialSize);
 			}
 			int toCopy = Math.min(newData.remaining(), buffer.remaining());
 			if (toCopy < newData.remaining()) {
+				// 缓冲区装不下当前数据
 				int needed = buffer.position() + newData.remaining();
 				if (needed > maxSize) {
+					// 累积超过最大尺寸仍无法识别为 PROXY 头，回退（合并所有数据）
 					ByteBuffer combined = combineBuffers(buffer, newData);
 					buffer = null;
 					removeProxyProtocol(context);
-					return new Result(State.NOT_PROXY, combined, null);
+					return ParseResult.of(ParseResult.State.NOT_PROXY, combined, null);
 				}
+				// 扩大缓冲区
 				int newCapacity = Math.min(Math.max(buffer.capacity() * 2, needed), maxSize);
 				ByteBuffer newBuf = ByteBuffer.allocate(newCapacity);
 				buffer.flip();
@@ -498,52 +606,65 @@ public final class ProxyProtocolDecoder {
 				toCopy = Math.min(newData.remaining(), buffer.remaining());
 			}
 			if (toCopy > 0) {
+				// 只拷贝能装入的部分，保留 newData 剩余供后续 combineBuffers 使用
 				int oldLimit = newData.limit();
 				newData.limit(newData.position() + toCopy);
 				buffer.put(newData);
 				newData.limit(oldLimit);
 			}
 
+			// 2) 准备解析
 			buffer.flip();
 			int readableLength = buffer.remaining();
 			if (readableLength < V1_MIN_HEAD_LENGTH) {
 				prepareForMore();
-				return Result.NEED_MORE_INSTANCE;
+				return ParseResult.needMore();
 			}
 
+			// 3) 原地解析（无拷贝、无 decode 回调链）
 			try {
-				HeaderParse parse = parseInPlace(context, buffer, readableLength);
-				switch (parse.status) {
+				ParseResult parse = parseInPlace(context, buffer, readableLength);
+				switch (parse.state) {
 					case NEED_MORE:
+						// 半包（V1 \r\n 未到达 / V2 长度不够等）
 						prepareForMore();
-						return Result.NEED_MORE_INSTANCE;
+						return ParseResult.needMore();
 					case NOT_PROXY:
+						// 不是 PROXY 头，全部数据回退
 						ByteBuffer allData = ByteBufferUtil.copy(buffer);
 						buffer = null;
-						return new Result(State.NOT_PROXY, allData, null);
+						return ParseResult.of(ParseResult.State.NOT_PROXY, allData, null);
 					case PARSED:
+						// 代理头解析成功，剩余数据交给调用方（需拷贝，readByteBuffer 会被复用）
 						ByteBuffer remaining = buffer.hasRemaining()
 							? ByteBufferUtil.copy(buffer)
 							: ByteBuffer.allocate(0);
 						buffer = null;
-						return new Result(State.PARSED, remaining, null);
+						return ParseResult.of(ParseResult.State.PARSED, remaining, null);
 					default:
-						throw new IllegalStateException("unknown parse status: " + parse.status);
+						throw new IllegalStateException("unknown parse state: " + parse.state);
 				}
 			} catch (TioDecodeException e) {
+				// 解析异常，合并所有数据并回退
 				prepareForMore();
 				ByteBuffer combined = combineBuffers(buffer, newData);
 				buffer = null;
 				removeProxyProtocol(context);
-				return new Result(State.ERROR, combined, e);
+				return ParseResult.of(ParseResult.State.ERROR, combined, e);
 			}
 		}
 
+		/**
+		 * 切换为写模式，继续累积下一批数据。
+		 */
 		private void prepareForMore() {
 			buffer.position(buffer.limit());
 			buffer.limit(buffer.capacity());
 		}
 
+		/**
+		 * 合并累积缓冲区和当前 newData 剩余数据。
+		 */
 		private static ByteBuffer combineBuffers(ByteBuffer accumulated, ByteBuffer newData) {
 			accumulated.flip();
 			int len1 = accumulated.remaining();
@@ -555,27 +676,6 @@ public final class ProxyProtocolDecoder {
 			}
 			combined.flip();
 			return combined;
-		}
-
-		public enum State {
-			NEED_MORE,
-			PARSED,
-			NOT_PROXY,
-			ERROR
-		}
-
-		public static final class Result {
-			private static final Result NEED_MORE_INSTANCE = new Result(State.NEED_MORE, null, null);
-
-			public final State state;
-			public final ByteBuffer data;
-			public final Throwable error;
-
-			private Result(State state, ByteBuffer data, Throwable error) {
-				this.state = state;
-				this.data = data;
-				this.error = error;
-			}
 		}
 	}
 

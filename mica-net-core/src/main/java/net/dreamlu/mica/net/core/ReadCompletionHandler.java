@@ -349,7 +349,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 		if (preParser == null) {
 			preParser = new ProxyProtocolDecoder.PreParser(channelContext);
 		}
-		ProxyProtocolDecoder.PreParser.Result result = preParser.feed(buf);
+		ProxyProtocolDecoder.ParseResult result = preParser.feed(buf);
 		boolean sslEnabled = channelContext.getSslFacadeContext() != null;
 		// 按状态处理
 		switch (result.state) {
