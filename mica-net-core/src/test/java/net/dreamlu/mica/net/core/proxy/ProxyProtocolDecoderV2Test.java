@@ -19,6 +19,11 @@ package net.dreamlu.mica.net.core.proxy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import net.dreamlu.mica.net.core.exception.TioDecodeException;
+import net.dreamlu.mica.net.core.tcp.TestTioServerHandler;
+import net.dreamlu.mica.net.core.tcp.FixedLengthCodec;
+import net.dreamlu.mica.net.server.DefaultTioServerListener;
+import net.dreamlu.mica.net.server.ServerChannelContext;
+import net.dreamlu.mica.net.server.TioServerConfig;
 import net.dreamlu.mica.net.server.proxy.ProxyProtocolDecoder;
 import net.dreamlu.mica.net.server.proxy.ProxyProtocolMessage;
 
@@ -58,6 +63,35 @@ class ProxyProtocolDecoderV2Test {
 		Assertions.assertEquals("192.168.0.11", msg.getDestinationAddress());
 		Assertions.assertEquals(56324, msg.getSourcePort());
 		Assertions.assertEquals(443, msg.getDestinationPort());
+	}
+
+	/**
+	 * PROXY v2 与 TLS ClientHello 在同一 TCP read：解析后应保留 ClientHello，不可被误当 TLV skip。
+	 */
+	@Test
+	void testV2PreParserPreservesTrailingTlsClientHello() {
+		ByteBuffer proxy = buildV2Tcp4Header(
+			new byte[]{(byte) 192, (byte) 168, 0, 1},
+			new byte[]{(byte) 192, (byte) 168, 0, 11},
+			(short) 56324,
+			(short) 443
+		);
+		byte[] clientHelloPrefix = new byte[] {0x16, 0x03, 0x03, 0x00, 0x05, 0x01, 0x00, 0x00, 0x01};
+		ByteBuffer combined = ByteBuffer.allocate(proxy.remaining() + clientHelloPrefix.length);
+		combined.put(proxy);
+		combined.put(clientHelloPrefix);
+		combined.flip();
+
+		TioServerConfig config = new TioServerConfig(new TestTioServerHandler(new FixedLengthCodec(8)), new DefaultTioServerListener());
+		ServerChannelContext context = new ServerChannelContext(config, "proxy-v2-tls-test");
+		ProxyProtocolDecoder.enableProxyProtocol(context);
+		ProxyProtocolDecoder.PreParser preParser = new ProxyProtocolDecoder.PreParser(context);
+		ProxyProtocolDecoder.ParseResult result = preParser.feed(combined);
+
+		Assertions.assertEquals(ProxyProtocolDecoder.ParseResult.State.PARSED, result.state);
+		Assertions.assertNotNull(result.data);
+		Assertions.assertEquals(clientHelloPrefix.length, result.data.remaining());
+		Assertions.assertEquals(0x16, result.data.get(result.data.position()) & 0xFF);
 	}
 
 	/**

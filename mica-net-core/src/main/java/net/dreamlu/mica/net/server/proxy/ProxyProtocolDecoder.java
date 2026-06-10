@@ -256,16 +256,34 @@ public final class ProxyProtocolDecoder {
 		} else {
 			throw new TioDecodeException("invalid v2 proxy protocol command: " + cmd);
 		}
-		// 跳过 TLV 扩展（如果有）
-		int tlvsLength = readableLength - totalLength;
-		if (tlvsLength > 0) {
-			ByteBufferUtil.skipBytes(buffer, tlvsLength);
-		}
+		// 仅跳过规范 TLV；不可把 readableLength - totalLength 整段 skip（同一 read 里 PROXY 后常紧跟 TLS ClientHello）
+		skipV2Tlvs(buffer);
+		// 移除代理协议标记
 		removeProxyProtocol(context);
 		if (cmd == V2_CMD_PROXY) {
 			applyMessage(context, message);
 		}
 		return ParseResult.parsed(buffer.position() - startPos);
+	}
+
+	/**
+	 * 按 PROXY v2 规范跳过可选 TLV（type 1B + length 2B + value）。
+	 * <p>
+	 * 无 TLV 时（HAProxy 默认）立即停止，buffer 指向业务载荷（如 {@code 16 03 03} ClientHello）。
+	 * 若后续字节不是合法 TLV（长度超出剩余），同样停止，避免误吞 TLS 数据。
+	 * </p>
+	 */
+	private static void skipV2Tlvs(ByteBuffer buffer) {
+		while (buffer.remaining() >= 3) {
+			int tlvStart = buffer.position();
+			buffer.get();
+			int tlvLen = ByteBufferUtil.readUnsignedShortBE(buffer);
+			if (buffer.remaining() < tlvLen) {
+				buffer.position(tlvStart);
+				return;
+			}
+			ByteBufferUtil.skipBytes(buffer, tlvLen);
+		}
 	}
 
 	/**
