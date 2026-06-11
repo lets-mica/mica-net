@@ -2,6 +2,9 @@
 
 ## 发行版本
 
+### v2.0.5 - 2026-06-11
+- fix(proxy): 重构代理协议流程，修复 SSL + 代理协议同时开启时编解码异常。
+
 ### v2.0.4 - 2026-05-28
 - refactor(core): ClassUtil 添加 newInstance 方法。
 
