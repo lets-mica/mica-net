@@ -6,6 +6,8 @@
 
 mica-net 是基于 t-io 简化而来的高性能 Java 网络通信框架，使用 Java NIO 的 AsynchronousSocketChannel 实现异步非阻塞网络通信。
 
+[✨✨✨推广：**BladeX 物联网平台**✨✨✨iot.bladex.cn](https://iot.bladex.cn?from=mica-mqtt)
+
 ------
 
 ## 🏗️ 核心设计架构
