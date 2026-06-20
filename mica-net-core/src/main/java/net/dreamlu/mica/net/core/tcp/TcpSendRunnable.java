@@ -166,7 +166,7 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	 * writing.get() == true 直接 return，导致消息（如 MQTT CONNECT）永远发不出去。
 	 *
 	 * @see ConnectionCompletionHandler#handler(...) 重连成功后的重置
-	 * @see CloseRunnable 连接关闭前的重置
+	 * @see TcpCloseRunnable 连接关闭前的重置
 	 */
 	public void resetWriting() {
 		writing.set(false);

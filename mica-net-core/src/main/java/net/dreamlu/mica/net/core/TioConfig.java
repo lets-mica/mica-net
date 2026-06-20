@@ -200,7 +200,6 @@ import net.dreamlu.mica.net.core.ssl.SslConfig;
 import net.dreamlu.mica.net.core.stat.GroupStat;
 import net.dreamlu.mica.net.core.stat.vo.StatVo;
 import net.dreamlu.mica.net.core.task.AbstractCloseRunnable;
-import net.dreamlu.mica.net.core.task.CloseRunnable;
 import net.dreamlu.mica.net.core.task.TcpCloseRunnable;
 import net.dreamlu.mica.net.core.task.UdpCloseRunnable;
 import net.dreamlu.mica.net.core.task.HeartbeatMode;
