@@ -532,8 +532,8 @@ public class Tio {
 		}
 		context.closeMeta.setNeedRemove(isNeedRemove);
 
-		context.tioConfig.closeRunnable.addMsg(context);
-		context.tioConfig.closeRunnable.execute();
+		context.tioConfig.getCloseRunnable(context).addMsg(context);
+		context.tioConfig.getCloseRunnable(context).execute();
 	}
 
 	/**

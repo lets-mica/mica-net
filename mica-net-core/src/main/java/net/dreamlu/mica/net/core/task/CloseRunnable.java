@@ -210,111 +210,12 @@ import java.util.concurrent.Executor;
 /**
  * @author tanyaowu
  * 2017年10月19日 上午9:39:59
+ * @deprecated 请使用 {@link AbstractCloseRunnable}、{@link TcpCloseRunnable}、{@link UdpCloseRunnable}
  */
-public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
-	private static final Logger log = LoggerFactory.getLogger(CloseRunnable.class);
-
-	/**
-	 * The msg queue.
-	 */
-	private final Queue<ChannelContext> msgQueue;
+@Deprecated
+public class CloseRunnable extends TcpCloseRunnable {
 
 	public CloseRunnable(Executor executor) {
 		super(executor);
-		this.msgQueue = new ConcurrentLinkedQueue<>();
 	}
-
-	@Override
-	public void runTask() {
-		if (msgQueue.isEmpty()) {
-			return;
-		}
-		ChannelContext channelContext;
-		while ((channelContext = msgQueue.poll()) != null) {
-			try {
-				boolean isNeedRemove = channelContext.closeMeta.isNeedRemove;
-				String remark = channelContext.closeMeta.remark;
-				Throwable throwable = channelContext.closeMeta.throwable;
-
-				channelContext.stat.timeClosed = System.currentTimeMillis();
-
-				// 监听器
-				TioListener tioListener = channelContext.tioConfig.getTioListener();
-				if (tioListener != null) {
-					try {
-						tioListener.onBeforeClose(channelContext, throwable, remark, isNeedRemove);
-					} catch (Throwable e) {
-						log.error(e.getMessage(), e);
-					}
-				}
-				try {
-					if (channelContext.isClosed() && !isNeedRemove) {
-						log.info("{}, {}已经关闭，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark, throwable == null ? "无" : throwable.toString());
-						return;
-					}
-					if (channelContext.isRemoved()) {
-						log.info("{}, {}已经删除，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark, throwable == null ? "无" : throwable.toString());
-						return;
-					}
-					//必须先取消任务再清空队列
-					channelContext.getDecodeRunnable().setCanceled(true);
-					channelContext.getHandlerRunnable().setCanceled(true);
-					// 关闭前重置 writing 状态，防止 write 挂起导致 writing 未复位，
-					// 重连后 runTask() 因 writing==true 直接 return
-					// （ConnectionCompletionHandler 重连分支也会调 resetWriting()，此处为防御性双重保护）
-					if (channelContext.getSendRunnable() instanceof TcpSendRunnable) {
-						((TcpSendRunnable) channelContext.getSendRunnable()).resetWriting();
-					}
-					channelContext.getSendRunnable().setCanceled(true);
-
-					channelContext.getDecodeRunnable().clearMsgQueue();
-					channelContext.getHandlerRunnable().clearMsgQueue();
-					channelContext.getSendRunnable().clearMsgQueue();
-
-					log.info("{}, {} 准备关闭连接, isNeedRemove:{}, {}", channelContext.tioConfig, channelContext, isNeedRemove, remark);
-
-					try {
-						if (isNeedRemove) {
-							MaintainUtils.remove(channelContext);
-						} else {
-							TioClientConfig tioClientConfig = (TioClientConfig) channelContext.tioConfig;
-							tioClientConfig.closeds.add(channelContext);
-							tioClientConfig.connecteds.remove(channelContext);
-							MaintainUtils.close(channelContext);
-						}
-
-						channelContext.setRemoved(isNeedRemove);
-						if (channelContext.tioConfig.statOn) {
-							channelContext.tioConfig.groupStat.closed.increment();
-						}
-						channelContext.stat.timeClosed = System.currentTimeMillis();
-						channelContext.setClosed(true);
-					} catch (Throwable e) {
-						log.error(e.getMessage(), e);
-					} finally {
-						// 不删除且没有连接上，则加到重连队列中
-						if (!isNeedRemove && channelContext.isClosed() && !channelContext.isServer()) {
-							ClientChannelContext clientChannelContext = (ClientChannelContext) channelContext;
-							ReconnConf.put(clientChannelContext);
-						}
-					}
-				} catch (Throwable e) {
-					log.error(throwable == null ? remark : throwable.getMessage(), e);
-				}
-			} finally {
-				channelContext.setWaitingClose(false);
-			}
-		}
-	}
-
-	@Override
-	public String logstr() {
-		return super.logstr();
-	}
-
-	@Override
-	public Queue<ChannelContext> getMsgQueue() {
-		return msgQueue;
-	}
-
 }
