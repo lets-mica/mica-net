@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Executor;
 
@@ -46,39 +45,15 @@ public class UdpSendRunnable extends AbstractSendRunnable {
 		super(channelContext, executor, msgQueue);
 	}
 
+	/**
+	 * UDP 逐个发送（每个 Packet 对应一个 UDP 数据报）
+	 */
 	@Override
 	public void runTask() {
-		if (msgQueue.isEmpty()) {
-			return;
+		Packet packet;
+		while ((packet = msgQueue.poll()) != null) {
+			sendPacket(packet, SslUtils.isSsl(tioConfig));
 		}
-
-		boolean isSsl = SslUtils.isSsl(tioConfig);
-		int queueSize = msgQueue.size();
-
-		// UDP 通常发送单个包（无连接，不适合批量）
-		if (queueSize == 1) {
-			Packet packet = msgQueue.poll();
-			if (packet != null) {
-				sendPacket(packet, isSsl);
-			}
-			return;
-		}
-
-		// 批量发送（虽然 UDP 不推荐批量，但支持以保持一致性）
-		BatchEncodeResult result = batchEncode(queueSize, isSsl);
-		if (result == null) {
-			return;
-		}
-
-		// SSL 加密（UDP 通常使用 DTLS，这里简化处理）
-		ByteBuffer[] buffers = encryptBatchIfNeeded(result.byteBuffers, result.packets, isSsl, result.needSslEncrypted);
-		if (buffers == null) {
-			return;
-		}
-
-		// UDP 不支持 gather write，需要合并 ByteBuffer
-		ByteBuffer mergedBuffer = mergeBuffers(buffers);
-		sendByteBuffer(mergedBuffer, result.packets);
 	}
 
 	@Override
@@ -104,6 +79,13 @@ public class UdpSendRunnable extends AbstractSendRunnable {
 
 	@Override
 	protected void sendByteBuffer(ByteBuffer byteBuffer, Object packets) {
+		// UDP 现在只发送单个 Packet（不再批量发送）
+		if (!(packets instanceof Packet)) {
+			log.error("{}, UDP sendByteBuffer 期望 Packet 类型，实际为 {}", channelContext, packets.getClass().getName());
+			return;
+		}
+		Packet packet = (Packet) packets;
+
 		if (byteBuffer == null) {
 			log.error("{}, byteBuffer is null", channelContext);
 			return;
@@ -134,22 +116,14 @@ public class UdpSendRunnable extends AbstractSendRunnable {
 		}
 
 		// 后处理
-		processAfterSent(packets, isSentSuccess);
+		processAfterSent(packet, isSentSuccess);
 	}
 
 	/**
 	 * 处理发送后的回调
 	 */
-	private void processAfterSent(Object packets, boolean isSentSuccess) {
-		if (packets instanceof Packet) {
-			channelContext.processAfterSent((Packet) packets, isSentSuccess);
-		} else if (packets instanceof List) {
-			@SuppressWarnings("unchecked")
-			List<Packet> list = (List<Packet>) packets;
-			for (Packet p : list) {
-				channelContext.processAfterSent(p, isSentSuccess);
-			}
-		}
+	private void processAfterSent(Packet packet, boolean isSentSuccess) {
+		channelContext.processAfterSent(packet, isSentSuccess);
 	}
 
 	/**
@@ -162,38 +136,5 @@ public class UdpSendRunnable extends AbstractSendRunnable {
 			log.warn("{}, UDP 不支持 SSL/TLS 加密，需要使用 DTLS（当前未实现），将发送未加密数据", channelContext);
 		}
 		return byteBuffer;  // 直接返回原始数据，不加密
-	}
-
-	/**
-	 * UDP 批量发送不支持 SSL/TLS 加密
-	 * 覆盖此方法以禁用批量 SSL 加密
-	 */
-	@Override
-	protected ByteBuffer[] encryptBatchIfNeeded(ByteBuffer[] byteBuffers, List<Packet> packets, boolean isSsl, boolean needSslEncrypted) {
-		if (isSsl && needSslEncrypted && tioConfig.sslConfig != null) {
-			log.warn("{}, UDP 批量发送不支持 SSL/TLS 加密，需要使用 DTLS（当前未实现）", channelContext);
-		}
-		return byteBuffers;  // 直接返回原始数据，不加密
-	}
-
-	/**
-	 * 合并 ByteBuffer[] 为单个 ByteBuffer（UDP 不支持 gather write）
-	 */
-	private ByteBuffer mergeBuffers(ByteBuffer[] buffers) {
-		if (buffers.length == 1) {
-			return buffers[0];
-		}
-
-		int totalCapacity = 0;
-		for (ByteBuffer buffer : buffers) {
-			totalCapacity += buffer.remaining();
-		}
-
-		ByteBuffer merged = ByteBuffer.allocate(totalCapacity);
-		for (ByteBuffer buffer : buffers) {
-			merged.put(buffer);
-		}
-		merged.flip();
-		return merged;
 	}
 }
