@@ -641,6 +641,11 @@ public abstract class ChannelContext extends MapPropSupport {
 		SSL_DECRYPT_ERROR((byte) 53),
 
 		/**
+		 * 互踢
+		 */
+		KICK_EACH_OTHER((byte) 99),
+
+		/**
 		 * 供用户使用
 		 */
 		USER_CODE_0((byte) 100),
