@@ -241,11 +241,12 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 					channelContext.resetForReconnect();
 					channelContext.getDecodeRunnable().setCanceled(false);
 					channelContext.getHandlerRunnable().setCanceled(false);
-					channelContext.getSendRunnable().setCanceled(false);
+					TcpSendRunnable sendRunnable = channelContext.getSendRunnable();
 					// 重连时重置 writing 状态，防止 write 挂起导致 writing 未复位，
 					// 进而使重连后 runTask() 因 writing==true 直接 return，
 					// 消息（如 MQTT CONNECT）永远发不出去，陷入无限重连死循环
-					((TcpSendRunnable) channelContext.getSendRunnable()).resetWriting();
+					sendRunnable.resetWriting();
+					sendRunnable.setCanceled(false);
 					tioClientConfig.closeds.remove(channelContext);
 				} else {
 					channelContext = new ClientChannelContext(tioClientConfig, asynchronousSocketChannel);
