@@ -202,6 +202,8 @@ import org.tio.core.ReadCompletionHandler;
 import org.tio.core.Tio;
 import org.tio.core.ssl.SslFacadeContext;
 import org.tio.core.ssl.SslUtils;
+import org.tio.core.task.AbstractSendRunnable;
+import org.tio.core.tcp.TcpSendRunnable;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -257,7 +259,14 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 					// ssl 如果是服务端重启，需要重新生成 SSLContext 对象
 					channelContext.setUpSSL();
 					channelContext.handlerRunnable.setCanceled(false);
-					channelContext.sendRunnable.setCanceled(false);
+					AbstractSendRunnable sendRunnable = channelContext.sendRunnable;
+					// 重连时重置 writing 状态，防止 write 挂起导致 writing 未复位，
+					// 进而使重连后 runTask() 因 writing==true 直接 return，
+					// 消息（如 MQTT CONNECT）永远发不出去，陷入无限重连死循环
+					if (sendRunnable instanceof TcpSendRunnable) {
+						((TcpSendRunnable) sendRunnable).resetWriting();
+					}
+					sendRunnable.setCanceled(false);
 					tioClientConfig.closeds.remove(channelContext);
 				} else {
 					channelContext = new ClientChannelContext(tioClientConfig, asynchronousSocketChannel);
