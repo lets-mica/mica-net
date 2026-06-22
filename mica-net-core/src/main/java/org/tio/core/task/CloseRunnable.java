@@ -201,6 +201,7 @@ import org.tio.client.TioClientConfig;
 import org.tio.core.ChannelContext;
 import org.tio.core.intf.TioListener;
 import org.tio.core.maintain.MaintainUtils;
+import org.tio.core.tcp.TcpSendRunnable;
 import org.tio.utils.thread.pool.AbstractQueueRunnable;
 
 import java.util.Queue;
@@ -259,11 +260,18 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 					//必须先取消任务再清空队列
 					channelContext.decodeRunnable.setCanceled(true);
 					channelContext.handlerRunnable.setCanceled(true);
-					channelContext.sendRunnable.setCanceled(true);
+					// 关闭前重置 writing 状态，防止 write 挂起导致 writing 未复位，
+					// 重连后 runTask() 因 writing==true 直接 return
+					// （ConnectionCompletionHandler 重连分支也会调 resetWriting()，此处为防御性双重保护）
+					AbstractSendRunnable sendRunnable = channelContext.sendRunnable;
+					if (sendRunnable instanceof TcpSendRunnable) {
+						((TcpSendRunnable) sendRunnable).resetWriting();
+					}
+					sendRunnable.setCanceled(true);
 
 					channelContext.decodeRunnable.clearMsgQueue();
 					channelContext.handlerRunnable.clearMsgQueue();
-					channelContext.sendRunnable.clearMsgQueue();
+					sendRunnable.clearMsgQueue();
 
 					log.info("{}, {} 准备关闭连接, isNeedRemove:{}, {}", channelContext.tioConfig, channelContext, isNeedRemove, remark);
 

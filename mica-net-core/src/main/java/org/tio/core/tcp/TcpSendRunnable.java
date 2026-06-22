@@ -18,11 +18,13 @@ package org.tio.core.tcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tio.client.ConnectionCompletionHandler;
 import org.tio.core.ChannelContext;
 import org.tio.core.WriteCompletionHandler;
 import org.tio.core.intf.Packet;
 import org.tio.core.ssl.SslUtils;
 import org.tio.core.task.AbstractSendRunnable;
+import org.tio.core.task.CloseRunnable;
 import org.tio.core.utils.TioUtils;
 
 import java.nio.ByteBuffer;
@@ -156,6 +158,20 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	 */
 	public boolean isWriting() {
 		return writing.get();
+	}
+
+	/**
+	 * 重置 writing 状态，用于重连场景。
+	 * <p>
+	 * 当 write 操作挂起（网络中断/超时）导致连接被关闭时，
+	 * writing 可能仍为 true，若不重置，重连后 runTask() 会因
+	 * writing.get() == true 直接 return，导致消息（如 MQTT CONNECT）永远发不出去。
+	 *
+	 * @see ConnectionCompletionHandler#handler(...) 重连成功后的重置
+	 * @see CloseRunnable 连接关闭前的重置
+	 */
+	public void resetWriting() {
+		writing.set(false);
 	}
 
 	/**
