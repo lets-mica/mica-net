@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v2.0.6 - 2026-07-01
+- feat(net-core): CloseCode 添加 `KICK_EACH_OTHER` 处理互踢错误码
+- fix(core): 修复重连后 TcpSendRunnable.writing 未复位导致 MQTT CONNECT 无法发送的问题 (gitee mica-mqtt #IJVOZ7)
+
 ### v2.0.5 - 2026-06-11
 - fix(proxy): 重构代理协议流程，修复 SSL + 代理协议同时开启时编解码异常。
 
@@ -24,6 +28,11 @@
 - feat(core): 包名调整，从 `org.tio` 迁移到 `net.dreamlu.mica.net` 避免跟原版 `t-io` 包冲突。
 - perf(tcp): 优化异步写入为零拷贝 scatter-write 批量发送。
 - perf(ssl): 优化ReadCompletionHandler中SslFacade解密流程，改用slice()避免复制字节缓冲区。
+
+### v1.3.5 - 2026-06-23
+- feat(net-core): CloseCode 添加 `KICK_EACH_OTHER` 处理互踢错误码
+- fix(core): 修复重连后 TcpSendRunnable.writing 未复位导致 MQTT CONNECT 无法发送的问题 (gitee mica-mqtt #IJVOZ7)
+- fix(core): 修复 TioConfig 构造函数中 id 设置顺序，导致 `remove()` 不掉。
 
 ### v1.3.4 - 2026-03-28
 - feat(http): 支持 http stream 重构 sse。
