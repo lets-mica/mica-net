@@ -143,6 +143,8 @@ public class ClusterImpl implements ClusterApi {
 		// 1s 重连
 		clientConfig.setReconnConf(new ReconnConf(1000));
 		clientConfig.setTioUuid(new SnowflakeTioUuid());
+		clientConfig.statOn = false;
+		clientConfig.debug = false;
 		this.tcpClusterClient = new TioClient(clientConfig);
 		// 移除本地节点
 		List<Node> clientNodes = new ArrayList<>(seedMembers);
