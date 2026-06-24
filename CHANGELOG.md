@@ -2,7 +2,7 @@
 
 ## 发行版本
 
-### v2.0.6 - 2026-07-01
+### v2.0.6 - 2026-06-24
 - feat(net-core): CloseCode 添加 `KICK_EACH_OTHER` 处理互踢错误码
 - fix(core): 修复重连后 TcpSendRunnable.writing 未复位导致 MQTT CONNECT 无法发送的问题 (gitee mica-mqtt #IJVOZ7)
 
