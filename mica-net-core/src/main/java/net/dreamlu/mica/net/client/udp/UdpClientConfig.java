@@ -12,6 +12,7 @@ import net.dreamlu.mica.net.core.Node;
 import net.dreamlu.mica.net.utils.thread.pool.SynThreadPoolExecutor;
 
 import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.channels.DatagramChannel;
 import java.util.concurrent.ExecutorService;
 
@@ -27,6 +28,8 @@ import java.util.concurrent.ExecutorService;
  */
 public class UdpClientConfig extends TioClientConfig {
 	private UdpClient udpClient;
+	private int socketReceiveBufferSize = 0;
+	private int socketSendBufferSize = 0;
 
 	/**
 	 * Create UDP client configuration without reconnection support
@@ -81,6 +84,14 @@ public class UdpClientConfig extends TioClientConfig {
 
 		DatagramChannel datagramChannel = DatagramChannel.open();
 		datagramChannel.configureBlocking(false);
+		int receiveBufferSize = getSocketReceiveBufferSize();
+		if (receiveBufferSize > 0) {
+			datagramChannel.setOption(StandardSocketOptions.SO_RCVBUF, receiveBufferSize);
+		}
+		int sendBufferSize = getSocketSendBufferSize();
+		if (sendBufferSize > 0) {
+			datagramChannel.setOption(StandardSocketOptions.SO_SNDBUF, sendBufferSize);
+		}
 
 		InetSocketAddress bindAdder;
 		if (bindPort != null) {
@@ -99,6 +110,22 @@ public class UdpClientConfig extends TioClientConfig {
 		udpClient.register(datagramChannel, context);
 		connecteds.add(context);
 		return context;
+	}
+
+	public int getSocketReceiveBufferSize() {
+		return socketReceiveBufferSize;
+	}
+
+	public void setSocketReceiveBufferSize(int socketReceiveBufferSize) {
+		this.socketReceiveBufferSize = socketReceiveBufferSize;
+	}
+
+	public int getSocketSendBufferSize() {
+		return socketSendBufferSize;
+	}
+
+	public void setSocketSendBufferSize(int socketSendBufferSize) {
+		this.socketSendBufferSize = socketSendBufferSize;
 	}
 
 	/**

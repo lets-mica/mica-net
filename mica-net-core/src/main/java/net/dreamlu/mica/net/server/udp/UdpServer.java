@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.net.StandardSocketOptions;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -39,6 +40,14 @@ public class UdpServer implements Runnable {
 		selector = Selector.open();
 		datagramChannel = DatagramChannel.open();
 		datagramChannel.configureBlocking(false);
+		int receiveBufferSize = serverConfig.getSocketReceiveBufferSize();
+		if (receiveBufferSize > 0) {
+			datagramChannel.setOption(StandardSocketOptions.SO_RCVBUF, receiveBufferSize);
+		}
+		int sendBufferSize = serverConfig.getSocketSendBufferSize();
+		if (sendBufferSize > 0) {
+			datagramChannel.setOption(StandardSocketOptions.SO_SNDBUF, sendBufferSize);
+		}
 		datagramChannel.socket().bind(new InetSocketAddress(port));
 		datagramChannel.register(selector, SelectionKey.OP_READ);
 		Thread selectorThread = new Thread(this, "tio-udp-server-" + port);
@@ -70,29 +79,31 @@ public class UdpServer implements Runnable {
 
 	private void handleRead(DatagramChannel channel) {
 		try {
-			readBuffer.clear();
-			SocketAddress remoteAddress = channel.receive(readBuffer);
-			if (remoteAddress == null) {
-				return;
+			while (true) {
+				readBuffer.clear();
+				SocketAddress remoteAddress = channel.receive(readBuffer);
+				if (remoteAddress == null) {
+					return;
+				}
+				readBuffer.flip();
+
+				InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteAddress;
+				Node remoteNode = new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort());
+
+				ChannelContext channelContext = serverConfig.clientNodes.find(remoteNode);
+				if (channelContext == null) {
+					channelContext = new UdpChannelContext(serverConfig, channel, remoteNode);
+					serverConfig.clientNodes.put(channelContext);
+				}
+
+				// Copy data to a new buffer because readBuffer is reused
+				ByteBuffer newBuffer = ByteBuffer.allocate(readBuffer.remaining());
+				newBuffer.put(readBuffer);
+				newBuffer.flip();
+
+				// Use the unified method from UdpChannelContext
+				((UdpChannelContext) channelContext).handleReceivedData(newBuffer);
 			}
-			readBuffer.flip();
-
-			InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteAddress;
-			Node remoteNode = new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort());
-
-			ChannelContext channelContext = serverConfig.clientNodes.find(remoteNode);
-			if (channelContext == null) {
-				channelContext = new UdpChannelContext(serverConfig, channel, remoteNode);
-				serverConfig.clientNodes.put(channelContext);
-			}
-
-			// Copy data to a new buffer because readBuffer is reused
-			ByteBuffer newBuffer = ByteBuffer.allocate(readBuffer.remaining());
-			newBuffer.put(readBuffer);
-			newBuffer.flip();
-
-			// Use the unified method from UdpChannelContext
-			((UdpChannelContext) channelContext).handleReceivedData(newBuffer);
 		} catch (Throwable e) {
 			log.error("NIO UDP handle read error", e);
 		}

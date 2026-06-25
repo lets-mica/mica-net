@@ -99,16 +99,23 @@ public class UdpClient implements Runnable {
 		DatagramChannel channel = (DatagramChannel) key.channel();
 
 		try {
-			// Allocate buffer based on config
-			ByteBuffer buffer = ByteBuffer.allocate(context.getReadBufferSize());
-			// Since we connected the channel, we can use read()
-			int read = channel.read(buffer);
-			if (read > 0) {
-				buffer.flip();
-				// Use the unified method from UdpChannelContext
-				context.handleReceivedData(buffer);
-			} else if (read < 0) {
-				context.handleReadError(null, "UDP read returned -1");
+			while (true) {
+				// Allocate buffer based on config
+				ByteBuffer buffer = ByteBuffer.allocate(context.getReadBufferSize());
+				// Since we connected the channel, we can use read()
+				int read = channel.read(buffer);
+				if (read > 0) {
+					buffer.flip();
+					// Use the unified method from UdpChannelContext
+					context.handleReceivedData(buffer);
+				} else if (read == 0) {
+					// No more datagrams available
+					return;
+				} else {
+					// read < 0, should not happen for UDP but handle it
+					context.handleReadError(null, "UDP read returned " + read);
+					return;
+				}
 			}
 		} catch (Throwable e) {
 			context.handleReadError(e, "UDP Read error");

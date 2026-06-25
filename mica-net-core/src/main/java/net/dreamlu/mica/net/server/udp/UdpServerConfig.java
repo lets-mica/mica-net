@@ -23,6 +23,8 @@ import java.util.concurrent.ExecutorService;
  * @author L.cm
  */
 public class UdpServerConfig extends TioServerConfig {
+	private int socketReceiveBufferSize = 0;
+	private int socketSendBufferSize = 0;
 
 	/**
 	 * Create UDP server configuration
@@ -70,6 +72,22 @@ public class UdpServerConfig extends TioServerConfig {
 	public UdpServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener,
 	                       SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
 		super(name, tioServerHandler, tioServerListener, tioExecutor, groupExecutor);
+	}
+
+	public int getSocketReceiveBufferSize() {
+		return socketReceiveBufferSize;
+	}
+
+	public void setSocketReceiveBufferSize(int socketReceiveBufferSize) {
+		this.socketReceiveBufferSize = socketReceiveBufferSize;
+	}
+
+	public int getSocketSendBufferSize() {
+		return socketSendBufferSize;
+	}
+
+	public void setSocketSendBufferSize(int socketSendBufferSize) {
+		this.socketSendBufferSize = socketSendBufferSize;
 	}
 
 	@Override
