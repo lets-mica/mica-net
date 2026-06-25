@@ -3,14 +3,14 @@ package net.dreamlu.mica.net.http.mcp.schema;
 import java.util.Map;
 
 /**
- * mcp 客户端信息
+ * mcp client capabilities
  *
  * @author L.cm
  */
 public class McpClientCapabilities {
 	private Map<String, Object> experimental;
-	private McpRootCapabilities roots;
-	private McpSampling sampling;
+	private McpSamplingCapabilities sampling;
+	private McpRootsCapabilities roots;
 
 	public Map<String, Object> getExperimental() {
 		return experimental;
@@ -20,28 +20,28 @@ public class McpClientCapabilities {
 		this.experimental = experimental;
 	}
 
-	public McpRootCapabilities getRoots() {
-		return roots;
-	}
-
-	public void setRoots(McpRootCapabilities roots) {
-		this.roots = roots;
-	}
-
-	public McpSampling getSampling() {
+	public McpSamplingCapabilities getSampling() {
 		return sampling;
 	}
 
-	public void setSampling(McpSampling sampling) {
+	public void setSampling(McpSamplingCapabilities sampling) {
 		this.sampling = sampling;
+	}
+
+	public McpRootsCapabilities getRoots() {
+		return roots;
+	}
+
+	public void setRoots(McpRootsCapabilities roots) {
+		this.roots = roots;
 	}
 
 	@Override
 	public String toString() {
 		return "McpClientCapabilities{" +
 			"experimental=" + experimental +
-			", roots=" + roots +
 			", sampling=" + sampling +
+			", roots=" + roots +
 			'}';
 	}
 }

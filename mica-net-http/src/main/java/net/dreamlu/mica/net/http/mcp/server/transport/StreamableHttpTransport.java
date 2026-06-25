@@ -2,9 +2,7 @@ package net.dreamlu.mica.net.http.mcp.server.transport;
 
 import net.dreamlu.mica.net.http.common.*;
 import net.dreamlu.mica.net.http.common.stream.HttpStream;
-import net.dreamlu.mica.net.http.common.stream.HttpStreamType;
-import net.dreamlu.mica.net.http.jsonrpc.JsonRpcRequest;
-import net.dreamlu.mica.net.http.jsonrpc.JsonRpcResponse;
+import net.dreamlu.mica.net.http.jsonrpc.*;
 import net.dreamlu.mica.net.http.mcp.server.McpServer;
 import net.dreamlu.mica.net.http.mcp.server.McpServerSession;
 import net.dreamlu.mica.net.utils.hutool.StrUtil;
@@ -13,27 +11,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * MCP Streamable HTTP Transport 实现
- * <p>
- * 单一端点同时支持 GET (SSE) 和 POST (JSON-RPC) 请求
+ * MCP Streamable HTTP Transport 实现。
+ *
+ * <p>采用统一的端点：
+ * <ul>
+ *   <li>GET  {endpoint} - 建立 SSE 长连接（可选），用于 server push 通知</li>
+ *   <li>POST {endpoint} - 提交 JSON-RPC 请求；可附带 {@code Mcp-Session-Id} 关联已建立的 SSE 流</li>
+ *   <li>DELETE {endpoint} - 终止 SSE 会话</li>
+ * </ul>
  *
  * @author L.cm
  */
 public class StreamableHttpTransport implements McpTransport {
 	public static final String TRANSPORT_TYPE = "streamable-http";
 	public static final String DEFAULT_ENDPOINT = "/mcp";
-	public static final String MESSAGE_EVENT_TYPE = "message";
-	public static final String ENDPOINT_EVENT_TYPE = "endpoint";
+	/**
+	 * 约定的 session id header 名
+	 */
+	public static final String SESSION_HEADER = "Mcp-Session-Id";
 	private static final Logger log = LoggerFactory.getLogger(StreamableHttpTransport.class);
+
 	private final McpServer mcpServer;
 	private final String endpoint;
-	/**
-	 * Streamable HTTP 使用 session 状态共享
-	 */
-	private final Map<String, StreamableSession> sessions = new ConcurrentHashMap<>();
+	private final SessionManager sessionManager;
 
 	public StreamableHttpTransport(McpServer mcpServer) {
 		this(mcpServer, DEFAULT_ENDPOINT);
@@ -42,30 +44,29 @@ public class StreamableHttpTransport implements McpTransport {
 	public StreamableHttpTransport(McpServer mcpServer, String endpoint) {
 		this.mcpServer = mcpServer;
 		this.endpoint = StrUtil.isBlank(endpoint) ? DEFAULT_ENDPOINT : endpoint;
+		this.sessionManager = new SessionManager("streamable-http", mcpServer);
 	}
 
 	@Override
 	public HttpResponse handle(HttpRequest request) {
 		RequestLine requestLine = request.getRequestLine();
 		String path = requestLine.getPath();
-		if (!path.equals(endpoint) && !path.equals(endpoint + "/")) {
-			// 不是我们的端点，返回404让其他handler处理
+		if (!endpoint.equals(path) && !(endpoint + "/").equals(path)) {
 			HttpResponse resp = new HttpResponse(request);
 			resp.setStatus(HttpResponseStatus.C404);
 			return resp;
 		}
 		Method method = requestLine.getMethod();
-		String accept = request.getHeader("Accept");
-		if (Method.GET.equals(method) && isEventStreamAccept(accept)) {
-			return handleSseConnection(request);
-		} else if (Method.POST.equals(method)) {
-			return handleJsonRpcRequest(request);
-		} else {
-			HttpResponse resp = new HttpResponse(request);
-			resp.setStatus(HttpResponseStatus.C405);
-			resp.setBody(("Method " + method + " not allowed for this endpoint").getBytes());
-			return resp;
+		if (Method.GET == method) {
+			return handleGet(request);
+		} else if (Method.POST == method) {
+			return handlePost(request);
+		} else if (Method.DELETE == method) {
+			return handleDelete(request);
 		}
+		HttpResponse resp = new HttpResponse(request);
+		resp.setStatus(HttpResponseStatus.C405);
+		return resp;
 	}
 
 	@Override
@@ -73,181 +74,203 @@ public class StreamableHttpTransport implements McpTransport {
 		return TRANSPORT_TYPE;
 	}
 
-	/**
-	 * 检查 Accept header 是否为 text/event-stream
-	 */
-	private boolean isEventStreamAccept(String accept) {
-		if (accept == null) {
-			return false;
-		}
-		// Accept 可能包含多个类型，如 "text/event-stream, application/json"
-		String[] types = accept.split(",");
-		for (String type : types) {
-			if (type.trim().equals("text/event-stream")) {
-				return true;
-			}
-		}
-		return false;
+	@Override
+	public McpTransport sessionTimeout(long timeoutMs) {
+		sessionManager.sessionTimeout(timeoutMs);
+		return this;
 	}
 
-	/**
-	 * 处理 SSE 连接（GET /mcp）
-	 */
-	public HttpResponse handleSseConnection(HttpRequest request) {
-		HttpResponse httpResponse = new HttpResponse(request);
-		HttpStream stream = httpResponse.startSse(request);
-
-		httpResponse.setPacketListener((context, packet, isSentSuccess) -> {
-			if (isSentSuccess) {
-				String sessionId = StrUtil.getNanoId();
-				StreamableSession session = new StreamableSession(sessionId, stream);
-				sessions.put(sessionId, session);
-				// 发送 endpoint 事件，包含后续 POST 消息的 URL
-				stream.send(ENDPOINT_EVENT_TYPE, endpoint + "?sessionId=" + sessionId);
-			}
-		});
-		return httpResponse;
+	@Override
+	public long getSessionTimeout() {
+		return sessionManager.getSessionTimeout();
 	}
 
-	/**
-	 * 处理 JSON-RPC 请求（POST /mcp）
-	 */
-	public HttpResponse handleJsonRpcRequest(HttpRequest request) {
-		String sessionId = request.getParam("sessionId");
-		StreamableSession session = sessionId != null ? sessions.get(sessionId) : null;
-
-		// 如果没有 session，创建一个临时的（用于不支持 cookie 的客户端）
-		if (session == null) {
-			// 创建一个无 SSE 的 session 用于处理请求
-			session = new StreamableSession(StrUtil.getNanoId(), null);
-		}
-
-		// 处理 JSON-RPC 消息
-		byte[] body = request.getBody();
-		if (body == null || body.length == 0) {
-			HttpResponse resp = new HttpResponse(request);
-			resp.setStatus(HttpResponseStatus.C400);
-			resp.setBody("Request body is empty".getBytes());
-			return resp;
-		}
-
-		try {
-			Map<String, Object> jsonMap = JsonUtil.readValue(body, Map.class);
-			String method = (String) jsonMap.get("method");
-
-			if (method == null) {
-				// 可能是响应或错误，不是请求
-				HttpResponse resp = new HttpResponse(request);
-				resp.setStatus(HttpResponseStatus.C400);
-				resp.setBody("Missing method in request".getBytes());
-				return resp;
-			}
-
-			// 构建请求对象
-			JsonRpcRequest rpcRequest = JsonUtil.convertValue(jsonMap, JsonRpcRequest.class);
-
-			// 使用虚拟 session 处理请求
-			McpServerSession tempSession = new McpServerSession(
-				session.getSessionId(),
-				new DummyHttpStream()
-			);
-
-			JsonRpcResponse rpcResponse = mcpServer.handleIncomingRequest(tempSession, rpcRequest);
-
-			// 如果 session 有 SSE 流，发送响应
-			if (session.getStream() != null) {
-				session.getStream().send(MESSAGE_EVENT_TYPE, JsonUtil.toJsonString(rpcResponse));
-			}
-
-			// 返回 HTTP 响应
-			HttpResponse resp = new HttpResponse(request);
-			resp.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.APPLICATION_JSON);
-			resp.setBody(JsonUtil.toJsonString(rpcResponse).getBytes());
-			return resp;
-
-		} catch (Exception e) {
-			log.error("Error handling JSON-RPC request", e);
-			HttpResponse resp = new HttpResponse(request);
-			resp.setStatus(HttpResponseStatus.C500);
-			resp.setBody(("Internal error: " + e.getMessage()).getBytes());
-			return resp;
-		}
+	@Override
+	public McpTransport heartbeatInterval(long intervalMs) {
+		sessionManager.heartbeatInterval(intervalMs);
+		return this;
 	}
 
-	/**
-	 * 获取端点路径
-	 */
-	public String getEndpoint() {
-		return endpoint;
-	}
-
-	/**
-	 * 获取 session 数量
-	 */
-	public int getSessionCount() {
-		return sessions.size();
+	@Override
+	public long getHeartbeatInterval() {
+		return sessionManager.getHeartbeatInterval();
 	}
 
 	@Override
 	public void sendHeartbeat() {
-		for (StreamableSession session : sessions.values()) {
-			session.sendHeartbeat();
-		}
+		sessionManager.sendHeartbeat();
+	}
+
+	@Override
+	public void close() {
+		sessionManager.close();
 	}
 
 	/**
-	 * Streamable Session 管理
+	 * 处理 GET - 建立 SSE 长连接。
 	 */
-	public static class StreamableSession {
-		private final String sessionId;
-		private final HttpStream stream;
+	private HttpResponse handleGet(HttpRequest request) {
+		HttpResponse httpResponse = new HttpResponse(request);
+		HttpStream stream = httpResponse.startSse(request);
+		String sessionId = StrUtil.getNanoId();
+		sessionManager.createSession(sessionId, stream);
+		httpResponse.addHeader(SESSION_HEADER, sessionId);
+		log.debug("Streamable HTTP SSE session created: {}", sessionId);
+		return httpResponse;
+	}
 
-		public StreamableSession(String sessionId, HttpStream stream) {
-			this.sessionId = sessionId;
-			this.stream = stream;
+	/**
+	 * 处理 POST - JSON-RPC 请求。
+	 *
+	 * <p>两种模式：
+	 * <ul>
+	 *   <li>Stateless（不携带 sessionId 或 session 不存在）：直接返回 JSON-RPC 响应</li>
+	 *   <li>Stateful（携带 sessionId 且 SSE 流存在）：响应也写入 SSE 流，
+	 *       HTTP 响应返回 202 Accepted</li>
+	 * </ul>
+	 */
+	private HttpResponse handlePost(HttpRequest request) {
+		HttpResponse response = new HttpResponse(request);
+		String sessionId = request.getHeader(SESSION_HEADER);
+		if (StrUtil.isBlank(sessionId)) {
+			sessionId = request.getParam("sessionId");
+		}
+		McpServerSession session = StrUtil.isNotBlank(sessionId) ? sessionManager.get(sessionId) : null;
+
+		byte[] body = request.getBody();
+		if (body == null || body.length == 0) {
+			return writeJsonError(response, session, JsonRpcErrorCodes.INVALID_REQUEST, "Empty request body", null);
 		}
 
-		public String getSessionId() {
-			return sessionId;
+		JsonRpcMessage jsonRpcMessage;
+		try {
+			jsonRpcMessage = McpServer.deserializeJsonRpcMessage(body);
+		} catch (Exception e) {
+			log.warn("Failed to parse JSON-RPC message: {}", e.getMessage());
+			return writeJsonError(response, session,
+				JsonRpcErrorCodes.PARSE_ERROR, "Parse error: " + e.getMessage(), extractRequestId(body));
 		}
 
-		public HttpStream getStream() {
-			return stream;
+		if (jsonRpcMessage instanceof JsonRpcRequest) {
+			return doHandleRequest(response, session, (JsonRpcRequest) jsonRpcMessage);
 		}
-
-		public void sendHeartbeat() {
-			if (stream != null) {
-				stream.send(null, null, "heartbeat");
+		if (jsonRpcMessage instanceof JsonRpcNotification) {
+			if (session != null) {
+				handleNotification(session, (JsonRpcNotification) jsonRpcMessage);
+			} else {
+				log.debug("Discarding notification without session: {}", jsonRpcMessage);
 			}
+			return accepted(response, session);
 		}
+		log.debug("Discarding non-request message: {}", jsonRpcMessage);
+		return accepted(response, session);
+	}
+
+	private HttpResponse doHandleRequest(HttpResponse response, McpServerSession session, JsonRpcRequest request) {
+		JsonRpcResponse rpcResponse = mcpServer.handleIncomingRequest(session, request);
+		if (session != null && session.hasStream()) {
+			session.sendMessage(rpcResponse);
+			return accepted(response, session);
+		}
+		// stateless：直接把 JSON-RPC 响应写到 HTTP body
+		response.setStatus(HttpResponseStatus.C200);
+		response.setBody(JsonUtil.toJsonBytes(rpcResponse));
+		response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.APPLICATION_JSON);
+		return response;
 	}
 
 	/**
-	 * 虚拟 HttpStream，用于无 SSE 的请求处理
+	 * 处理 DELETE - 主动关闭 SSE 会话。
 	 */
-	private static class DummyHttpStream extends HttpStream {
-		public DummyHttpStream() {
-			super(null, HttpStreamType.SSE);
+	private HttpResponse handleDelete(HttpRequest request) {
+		HttpResponse response = new HttpResponse(request);
+		String sessionId = request.getHeader(SESSION_HEADER);
+		if (StrUtil.isBlank(sessionId)) {
+			sessionId = request.getParam("sessionId");
 		}
+		if (StrUtil.isBlank(sessionId)) {
+			response.setStatus(HttpResponseStatus.C400);
+			return response;
+		}
+		McpServerSession session = sessionManager.get(sessionId);
+		if (session != null) {
+			sessionManager.remove(sessionId);
+			response.setStatus(HttpResponseStatus.C200);
+		} else {
+			response.setStatus(HttpResponseStatus.C404);
+		}
+		return response;
+	}
 
-		@Override
-		public void send(byte[] data) {
-			// do nothing
+	private void handleNotification(McpServerSession session, JsonRpcNotification notification) {
+		String method = notification.getMethod();
+		if (StrUtil.isBlank(method)) {
+			return;
 		}
+		switch (method) {
+			case "notifications/initialized":
+				log.debug("Session {} initialized", session.getSessionId());
+				break;
+			case "notifications/cancelled":
+				log.debug("Session {} cancelled: {}", session.getSessionId(), notification.getParams());
+				break;
+			case "notifications/roots/list_changed":
+				log.debug("Session {} roots changed", session.getSessionId());
+				break;
+			default:
+				log.debug("Unhandled notification: {}", method);
+		}
+	}
 
-		@Override
-		public void send(Object data) {
-			// do nothing
+	private HttpResponse writeJsonError(HttpResponse response, McpServerSession session,
+	                                    int code, String message, Object id) {
+		JsonRpcResponse errorResp = buildError(id, code, message);
+		if (session != null && session.hasStream()) {
+			session.sendMessage(errorResp);
+			return accepted(response, session);
 		}
+		response.setStatus(HttpResponseStatus.C200);
+		response.setBody(JsonUtil.toJsonBytes(errorResp));
+		response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.APPLICATION_JSON);
+		return response;
+	}
 
-		@Override
-		public void send(String event, Object data) {
-			// do nothing
+	private static HttpResponse accepted(HttpResponse response, McpServerSession session) {
+		response.setStatus(HttpResponseStatus.C202);
+		if (session != null) {
+			response.addHeader(SESSION_HEADER, session.getSessionId());
 		}
+		return response;
+	}
 
-		@Override
-		public void close() {
-			// do nothing
+	private static Object extractRequestId(byte[] body) {
+		if (body == null || body.length == 0) {
+			return null;
 		}
+		try {
+			Map<String, Object> map = JsonUtil.readMap(body);
+			return map.get("id");
+		} catch (Exception ignore) {
+			return null;
+		}
+	}
+
+	private static JsonRpcResponse buildError(Object id, int code, String message) {
+		JsonRpcResponse resp = new JsonRpcResponse();
+		resp.setJsonrpc("2.0");
+		resp.setId(id);
+		JsonRpcError error = new JsonRpcError();
+		error.setCode(code);
+		error.setMessage(message);
+		resp.setError(error);
+		return resp;
+	}
+
+	public String getEndpoint() {
+		return endpoint;
+	}
+
+	public int getSessionCount() {
+		return sessionManager.size();
 	}
 }

@@ -13,6 +13,10 @@ public class McpServerCapabilities {
 	private McpPromptCapabilities prompts;
 	private McpResourceCapabilities resources;
 	private McpToolCapabilities tools;
+	/**
+	 * 补全能力（2025-06-18 协议引入）
+	 */
+	private McpCompletionCapabilities completions;
 
 	public Map<String, Object> getExperimental() {
 		return experimental;
@@ -54,6 +58,14 @@ public class McpServerCapabilities {
 		this.tools = tools;
 	}
 
+	public McpCompletionCapabilities getCompletions() {
+		return completions;
+	}
+
+	public void setCompletions(McpCompletionCapabilities completions) {
+		this.completions = completions;
+	}
+
 	@Override
 	public String toString() {
 		return "McpServerCapabilities{" +
@@ -62,6 +74,7 @@ public class McpServerCapabilities {
 			", prompts=" + prompts +
 			", resources=" + resources +
 			", tools=" + tools +
+			", completions=" + completions +
 			'}';
 	}
 }

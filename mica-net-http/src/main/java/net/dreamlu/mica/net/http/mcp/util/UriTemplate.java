@@ -98,10 +98,6 @@ public class UriTemplate {
 		while (index < template.length()) {
 			char ch = template.charAt(index);
 			if (ch == '{') {
-				if (literal.length() > 0) {
-					parts.add(new LiteralPart(literal.toString()));
-					literal.setLength(0);
-				}
 				int end = template.indexOf('}', index);
 				if (end == -1) {
 					throw new IllegalArgumentException("Unclosed template expression");
@@ -111,7 +107,23 @@ public class UriTemplate {
 					throw new IllegalArgumentException("Too many template expressions");
 				}
 				String expr = template.substring(index + 1, end);
-				parts.add(parseExpression(expr));
+				// If literal ends with an operator char (+.#/?&), treat it as RFC 6570 operator
+				// (e.g. `page#{var}` -> literal "page", operator "#", var "var")
+				String leadingOperator = "";
+				if (literal.length() > 0) {
+					char last = literal.charAt(literal.length() - 1);
+					if (last == '+' || last == '#' || last == '.'
+						|| last == '/' || last == ';' || last == '?'
+						|| last == '&') {
+						leadingOperator = String.valueOf(last);
+						literal.setLength(literal.length() - 1);
+					}
+				}
+				if (literal.length() > 0) {
+					parts.add(new LiteralPart(literal.toString()));
+					literal.setLength(0);
+				}
+				parts.add(parseExpression(leadingOperator + expr));
 				index = end + 1;
 			} else {
 				literal.append(ch);

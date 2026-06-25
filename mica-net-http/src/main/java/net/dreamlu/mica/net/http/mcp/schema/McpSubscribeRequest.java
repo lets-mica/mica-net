@@ -12,4 +12,19 @@ public class McpSubscribeRequest {
 	 * it is up to the server how to interpret it.
 	 */
 	private String uri;
+
+	public String getUri() {
+		return uri;
+	}
+
+	public void setUri(String uri) {
+		this.uri = uri;
+	}
+
+	@Override
+	public String toString() {
+		return "McpSubscribeRequest{" +
+			"uri='" + uri + '\'' +
+			'}';
+	}
 }

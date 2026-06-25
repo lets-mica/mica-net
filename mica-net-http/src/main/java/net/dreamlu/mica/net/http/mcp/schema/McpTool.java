@@ -5,7 +5,7 @@ package net.dreamlu.mica.net.http.mcp.schema;
  *
  * @author L.cm
  */
-public class McpTool {
+public class McpTool implements McpAnnotated {
 	/**
 	 * 名字
 	 */
@@ -18,6 +18,10 @@ public class McpTool {
 	 * 是否直接返回给调用者
 	 */
 	private Boolean returnDirect;
+	/**
+	 * 可选注解
+	 */
+	private McpAnnotations annotations;
 	private McpJsonSchema inputSchema;
 	private McpJsonSchema outputSchema;
 
@@ -45,6 +49,15 @@ public class McpTool {
 		this.returnDirect = returnDirect;
 	}
 
+	@Override
+	public McpAnnotations getAnnotations() {
+		return annotations;
+	}
+
+	public void setAnnotations(McpAnnotations annotations) {
+		this.annotations = annotations;
+	}
+
 	public McpJsonSchema getInputSchema() {
 		return inputSchema;
 	}
@@ -67,6 +80,7 @@ public class McpTool {
 			"name='" + name + '\'' +
 			", description='" + description + '\'' +
 			", returnDirect=" + returnDirect +
+			", annotations=" + annotations +
 			", inputSchema=" + inputSchema +
 			", outputSchema=" + outputSchema +
 			'}';

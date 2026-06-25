@@ -24,6 +24,31 @@ public class McpAnnotations {
 	 */
 	private Double priority;
 
+	/**
+	 * A human-readable title for the object, suitable for display in UIs.
+	 */
+	private String title;
+
+	/**
+	 * If true, indicates the tool/prompt reads but does not modify its environment.
+	 */
+	private Boolean readOnlyHint;
+
+	/**
+	 * If true, indicates the tool may perform destructive updates (only meaningful when {@link #readOnlyHint} != true).
+	 */
+	private Boolean destructiveHint;
+
+	/**
+	 * If true, indicates calling the tool repeatedly with the same arguments has no additional effect.
+	 */
+	private Boolean idempotentHint;
+
+	/**
+	 * If true, indicates the tool may interact with an "open world" of external entities.
+	 */
+	private Boolean openWorldHint;
+
 	public List<McpRole> getAudience() {
 		return audience;
 	}
@@ -40,11 +65,56 @@ public class McpAnnotations {
 		this.priority = priority;
 	}
 
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public Boolean getReadOnlyHint() {
+		return readOnlyHint;
+	}
+
+	public void setReadOnlyHint(Boolean readOnlyHint) {
+		this.readOnlyHint = readOnlyHint;
+	}
+
+	public Boolean getDestructiveHint() {
+		return destructiveHint;
+	}
+
+	public void setDestructiveHint(Boolean destructiveHint) {
+		this.destructiveHint = destructiveHint;
+	}
+
+	public Boolean getIdempotentHint() {
+		return idempotentHint;
+	}
+
+	public void setIdempotentHint(Boolean idempotentHint) {
+		this.idempotentHint = idempotentHint;
+	}
+
+	public Boolean getOpenWorldHint() {
+		return openWorldHint;
+	}
+
+	public void setOpenWorldHint(Boolean openWorldHint) {
+		this.openWorldHint = openWorldHint;
+	}
+
 	@Override
 	public String toString() {
 		return "McpAnnotations{" +
 			"audience=" + audience +
 			", priority=" + priority +
+			", title='" + title + '\'' +
+			", readOnlyHint=" + readOnlyHint +
+			", destructiveHint=" + destructiveHint +
+			", idempotentHint=" + idempotentHint +
+			", openWorldHint=" + openWorldHint +
 			'}';
 	}
 }

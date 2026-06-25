@@ -4,7 +4,7 @@ package net.dreamlu.mica.net.http.mcp.schema;
  * mcp 定义
  *
  * <p>
- * <a href="https://modelcontextprotocol.io/specification/2025-03-26">mcp 协议地址</a>
+ * <a href="https://modelcontextprotocol.io/specification/2025-06-18">mcp 协议地址</a>
  * </p>
  *
  * @author L.cm
@@ -12,9 +12,14 @@ package net.dreamlu.mica.net.http.mcp.schema;
 public interface McpSchema {
 
 	/**
-	 * 最后的协议版本
+	 * 当前实现支持的协议版本（最新稳定版）。
 	 */
-	String LATEST_PROTOCOL_VERSION = "2025-03-26";
+	String LATEST_PROTOCOL_VERSION = "2025-06-18";
+
+	/**
+	 * 旧版本兼容：2025-03-26 协议规范。
+	 */
+	String PROTOCOL_VERSION_2025_03_26 = "2025-03-26";
 
 	String JSONRPC_VERSION = "2.0";
 
@@ -68,5 +73,13 @@ public interface McpSchema {
 
 	// Sampling Methods
 	String METHOD_SAMPLING_CREATE_MESSAGE = "sampling/createMessage";
+
+	// Progress / Cancellation
+	String METHOD_NOTIFICATION_PROGRESS = "notifications/progress";
+
+	String METHOD_NOTIFICATION_CANCELLED = "notifications/cancelled";
+
+	// Completion Methods
+	String METHOD_COMPLETION_COMPLETE = "completion/complete";
 
 }

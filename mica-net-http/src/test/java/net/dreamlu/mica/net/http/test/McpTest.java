@@ -1,5 +1,6 @@
 package net.dreamlu.mica.net.http.test;
 
+import net.dreamlu.mica.net.http.common.router.HttpRouter;
 import net.dreamlu.mica.net.http.mcp.schema.*;
 import net.dreamlu.mica.net.http.mcp.server.McpServer;
 import net.dreamlu.mica.net.http.mcp.server.McpServerSession;
@@ -122,8 +123,9 @@ public class McpTest {
 			};
 		});
 
-		TestMcpHandler mcpHandler = new TestMcpHandler(mcpServer);
-		HttpServerStarter httpServerStarter = new HttpServerStarter(18083, mcpHandler);
+		HttpRouter router = new HttpRouter();
+		mcpServer.registerRoute(router);
+		HttpServerStarter httpServerStarter = new HttpServerStarter(18083, router);
 		httpServerStarter.start();
 	}
 

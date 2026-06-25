@@ -1,22 +1,27 @@
 package net.dreamlu.mica.net.http.mcp.server;
 
+import net.dreamlu.mica.net.http.jsonrpc.JsonRpcRequest;
+import net.dreamlu.mica.net.http.jsonrpc.JsonRpcResponse;
+
 /**
- * A handler for client requests.
+ * mcp 请求 handler
  *
- * @param <T> the type of the response that is expected as a result of handling the
- *            request.
+ * <p>每个 handler 负责处理一个 JSON-RPC method，并返回 JSON-RPC 响应。
+ * 可以抛出 {@link McpException} 表达可恢复的业务错误，
+ * 其他异常会被 {@link McpServer#handleIncomingRequest} 统一捕获并转换为 INTERNAL_ERROR。</p>
+ *
+ * @author L.cm
  */
 @FunctionalInterface
-public interface McpRequestHandler<T> {
+public interface McpRequestHandler {
 
 	/**
-	 * Handles a request from the client.
+	 * 处理一个 JSON-RPC 请求。
 	 *
-	 * @param session the exchange associated with the client that allows calling
-	 *                back to the connected client or inspecting its capabilities.
-	 * @param params  the parameters of the request.
-	 * @return value that will emit the response to the request.
+	 * @param session 当前 session
+	 * @param request JSON-RPC 请求
+	 * @return JSON-RPC 响应（成功或失败）
 	 */
-	T handle(McpServerSession session, Object params);
+	JsonRpcResponse handle(McpServerSession session, JsonRpcRequest request);
 
 }
