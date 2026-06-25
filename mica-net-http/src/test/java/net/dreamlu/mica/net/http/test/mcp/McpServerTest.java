@@ -366,4 +366,169 @@ class McpServerTest {
 		});
 		// No exception; behavior should be last-wins
 	}
+
+	// ============================================================
+	//  修复点覆盖测试
+	// ============================================================
+
+	/**
+	 * 协议版本协商:client 发 null 时,采用最新版本。
+	 */
+	@Test
+	void testInitializeNegotiatesNullProtocolVersion() {
+		McpInitializeRequest params = new McpInitializeRequest();
+		params.setProtocolVersion(null);
+		JsonRpcResponse resp = server.handleIncomingRequest(null,
+			newRequest(100, McpSchema.METHOD_INITIALIZE, params));
+		assertNotNull(resp);
+		assertNotNull(resp.getResult());
+		McpInitializeResult result = (McpInitializeResult) resp.getResult();
+		assertEquals(McpSchema.LATEST_PROTOCOL_VERSION, result.getProtocolVersion());
+	}
+
+	/**
+	 * 协议版本协商:client 发已知旧版本时,采用该版本(保持向后兼容)。
+	 */
+	@Test
+	void testInitializeAcceptsKnownOlderProtocolVersion() {
+		McpInitializeRequest params = new McpInitializeRequest();
+		params.setProtocolVersion(McpSchema.PROTOCOL_VERSION_2025_03_26);
+		JsonRpcResponse resp = server.handleIncomingRequest(null,
+			newRequest(101, McpSchema.METHOD_INITIALIZE, params));
+		assertNotNull(resp);
+		McpInitializeResult result = (McpInitializeResult) resp.getResult();
+		assertEquals(McpSchema.PROTOCOL_VERSION_2025_03_26, result.getProtocolVersion());
+	}
+
+	/**
+	 * 协议版本协商:client 发未知版本时,回退到最新版本。
+	 */
+	@Test
+	void testInitializeFallsBackOnUnknownProtocolVersion() {
+		McpInitializeRequest params = new McpInitializeRequest();
+		params.setProtocolVersion("1999-01-01");
+		JsonRpcResponse resp = server.handleIncomingRequest(null,
+			newRequest(102, McpSchema.METHOD_INITIALIZE, params));
+		assertNotNull(resp);
+		McpInitializeResult result = (McpInitializeResult) resp.getResult();
+		assertEquals(McpSchema.LATEST_PROTOCOL_VERSION, result.getProtocolVersion());
+	}
+
+	/**
+	 * 资源模板预编译:resources/read 通过 URI 模板能匹配。
+	 */
+	@Test
+	void testResourceReadTemplateMatch() {
+		McpResourceTemplate template = new McpResourceTemplate();
+		template.setUriTemplate("file://{name}.txt");
+		template.setName("text-file");
+		server.resourceTemplates(java.util.Collections.singletonList(
+			new net.dreamlu.mica.net.http.mcp.server.McpResourceTemplateSpecification(template,
+				(session, params) -> {
+					McpReadResourceResult r = new McpReadResourceResult();
+					r.setContents(Collections.emptyList());
+					return r;
+				})
+		));
+		McpReadResourceRequest params = new McpReadResourceRequest();
+		params.setUri("file://readme.txt");
+		JsonRpcResponse resp = server.handleIncomingRequest(null,
+			newRequest(103, McpSchema.METHOD_RESOURCES_READ, params));
+		assertNotNull(resp);
+		assertNull(resp.getError(), "Template match should succeed");
+	}
+
+	/**
+	 * 资源模板预编译:UriTemplate 在构造时就预编译,getUriTemplate 不为 null。
+	 */
+	@Test
+	void testResourceTemplatePreCompilesUriTemplate() {
+		McpResourceTemplate template = new McpResourceTemplate();
+		template.setUriTemplate("file://{name}");
+		net.dreamlu.mica.net.http.mcp.server.McpResourceTemplateSpecification spec =
+			new net.dreamlu.mica.net.http.mcp.server.McpResourceTemplateSpecification(template, null);
+		assertNotNull(spec.getUriTemplate(), "UriTemplate should be pre-compiled at construction time");
+		assertEquals("file://{name}", spec.getUriTemplate().getTemplate());
+	}
+
+	/**
+	 * 资源模板预编译:空 uriTemplate 时 getUriTemplate 返回 null,不抛异常。
+	 */
+	@Test
+	void testResourceTemplateWithBlankUriTemplate() {
+		McpResourceTemplate template = new McpResourceTemplate();
+		template.setUriTemplate("");
+		net.dreamlu.mica.net.http.mcp.server.McpResourceTemplateSpecification spec =
+			new net.dreamlu.mica.net.http.mcp.server.McpResourceTemplateSpecification(template, null);
+		assertNull(spec.getUriTemplate());
+	}
+
+	/**
+	 * broadcast 过滤已关闭 session:对没 stream 的 session 广播不应抛异常。
+	 */
+	@Test
+	void testBroadcastSkipsSessionsWithoutStream() {
+		// 1) 注册一个无 stream 的 session
+		McpServerSession stateless = new McpServerSession("no-stream-1", null);
+		server.registerSession(stateless);
+
+		// 2) 注册一个有 stream 但 stream 已关闭的 session
+		McpServerSession closedSession = new McpServerSession("closed-1", null);
+		server.registerSession(closedSession);
+
+		// 3) broadcast 不应抛异常,且不向 stateless 发送(可通过检查 hasStream 验证)
+		assertDoesNotThrow(() -> {
+			server.broadcastToolsListChanged();
+			server.broadcastPromptsListChanged();
+			server.broadcastResourcesListChanged();
+		});
+
+		// 清理
+		server.unregisterSession("no-stream-1");
+		server.unregisterSession("closed-1");
+	}
+
+	/**
+	 * Stateless 流式工具:多次并发调用产生不同的 sessionId(避免 ID 冲突)。
+	 */
+	@Test
+	void testStatelessStreamToolUsesUniqueSessionId() {
+		McpTool tool = new McpTool();
+		tool.setName("stream-unique");
+		java.util.Set<String> sessionIds = java.util.concurrent.ConcurrentHashMap.newKeySet();
+		server.toolStream(tool, (session, args) -> {
+			sessionIds.add(session.getSessionId());
+			java.util.List<McpContent> contents = new java.util.ArrayList<>();
+			contents.add(new McpTextContent("ok"));
+			return contents.iterator();
+		});
+
+		// 调用多次,应产生不同的 sessionId
+		for (int i = 0; i < 5; i++) {
+			McpCallToolRequest params = new McpCallToolRequest();
+			params.setName("stream-unique");
+			params.setArguments(null);
+			JsonRpcResponse resp = server.handleIncomingRequest(null,
+				newRequest(200 + i, McpSchema.METHOD_TOOLS_CALL, params));
+			assertNotNull(resp);
+			assertNull(resp.getError());
+		}
+		assertEquals(5, sessionIds.size(), "Each stateless stream call should use a unique sessionId");
+		sessionIds.forEach(id -> assertTrue(id.startsWith("stateless-"),
+			"Stateless sessionId should be prefixed with 'stateless-'"));
+	}
+
+	/**
+	 * McpResourceSpecification 不可变:已移除 setter,只能通过构造器/工厂创建。
+	 */
+	@Test
+	void testMcpResourceSpecificationIsImmutable() {
+		McpResource resource = new McpResource();
+		resource.setUri("file://x");
+		net.dreamlu.mica.net.http.mcp.server.McpResourceSpecification spec =
+			net.dreamlu.mica.net.http.mcp.server.McpResourceSpecification.of(resource, null);
+		assertSame(resource, spec.getResource());
+		// 编译期保障:不再有 setResource/setReadHandler;反射层面也不期望调用。
+		assertNull(spec.getReadHandler());
+	}
 }

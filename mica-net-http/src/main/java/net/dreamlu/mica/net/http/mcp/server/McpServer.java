@@ -139,10 +139,29 @@ public class McpServer {
 	private JsonRpcResponse handleInitialize(McpServerSession session, JsonRpcRequest request) {
 		McpInitializeRequest params = JsonUtil.convertValue(request.getParams(), McpInitializeRequest.class);
 		McpInitializeResult result = new McpInitializeResult();
-		result.setProtocolVersion(params == null ? McpSchema.LATEST_PROTOCOL_VERSION : params.getProtocolVersion());
+		// 协议版本协商:client 发的版本在已知集合内则采用,否则回退到服务器支持的最新版本。
+		result.setProtocolVersion(negotiateProtocolVersion(params == null ? null : params.getProtocolVersion()));
 		result.setCapabilities(serverCapabilities);
 		result.setServerInfo(serverInfo);
 		return successResponse(request.getId(), result);
+	}
+
+	/**
+	 * 协议版本协商:仅允许 MCP 规范中已知的版本,未知版本回退为服务器当前最新协议版本。
+	 *
+	 * @param clientVersion 客户端请求的版本，可能为 null
+	 * @return 最终采用的协议版本
+	 */
+	private static String negotiateProtocolVersion(String clientVersion) {
+		if (clientVersion == null || clientVersion.isEmpty()) {
+			return McpSchema.LATEST_PROTOCOL_VERSION;
+		}
+		if (McpSchema.LATEST_PROTOCOL_VERSION.equals(clientVersion)
+			|| McpSchema.PROTOCOL_VERSION_2025_03_26.equals(clientVersion)) {
+			return clientVersion;
+		}
+		log.warn("Unknown MCP protocol version from client: {}, fallback to {}", clientVersion, McpSchema.LATEST_PROTOCOL_VERSION);
+		return McpSchema.LATEST_PROTOCOL_VERSION;
 	}
 
 	private JsonRpcResponse handlePing(McpServerSession session, JsonRpcRequest request) {
@@ -173,7 +192,9 @@ public class McpServer {
 		McpCallToolResult result;
 		try {
 			if (spec.isStream()) {
-				McpServerSession streamSession = session != null ? session : new McpServerSession("stateless", null);
+				McpServerSession streamSession = session != null
+					? session
+					: new McpServerSession("stateless-" + StrUtil.getNanoId(), null);
 				result = streamSession.callToolStream(spec, arguments,
 					Boolean.TRUE.equals(spec.getTool().getReturnDirect()));
 			} else {
@@ -218,33 +239,29 @@ public class McpServer {
 		}
 		// 2) template match
 		for (McpResourceTemplateSpecification template : resourceTemplates.values()) {
-			String templateUri = template.getResource().getUriTemplate();
-			if (StrUtil.isBlank(templateUri) || template.getReadHandler() == null) {
+			if (template.getReadHandler() == null) {
 				continue;
 			}
-			try {
-				if (new UriTemplate(templateUri).matchesTemplate(uri)) {
-					McpReadResourceResult result = template.getReadHandler().apply(session, params);
-					return successResponse(request.getId(), result);
-				}
-			} catch (Exception e) {
-				log.warn("Invalid resource template uri: {}", templateUri, e);
+			UriTemplate uriTemplate = template.getUriTemplate();
+			if (uriTemplate == null) {
+				continue;
+			}
+			if (uriTemplate.matchesTemplate(uri)) {
+				McpReadResourceResult result = template.getReadHandler().apply(session, params);
+				return successResponse(request.getId(), result);
 			}
 		}
 		throw new McpException(McpErrorCodes.RESOURCE_NOT_FOUND, "Resource not found: " + uri);
 	}
 
+	/**
+	 * 查找精确匹配 uri 的资源。
+	 *
+	 * <p>resources map 的 key 始终是 {@link McpResource#getUri()},直接通过 map 查询即可,
+	 * 不需要额外的循环扫描。</p>
+	 */
 	private McpResourceSpecification findResourceByUri(String uri) {
-		McpResourceSpecification spec = resources.get(uri);
-		if (spec != null) {
-			return spec;
-		}
-		for (McpResourceSpecification r : resources.values()) {
-			if (uri.equals(r.getResource().getUri())) {
-				return r;
-			}
-		}
-		return null;
+		return resources.get(uri);
 	}
 
 	private JsonRpcResponse handleResourcesTemplatesList(McpServerSession session, JsonRpcRequest request) {
@@ -474,32 +491,38 @@ public class McpServer {
 	}
 
 	/**
-	 * 广播 {@code notifications/tools/list_changed} 给所有 session。
+	 * 广播 {@code notifications/tools/list_changed} 给所有拥有可用 SSE 流的 session。
 	 */
 	public void broadcastToolsListChanged() {
 		Map<String, Object> params = Collections.emptyMap();
 		for (McpServerSession session : sessionRegistry.values()) {
-			session.sendNotification("notifications/tools/list_changed", params);
+			if (session.hasStream()) {
+				session.sendNotification("notifications/tools/list_changed", params);
+			}
 		}
 	}
 
 	/**
-	 * 广播 {@code notifications/prompts/list_changed} 给所有 session。
+	 * 广播 {@code notifications/prompts/list_changed} 给所有拥有可用 SSE 流的 session。
 	 */
 	public void broadcastPromptsListChanged() {
 		Map<String, Object> params = Collections.emptyMap();
 		for (McpServerSession session : sessionRegistry.values()) {
-			session.sendNotification("notifications/prompts/list_changed", params);
+			if (session.hasStream()) {
+				session.sendNotification("notifications/prompts/list_changed", params);
+			}
 		}
 	}
 
 	/**
-	 * 广播 {@code notifications/resources/list_changed} 给所有 session。
+	 * 广播 {@code notifications/resources/list_changed} 给所有拥有可用 SSE 流的 session。
 	 */
 	public void broadcastResourcesListChanged() {
 		Map<String, Object> params = Collections.emptyMap();
 		for (McpServerSession session : sessionRegistry.values()) {
-			session.sendNotification("notifications/resources/list_changed", params);
+			if (session.hasStream()) {
+				session.sendNotification("notifications/resources/list_changed", params);
+			}
 		}
 	}
 

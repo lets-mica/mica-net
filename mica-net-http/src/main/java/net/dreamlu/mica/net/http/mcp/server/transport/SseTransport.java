@@ -1,5 +1,7 @@
 package net.dreamlu.mica.net.http.mcp.server.transport;
 
+import net.dreamlu.mica.net.http.common.HeaderName;
+import net.dreamlu.mica.net.http.common.HeaderValue;
 import net.dreamlu.mica.net.http.common.HttpRequest;
 import net.dreamlu.mica.net.http.common.HttpResponse;
 import net.dreamlu.mica.net.http.common.HttpResponseStatus;
@@ -164,13 +166,23 @@ public class SseTransport implements McpTransport {
 		}
 	}
 
+	/**
+	 * 写入 JSON-RPC 错误响应。
+	 *
+	 * <p>当 session 拥有可用 SSE 流时,错误同时通过 SSE 消息事件下发(便于
+	 * 已建立长连接的 client 看到错误);同时把错误写入 HTTP response body,
+	 * 保证未保持 SSE 流的 client 也能拿到标准的 JSON-RPC error 响应。</p>
+	 */
 	private HttpResponse writeJsonRpcError(HttpResponse response, HttpRequest request, McpServerSession session,
 	                                      int code, String message) {
 		Object id = extractRequestId(request);
 		JsonRpcResponse errorResp = buildError(id, code, message);
-		if (session != null) {
+		if (session != null && session.hasStream()) {
 			session.sendMessage(errorResp);
 		}
+		response.setStatus(HttpResponseStatus.C200);
+		response.setBody(JsonUtil.toJsonBytes(errorResp));
+		response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.APPLICATION_JSON);
 		return response;
 	}
 
