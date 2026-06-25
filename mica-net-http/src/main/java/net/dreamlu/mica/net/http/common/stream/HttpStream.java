@@ -16,6 +16,7 @@
 
 package net.dreamlu.mica.net.http.common.stream;
 
+import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.Tio;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.http.common.HttpRequest;
@@ -181,7 +182,11 @@ public class HttpStream {
 	 * Check if stream is closed
 	 */
 	public boolean isClosed() {
-		return closed;
+		if (closed || request.isClosed()) {
+			return true;
+		}
+		ChannelContext context = request.getChannelContext();
+		return context == null || context.isClosed() || context.isRemoved();
 	}
 
 	/**

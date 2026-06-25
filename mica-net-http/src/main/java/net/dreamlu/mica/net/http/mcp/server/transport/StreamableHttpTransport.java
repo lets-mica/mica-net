@@ -75,28 +75,6 @@ public class StreamableHttpTransport implements McpTransport {
 	}
 
 	@Override
-	public McpTransport sessionTimeout(long timeoutMs) {
-		sessionManager.sessionTimeout(timeoutMs);
-		return this;
-	}
-
-	@Override
-	public long getSessionTimeout() {
-		return sessionManager.getSessionTimeout();
-	}
-
-	@Override
-	public McpTransport heartbeatInterval(long intervalMs) {
-		sessionManager.heartbeatInterval(intervalMs);
-		return this;
-	}
-
-	@Override
-	public long getHeartbeatInterval() {
-		return sessionManager.getHeartbeatInterval();
-	}
-
-	@Override
 	public void sendHeartbeat() {
 		sessionManager.sendHeartbeat();
 	}

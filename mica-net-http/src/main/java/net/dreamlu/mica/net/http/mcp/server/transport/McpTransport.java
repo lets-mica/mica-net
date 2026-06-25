@@ -45,36 +45,6 @@ public interface McpTransport {
 	void sendHeartbeat();
 
 	/**
-	 * 配置会话空闲超时时间。超过该时间没有访问的 session 将被自动清理。
-	 *
-	 * @param timeoutMs 超时毫秒数，&lt;=0 表示不清理
-	 * @return this
-	 */
-	McpTransport sessionTimeout(long timeoutMs);
-
-	/**
-	 * 获取会话空闲超时时间（毫秒）。
-	 *
-	 * @return 超时毫秒数
-	 */
-	long getSessionTimeout();
-
-	/**
-	 * 配置 SSE 心跳间隔。
-	 *
-	 * @param intervalMs 心跳间隔毫秒数，&lt;=0 表示关闭自动心跳
-	 * @return this
-	 */
-	McpTransport heartbeatInterval(long intervalMs);
-
-	/**
-	 * 获取 SSE 心跳间隔。
-	 *
-	 * @return 心跳间隔毫秒数
-	 */
-	long getHeartbeatInterval();
-
-	/**
 	 * 关闭 transport 及其持有的所有资源（线程、session 等）。
 	 */
 	void close();

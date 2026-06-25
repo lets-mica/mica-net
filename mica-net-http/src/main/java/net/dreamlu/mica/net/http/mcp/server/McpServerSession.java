@@ -201,6 +201,14 @@ public class McpServerSession {
 	}
 
 	/**
+	 * 判断是否关闭
+	 * @return 是否关闭
+	 */
+	public boolean isClosed() {
+		return httpStream == null || httpStream.isClosed();
+	}
+
+	/**
 	 * 关闭底层流（如有）。
 	 */
 	public void close() {
