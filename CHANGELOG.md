@@ -2,6 +2,12 @@
 
 ## 发行版本
 
+### v2.0.7 - 2026-06-26
+- feat(mcp): 添加多项 MCP 协议扩展及相关功能实现，支持完成能力、采样、根、取消通知等新增协议特性
+- fix(udp): 修复 UDP 丢包问题，支持循环读取和 socket 缓冲区配置
+- fix(udp): 优化 UDP 客户端和服务端的 worker pool 关闭逻辑及服务端信道管理，捕获 send 异常并记录丢包计数
+- refactor(core): 移除UDP相关支持及接口，简化TCP处理逻辑，新增 TcpHandler 接口增强类型安全性
+
 ### v2.0.6 - 2026-06-24
 - feat(net-core): CloseCode 添加 `KICK_EACH_OTHER` 处理互踢错误码
 - fix(core): 修复重连后 TcpSendRunnable.writing 未复位导致 MQTT CONNECT 无法发送的问题 (gitee mica-mqtt #IJVOZ7)
