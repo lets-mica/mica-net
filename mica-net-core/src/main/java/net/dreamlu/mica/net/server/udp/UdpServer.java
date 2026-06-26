@@ -21,9 +21,12 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -47,6 +50,7 @@ public class UdpServer implements Closeable, Runnable {
 	private final InetSocketAddress bindAddress;
 	private final ExecutorService workerPool;
 	private final boolean ownsWorkerPool;
+	private final ConcurrentMap<InetSocketAddress, UdpServerChannel> peerChannels = new ConcurrentHashMap<>();
 	private DatagramChannel channel;
 	private Selector selector;
 	private volatile boolean running;
@@ -148,7 +152,9 @@ public class UdpServer implements Closeable, Runnable {
 			final ByteBuffer copy = ByteBuffer.allocate(buf.remaining());
 			copy.put(buf);
 			copy.flip();
-			final UdpChannel session = new UdpServerChannel(config, handler, ch, remoteAddr);
+			// 同一对端复用同一个 UdpServerChannel 实例，避免每包分配 + 让 handler 维护 per-peer 状态。
+			final UdpServerChannel session = peerChannels.computeIfAbsent(remoteAddr,
+				addr -> new UdpServerChannel(config, handler, ch, addr));
 			workerPool.execute(() -> {
 				try {
 					dispatch(session, copy);
@@ -202,8 +208,19 @@ public class UdpServer implements Closeable, Runnable {
 				log.error(e.getMessage(), e);
 			}
 		}
+		// 优雅关闭 worker pool：先等待 in-flight 任务完成，超时则强制 shutdownNow。
+		// 自有 pool 才管生命周期，用户注入的 pool 由用户自己管。
 		if (ownsWorkerPool && workerPool != null) {
 			workerPool.shutdown();
+			try {
+				if (!workerPool.awaitTermination(5, TimeUnit.SECONDS)) {
+					log.warn("udp server worker pool did not terminate in 5s, forcing shutdownNow");
+					workerPool.shutdownNow();
+				}
+			} catch (InterruptedException e) {
+				workerPool.shutdownNow();
+				Thread.currentThread().interrupt();
+			}
 		}
 		log.info("NIO UDP server stopped on port {}", config.getPort());
 	}

@@ -248,8 +248,19 @@ public class UdpClient implements Closeable, Runnable {
 				log.error(e.getMessage(), e);
 			}
 		}
+		// 优雅关闭 worker pool：先等待 in-flight 任务完成，超时则强制 shutdownNow。
+		// 自有 pool 才管生命周期，用户注入的 pool 由用户自己管。
 		if (ownsWorkerPool && workerPool != null) {
 			workerPool.shutdown();
+			try {
+				if (!workerPool.awaitTermination(5, TimeUnit.SECONDS)) {
+					log.warn("udp client worker pool did not terminate in 5s, forcing shutdownNow");
+					workerPool.shutdownNow();
+				}
+			} catch (InterruptedException e) {
+				workerPool.shutdownNow();
+				Thread.currentThread().interrupt();
+			}
 		}
 		if (sendThread != null) {
 			sendThread.interrupt();
