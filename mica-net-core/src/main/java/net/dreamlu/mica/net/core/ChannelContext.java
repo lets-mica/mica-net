@@ -1,5 +1,6 @@
 package net.dreamlu.mica.net.core;
 
+import net.dreamlu.mica.net.core.intf.NetChannel;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.Packet.Meta;
 import net.dreamlu.mica.net.core.intf.PacketListener;
@@ -25,7 +26,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author tanyaowu
  * 2017年10月19日 上午9:39:46
  */
-public abstract class ChannelContext extends MapPropSupport {
+public abstract class ChannelContext extends MapPropSupport implements NetChannel {
 	public static final String UNKNOWN_ADDRESS_IP = "$UNKNOWN";
 	public static final AtomicInteger UNKNOWN_ADDRESS_PORT_SEQ = new AtomicInteger();
 	private static final Logger log = LoggerFactory.getLogger(ChannelContext.class);
@@ -484,6 +485,7 @@ public abstract class ChannelContext extends MapPropSupport {
 	 * @param packet Packet
 	 * @return 发送结果
 	 */
+	@Override
 	public boolean send(Packet packet) {
 		return Tio.send(this, packet);
 	}
@@ -496,6 +498,11 @@ public abstract class ChannelContext extends MapPropSupport {
 	 */
 	public boolean bSend(Packet packet) {
 		return Tio.bSend(this, packet);
+	}
+
+	@Override
+	public void close(String remark) {
+		Tio.close(this, remark);
 	}
 
 	/**

@@ -195,7 +195,6 @@
 */
 package net.dreamlu.mica.net.core.intf;
 
-import net.dreamlu.mica.net.client.udp.UdpClientChannel;
 import net.dreamlu.mica.net.core.udp.UdpConfig;
 
 import java.net.InetSocketAddress;
@@ -209,7 +208,8 @@ import java.net.InetSocketAddress;
  *
  * @author L.cm
  */
-public interface UdpChannel {
+public interface UdpChannel extends NetChannel {
+
 	/**
 	 * 获取配置
 	 *
@@ -224,11 +224,4 @@ public interface UdpChannel {
 	 */
 	InetSocketAddress remoteAddress();
 
-	/**
-	 * 回写业务包到对端，由具体实现负责编码 / 入队 / 落 socket。
-	 *
-	 * @param packet 业务包
-	 * @return 是否成功
-	 */
-	boolean send(Packet packet);
 }
