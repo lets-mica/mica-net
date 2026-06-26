@@ -12,6 +12,7 @@ import net.dreamlu.mica.net.http.jsonrpc.JsonRpcMessage;
 import net.dreamlu.mica.net.http.jsonrpc.JsonRpcNotification;
 import net.dreamlu.mica.net.http.jsonrpc.JsonRpcRequest;
 import net.dreamlu.mica.net.http.jsonrpc.JsonRpcResponse;
+import net.dreamlu.mica.net.http.mcp.schema.McpSchema;
 import net.dreamlu.mica.net.http.mcp.server.McpServer;
 import net.dreamlu.mica.net.http.mcp.server.McpServerSession;
 import net.dreamlu.mica.net.utils.hutool.StrUtil;
@@ -152,13 +153,13 @@ public class SseTransport implements McpTransport {
 			return;
 		}
 		switch (method) {
-			case "notifications/initialized":
+			case McpSchema.METHOD_NOTIFICATION_INITIALIZED:
 				log.debug("Session {} initialized", session.getSessionId());
 				break;
-			case "notifications/cancelled":
+			case McpSchema.METHOD_NOTIFICATION_CANCELLED:
 				log.debug("Session {} cancelled: {}", session.getSessionId(), notification.getParams());
 				break;
-			case "notifications/roots/list_changed":
+			case McpSchema.METHOD_NOTIFICATION_ROOTS_LIST_CHANGED:
 				log.debug("Session {} roots changed", session.getSessionId());
 				break;
 			default:
