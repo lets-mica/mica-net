@@ -195,13 +195,13 @@ package net.dreamlu.mica.net.client.intf;
 
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.intf.Packet;
-import net.dreamlu.mica.net.core.intf.TioHandler;
+import net.dreamlu.mica.net.core.intf.TcpHandler;
 
 /**
  * @author tanyaowu
  * 2017年4月1日 上午9:14:24
  */
-public interface TioClientHandler extends TioHandler {
+public interface TioClientHandler extends TcpHandler {
 
 	/**
 	 * 创建心跳包

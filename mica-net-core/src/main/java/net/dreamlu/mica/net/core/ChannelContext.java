@@ -128,8 +128,6 @@ public abstract class ChannelContext extends MapPropSupport {
 	 */
 	public abstract void setUpSSL();
 
-	public abstract boolean isUdp();
-
 	/**
 	 * 判断是否 ssl
 	 *

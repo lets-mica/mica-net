@@ -5,140 +5,71 @@
 */
 package net.dreamlu.mica.net.client.udp;
 
-import net.dreamlu.mica.net.client.TioClientConfig;
-import net.dreamlu.mica.net.client.intf.TioClientHandler;
-import net.dreamlu.mica.net.client.intf.TioClientListener;
-import net.dreamlu.mica.net.core.Node;
-import net.dreamlu.mica.net.utils.thread.pool.SynThreadPoolExecutor;
-
-import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
-import java.nio.channels.DatagramChannel;
-import java.util.concurrent.ExecutorService;
+import net.dreamlu.mica.net.core.udp.UdpConfig;
 
 /**
- * UDP Client Configuration
- * This is a specialized configuration for UDP clients that extends TioClientConfig
- * but excludes TCP-specific features like reconnection and connection completion handlers.
+ * UDP 客户端配置。
  * <p>
- * Note: UDP is connectionless, so features like reconnection and heartbeat timeout
- * are not applicable and not exposed in this configuration.
+ * 用法：
+ * <pre>{@code
+ * UdpClientConfig cfg = UdpClientConfig.builder()
+ *     .host("127.0.0.1")
+ *     .port(9999)
+ *     .readBufferSize(4096)
+ *     .build();
+ * UdpClient client = new UdpClient(cfg, handler);
+ * }</pre>
  *
  * @author L.cm
  */
-public class UdpClientConfig extends TioClientConfig {
-	private UdpClient udpClient;
-	private int socketReceiveBufferSize = 0;
-	private int socketSendBufferSize = 0;
+public final class UdpClientConfig extends UdpConfig {
+	private final String host;
+	private final int port;
 
-	/**
-	 * Create UDP client configuration without reconnection support
-	 * UDP is connectionless, so reconnection doesn't make sense
-	 *
-	 * @param tioHandler  TioClientHandler
-	 * @param tioListener TioClientListener
-	 */
-	public UdpClientConfig(TioClientHandler tioHandler, TioClientListener tioListener) {
-		super(tioHandler, tioListener, null);
+	private UdpClientConfig(Builder builder) {
+		super(builder);
+		this.host = builder.host;
+		this.port = builder.port;
 	}
 
-	/**
-	 * Create UDP client configuration with custom executors
-	 *
-	 * @param tioHandler    TioClientHandler
-	 * @param tioListener   TioClientListener
-	 * @param tioExecutor   SynThreadPoolExecutor
-	 * @param groupExecutor ExecutorService
-	 */
-	public UdpClientConfig(TioClientHandler tioHandler, TioClientListener tioListener,
-	                       SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
-		super(tioHandler, tioListener, null, tioExecutor, groupExecutor);
+	public String getHost() {
+		return host;
 	}
 
-	/**
-	 * UDP connect
-	 *
-	 * @param serverNode serverNode
-	 * @param timeout    timeout
-	 * @return UdpClientChannelContext
-	 * @throws Exception Exception
-	 */
-	public UdpClientChannelContext connect(Node serverNode, Integer timeout) throws Exception {
-		return connect(serverNode, null, null, timeout);
+	public int getPort() {
+		return port;
 	}
 
-	/**
-	 * UDP connect
-	 *
-	 * @param serverNode serverNode
-	 * @param bindIp     bindIp
-	 * @param bindPort   bindPort
-	 * @param timeout    timeout
-	 * @return UdpClientChannelContext
-	 * @throws Exception Exception
-	 */
-	public synchronized UdpClientChannelContext connect(Node serverNode, String bindIp, Integer bindPort, Integer timeout) throws Exception {
-		if (udpClient == null) {
-			udpClient = new UdpClient();
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	public static final class Builder extends UdpConfig.Builder<Builder> {
+		private String host = "127.0.0.1";
+		private int port;
+
+		private Builder() {
 		}
 
-		DatagramChannel datagramChannel = DatagramChannel.open();
-		datagramChannel.configureBlocking(false);
-		int receiveBufferSize = getSocketReceiveBufferSize();
-		if (receiveBufferSize > 0) {
-			datagramChannel.setOption(StandardSocketOptions.SO_RCVBUF, receiveBufferSize);
-		}
-		int sendBufferSize = getSocketSendBufferSize();
-		if (sendBufferSize > 0) {
-			datagramChannel.setOption(StandardSocketOptions.SO_SNDBUF, sendBufferSize);
+		public Builder host(String host) {
+			this.host = host;
+			return this;
 		}
 
-		InetSocketAddress bindAdder;
-		if (bindPort != null) {
-			bindAdder = (bindIp == null) ? new InetSocketAddress(bindPort) : new InetSocketAddress(bindIp, bindPort);
-		} else {
-			bindAdder = new InetSocketAddress(0);
+		public Builder port(int port) {
+			this.port = port;
+			return this;
 		}
-		datagramChannel.bind(bindAdder);
 
-		InetSocketAddress remote = new InetSocketAddress(serverNode.getIp(), serverNode.getPort());
-		datagramChannel.connect(remote);
-
-		UdpClientChannelContext context = new UdpClientChannelContext(this, datagramChannel);
-		context.setServerNode(serverNode);
-
-		udpClient.register(datagramChannel, context);
-		connecteds.add(context);
-		return context;
-	}
-
-	public int getSocketReceiveBufferSize() {
-		return socketReceiveBufferSize;
-	}
-
-	public void setSocketReceiveBufferSize(int socketReceiveBufferSize) {
-		this.socketReceiveBufferSize = socketReceiveBufferSize;
-	}
-
-	public int getSocketSendBufferSize() {
-		return socketSendBufferSize;
-	}
-
-	public void setSocketSendBufferSize(int socketSendBufferSize) {
-		this.socketSendBufferSize = socketSendBufferSize;
-	}
-
-	/**
-	 * Stop the UDP client
-	 */
-	public void stopUdpClient() {
-		if (udpClient != null) {
-			udpClient.stop();
+		@Override
+		public UdpClientConfig build() {
+			if (host == null || host.isEmpty()) {
+				throw new IllegalStateException("host must not be empty");
+			}
+			if (port <= 0 || port > 65535) {
+				throw new IllegalStateException("port must be in (0, 65535]");
+			}
+			return new UdpClientConfig(this);
 		}
-	}
-
-	@Override
-	public String toString() {
-		return "UdpClientConfig [name=" + name + "]";
 	}
 }

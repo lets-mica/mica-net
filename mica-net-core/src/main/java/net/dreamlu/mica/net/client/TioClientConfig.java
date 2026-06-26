@@ -286,7 +286,7 @@ public class TioClientConfig extends TioConfig {
 	 * @see TioConfig#getTioHandler()
 	 */
 	@Override
-	public TioHandler getTioHandler() {
+	public TioClientHandler getTioHandler() {
 		return this.getTioClientHandler();
 	}
 

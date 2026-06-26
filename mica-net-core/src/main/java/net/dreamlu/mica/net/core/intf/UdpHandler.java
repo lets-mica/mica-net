@@ -14,7 +14,7 @@
 	owner that is granting the License.
 
 	"Legal Entity" shall mean the union of the acting entity and all other entities
-	that control, are controlled by, or are under common control with that entity.
+	that control, are controlled by, or are under common control by that entity.
 	For the purposes of this definition, "control" means (i) the power, direct or
 	indirect, to cause the direction or management of such entity, whether by
 	contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the
@@ -24,8 +24,8 @@
 	permissions granted by this License.
 
 	"Source" form shall mean the preferred form for making modifications, including
-	but not limited to software source code, documentation source, and configuration
-	files.
+	but not limited to software source code, documentation source, and
+	configuration files.
 
 	"Object" form shall mean any form resulting from mechanical transformation or
 	translation of a Source form, including but not limited to compiled object code,
@@ -43,26 +43,28 @@
 	name) to the interfaces of, the Work and Derivative Works thereof.
 
 	"Contribution" shall mean any work of authorship, including the original version
-	of the Work and any modifications or additions to that Work or Derivative Works
+	of the Work and any modifications or additions to the Work and Derivative Works
 	thereof, that is intentionally submitted to Licensor for inclusion in the Work
 	by the copyright owner or by an individual or Legal Entity authorized to submit
 	on behalf of the copyright owner. For the purposes of this definition,
 	"submitted" means any form of electronic, verbal, or written communication sent
-	to the Licensor or its representatives, including but not limited to
-	communication on electronic mailing lists, source code control systems, and
-	issue tracking systems that are managed by, or on behalf of, the Licensor for
-	the purpose of discussing and improving the Work, but excluding communication
-	that is conspicuously marked or otherwise designated in writing by the copyright
-	owner as "Not a Contribution."
+	to the copyright owner or entity authorized to submit on behalf of the copyright
+	owner. For the purposes of this definition, "submitted" means any form of
+	electronic, verbal, or written communication sent to the Licensor or its
+	representatives, including but not limited to communication on electronic
+	mailing lists, source code control systems, and issue tracking systems that are
+	managed by, or on behalf of, the Licensor for the purpose of discussing and
+	improving the Work, but excluding communication that is conspicuously marked or
+	otherwise designated in writing by the copyright owner as "Not a Contribution."
 
 	"Contributor" shall mean Licensor and any individual or Legal Entity on behalf
-	of whom a Contribution has been received by Licensor and subsequently
-	incorporated within the Work.
+	of whom a Contribution has been submitted to Licensor and subsequently
+	incorporated into the Work.
 
 	2. Grant of Copyright License.
 
 	Subject to the terms and conditions of this License, each Contributor hereby
-	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
+	grants You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
 	irrevocable copyright license to reproduce, prepare Derivative Works of,
 	publicly display, publicly perform, sublicense, and distribute the Work and such
 	Derivative Works in Source or Object form.
@@ -70,7 +72,7 @@
 	3. Grant of Patent License.
 
 	Subject to the terms and conditions of this License, each Contributor hereby
-	grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
+	grants You a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
 	irrevocable (except as stated in this section) patent license to make, have
 	made, use, offer to sell, sell, import, and otherwise transfer the Work, where
 	such license applies only to those patent claims licensable by such Contributor
@@ -78,7 +80,7 @@
 	of their Contribution(s) with the Work to which such Contribution(s) was
 	submitted. If You institute patent litigation against any entity (including a
 	cross-claim or counterclaim in a lawsuit) alleging that the Work or a
-	Contribution incorporated within the Work constitutes direct or contributory
+	Contribution incorporated into the Work constitutes direct or contributory
 	patent infringement, then any patent licenses granted to You under this License
 	for that Work shall terminate as of the date such litigation is filed.
 
@@ -133,12 +135,12 @@
 
 	7. Disclaimer of Warranty.
 
-	Unless required by applicable law or agreed to in writing, Licensor provides the
-	Work (and each Contributor provides its Contributions) on an "AS IS" BASIS,
+	Unless required by applicable law or agreed to in writing, Licensor provides
+	the Work (and each Contributor provides its Contributions) on an "AS IS" BASIS,
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied,
 	including, without limitation, any warranties or conditions of TITLE,
 	NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are
-	solely responsible for determining the appropriateness of using or
+	soley responsible for determining the appropriateness of using or
 	redistributing the Work and assume any risks associated with Your exercise of
 	permissions under this License.
 
@@ -149,7 +151,7 @@
 	and grossly negligent acts) or agreed to in writing, shall any Contributor be
 	liable to You for damages, including any direct, indirect, special, incidental,
 	or consequential damages of any character arising as a result of this License or
-	out of the use or inability to use the Work (including but not limited to
+	from the use or inability to use the Work (including but not limited to
 	damages for loss of goodwill, work stoppage, computer failure or malfunction, or
 	any and all other commercial damages or losses), even if such Contributor has
 	been advised of the possibility of such damages.
@@ -191,54 +193,27 @@
 	   See the License for the specific language governing permissions and
 	   limitations under the License.
 */
-package net.dreamlu.mica.net.core.utils;
+package net.dreamlu.mica.net.core.intf;
 
-import net.dreamlu.mica.net.core.ChannelContext;
-import net.dreamlu.mica.net.core.ChannelContext.CloseCode;
-import net.dreamlu.mica.net.core.Tio;
-import net.dreamlu.mica.net.core.tcp.TcpChannelContext;
-import net.dreamlu.mica.net.utils.thread.ThreadUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.dreamlu.mica.net.core.udp.UdpConfig;
 
 /**
- * @author tanyaowu
- * 2017年10月19日 上午9:40:54
+ * UDP 业务处理器，会话上下文固定为 {@link UdpChannel}。
+ * <p>
+ * 与 {@link TcpHandler} 共用 {@link TioHandler} 三段式契约（decode/encode/handler），
+ * 但 {@code C} 被固化到 {@link UdpChannel}，业务侧无需关心 TCP 那套
+ * {@link net.dreamlu.mica.net.core.ChannelContext} / TioConfig 等重量级抽象。
+ * <p>
+ * 用法：
+ * <pre>{@code
+ * public class MyHandler implements UdpHandler {
+ *     public Packet decode(ByteBuffer buf, int limit, int pos, int readable, UdpChannel ctx) { ... }
+ *     public ByteBuffer encode(Packet p, UdpChannel ctx) { ... }
+ *     public void handler(Packet p, UdpChannel ctx) { ... }
+ * }
+ * }</pre>
+ *
+ * @author L.cm
  */
-public class TioUtils {
-	private static final Logger log = LoggerFactory.getLogger(TioUtils.class);
-
-	public static boolean checkBeforeIO(ChannelContext channelContext) {
-		if (channelContext.isWaitingClose()) {
-			return false;
-		}
-		boolean isOpen;
-		TcpChannelContext tcpChannelContext = (TcpChannelContext) channelContext;
-		if (tcpChannelContext.asynchronousSocketChannel != null) {
-			isOpen = tcpChannelContext.asynchronousSocketChannel.isOpen();
-		} else {
-			log.error("{}, 请检查此异常, asynchronousSocketChannel is null, isClosed:{}, isRemoved:{}, {} ", channelContext, channelContext.isClosed(), channelContext.isRemoved(),
-				ThreadUtils.stackTrace());
-			return false;
-		}
-		if (channelContext.isClosed() || channelContext.isRemoved()) {
-			if (isOpen) {
-				try {
-					Tio.close(channelContext,
-						"channel is open, but channelContext isClosed: " + channelContext.isClosed() + ", isRemoved: " + channelContext.isRemoved(), CloseCode.CHANNEL_NOT_OPEN);
-				} catch (Throwable e) {
-					log.error(e.getMessage(), e);
-				}
-			}
-			log.info("{}, isOpen:{}, isClosed:{}, isRemoved:{}", channelContext, isOpen, channelContext.isClosed(), channelContext.isRemoved());
-			return false;
-		}
-		if (!isOpen) {
-			log.info("{}, 可能对方关闭了连接, isOpen:{}, isClosed:{}, isRemoved:{}", channelContext, false, channelContext.isClosed(), channelContext.isRemoved());
-			Tio.close(channelContext, "channel is not open, 可能对方关闭了连接", CloseCode.CHANNEL_NOT_OPEN);
-			return false;
-		}
-		return true;
-	}
-
+public interface UdpHandler extends TioHandler<UdpConfig, UdpChannel> {
 }

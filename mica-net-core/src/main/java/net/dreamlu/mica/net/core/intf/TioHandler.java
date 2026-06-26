@@ -193,17 +193,22 @@
 */
 package net.dreamlu.mica.net.core.intf;
 
-import net.dreamlu.mica.net.core.ChannelContext;
-import net.dreamlu.mica.net.core.TioConfig;
 import net.dreamlu.mica.net.core.exception.TioDecodeException;
 
 import java.nio.ByteBuffer;
 
 /**
+ * 业务编解码 / 处理抽象，按会话上下文类型参数化。
+ * <p>
+ * TCP 实现 {@link TcpHandler}，
+ * UDP 实现 {@link net.dreamlu.mica.net.core.intf.UdpHandler}，
+ * 二者均通过泛型固化上下文类型，业务侧调用即享类型安全。
+ *
+ * @param <CONF> 配置
+ * @param <CONT> 会话上下文类型：TCP 为 {@code ChannelContext}，UDP 为 {@code UdpChannel}
  * @author tanyaowu
- * 2017年10月19日 上午9:40:15
  */
-public interface TioHandler {
+public interface TioHandler<CONF, CONT> {
 
 	/**
 	 * 根据ByteBuffer解码成业务需要的Packet对象.
@@ -213,29 +218,28 @@ public interface TioHandler {
 	 * @param limit          ByteBuffer的limit
 	 * @param position       ByteBuffer的position，不一定是0哦
 	 * @param readableLength ByteBuffer参与本次解码的有效数据（= limit - position）
-	 * @param context        ChannelContext
+	 * @param context        会话上下文
 	 * @return Packet
 	 * @throws TioDecodeException TioDecodeException
 	 */
-	Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext context) throws TioDecodeException;
+	Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, CONT context) throws TioDecodeException;
 
 	/**
 	 * 编码
 	 *
-	 * @param packet    Packet
-	 * @param tioConfig TioConfig
-	 * @param context   ChannelContext
+	 * @param packet  Packet
+	 * @param conf    配置
+	 * @param context 会话上下文
 	 * @return ByteBuffer
 	 */
-	ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext context);
+	ByteBuffer encode(Packet packet, CONF conf, CONT context);
 
 	/**
 	 * 处理消息包
 	 *
 	 * @param packet  Packet
-	 * @param context ChannelContext
+	 * @param context 会话上下文
 	 * @throws Exception Exception
 	 */
-	void handler(Packet packet, ChannelContext context) throws Exception;
-
+	void handler(Packet packet, CONT context) throws Exception;
 }

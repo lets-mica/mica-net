@@ -163,11 +163,6 @@ public abstract class TcpChannelContext extends ChannelContext {
 		return readCompletionHandler;
 	}
 
-	@Override
-	public boolean isUdp() {
-		return false;
-	}
-
 	/**
 	 * TCP 专用：设置 TioConfig 并创建 TCP 专用的 Runnable
 	 */

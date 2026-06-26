@@ -201,7 +201,6 @@ import net.dreamlu.mica.net.core.stat.GroupStat;
 import net.dreamlu.mica.net.core.stat.vo.StatVo;
 import net.dreamlu.mica.net.core.task.AbstractCloseRunnable;
 import net.dreamlu.mica.net.core.tcp.TcpCloseRunnable;
-import net.dreamlu.mica.net.core.udp.UdpCloseRunnable;
 import net.dreamlu.mica.net.core.task.HeartbeatMode;
 import net.dreamlu.mica.net.core.uuid.DefaultTioUuid;
 import net.dreamlu.mica.net.server.TioServerConfig;
@@ -277,8 +276,6 @@ public abstract class TioConfig {
 	public ExecutorService groupExecutor;
 	/** TCP 关闭连接处理器（懒加载） */
 	private AbstractCloseRunnable tcpCloseRunnable;
-	/** UDP 关闭连接处理器（懒加载） */
-	private AbstractCloseRunnable udpCloseRunnable;
 	public ClientNodes clientNodes = new ClientNodes();
 	public Set<ChannelContext> connections = ConcurrentHashMap.newKeySet();
 	public Groups groups = new Groups();
@@ -342,7 +339,7 @@ public abstract class TioConfig {
 	 *
 	 * @return TioHandler
 	 */
-	public abstract TioHandler getTioHandler();
+	public abstract TcpHandler getTioHandler();
 
 	/**
 	 * 获取TioListener对象
@@ -352,33 +349,15 @@ public abstract class TioConfig {
 	public abstract TioListener getTioListener();
 
 	/**
-	 * 根据 ChannelContext 的协议类型，返回对应的关闭连接处理器。
-	 * TCP 使用 TcpCloseRunnable（关闭 socket、触发重连）；
-	 * UDP 使用 UdpCloseRunnable（仅清理，无连接概念）。
+	 * 获取关闭连接处理器（懒加载）。
 	 *
-	 * @param channelContext ChannelContext
 	 * @return AbstractCloseRunnable
 	 */
-	public AbstractCloseRunnable getCloseRunnable(ChannelContext channelContext) {
-		if (channelContext.isUdp()) {
-			return getUdpCloseRunnable();
-		} else {
-			return getTcpCloseRunnable();
-		}
-	}
-
-	private AbstractCloseRunnable getTcpCloseRunnable() {
+	public AbstractCloseRunnable getCloseRunnable() {
 		if (tcpCloseRunnable == null) {
 			tcpCloseRunnable = new TcpCloseRunnable(this.tioExecutor);
 		}
 		return tcpCloseRunnable;
-	}
-
-	private AbstractCloseRunnable getUdpCloseRunnable() {
-		if (udpCloseRunnable == null) {
-			udpCloseRunnable = new UdpCloseRunnable(this.tioExecutor);
-		}
-		return udpCloseRunnable;
 	}
 
 	/**

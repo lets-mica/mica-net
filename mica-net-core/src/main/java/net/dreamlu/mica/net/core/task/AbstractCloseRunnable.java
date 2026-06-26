@@ -17,7 +17,6 @@ package net.dreamlu.mica.net.core.task;
 
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.intf.TioListener;
-import net.dreamlu.mica.net.core.maintain.MaintainUtils;
 import net.dreamlu.mica.net.utils.thread.pool.AbstractQueueRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +30,7 @@ import java.util.concurrent.Executor;
  * 子类实现具体的取消任务、关闭连接、关闭后处理等步骤。
  *
  * @author tanyaowu
- * @see TcpCloseRunnable TCP 实现（关闭 socket、重连等）
- * @see UdpCloseRunnable UDP 实现（仅清理，无连接概念）
+ * @see net.dreamlu.mica.net.core.tcp.TcpCloseRunnable TCP 实现（关闭 socket、重连等）
  */
 public abstract class AbstractCloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 	private static final Logger log = LoggerFactory.getLogger(AbstractCloseRunnable.class);

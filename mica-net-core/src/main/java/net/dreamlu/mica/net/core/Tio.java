@@ -497,7 +497,7 @@ public class Tio {
 			context.setCloseCode(closeCode);
 		}
 
-		if (!context.isUdp() && context instanceof TcpChannelContext) {
+		if (context instanceof TcpChannelContext) {
 			TcpChannelContext tcpChannelContext = (TcpChannelContext) context;
 			if (tcpChannelContext.asynchronousSocketChannel != null) {
 				try {
@@ -532,8 +532,8 @@ public class Tio {
 		}
 		context.closeMeta.setNeedRemove(isNeedRemove);
 
-		context.tioConfig.getCloseRunnable(context).addMsg(context);
-		context.tioConfig.getCloseRunnable(context).execute();
+		context.tioConfig.getCloseRunnable().addMsg(context);
+		context.tioConfig.getCloseRunnable().execute();
 	}
 
 	/**

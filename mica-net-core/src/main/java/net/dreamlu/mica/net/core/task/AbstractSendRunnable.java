@@ -25,7 +25,7 @@ import net.dreamlu.mica.net.core.TcpConst;
 import net.dreamlu.mica.net.core.Tio;
 import net.dreamlu.mica.net.core.TioConfig;
 import net.dreamlu.mica.net.core.intf.Packet;
-import net.dreamlu.mica.net.core.intf.TioHandler;
+import net.dreamlu.mica.net.core.intf.TcpHandler;
 import net.dreamlu.mica.net.core.ssl.SslUtils;
 import net.dreamlu.mica.net.core.ssl.SslVo;
 import net.dreamlu.mica.net.utils.thread.pool.AbstractQueueRunnable;
@@ -52,7 +52,7 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	// 共享字段
 	protected final ChannelContext channelContext;
 	protected final TioConfig tioConfig;
-	protected final TioHandler tioHandler;
+	protected final TcpHandler tioHandler;
 	protected final Queue<Packet> msgQueue;
 	protected Queue<Packet> forSendAfterSslHandshakeCompleted = null;
 

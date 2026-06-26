@@ -193,11 +193,11 @@
 */
 package net.dreamlu.mica.net.server.intf;
 
-import net.dreamlu.mica.net.core.intf.TioHandler;
+import net.dreamlu.mica.net.core.intf.TcpHandler;
 
 /**
  * @author tanyaowu
  */
-public interface TioServerHandler extends TioHandler {
+public interface TioServerHandler extends TcpHandler {
 
 }

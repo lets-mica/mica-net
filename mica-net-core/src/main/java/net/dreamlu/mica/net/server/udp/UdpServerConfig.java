@@ -5,93 +5,72 @@
 */
 package net.dreamlu.mica.net.server.udp;
 
-import net.dreamlu.mica.net.server.TioServerConfig;
-import net.dreamlu.mica.net.server.intf.TioServerHandler;
-import net.dreamlu.mica.net.server.intf.TioServerListener;
-import net.dreamlu.mica.net.utils.thread.pool.SynThreadPoolExecutor;
-
-import java.util.concurrent.ExecutorService;
+import net.dreamlu.mica.net.core.udp.UdpConfig;
 
 /**
- * UDP Server Configuration
- * This is a specialized configuration for UDP servers that extends TioServerConfig
- * but excludes TCP-specific features like backlog, accept handler, and proxy protocol.
+ * UDP 服务端配置。
  * <p>
- * Note: UDP is connectionless, so TCP-specific features like backlog, proxy protocol,
- * and heartbeat backoff are not applicable and not exposed in this configuration.
+ * 用法：
+ * <pre>{@code
+ * UdpServerConfig cfg = UdpServerConfig.builder()
+ *     .port(9999)
+ *     .readBufferSize(4096)
+ *     .workerThreads(8)
+ *     .workerPool(myExecutor)   // 可选：不传则使用默认池
+ *     .build();
+ * UdpServer server = new UdpServer(cfg, handler);
+ * }</pre>
  *
  * @author L.cm
  */
-public class UdpServerConfig extends TioServerConfig {
-	private int socketReceiveBufferSize = 0;
-	private int socketSendBufferSize = 0;
+public final class UdpServerConfig extends UdpConfig {
+	private final int port;
+	private final int workerThreads;
 
-	/**
-	 * Create UDP server configuration
-	 *
-	 * @param tioServerHandler  TioServerHandler
-	 * @param tioServerListener TioServerListener
-	 */
-	public UdpServerConfig(TioServerHandler tioServerHandler, TioServerListener tioServerListener) {
-		super(tioServerHandler, tioServerListener);
+	private UdpServerConfig(Builder builder) {
+		super(builder);
+		this.port = builder.port;
+		this.workerThreads = builder.workerThreads;
 	}
 
-	/**
-	 * Create UDP server configuration with name
-	 *
-	 * @param name              name
-	 * @param tioServerHandler  TioServerHandler
-	 * @param tioServerListener TioServerListener
-	 */
-	public UdpServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener) {
-		super(name, tioServerHandler, tioServerListener);
+	public int getPort() {
+		return port;
 	}
 
-	/**
-	 * Create UDP server configuration with custom executors
-	 *
-	 * @param tioServerHandler  TioServerHandler
-	 * @param tioServerListener TioServerListener
-	 * @param tioExecutor       SynThreadPoolExecutor
-	 * @param groupExecutor     ThreadPoolExecutor
-	 */
-	public UdpServerConfig(TioServerHandler tioServerHandler, TioServerListener tioServerListener,
-	                       SynThreadPoolExecutor tioExecutor, java.util.concurrent.ThreadPoolExecutor groupExecutor) {
-		super(tioServerHandler, tioServerListener, tioExecutor, groupExecutor);
+	public int getWorkerThreads() {
+		return workerThreads;
 	}
 
-	/**
-	 * Create UDP server configuration with name and custom executors
-	 *
-	 * @param name              name
-	 * @param tioServerHandler  TioServerHandler
-	 * @param tioServerListener TioServerListener
-	 * @param tioExecutor       SynThreadPoolExecutor
-	 * @param groupExecutor     ExecutorService
-	 */
-	public UdpServerConfig(String name, TioServerHandler tioServerHandler, TioServerListener tioServerListener,
-	                       SynThreadPoolExecutor tioExecutor, ExecutorService groupExecutor) {
-		super(name, tioServerHandler, tioServerListener, tioExecutor, groupExecutor);
+	public static Builder builder() {
+		return new Builder();
 	}
 
-	public int getSocketReceiveBufferSize() {
-		return socketReceiveBufferSize;
-	}
+	public static final class Builder extends UdpConfig.Builder<Builder> {
+		private int port;
+		private int workerThreads = Math.max(2, Runtime.getRuntime().availableProcessors() * 2);
 
-	public void setSocketReceiveBufferSize(int socketReceiveBufferSize) {
-		this.socketReceiveBufferSize = socketReceiveBufferSize;
-	}
+		private Builder() {
+		}
 
-	public int getSocketSendBufferSize() {
-		return socketSendBufferSize;
-	}
+		public Builder port(int port) {
+			this.port = port;
+			return this;
+		}
 
-	public void setSocketSendBufferSize(int socketSendBufferSize) {
-		this.socketSendBufferSize = socketSendBufferSize;
-	}
+		public Builder workerThreads(int workerThreads) {
+			if (workerThreads <= 0) {
+				throw new IllegalArgumentException("workerThreads must be > 0");
+			}
+			this.workerThreads = workerThreads;
+			return this;
+		}
 
-	@Override
-	public String toString() {
-		return "UdpServerConfig [name=" + name + "]";
+		@Override
+		public UdpServerConfig build() {
+			if (port <= 0 || port > 65535) {
+				throw new IllegalStateException("port must be in (0, 65535]");
+			}
+			return new UdpServerConfig(this);
+		}
 	}
 }

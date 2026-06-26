@@ -1,130 +1,210 @@
+/*
+	Apache License
+	Version 2.0, January 2004
+	http://www.apache.org/licenses/
+*/
 package net.dreamlu.mica.net.server.udp;
 
-import net.dreamlu.mica.net.core.ChannelContext;
-import net.dreamlu.mica.net.core.Node;
-import net.dreamlu.mica.net.core.udp.UdpChannelContext;
+import net.dreamlu.mica.net.core.intf.Packet;
+import net.dreamlu.mica.net.core.intf.UdpChannel;
+import net.dreamlu.mica.net.core.intf.UdpHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.net.StandardSocketOptions;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * NIO UDP Server implementation.
- * Replaces the old BIO UdpServer.
+ * 标准 Java NIO UDP 服务端，偏生产级实现。
+ * <p>
+ * 单 Selector 线程负责 I/O，业务逻辑通过 {@link UdpHandler} 回调，
+ * 内部使用业务线程池把处理从 Selector 线程剥离，避免业务阻塞 I/O 循环。
+ * <p>
+ * 该实现与 mica-net 的 TCP / UDP 框架完全解耦，
+ * 仅依赖 JDK NIO 与 SLF4J，可作为 UDP 协议的参考实现。
+ * <p>
+ * 业务回调中拿到的会话类型是 {@link UdpChannel}（接口），实际对象为
+ * {@link UdpServerChannel}，可按需强转。
+ *
+ * @author L.cm
  */
-public class UdpServer implements Runnable {
+public class UdpServer implements Closeable, Runnable {
 	private static final Logger log = LoggerFactory.getLogger(UdpServer.class);
-	private final UdpServerConfig serverConfig;
-	private final int port;
-	private final ByteBuffer readBuffer;
-	private DatagramChannel datagramChannel;
+	private final UdpServerConfig config;
+	private final UdpHandler handler;
+	private final InetSocketAddress bindAddress;
+	private final ExecutorService workerPool;
+	private final boolean ownsWorkerPool;
+	private DatagramChannel channel;
 	private Selector selector;
-	private volatile boolean isStopped = false;
+	private volatile boolean running;
 
-	public UdpServer(UdpServerConfig serverConfig, int port) {
-		this.serverConfig = serverConfig;
-		this.port = port;
-		this.readBuffer = ByteBuffer.allocate(serverConfig.getReadBufferSize());
+	public UdpServer(UdpServerConfig config, UdpHandler handler) {
+		if (config == null) {
+			throw new IllegalArgumentException("config must not be null");
+		}
+		if (handler == null) {
+			throw new IllegalArgumentException("handler must not be null");
+		}
+		this.config = config;
+		this.handler = handler;
+		this.bindAddress = new InetSocketAddress(config.getPort());
+		ExecutorService provided = config.getWorkerPool();
+		if (provided != null) {
+			this.workerPool = provided;
+			this.ownsWorkerPool = false;
+		} else {
+			this.workerPool = createDefaultPool(config.getPort(), config.getWorkerThreads());
+			this.ownsWorkerPool = true;
+		}
 	}
 
-	public void start() throws IOException {
+	private static ExecutorService createDefaultPool(int port, int workerThreads) {
+		return Executors.newFixedThreadPool(workerThreads, new ThreadFactory() {
+			private final AtomicInteger seq = new AtomicInteger();
+
+			@Override
+			public Thread newThread(Runnable r) {
+				Thread t = new Thread(r, "udp-server-worker-" + port + '-' + seq.incrementAndGet());
+				t.setDaemon(true);
+				return t;
+			}
+		});
+	}
+
+	public synchronized void start() throws IOException {
+		if (running) {
+			return;
+		}
+		final int port = config.getPort();
+		final int readBufferSize = config.getReadBufferSize();
 		selector = Selector.open();
-		datagramChannel = DatagramChannel.open();
-		datagramChannel.configureBlocking(false);
-		int receiveBufferSize = serverConfig.getSocketReceiveBufferSize();
-		if (receiveBufferSize > 0) {
-			datagramChannel.setOption(StandardSocketOptions.SO_RCVBUF, receiveBufferSize);
-		}
-		int sendBufferSize = serverConfig.getSocketSendBufferSize();
-		if (sendBufferSize > 0) {
-			datagramChannel.setOption(StandardSocketOptions.SO_SNDBUF, sendBufferSize);
-		}
-		datagramChannel.socket().bind(new InetSocketAddress(port));
-		datagramChannel.register(selector, SelectionKey.OP_READ);
-		Thread selectorThread = new Thread(this, "tio-udp-server-" + port);
-		selectorThread.setDaemon(false);
-		selectorThread.start();
-		log.info("NIO UDP Server started on port {}", port);
+		channel = DatagramChannel.open();
+		channel.configureBlocking(false);
+		channel.setOption(StandardSocketOptions.SO_RCVBUF, Math.max(readBufferSize * 4, 64 * 1024));
+		channel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+		channel.bind(bindAddress);
+		channel.register(selector, SelectionKey.OP_READ);
+		running = true;
+		Thread t = new Thread(this, "udp-server-accept-" + port);
+		t.setDaemon(false);
+		t.start();
+		log.info("NIO UDP server started on port {}", port);
 	}
 
 	@Override
 	public void run() {
-		while (!isStopped) {
+		while (running) {
 			try {
-				if (selector.select() > 0) {
-					Set<SelectionKey> selectedKeys = selector.selectedKeys();
-					Iterator<SelectionKey> iterator = selectedKeys.iterator();
-					while (iterator.hasNext()) {
-						SelectionKey key = iterator.next();
-						iterator.remove();
-						if (key.isReadable()) {
-							handleRead((DatagramChannel) key.channel());
-						}
+				if (selector.select(500) <= 0) {
+					continue;
+				}
+				Iterator<SelectionKey> it = selector.selectedKeys().iterator();
+				while (it.hasNext()) {
+					SelectionKey key = it.next();
+					it.remove();
+					if (!key.isValid()) {
+						continue;
+					}
+					if (key.isReadable()) {
+						handleRead((DatagramChannel) key.channel());
 					}
 				}
 			} catch (Throwable e) {
-				log.error("NIO UDP Server select error", e);
+				if (running) {
+					log.error("udp server selector loop error", e);
+				}
 			}
 		}
 	}
 
-	private void handleRead(DatagramChannel channel) {
-		try {
-			while (true) {
-				readBuffer.clear();
-				SocketAddress remoteAddress = channel.receive(readBuffer);
-				if (remoteAddress == null) {
-					return;
-				}
-				readBuffer.flip();
-
-				InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteAddress;
-				Node remoteNode = new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort());
-
-				ChannelContext channelContext = serverConfig.clientNodes.find(remoteNode);
-				if (channelContext == null) {
-					channelContext = new UdpChannelContext(serverConfig, channel, remoteNode);
-					serverConfig.clientNodes.put(channelContext);
-				}
-
-				// Copy data to a new buffer because readBuffer is reused
-				ByteBuffer newBuffer = ByteBuffer.allocate(readBuffer.remaining());
-				newBuffer.put(readBuffer);
-				newBuffer.flip();
-
-				// Use the unified method from UdpChannelContext
-				((UdpChannelContext) channelContext).handleReceivedData(newBuffer);
+	private void handleRead(DatagramChannel ch) {
+		while (true) {
+			ByteBuffer buf = ByteBuffer.allocate(config.getReadBufferSize());
+			SocketAddress remote;
+			try {
+				remote = ch.receive(buf);
+			} catch (IOException e) {
+				log.error("udp receive error", e);
+				return;
 			}
-		} catch (Throwable e) {
-			log.error("NIO UDP handle read error", e);
+			if (remote == null) {
+				return;
+			}
+			buf.flip();
+			final InetSocketAddress remoteAddr = (InetSocketAddress) remote;
+			final ByteBuffer copy = ByteBuffer.allocate(buf.remaining());
+			copy.put(buf);
+			copy.flip();
+			final UdpChannel session = new UdpServerChannel(config, handler, ch, remoteAddr);
+			workerPool.execute(() -> {
+				try {
+					dispatch(session, copy);
+				} catch (Throwable e) {
+					log.error("udp handler error from {}", remoteAddr, e);
+				}
+			});
 		}
 	}
 
-	public void stop() {
-		isStopped = true;
+	/**
+	 * 解码循环：UdpHandler.decode 可能需要累积多包；这里以单包为最小演示单位，
+	 * 真实协议中应支持粘包 / 半包。
+	 */
+	private void dispatch(UdpChannel channel, ByteBuffer data) throws Exception {
+		Packet packet = handler.decode(data, data.limit(), data.position(), data.remaining(), channel);
+		if (packet == null) {
+			return;
+		}
+		handler.handler(packet, channel);
+	}
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	public UdpServerConfig getConfig() {
+		return config;
+	}
+
+	@Override
+	public synchronized void close() {
+		if (!running) {
+			return;
+		}
+		running = false;
 		if (selector != null) {
 			selector.wakeup();
+		}
+		if (channel != null) {
+			try {
+				channel.close();
+			} catch (IOException e) {
+				log.error(e.getMessage(), e);
+			}
+		}
+		if (selector != null) {
 			try {
 				selector.close();
 			} catch (IOException e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		if (datagramChannel != null) {
-			try {
-				datagramChannel.close();
-			} catch (IOException e) {
-				log.error(e.getMessage(), e);
-			}
+		if (ownsWorkerPool && workerPool != null) {
+			workerPool.shutdown();
 		}
+		log.info("NIO UDP server stopped on port {}", config.getPort());
 	}
 }

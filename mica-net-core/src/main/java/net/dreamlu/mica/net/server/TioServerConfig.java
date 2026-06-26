@@ -348,7 +348,7 @@ public class TioServerConfig extends TioConfig {
 	}
 
 	@Override
-	public TioHandler getTioHandler() {
+	public TioServerHandler getTioHandler() {
 		return this.getTioServerHandler();
 	}
 
