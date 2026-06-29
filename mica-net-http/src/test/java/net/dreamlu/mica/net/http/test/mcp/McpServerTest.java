@@ -45,7 +45,7 @@ class McpServerTest {
 	@Test
 	void testInitializeReturnsServerInfo() {
 		McpInitializeRequest params = new McpInitializeRequest();
-		params.setProtocolVersion(McpSchema.LATEST_PROTOCOL_VERSION);
+		params.setProtocolVersion(McpSchema.MCP_2025_11_25);
 		JsonRpcResponse resp = server.handleIncomingRequest(null,
 			newRequest(1, McpSchema.METHOD_INITIALIZE, params));
 		assertNotNull(resp);
@@ -383,7 +383,7 @@ class McpServerTest {
 		assertNotNull(resp);
 		assertNotNull(resp.getResult());
 		McpInitializeResult result = (McpInitializeResult) resp.getResult();
-		assertEquals(McpSchema.LATEST_PROTOCOL_VERSION, result.getProtocolVersion());
+		assertEquals(McpSchema.MCP_2025_11_25, result.getProtocolVersion());
 	}
 
 	/**
@@ -392,12 +392,12 @@ class McpServerTest {
 	@Test
 	void testInitializeAcceptsKnownOlderProtocolVersion() {
 		McpInitializeRequest params = new McpInitializeRequest();
-		params.setProtocolVersion(McpSchema.PROTOCOL_VERSION_2025_03_26);
+		params.setProtocolVersion(McpSchema.MCP_2025_03_26);
 		JsonRpcResponse resp = server.handleIncomingRequest(null,
 			newRequest(101, McpSchema.METHOD_INITIALIZE, params));
 		assertNotNull(resp);
 		McpInitializeResult result = (McpInitializeResult) resp.getResult();
-		assertEquals(McpSchema.PROTOCOL_VERSION_2025_03_26, result.getProtocolVersion());
+		assertEquals(McpSchema.MCP_2025_03_26, result.getProtocolVersion());
 	}
 
 	/**
@@ -411,7 +411,7 @@ class McpServerTest {
 			newRequest(102, McpSchema.METHOD_INITIALIZE, params));
 		assertNotNull(resp);
 		McpInitializeResult result = (McpInitializeResult) resp.getResult();
-		assertEquals(McpSchema.LATEST_PROTOCOL_VERSION, result.getProtocolVersion());
+		assertEquals(McpSchema.MCP_2025_11_25, result.getProtocolVersion());
 	}
 
 	/**

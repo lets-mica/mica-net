@@ -17,8 +17,8 @@ class McpSchemaTest {
 
 	@Test
 	void testLatestProtocolVersionIsCurrent() {
-		assertNotNull(McpSchema.LATEST_PROTOCOL_VERSION);
-		assertFalse(McpSchema.LATEST_PROTOCOL_VERSION.isEmpty());
+		assertNotNull(McpSchema.MCP_2025_11_25);
+		assertFalse(McpSchema.MCP_2025_11_25.isEmpty());
 	}
 
 	@Test
