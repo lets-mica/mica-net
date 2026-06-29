@@ -1,5 +1,8 @@
 package net.dreamlu.mica.net.http.mcp.schema;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * mcp 定义
  *
@@ -12,14 +15,33 @@ package net.dreamlu.mica.net.http.mcp.schema;
 public interface McpSchema {
 
 	/**
-	 * 当前实现支持的协议版本（最新稳定版）。
+	 * MCP protocol version for 2024-11-05.
+	 * https://modelcontextprotocol.io/specification/2024-11-05
 	 */
-	String LATEST_PROTOCOL_VERSION = "2025-06-18";
+	String MCP_2024_11_05 = "2024-11-05";
 
 	/**
-	 * 旧版本兼容：2025-03-26 协议规范。
+	 * MCP protocol version for 2025-03-26.
+	 * https://modelcontextprotocol.io/specification/2025-03-26
 	 */
-	String PROTOCOL_VERSION_2025_03_26 = "2025-03-26";
+	String MCP_2025_03_26 = "2025-03-26";
+
+	/**
+	 * MCP protocol version for 2025-06-18.
+	 * https://modelcontextprotocol.io/specification/2025-06-18
+	 */
+	String MCP_2025_06_18 = "2025-06-18";
+
+	/**
+	 * MCP protocol version for 2025-11-25.
+	 * https://modelcontextprotocol.io/specification/2025-11-25
+	 */
+	String MCP_2025_11_25 = "2025-11-25";
+
+	/**
+	 * mcp 版本列表
+	 */
+	List<String> MCP_VERSION_LIST = Arrays.asList(MCP_2024_11_05, MCP_2025_03_26, MCP_2025_06_18, MCP_2025_11_25);
 
 	String JSONRPC_VERSION = "2.0";
 
@@ -45,6 +67,8 @@ public interface McpSchema {
 	String METHOD_RESOURCES_LIST = "resources/list";
 
 	String METHOD_RESOURCES_READ = "resources/read";
+
+	String METHOD_NOTIFICATION_RESOURCES_UPDATED  = "notifications/resources/updated";
 
 	String METHOD_NOTIFICATION_RESOURCES_LIST_CHANGED = "notifications/resources/list_changed";
 

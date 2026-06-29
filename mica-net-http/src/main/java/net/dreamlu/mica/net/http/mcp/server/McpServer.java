@@ -153,15 +153,16 @@ public class McpServer {
 	 * @return 最终采用的协议版本
 	 */
 	private static String negotiateProtocolVersion(String clientVersion) {
+		// 客户端版本为空
 		if (clientVersion == null || clientVersion.isEmpty()) {
-			return McpSchema.LATEST_PROTOCOL_VERSION;
+			return McpSchema.MCP_2025_11_25;
 		}
-		if (McpSchema.LATEST_PROTOCOL_VERSION.equals(clientVersion)
-			|| McpSchema.PROTOCOL_VERSION_2025_03_26.equals(clientVersion)) {
+		// 如果支持客户端版本
+		if (McpSchema.MCP_VERSION_LIST.contains(clientVersion)) {
 			return clientVersion;
 		}
-		log.warn("Unknown MCP protocol version from client: {}, fallback to {}", clientVersion, McpSchema.LATEST_PROTOCOL_VERSION);
-		return McpSchema.LATEST_PROTOCOL_VERSION;
+		log.warn("Unknown MCP protocol version from client: {}, fallback to {}", clientVersion, McpSchema.MCP_2025_11_25);
+		return McpSchema.MCP_2025_11_25;
 	}
 
 	private JsonRpcResponse handlePing(McpServerSession session, JsonRpcRequest request) {
@@ -432,7 +433,7 @@ public class McpServer {
 			params.put("logger", logger);
 		}
 		params.put("data", data);
-		session.sendNotification("notifications/message", params);
+		session.sendNotification(McpSchema.METHOD_NOTIFICATION_MESSAGE, params);
 	}
 
 	/**
@@ -458,7 +459,7 @@ public class McpServer {
 		if (message != null) {
 			params.put("message", message);
 		}
-		session.sendNotification("notifications/progress", params);
+		session.sendNotification(McpSchema.METHOD_NOTIFICATION_PROGRESS, params);
 	}
 
 	/**
@@ -474,7 +475,7 @@ public class McpServer {
 		}
 		Map<String, Object> params = new HashMap<>(1);
 		params.put("uri", uri);
-		session.sendNotification("notifications/resources/updated", params);
+		session.sendNotification(McpSchema.METHOD_NOTIFICATION_RESOURCES_UPDATED, params);
 	}
 
 	/**
@@ -487,7 +488,7 @@ public class McpServer {
 		if (session == null) {
 			return;
 		}
-		session.sendNotification("notifications/roots/list_changed", Collections.emptyMap());
+		session.sendNotification(McpSchema.METHOD_NOTIFICATION_ROOTS_LIST_CHANGED, Collections.emptyMap());
 	}
 
 	/**
@@ -497,7 +498,7 @@ public class McpServer {
 		Map<String, Object> params = Collections.emptyMap();
 		for (McpServerSession session : sessionRegistry.values()) {
 			if (session.hasStream()) {
-				session.sendNotification("notifications/tools/list_changed", params);
+				session.sendNotification(McpSchema.METHOD_NOTIFICATION_TOOLS_LIST_CHANGED, params);
 			}
 		}
 	}
@@ -509,7 +510,7 @@ public class McpServer {
 		Map<String, Object> params = Collections.emptyMap();
 		for (McpServerSession session : sessionRegistry.values()) {
 			if (session.hasStream()) {
-				session.sendNotification("notifications/prompts/list_changed", params);
+				session.sendNotification(McpSchema.METHOD_NOTIFICATION_PROMPTS_LIST_CHANGED, params);
 			}
 		}
 	}
@@ -521,7 +522,7 @@ public class McpServer {
 		Map<String, Object> params = Collections.emptyMap();
 		for (McpServerSession session : sessionRegistry.values()) {
 			if (session.hasStream()) {
-				session.sendNotification("notifications/resources/list_changed", params);
+				session.sendNotification(McpSchema.METHOD_NOTIFICATION_RESOURCES_LIST_CHANGED, params);
 			}
 		}
 	}
@@ -543,7 +544,7 @@ public class McpServer {
 		if (reason != null) {
 			params.put("reason", reason);
 		}
-		session.sendNotification("notifications/cancelled", params);
+		session.sendNotification(McpSchema.METHOD_NOTIFICATION_CANCELLED, params);
 	}
 
 	// ============================================================
