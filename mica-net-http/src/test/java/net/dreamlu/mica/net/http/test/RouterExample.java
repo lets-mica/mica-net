@@ -91,7 +91,7 @@ public class RouterExample {
 		router.notFound(request -> {
 			HttpResponse resp = new HttpResponse(request);
 			resp.setStatus(HttpResponseStatus.C404);
-			resp.setBody("Not Found: ".getBytes(StandardCharsets.UTF_8));
+			resp.setBody("404 Not Found".getBytes(StandardCharsets.UTF_8));
 			return resp;
 		});
 
