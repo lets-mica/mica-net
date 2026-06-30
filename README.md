@@ -6,6 +6,15 @@
 
 mica-net 是基于 t-io 简化而来的高性能 Java 网络通信框架，使用 Java NIO 的 AsynchronousSocketChannel 实现异步非阻塞网络通信。
 
+核心能力包括：
+
+- **TCP/UDP 网络通信**：基于 NIO `AsynchronousSocketChannel` 实现的异步非阻塞通信
+- **HTTP/HTTPS 与 WebSocket**：内置编解码器，支持 SSE、Stream、Router 等
+- **MCP（Model Context Protocol）服务端**：完整实现 `tools`、`resources`、`prompts`、`sampling` 等协议能力
+- **TCP 代理协议**：支持 PROXY protocol V1/V2，可解析 nginx、ELB 转发的原始 IP
+- **SSL/TLS**：支持双向认证、PKCS12 证书，可自定义协议版本与加密套件
+- **集群与节点管理**：内置集群同步、节点选择、心跳与重连
+
 [✨✨✨推广：**BladeX 物联网平台**✨✨✨iot.bladex.cn](https://iot.bladex.cn?from=mica-mqtt)
 
 ------
@@ -21,11 +30,17 @@ mica-net 是基于 t-io 简化而来的高性能 Java 网络通信框架，使�
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                    ChannelContext (连接上下文)               │
-│  • 每个TCP连接对应一个ChannelContext                          │
+│                NetChannel / ChannelContext                  │
+│  • NetChannel：抽象网络通道接口（send、close）                │
+│  • ChannelContext：每个TCP/UDP连接对应一个                   │
 │  • 维护连接状态、统计信息、绑定关系                            │
-│  • 包含3个核心Runnable：DecodeRunnable、HandlerRunnable、     │
-│    SendRunnable                                             │
+│  • 包含 3 个核心 Runnable：Decode/Handler/Send Runnable    │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                 TcpHandler / UdpHandler                     │
+│  TcpHandler：TCP 业务处理接口（增强类型安全，泛型化）         │
+│  UdpHandler：UDP 业务处理接口（基于 UdpChannel）             │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌──────────────────┬──────────────────┬───────────────────────┐
@@ -49,7 +64,11 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 - TioConfig: 全局配置管理（线程池、统计、心跳、SSL等）
 
-- ChannelContext: 连接上下文（状态、队列、统计、绑定关系）
+- NetChannel: 抽象网络通道接口（send、close），TCP/UDP 统一抽象
+
+- ChannelContext: 连接上下文（状态、队列、统计、绑定关系），实现 NetChannel
+
+- TcpHandler / UdpHandler: TCP/UDP 业务处理接口，强类型泛型化
 
 - ReadCompletionHandler: 异步读完成处理器
 
@@ -77,14 +96,14 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
    ↓
 3. TcpDecodeRunnable.decode()
    ├─ 流式拼接：lastByteBuffer + 本次数据
-   ├─ 循环解包：while(true) 调用 TioHandler.decode()
+   ├─ 循环解包：while(true) 调用 TcpHandler.decode()
    ├─ 检测慢包攻击（滑动窗口算法）
    ├─ 解码成功 → onDecodeSuccess() → HandlerRunnable
    └─ 数据不够 → 保存 lastByteBuffer 等待更多数据
    ↓
 4. HandlerRunnable.handler()
    ├─ synSeq > 0? → CompletableFuture 异步响应
-   ├─ synSeq == 0 → TioHandler.handler() 业务处理
+   ├─ synSeq == 0 → TcpHandler.handler() 业务处理
    └─ 统计处理时长、更新 ChannelStat
 ```
 
@@ -108,7 +127,7 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
    ├─ 单包 → sendPacket() 编码 + SSL + sendByteBuffer()
    └─ 多包 → batchEncode() 批量编码
        ├─ 自适应批量大小（根据队列积压）
-       ├─ TioHandler.encode() 编码
+       ├─ TcpHandler.encode() 编码
        ├─ SSL 加密（encryptBatchIfNeeded）
        └─ sendByteBuffers() gather-write 零拷贝
    ↓
@@ -133,6 +152,14 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 ## 🔊 注意（开发细节）
 
 - 客户端主动断开用 close(Tio.close)，服务端主动断开用（Tio.remove）。
+
+## 💡 使用文档（useage）
+
+- [TCP 使用文档](docs/useage/tcp.md)
+- [UDP 使用文档](docs/useage/udp.md)
+- [HTTP 使用文档](docs/useage/http.md)
+- [WebSocket 使用文档](docs/useage/websocket.md)
+- [使用文档索引](docs/useage/README.md)
 
 ## 💡 TCP 相关知识
 
@@ -175,7 +202,7 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 ### 网络与协议
 
-- **UDP 重构**：UDP 重构为 NIO UDP 形式，统一 TCP、UDP 编解码和处理
+- **UDP 简化重构**：UDP 统一为 `UdpChannel` 抽象，简化发送/关闭任务链路
 - **TCP Proxy Protocol v1和v2**：支持 nginx、ELB 转发原始 IP
 - **SSL 双向认证**：支持客户端和服务端双向认证，客户端可跳过域名校验
 - **PKCS12 证书支持**：SSL 支持 PKCS12 证书格式
@@ -183,6 +210,8 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 ### 功能特性
 
+- **MCP（Model Context Protocol）服务端**：内置 Tools、Resources、Prompts、Sampling、Roots 等协议能力
+- **HttpRouter**：mica-net-http 提供轻量级路由，方便使用
 - **SSE（Server-Sent Events）**：支持 HTTP Server-Sent Events
 - **时间轮心跳**：服务端心跳改为时间轮，减少线程数
 - **心跳超时策略**：支持 HeartbeatTimeoutStrategy，支持发送 ping 或断开等待重连
