@@ -113,7 +113,7 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <configuration>
                             <excludes>
-                                <exclude>org/tio/utils/Version.java</exclude>
+                                <exclude>net/dreamlu/mica/net/utils/Version.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
@@ -129,10 +129,10 @@
                                     <goal>copy-resources</goal>
                                 </goals>
                                 <configuration>
-                                    <outputDirectory>${project.build.directory}/generated-sources/org/tio/utils</outputDirectory>
+                                    <outputDirectory>${project.build.directory}/generated-sources/net/dreamlu/mica/net/utils</outputDirectory>
                                     <resources>
                                         <resource>
-                                            <directory>${project.basedir}/src/main/java/org/tio/utils</directory>
+                                            <directory>${project.basedir}/src/main/java/net/dreamlu/mica/net/utils</directory>
                                             <filtering>true</filtering>
                                             <includes>
                                                 <include>Version.java</include>
@@ -156,7 +156,7 @@
                                 </goals>
                                 <configuration>
                                     <sources>
-                                        <source>${project.build.directory}/generated-sources/org/tio/utils</source>
+                                        <source>${project.build.directory}/generated-sources/net/dreamlu/mica/net/utils</source>
                                     </sources>
                                 </configuration>
                             </execution>
@@ -176,7 +176,7 @@
                                 <configuration>
                                     <target>
                                         <!-- 打包前删除生成的 Version.java，避免提示重复文件 -->
-                                        <delete file="${project.build.directory}/generated-sources/org/tio/utils/Version.java" failonerror="false" verbose="true" />
+                                        <delete file="${project.build.directory}/generated-sources/net/dreamlu/mica/net/utils/Version.java" failonerror="false" verbose="true" />
                                     </target>
                                 </configuration>
                             </execution>
@@ -194,7 +194,7 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <configuration>
                             <excludes>
-                                <exclude>org/tio/utils/Version.java</exclude>
+                                <exclude>net/dreamlu/mica/net/utils/Version.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
@@ -210,10 +210,10 @@
                                     <goal>copy-resources</goal>
                                 </goals>
                                 <configuration>
-                                    <outputDirectory>${project.build.directory}/generated-sources/org/tio/utils</outputDirectory>
+                                    <outputDirectory>${project.build.directory}/generated-sources/net/dreamlu/mica/net/utils</outputDirectory>
                                     <resources>
                                         <resource>
-                                            <directory>${project.basedir}/src/main/java/org/tio/utils</directory>
+                                            <directory>${project.basedir}/src/main/java/net/dreamlu/mica/net/utils</directory>
                                             <filtering>true</filtering>
                                             <includes>
                                                 <include>Version.java</include>
@@ -237,7 +237,7 @@
                                 </goals>
                                 <configuration>
                                     <sources>
-                                        <source>${project.build.directory}/generated-sources/org/tio/utils</source>
+                                        <source>${project.build.directory}/generated-sources/net/dreamlu/mica/net/utils</source>
                                     </sources>
                                 </configuration>
                             </execution>
@@ -257,7 +257,7 @@
                                 <configuration>
                                     <target>
                                         <!-- 打包前删除生成的 Version.java，避免提示重复文件 -->
-                                        <delete file="${project.build.directory}/generated-sources/org/tio/utils/Version.java" failonerror="false" verbose="true" />
+                                        <delete file="${project.build.directory}/generated-sources/net/dreamlu/mica/net/utils/Version.java" failonerror="false" verbose="true" />
                                     </target>
                                 </configuration>
                             </execution>
