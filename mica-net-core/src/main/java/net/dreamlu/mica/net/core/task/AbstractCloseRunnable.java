@@ -71,11 +71,11 @@ public abstract class AbstractCloseRunnable extends AbstractQueueRunnable<Channe
 				try {
 					if (channelContext.isClosed() && !isNeedRemove) {
 						log.info("{}, {}已经关闭，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark, throwable == null ? "无" : throwable.toString());
-						return;
+						continue;
 					}
 					if (channelContext.isRemoved()) {
 						log.info("{}, {}已经删除，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark, throwable == null ? "无" : throwable.toString());
-						return;
+						continue;
 					}
 
 					// 1. 取消任务（子类实现）

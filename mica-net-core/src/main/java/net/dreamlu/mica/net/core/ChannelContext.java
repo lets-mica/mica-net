@@ -81,7 +81,7 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	 * 6~7 位，扩展状态 isAccepted(已接受,用于业务例如：mqtt):0,isBizStatus(业务自定义状态):0
 	 * </p>
 	 */
-	private byte states = 0;
+	private volatile byte states = 0;
 
 	/**
 	 * ChannelContext
