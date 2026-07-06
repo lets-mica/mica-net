@@ -476,9 +476,8 @@ public class Tio {
 		context.getHandlerRunnable().setCanceled(true);
 		context.getSendRunnable().setCanceled(true);
 
-		WriteLock writeLock;
 		if (needCloseLock) {
-			writeLock = context.closeLock.writeLock();
+			WriteLock writeLock = context.closeLock.writeLock();
 			boolean tryLock = writeLock.tryLock();
 			if (!tryLock) {
 				return;
