@@ -594,7 +594,7 @@ public final class HttpRequestDecoder {
 					lastPosition = buffer.position();
 				}
 			} else if (protocol == null) {
-				if (b == SysConst.BACKSLASH) {
+				if (b == SysConst.SLASH) {
 					int len = buffer.position() - lastPosition - 1;
 					protocol = new String(allBs, lastPosition, len);
 					lastPosition = buffer.position();

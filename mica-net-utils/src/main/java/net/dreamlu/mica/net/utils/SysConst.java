@@ -208,11 +208,11 @@ public interface SysConst {
 	/**
 	 * 反斜扛
 	 */
-	byte BACKSLASH = '/';
+	byte BACKSLASH = '\\';
 	/**
 	 * 斜扛
 	 */
-	byte SLASH = '\\';
+	byte SLASH = '/';
 	/**
 	 * \r
 	 */
