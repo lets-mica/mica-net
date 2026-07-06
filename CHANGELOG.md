@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v2.0.9 - 2026-06-30
+- fix(utils): 修复 `SysConst` `BACKSLASH` 和 `SLASH` 常量名和值颠倒。
+- fix(core): 将 `AbstractCloseRunnable` 中对已关闭和已删除通道的处理由 `return` 改为 `continue`，避免提前退出循环。
+
 ### v2.0.8 - 2026-06-30
 - fix(utils): Version.java 版本号处理。
 
