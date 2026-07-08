@@ -1100,6 +1100,7 @@ public class Tio {
 						log.error("{}, 阻塞发送超时, timeout:{}s, packet:{}", channelContext, timeout, packet.logstr());
 					}
 				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 					log.error(e.getMessage(), e);
 				}
 				return packet.getMeta().isSentSuccess();
@@ -1354,6 +1355,7 @@ public class Tio {
 						return true;
 					}
 				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 					log.error(e.getMessage(), e);
 					return false;
 				}
