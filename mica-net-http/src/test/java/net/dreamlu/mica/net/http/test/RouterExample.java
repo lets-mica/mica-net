@@ -15,17 +15,22 @@ public class RouterExample {
 
 	public static void main(String[] args) throws Exception {
 		HttpRouter router = buildRouter();
-		HttpServerStarter starter = new HttpServerStarter(8080, router);
+		HttpServerStarter starter = new HttpServerStarter(8181, router);
 		starter.start();
-		System.out.println("Server started on http://localhost:8080");
+		System.out.println("Server started on http://localhost:8181");
 	}
 
 	public static HttpRouter buildRouter() {
 		HttpRouter router = new HttpRouter();
 
-		// 1. 基础路由
+		// 0. 基础路由
 		router.get("/", request -> {
 			return ok(request, "Hello World");
+		});
+
+		// 1. 基础路由
+		router.query("/query", request -> {
+			return ok(request, request.getBody());
 		});
 
 		// 2. 路径参数
@@ -105,6 +110,13 @@ public class RouterExample {
 		});
 
 		return router;
+	}
+
+	private static HttpResponse ok(HttpRequest request, byte[] body) {
+		HttpResponse resp = new HttpResponse(request);
+		resp.setStatus(HttpResponseStatus.C200);
+		resp.setBody(body);
+		return resp;
 	}
 
 	private static HttpResponse ok(HttpRequest request, String body) {
