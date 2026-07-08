@@ -103,6 +103,17 @@ public class HttpRouter implements HttpRequestHandler {
 	}
 
 	/**
+	 * 注册一个 HTTP QUERY 路由。
+	 *
+	 * @param path    请求路径，例如 {@code "/api/search"}
+	 * @param handler 路由处理器
+	 * @return 当前路由器实例，支持链式调用
+	 */
+	public HttpRouter query(String path, RouteHandler handler) {
+		return route(Method.QUERY, path, handler);
+	}
+
+	/**
 	 * 注册一个 HTTP DELETE 路由。
 	 *
 	 * @param path    请求路径，例如 {@code "/api/users/{id}"}

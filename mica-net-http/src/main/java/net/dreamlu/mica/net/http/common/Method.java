@@ -205,6 +205,7 @@ public enum Method {
 	POST("POST"),
 	HEAD("HEAD"),
 	PUT("PUT"),
+	QUERY("QUERY"),
 	TRACE("TRACE"),
 	OPTIONS("OPTIONS"),
 	PATCH("PATCH"),
@@ -229,6 +230,8 @@ public enum Method {
 				return HEAD;
 			case "PUT":
 				return PUT;
+			case "QUERY":
+				return QUERY;
 			case "TRACE":
 				return TRACE;
 			case "OPTIONS":

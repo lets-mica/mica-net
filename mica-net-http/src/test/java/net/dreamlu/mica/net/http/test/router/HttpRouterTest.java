@@ -82,6 +82,7 @@ class HttpRouterTest {
 		router.get("/resource", request -> ok("GET"));
 		router.post("/resource", request -> ok("POST"));
 		router.put("/resource", request -> ok("PUT"));
+		router.query("/resource", request -> ok("QUERY"));
 		router.delete("/resource", request -> ok("DELETE"));
 		router.patch("/resource", request -> ok("PATCH"));
 		router.head("/resource", request -> ok("HEAD"));
@@ -90,6 +91,7 @@ class HttpRouterTest {
 		assertEquals("GET", new String(router.handler(createRequest("/resource", Method.GET)).getBody()));
 		assertEquals("POST", new String(router.handler(createRequest("/resource", Method.POST)).getBody()));
 		assertEquals("PUT", new String(router.handler(createRequest("/resource", Method.PUT)).getBody()));
+		assertEquals("QUERY", new String(router.handler(createRequest("/resource", Method.QUERY)).getBody()));
 		assertEquals("DELETE", new String(router.handler(createRequest("/resource", Method.DELETE)).getBody()));
 		assertEquals("PATCH", new String(router.handler(createRequest("/resource", Method.PATCH)).getBody()));
 		assertEquals("HEAD", new String(router.handler(createRequest("/resource", Method.HEAD)).getBody()));
