@@ -210,7 +210,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteOrder;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -232,15 +231,15 @@ public abstract class TioConfig {
 	/**
 	 * 本jvm中所有的TioServerConfig对象
 	 */
-	public static final Set<TioServerConfig> ALL_SERVER_GROUP_CONTEXTS = new HashSet<>();
+	public static final Set<TioServerConfig> ALL_SERVER_GROUP_CONTEXTS = ConcurrentHashMap.newKeySet();
 	/**
 	 * 本jvm中所有的TioClientConfig对象
 	 */
-	public static final Set<TioClientConfig> ALL_CLIENT_GROUP_CONTEXTS = new HashSet<>();
+	public static final Set<TioClientConfig> ALL_CLIENT_GROUP_CONTEXTS = ConcurrentHashMap.newKeySet();
 	/**
 	 * 本jvm中所有的TioConfig对象
 	 */
-	public static final Set<TioConfig> ALL_GROUP_CONTEXTS = new HashSet<>();
+	public static final Set<TioConfig> ALL_GROUP_CONTEXTS = ConcurrentHashMap.newKeySet();
 	/**
 	 * 默认的超时时间，60 * 2 * 1000
 	 */

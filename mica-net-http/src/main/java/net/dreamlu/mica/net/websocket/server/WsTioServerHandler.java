@@ -200,6 +200,7 @@ import net.dreamlu.mica.net.core.exception.TioDecodeException;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.http.common.*;
 import net.dreamlu.mica.net.server.intf.TioServerHandler;
+import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 import net.dreamlu.mica.net.utils.hutool.StrUtil;
 import net.dreamlu.mica.net.utils.mica.DigestUtils;
 import net.dreamlu.mica.net.websocket.common.*;
@@ -434,7 +435,7 @@ public class WsTioServerHandler implements TioServerHandler {
 			} else if (obj instanceof WsResponse) {
 				return (WsResponse) obj;
 			} else if (obj instanceof ByteBuffer) {
-				byte[] bs = ((ByteBuffer) obj).array();
+				byte[] bs = ByteBufferUtil.toArray((ByteBuffer) obj);
 				wsResponse = WsResponse.fromBytes(bs);
 				return wsResponse;
 			} else {

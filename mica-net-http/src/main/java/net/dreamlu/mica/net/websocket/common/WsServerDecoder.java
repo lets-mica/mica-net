@@ -234,7 +234,7 @@ public class WsServerDecoder {
 
 		// Client data must be masked
 		if (!hasMask) { // 第9为为mask,必须为1
-			// throw new TioDecodeException("websocket client data must be masked");
+			throw new TioDecodeException("websocket client data must be masked");
 		} else {
 			headLength += 4;
 		}

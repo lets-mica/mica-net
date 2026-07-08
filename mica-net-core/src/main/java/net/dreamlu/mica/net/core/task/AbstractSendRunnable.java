@@ -212,7 +212,7 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 
 			packets.add(packet);
 			byteBuffers.add(byteBuffer);
-			allBytebufferCapacity += byteBuffer.limit();
+			allBytebufferCapacity += byteBuffer.remaining();
 
 			if (isSsl) {
 				boolean _needSslEncrypted = !packet.isSslEncrypted();

@@ -331,17 +331,17 @@ public final class HttpRequestDecoder {
 		Map<String, List<String>> tempValues = new HashMap<>();
 
 		for (String keyValue : keyValues) {
-			String[] keyValueArr = keyValue.split(SysConst.STR_EQ);
+			int eqIndex = keyValue.indexOf(SysConst.STR_EQ);
+			String key;
 			String value1 = null;
-			if (keyValueArr.length == 2) {
-				value1 = keyValueArr[1];
-			} else if (keyValueArr.length > 2) {
-				throw new TioDecodeException("含有多个" + SysConst.STR_EQ);
+			if (eqIndex >= 0) {
+				key = keyValue.substring(0, eqIndex);
+				value1 = keyValue.substring(eqIndex + 1);
+			} else {
+				key = keyValue;
 			}
-
-			String key = keyValueArr[0];
 			String value;
-			if (StrUtil.isBlank(value1)) {
+			if (value1 == null) {
 				value = null;
 			} else {
 				try {
