@@ -200,6 +200,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * @author tanyaowu
@@ -216,6 +217,10 @@ public class ReconnConf {
 	 */
 	private final int retryCount;
 	/**
+	 * 连接成功断言
+	 */
+	private final Predicate<ClientChannelContext> connectedFilter;
+	/**
 	 * 重连执行器
 	 */
 	private TimerTaskService taskService;
@@ -230,45 +235,60 @@ public class ReconnConf {
 	}
 
 	public ReconnConf(long interval, int retryCount) {
+		this(interval, retryCount, ReconnConf::isNotClosed);
+	}
+
+	public ReconnConf(long interval, int retryCount, Predicate<ClientChannelContext> connectedFilter) {
 		this.interval = interval;
 		this.retryCount = retryCount;
-	}
-
-	public static ReconnConf getReconnConf(ClientChannelContext clientChannelContext) {
-		TioClientConfig tioClientConfig = (TioClientConfig) clientChannelContext.tioConfig;
-		return tioClientConfig.getReconnConf();
-	}
-
-	public static ReconnConf getReconnConf(ChannelContext channelContext) {
-		return getReconnConf((ClientChannelContext) channelContext);
+		this.connectedFilter = connectedFilter;
 	}
 
 	/**
-	 * @param clientChannelContext ClientChannelContext
-	 * @param putIfNeedConn        如果需要重连，则把该ClientChannelContext放到重连队列中
+	 * 默重连默认是连接成功断言，当连接关闭时，不重连
+	 *
+	 * @param context ClientChannelContext
+	 * @return 是否连接成功
+	 */
+	private static boolean isNotClosed(ClientChannelContext context) {
+		return !context.isClosed();
+	}
+
+	public static ReconnConf getReconnConf(ClientChannelContext context) {
+		TioClientConfig tioClientConfig = (TioClientConfig) context.tioConfig;
+		return tioClientConfig.getReconnConf();
+	}
+
+	public static ReconnConf getReconnConf(ChannelContext context) {
+		return getReconnConf((ClientChannelContext) context);
+	}
+
+	/**
+	 * @param context       ClientChannelContext
+	 * @param putIfNeedConn 如果需要重连，则把该ClientChannelContext放到重连队列中
 	 * @return boolean
 	 */
-	public static boolean isNeedReconn(ClientChannelContext clientChannelContext, boolean putIfNeedConn) {
-		if (clientChannelContext == null) {
+	public static boolean isNeedReconn(ClientChannelContext context, boolean putIfNeedConn) {
+		if (context == null) {
 			return false;
 		}
-		ReconnConf reconnConf = getReconnConf(clientChannelContext);
+		ReconnConf reconnConf = getReconnConf(context);
 		if (reconnConf == null) {
 			return false;
 		}
 		if (reconnConf.getInterval() > 0) {
-			if (reconnConf.getRetryCount() <= 0 || reconnConf.getRetryCount() > clientChannelContext.getReConnCount().get()) {
+			if (reconnConf.getRetryCount() <= 0 || reconnConf.getRetryCount() > context.getReConnCount().get()) {
 				if (putIfNeedConn) {
-					TioClientConfig tioClientConfig = (TioClientConfig) clientChannelContext.tioConfig;
-					tioClientConfig.closeds.add(clientChannelContext);
+					TioClientConfig tioClientConfig = (TioClientConfig) context.tioConfig;
+					tioClientConfig.closeds.add(context);
 					// 添加重连任务
 					TimerTaskService timerTaskService = reconnConf.getTaskService();
 					Objects.requireNonNull(timerTaskService, "ReconnConf timerTaskService is null.");
-					timerTaskService.add(new ClientReConnTask(clientChannelContext, reconnConf));
+					timerTaskService.add(new ClientReConnTask(context, reconnConf));
 				}
 				return true;
 			} else {
-				log.info("不需要重连{}", clientChannelContext);
+				log.info("不需要重连{}", context);
 				return false;
 			}
 		}
@@ -284,6 +304,10 @@ public class ReconnConf {
 			return false;
 		}
 		return isNeedReconn(clientChannelContext, true);
+	}
+
+	public Predicate<ClientChannelContext> getConnectedFilter() {
+		return connectedFilter;
 	}
 
 	public TimerTaskService getTaskService() {

@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 
 /**
  * 客户端重连任务
@@ -20,11 +21,13 @@ public class ClientReConnTask extends TimerTask {
 	private static final Logger logger = LoggerFactory.getLogger(ClientReConnTask.class);
 	private final TioClient tioClient;
 	private final ClientChannelContext channelContext;
+	private final Predicate<ClientChannelContext> connectedFilter;
 
 	public ClientReConnTask(ClientChannelContext clientChannelContext, ReconnConf reconnConf) {
 		super(reconnConf.getInterval());
 		this.tioClient = reconnConf.getTioClient();
 		this.channelContext = clientChannelContext;
+		this.connectedFilter = reconnConf.getConnectedFilter();
 	}
 
 	@Override
@@ -60,7 +63,7 @@ public class ClientReConnTask extends TimerTask {
 		writeLock.lock();
 		try {
 			// 已经连上了，不需要再重连了
-			if (!channelContext.isClosed()) {
+			if (connectedFilter.test(channelContext)) {
 				return;
 			}
 			long start = System.currentTimeMillis();
