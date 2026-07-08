@@ -81,7 +81,7 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	 * 6~7 位，扩展状态 isAccepted(已接受,用于业务例如：mqtt):0,isBizStatus(业务自定义状态):0
 	 * </p>
 	 */
-	private volatile byte states = 0;
+	private final AtomicInteger states = new AtomicInteger();
 
 	/**
 	 * ChannelContext
@@ -460,7 +460,7 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	 * @param position 0~7 8位
 	 */
 	private boolean getState(int position) {
-		return (this.states & (1 << position)) != 0;
+		return (this.states.get() & (1 << position)) != 0;
 	}
 
 	/**
@@ -470,13 +470,19 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	 * @param state    状态
 	 */
 	private void setState(int position, boolean state) {
-		if (state) {
-			// 使用或运算将指定位设置为1
-			this.states |= (byte) (1 << position);
-		} else {
-			// 使用与运算将指定位设置为0
-			this.states &= (byte) ~(1 << position);
-		}
+		int mask = 1 << position;
+		int oldValue;
+		int newValue;
+		do {
+			oldValue = this.states.get();
+			if (state) {
+				// 使用或运算将指定位设置为1
+				newValue = oldValue | mask;
+			} else {
+				// 使用与运算将指定位设置为0
+				newValue = oldValue & ~mask;
+			}
+		} while (!this.states.compareAndSet(oldValue, newValue));
 	}
 
 	/**
