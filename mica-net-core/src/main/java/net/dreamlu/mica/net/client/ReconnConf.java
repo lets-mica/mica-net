@@ -235,7 +235,7 @@ public class ReconnConf {
 	}
 
 	public ReconnConf(long interval, int retryCount) {
-		this(interval, retryCount, ReconnConf::isNotClosed);
+		this(interval, retryCount, ReconnConf::isConnected);
 	}
 
 	public ReconnConf(long interval, int retryCount, Predicate<ClientChannelContext> connectedFilter) {
@@ -250,7 +250,7 @@ public class ReconnConf {
 	 * @param context ClientChannelContext
 	 * @return 是否连接成功
 	 */
-	private static boolean isNotClosed(ClientChannelContext context) {
+	private static boolean isConnected(ClientChannelContext context) {
 		return !context.isClosed();
 	}
 
