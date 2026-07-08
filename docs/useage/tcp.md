@@ -8,7 +8,7 @@
 <dependency>
     <groupId>net.dreamlu</groupId>
     <artifactId>mica-net-core</artifactId>
-    <version>2.0.7</version>
+    <version>${mica-net.version}</version>
 </dependency>
 ```
 

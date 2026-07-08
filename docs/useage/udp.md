@@ -10,7 +10,7 @@ UDP 与 TCP 共用 `mica-net-core`，无需额外模块：
 <dependency>
     <groupId>net.dreamlu</groupId>
     <artifactId>mica-net-core</artifactId>
-    <version>2.0.7</version>
+    <version>${mica-net.version}</version>
 </dependency>
 ```
 

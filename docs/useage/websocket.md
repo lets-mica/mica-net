@@ -8,7 +8,7 @@
 <dependency>
     <groupId>net.dreamlu</groupId>
     <artifactId>mica-net-http</artifactId>
-    <version>2.0.7</version>
+    <version>${mica-net.version}</version>
     <!-- 同一个依赖同时包含 HTTP 与 WebSocket 服务端能力 -->
 </dependency>
 ```
