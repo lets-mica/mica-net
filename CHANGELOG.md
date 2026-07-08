@@ -2,6 +2,13 @@
 
 ## 发行版本
 
+### v2.0.10 - 2026-07-08
+- feat(client): 客户端支持自定义连接成功断言以优化重连逻辑，新增 `ReconnConf#connectedFilter` 配置，默认判断 `ChannelContext` 未关闭，保持旧接口兼容。
+- feat(http): HTTP 路由支持 `QUERY` 方法注册及请求解析，新增 `HttpRouter#query()` 方法。
+- fix(core): 修复阻塞发送超时时 `InterruptedException` 中断状态未重置问题，捕获异常时调用 `Thread.currentThread().interrupt()` 保留中断信号。
+- fix(core): 修正 `ByteBuffer` 容量计算（`AbstractSendRunnable` 使用 `remaining()` 替代 `limit()`），优化 `TioConfig` 集合线程安全（`ConcurrentHashMap.newKeySet()`），修复 `WsTioServerHandler` 中 `ByteBuffer` 转字节数组读取问题，强制 WebSocket 客户端数据必须 mask，并改进 `HttpRequestDecoder` 参数解码逻辑（支持 value 包含等号）。
+- refactor(channel): `ChannelContext#states` 由 `byte` 改为 `final AtomicInteger`，使用 CAS 循环保证多线程状态位更新线程安全。
+
 ### v2.0.9 - 2026-07-06
 - fix(utils): 修复 `SysConst` `BACKSLASH` 和 `SLASH` 常量名和值颠倒。
 - fix(core): 将 `AbstractCloseRunnable` 中对已关闭和已删除通道的处理由 `return` 改为 `continue`，避免提前退出循环。
