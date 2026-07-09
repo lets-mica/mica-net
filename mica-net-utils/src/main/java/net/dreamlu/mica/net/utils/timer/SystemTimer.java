@@ -116,15 +116,18 @@ public class SystemTimer implements Timer, Consumer<TimerTaskEntry> {
 
 	@Override
 	public void shutdown() {
+		taskExecutor.shutdown();
 		try {
-			taskExecutor.shutdown();
-		} catch (Exception e1) {
-			logger.error(e1.getMessage(), e1);
-		}
-		try {
-			taskExecutor.awaitTermination(10, TimeUnit.SECONDS);
+			// 优雅等待当前在跑的任务结束（最多 10s）
+			if (!taskExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+				logger.warn("SystemTimer 在 10s 内未终止，强制执行 shutdownNow 回收线程");
+				taskExecutor.shutdownNow();
+			}
+			// 二次等待被强制中断的任务线程退出
+			taskExecutor.awaitTermination(5, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			taskExecutor.shutdownNow();
 			logger.error(e.getMessage(), e);
 		}
 	}
