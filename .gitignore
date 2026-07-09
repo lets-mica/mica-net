@@ -29,6 +29,7 @@ nbdist/
 .nb-gradle/
 
 ### AI Code ###
+.agents
 .workbuddy
 .codegraph
 .claude
