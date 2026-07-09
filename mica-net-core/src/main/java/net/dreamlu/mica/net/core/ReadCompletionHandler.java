@@ -371,8 +371,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 				// 无剩余数据：等下一批读事件，由 handleSsl 统一触发握手+解密（与直连 NOT_PROXY 路径一致）
 				return;
 			case NOT_PROXY:
-				// 确认不是代理头（如直连 SSL ClientHello），全部数据回退到 SSL 或 decode runnable
-				log.warn("{}, 不是 PROXY 协议头，回退到 SSL/业务解码", channelContext);
+				// 确认不是代理头（如直连 SSL ClientHello），全部数据走 SSL 或 decode runnable
+				log.debug("{}, 未携带 PROXY 协议头，按直连处理", channelContext);
 				preParser = null;
 				dispatchBySsl(result.data, sslEnabled);
 				return;
