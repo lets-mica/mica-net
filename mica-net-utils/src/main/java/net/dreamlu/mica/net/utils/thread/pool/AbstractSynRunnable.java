@@ -209,13 +209,13 @@ public abstract class AbstractSynRunnable implements Runnable {
 	 */
 	private static final Logger log = LoggerFactory.getLogger(AbstractSynRunnable.class);
 	public final Executor executor;
+	protected ReentrantLock runningLock = new ReentrantLock();
 	/**
 	 * 是否已经提交到线程池了
 	 * volatile 保证多线程可见性，优化快速路径检查的准确性
 	 */
 	public volatile boolean executed = false;
-	protected ReentrantLock runningLock = new ReentrantLock();
-	private boolean isCanceled = false;
+	private volatile boolean isCanceled = false;
 
 	protected AbstractSynRunnable(Executor executor) {
 		this.executor = executor;

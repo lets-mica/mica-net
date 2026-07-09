@@ -341,7 +341,7 @@ public class WriteCompletionHandler implements CompletionHandler<Long, WriteComp
 				channelContext.stat.latestTimeOfSentPacket = System.currentTimeMillis();
 				if (tioConfig.statOn) {
 					tioConfig.groupStat.sentBytes.add(bytesWritten);
-					channelContext.stat.sentBytes.addAndGet((int) bytesWritten);
+					channelContext.stat.sentBytes.addAndGet(bytesWritten);
 				}
 			}
 
