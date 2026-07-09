@@ -378,7 +378,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 				return;
 			case ERROR:
 				// 解析异常，回退
-				log.warn("{}, PROXY 头解析异常，回退: {}", channelContext, result.error.getMessage());
+				log.warn("{}, PROXY 头解析异常，回退", channelContext, result.error);
 				preParser = null;
 				dispatchBySsl(result.data, sslEnabled);
 				return;
