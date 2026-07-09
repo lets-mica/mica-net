@@ -196,7 +196,6 @@ package net.dreamlu.mica.net.client;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.Node;
 import net.dreamlu.mica.net.core.TioConfig;
-import net.dreamlu.mica.net.core.tcp.TcpChannelContext;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -207,7 +206,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author tanyaowu
  * 2017年4月1日 上午9:31:16
  */
-public class ClientChannelContext extends TcpChannelContext {
+public class ClientChannelContext extends ChannelContext {
 	/**
 	 * 连续重连次数，连接成功后，此值会被重置0
 	 */

@@ -195,7 +195,6 @@ package net.dreamlu.mica.net.core;
 
 import net.dreamlu.mica.net.core.ChannelContext.CloseCode;
 import net.dreamlu.mica.net.core.intf.TioListener;
-import net.dreamlu.mica.net.core.tcp.TcpChannelContext;
 import net.dreamlu.mica.net.core.utils.TioUtils;
 import net.dreamlu.mica.net.server.TioServerConfig;
 import net.dreamlu.mica.net.server.proxy.ProxyProtocolDecoder;
@@ -213,7 +212,7 @@ import java.nio.channels.CompletionHandler;
 public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
 	private static final Logger log = LoggerFactory.getLogger(ReadCompletionHandler.class);
 
-	private final TcpChannelContext channelContext;
+	private final ChannelContext channelContext;
 	private ByteBuffer readByteBuffer;
 	/**
 	 * ProxyProtocol 预解析器（懒加载）。
@@ -227,7 +226,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 	 */
 	private ProxyProtocolDecoder.PreParser preParser;
 
-	public ReadCompletionHandler(TcpChannelContext channelContext) {
+	public ReadCompletionHandler(ChannelContext channelContext) {
 		this.channelContext = channelContext;
 		this.readByteBuffer = ByteBuffer.allocate(channelContext.getReadBufferSize());
 		this.readByteBuffer.order(channelContext.tioConfig.getByteOrder());

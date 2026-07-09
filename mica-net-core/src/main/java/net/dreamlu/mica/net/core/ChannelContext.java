@@ -8,13 +8,16 @@ import net.dreamlu.mica.net.core.intf.TioListener;
 import net.dreamlu.mica.net.core.ssl.SslFacadeContext;
 import net.dreamlu.mica.net.core.stat.ChannelStat;
 import net.dreamlu.mica.net.core.task.AbstractDecodeRunnable;
-import net.dreamlu.mica.net.core.task.AbstractSendRunnable;
 import net.dreamlu.mica.net.core.task.HandlerRunnable;
+import net.dreamlu.mica.net.core.tcp.TcpDecodeRunnable;
+import net.dreamlu.mica.net.core.tcp.TcpSendRunnable;
 import net.dreamlu.mica.net.utils.hutool.StrUtil;
 import net.dreamlu.mica.net.utils.prop.MapPropSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.channels.AsynchronousSocketChannel;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,6 +38,8 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
 	public final ChannelStat stat = new ChannelStat();
 	public final CloseMeta closeMeta = new CloseMeta();
+	public AsynchronousSocketChannel asynchronousSocketChannel;
+	public WriteCompletionHandler writeCompletionHandler;
 
 	public TioConfig tioConfig;
 	/**
@@ -59,6 +64,11 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	private String userId;
 	private String token;
 	private String bsId;
+	private ReadCompletionHandler readCompletionHandler;
+	private TcpDecodeRunnable decodeRunnable;
+	private HandlerRunnable handlerRunnable;
+	private TcpSendRunnable sendRunnable;
+	private SslFacadeContext sslFacadeContext;
 
 	// 2. 包装类型（可能为 null）
 	private String id;
@@ -82,6 +92,10 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	 * </p>
 	 */
 	private final AtomicInteger states = new AtomicInteger();
+	/**
+	 * 服务端 SSL 握手是否已触发。
+	 */
+	private boolean sslHandshakeStarted;
 
 	/**
 	 * ChannelContext
@@ -97,6 +111,19 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 		this.setLogWhenDecodeError(tioConfig.logWhenDecodeError);
 		initOther();
 		setUpSSL();
+		initializeHandlers();
+	}
+
+	/**
+	 * ChannelContext
+	 *
+	 * @param tioConfig                 TioConfig
+	 * @param asynchronousSocketChannel AsynchronousSocketChannel
+	 */
+	public ChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
+		this(tioConfig);
+		this.asynchronousSocketChannel = asynchronousSocketChannel;
+		initializeClientNode(asynchronousSocketChannel);
 	}
 
 	/**
@@ -114,6 +141,15 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 			this.id = tioConfig.getTioUuid().uuid();
 		}
 		initOther();
+		initializeHandlers();
+	}
+
+	/**
+	 * Initialize read and write completion handlers
+	 */
+	private void initializeHandlers() {
+		this.readCompletionHandler = new ReadCompletionHandler(this);
+		this.writeCompletionHandler = new WriteCompletionHandler(this);
 	}
 
 	public static Node createUnknownNode() {
@@ -127,7 +163,70 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	/**
 	 * 设置 SSL/TLS
 	 */
-	public abstract void setUpSSL();
+	public void setUpSSL() {
+		if (tioConfig.sslConfig != null && sslFacadeContext == null) {
+			try {
+				this.sslFacadeContext = new SslFacadeContext(this);
+			} catch (Exception e) {
+				log.error("在初始化SSL时发生了异常", e);
+				Tio.close(this, "在初始化SSL时发生了异常" + e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
+			}
+		}
+	}
+
+	/**
+	 * 触发服务端 SSL 握手。
+	 *
+	 * @throws Exception 握手启动异常
+	 */
+	public void beginSslHandshakeIfNeeded() throws Exception {
+		if (sslFacadeContext != null && !sslHandshakeStarted && tioConfig.isServer()) {
+			sslFacadeContext.beginHandshake();
+			sslHandshakeStarted = true;
+		}
+	}
+
+	/**
+	 * 重置 SSL 握手标记。
+	 */
+	public void resetSslHandshake() {
+		this.sslHandshakeStarted = false;
+	}
+
+	/**
+	 * 断线重连前重置 I/O 层状态。
+	 */
+	public void resetForReconnect() {
+		this.sslFacadeContext = null;
+		this.sslHandshakeStarted = false;
+		this.readCompletionHandler.resetProxyProtocolState();
+		setUpSSL();
+	}
+
+	private void initializeClientNode(AsynchronousSocketChannel channel) {
+		if (channel != null) {
+			try {
+				setClientNode(createClientNode(channel));
+			} catch (IOException e) {
+				assignAnUnknownClientNode();
+			}
+		} else {
+			assignAnUnknownClientNode();
+		}
+	}
+
+	/**
+	 * Create client Node from AsynchronousSocketChannel
+	 *
+	 * @param asynchronousSocketChannel AsynchronousSocketChannel
+	 * @return Node
+	 * @throws IOException IOException
+	 */
+	protected abstract Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException;
+
+	public ReadCompletionHandler getReadCompletionHandler() {
+		return readCompletionHandler;
+	}
 
 	/**
 	 * 判断是否 ssl
@@ -203,7 +302,6 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 			// 在长连接中，绑定群组几乎是必须要干的事，所以直接在初始化时给它赋值，省得在后面做同步处理
 			groups = ConcurrentHashMap.newKeySet();
 		}
-		// SSL 设置已移至 TcpChannelContext（UDP 不支持 SSL/TLS）
 	}
 
 	/**
@@ -370,35 +468,56 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	 *
 	 * @return AbstractDecodeRunnable
 	 */
-	public abstract AbstractDecodeRunnable getDecodeRunnable();
+	public AbstractDecodeRunnable getDecodeRunnable() {
+		return decodeRunnable;
+	}
 
 	/**
 	 * 获取处理器 Runnable
 	 *
 	 * @return HandlerRunnable
 	 */
-	public abstract HandlerRunnable getHandlerRunnable();
+	public HandlerRunnable getHandlerRunnable() {
+		return handlerRunnable;
+	}
 
 	/**
 	 * 获取发送 Runnable
 	 *
 	 * @return AbstractSendRunnable
 	 */
-	public abstract AbstractSendRunnable getSendRunnable();
+	public TcpSendRunnable getSendRunnable() {
+		return sendRunnable;
+	}
 
 	/**
 	 * 获取 SSL 上下文（TCP 子类才有值，UDP 返回 null）
 	 *
 	 * @return SslFacadeContext
 	 */
-	public abstract SslFacadeContext getSslFacadeContext();
+	public SslFacadeContext getSslFacadeContext() {
+		return sslFacadeContext;
+	}
 
 	/**
 	 * 设置 TioConfig 并初始化协议相关的 Runnable（由子类实现）
 	 *
 	 * @param tioConfig the tioConfig to set
 	 */
-	protected abstract void setTioConfig(TioConfig tioConfig);
+	protected void setTioConfig(TioConfig tioConfig) {
+		this.tioConfig = tioConfig;
+		if (tioConfig != null) {
+			decodeRunnable = new TcpDecodeRunnable(this, tioConfig.tioExecutor);
+			handlerRunnable = new HandlerRunnable(this, tioConfig.tioExecutor);
+			sendRunnable = new TcpSendRunnable(this, tioConfig.tioExecutor);
+			tioConfig.connections.add(this);
+		}
+	}
+
+	public void setAsynchronousSocketChannel(AsynchronousSocketChannel asynchronousSocketChannel) {
+		this.asynchronousSocketChannel = asynchronousSocketChannel;
+		initializeClientNode(asynchronousSocketChannel);
+	}
 
 	/**
 	 * 是否是服务器端

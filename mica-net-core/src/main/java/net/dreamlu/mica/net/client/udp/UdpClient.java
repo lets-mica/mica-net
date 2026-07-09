@@ -78,13 +78,13 @@ public class UdpClient implements Closeable, Runnable {
 	}
 
 	private static ExecutorService createDefaultPool(String host, int port) {
-		String prefix = "udp-client-worker-" + host + ":" + port;
+		String prefix = "udp-client-worker-" + host + ':' + port;
 		return Executors.newFixedThreadPool(2, new ThreadFactory() {
 			private final AtomicInteger seq = new AtomicInteger();
 
 			@Override
 			public Thread newThread(Runnable r) {
-				Thread t = new Thread(r, prefix + "-" + seq.incrementAndGet());
+				Thread t = new Thread(r, prefix + '-' + seq.incrementAndGet());
 				t.setDaemon(true);
 				return t;
 			}

@@ -196,7 +196,6 @@ package net.dreamlu.mica.net.server;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.Node;
 import net.dreamlu.mica.net.core.TioConfig;
-import net.dreamlu.mica.net.core.tcp.TcpChannelContext;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -205,7 +204,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 /**
  * @author tanyaowu
  */
-public class ServerChannelContext extends TcpChannelContext {
+public class ServerChannelContext extends ChannelContext {
 
 	/**
 	 * @param tioConfig                 TioConfig

@@ -196,7 +196,6 @@ package net.dreamlu.mica.net.core;
 import net.dreamlu.mica.net.core.ChannelContext.CloseCode;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.Packet.Meta;
-import net.dreamlu.mica.net.core.tcp.TcpChannelContext;
 import net.dreamlu.mica.net.core.tcp.TcpSendRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -248,14 +247,14 @@ public class WriteCompletionHandler implements CompletionHandler<Long, WriteComp
 	/**
 	 * TCP 连接上下文
 	 */
-	private final TcpChannelContext channelContext;
+	private final ChannelContext channelContext;
 
 	/**
 	 * 构造写完成处理器
 	 *
 	 * @param channelContext TCP 连接上下文
 	 */
-	public WriteCompletionHandler(TcpChannelContext channelContext) {
+	public WriteCompletionHandler(ChannelContext channelContext) {
 		this.channelContext = channelContext;
 	}
 

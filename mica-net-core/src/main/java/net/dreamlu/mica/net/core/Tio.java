@@ -199,7 +199,6 @@ import net.dreamlu.mica.net.client.TioClientConfig;
 import net.dreamlu.mica.net.core.ChannelContext.CloseCode;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.Packet.Meta;
-import net.dreamlu.mica.net.core.tcp.TcpChannelContext;
 import net.dreamlu.mica.net.utils.page.Page;
 import net.dreamlu.mica.net.utils.page.PageUtils;
 import org.slf4j.Logger;
@@ -496,24 +495,21 @@ public class Tio {
 			context.setCloseCode(closeCode);
 		}
 
-		if (context instanceof TcpChannelContext) {
-			TcpChannelContext tcpChannelContext = (TcpChannelContext) context;
-			if (tcpChannelContext.asynchronousSocketChannel != null) {
-				try {
-					tcpChannelContext.asynchronousSocketChannel.shutdownInput();
-				} catch (Throwable e) {
-					//log.error(e.toString(), e);
-				}
-				try {
-					tcpChannelContext.asynchronousSocketChannel.shutdownOutput();
-				} catch (Throwable e) {
-					//log.error(e.toString(), e);
-				}
-				try {
-					tcpChannelContext.asynchronousSocketChannel.close();
-				} catch (Throwable e) {
-					//log.error(e.toString(), e);
-				}
+		if (context.asynchronousSocketChannel != null) {
+			try {
+				context.asynchronousSocketChannel.shutdownInput();
+			} catch (Throwable e) {
+				//log.error(e.toString(), e);
+			}
+			try {
+				context.asynchronousSocketChannel.shutdownOutput();
+			} catch (Throwable e) {
+				//log.error(e.toString(), e);
+			}
+			try {
+				context.asynchronousSocketChannel.close();
+			} catch (Throwable e) {
+				//log.error(e.toString(), e);
 			}
 		}
 

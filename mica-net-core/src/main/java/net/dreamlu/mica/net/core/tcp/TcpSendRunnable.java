@@ -16,8 +16,9 @@
 
 package net.dreamlu.mica.net.core.tcp;
 
+import net.dreamlu.mica.net.client.ConnectionCompletionHandler;
 import net.dreamlu.mica.net.core.ChannelContext;
-import net.dreamlu.mica.net.core.WriteCompletionHandler;
+import net.dreamlu.mica.net.core.WriteCompletionHandler.WriteCompletionVo;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.ssl.SslUtils;
 import net.dreamlu.mica.net.core.task.AbstractSendRunnable;
@@ -84,6 +85,7 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 			return; // 加密失败，已在方法内关闭连接
 		}
 
+		// 批量发送 ByteBuffer[]
 		sendByteBuffers(finalBuffers, result.packets);
 	}
 
@@ -104,6 +106,7 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 			return false; // 加密失败
 		}
 
+		// 发送 ByteBuffer
 		sendByteBuffer(byteBuffer, packet);
 		return true;
 	}
@@ -114,22 +117,19 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 			log.error("{}, byteBuffer is null", channelContext);
 			return;
 		}
-
 		if (!TioUtils.checkBeforeIO(channelContext)) {
 			return;
 		}
-
 		// 标记写入状态
 		writing.set(true);
 		try {
 			// 统一包装为 ByteBuffer[]{byteBuffer}，走 scatter-write 路径
 			ByteBuffer[] buffers = new ByteBuffer[]{byteBuffer};
-			WriteCompletionHandler.WriteCompletionVo writeCompletionVo = new WriteCompletionHandler.WriteCompletionVo(buffers, packets);
-			TcpChannelContext tcpChannelContext = (TcpChannelContext) channelContext;
-			tcpChannelContext.asynchronousSocketChannel.write(
+			WriteCompletionVo writeCompletionVo = new WriteCompletionVo(buffers, packets);
+			channelContext.asynchronousSocketChannel.write(
 				buffers, 0, 1,
 				0L, TimeUnit.MILLISECONDS,
-				writeCompletionVo, tcpChannelContext.writeCompletionHandler);
+				writeCompletionVo, channelContext.writeCompletionHandler);
 		} catch (Exception e) {
 			// 发送失败，恢复状态
 			writing.set(false);
@@ -143,7 +143,6 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	 */
 	public void onWriteCompleted() {
 		writing.set(false);
-
 		// 只在未提交状态且有消息时才触发，避免无效的 execute 调用和锁竞争
 		// executed 为 true 表示任务已在线程池队列中，无需重复提交
 		if (!msgQueue.isEmpty() && !this.executed) {
@@ -190,13 +189,12 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 
 		writing.set(true);
 		try {
-			TcpChannelContext tcpChannelContext = (TcpChannelContext) channelContext;
 			// 统一走 scatter-write 路径，单个 buffer 也包装为数组
-			WriteCompletionHandler.WriteCompletionVo writeCompletionVo = new WriteCompletionHandler.WriteCompletionVo(byteBuffers, packets);
-			tcpChannelContext.asynchronousSocketChannel.write(
+			WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffers, packets);
+			channelContext.asynchronousSocketChannel.write(
 				byteBuffers, 0, byteBuffers.length,
 				0L, TimeUnit.MILLISECONDS,
-				writeCompletionVo, tcpChannelContext.writeCompletionHandler);
+				writeCompletionVo, channelContext.writeCompletionHandler);
 		} catch (Exception e) {
 			// 发送失败，恢复状态
 			writing.set(false);

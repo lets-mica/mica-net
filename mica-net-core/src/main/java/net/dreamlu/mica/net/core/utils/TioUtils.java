@@ -196,7 +196,6 @@ package net.dreamlu.mica.net.core.utils;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.ChannelContext.CloseCode;
 import net.dreamlu.mica.net.core.Tio;
-import net.dreamlu.mica.net.core.tcp.TcpChannelContext;
 import net.dreamlu.mica.net.utils.thread.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,9 +212,8 @@ public class TioUtils {
 			return false;
 		}
 		boolean isOpen;
-		TcpChannelContext tcpChannelContext = (TcpChannelContext) channelContext;
-		if (tcpChannelContext.asynchronousSocketChannel != null) {
-			isOpen = tcpChannelContext.asynchronousSocketChannel.isOpen();
+		if (channelContext.asynchronousSocketChannel != null) {
+			isOpen = channelContext.asynchronousSocketChannel.isOpen();
 		} else {
 			log.error("{}, 请检查此异常, asynchronousSocketChannel is null, isClosed:{}, isRemoved:{}, {} ", channelContext, channelContext.isClosed(), channelContext.isRemoved(),
 				ThreadUtils.stackTrace());
