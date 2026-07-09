@@ -17,8 +17,7 @@
 
 package net.dreamlu.mica.net.utils.timer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.dreamlu.mica.net.utils.thread.ThreadUtils;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.LongAdder;
@@ -31,7 +30,6 @@ import java.util.function.Consumer;
  * @author kafka、guest、L.cm
  */
 public class SystemTimer implements Timer, Consumer<TimerTaskEntry> {
-	private static final Logger logger = LoggerFactory.getLogger(SystemTimer.class);
 	/**
 	 * 任务执行线程
 	 */
@@ -116,20 +114,7 @@ public class SystemTimer implements Timer, Consumer<TimerTaskEntry> {
 
 	@Override
 	public void shutdown() {
-		taskExecutor.shutdown();
-		try {
-			// 优雅等待当前在跑的任务结束（最多 10s）
-			if (!taskExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-				logger.warn("SystemTimer 在 10s 内未终止，强制执行 shutdownNow 回收线程");
-				taskExecutor.shutdownNow();
-			}
-			// 二次等待被强制中断的任务线程退出
-			taskExecutor.awaitTermination(5, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			taskExecutor.shutdownNow();
-			logger.error(e.getMessage(), e);
-		}
+		ThreadUtils.shutdownExecutor(taskExecutor, 10, 5, "SystemTimer");
 	}
 
 	private void addTimerTaskEntry(TimerTaskEntry timerTaskEntry) {

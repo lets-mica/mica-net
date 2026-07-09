@@ -200,8 +200,8 @@ import net.dreamlu.mica.net.core.ssl.SslConfig;
 import net.dreamlu.mica.net.core.stat.GroupStat;
 import net.dreamlu.mica.net.core.stat.vo.StatVo;
 import net.dreamlu.mica.net.core.task.AbstractCloseRunnable;
-import net.dreamlu.mica.net.core.tcp.TcpCloseRunnable;
 import net.dreamlu.mica.net.core.task.HeartbeatMode;
+import net.dreamlu.mica.net.core.tcp.TcpCloseRunnable;
 import net.dreamlu.mica.net.core.uuid.DefaultTioUuid;
 import net.dreamlu.mica.net.server.TioServerConfig;
 import net.dreamlu.mica.net.utils.thread.ThreadUtils;
@@ -210,7 +210,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteOrder;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -218,7 +217,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -595,55 +593,6 @@ public abstract class TioConfig {
 		} else {
 			ALL_CLIENT_GROUP_CONTEXTS.remove(this);
 		}
-	}
-
-	/**
-	 * 优雅关闭线程池：先 shutdown() 再 awaitTermination，超时则 shutdownNow() 强制中断。
-	 *
-	 * @param executor             要关闭的线程池
-	 * @param timeoutSeconds       第一次等待超时（秒）
-	 * @param forceTimeoutSeconds  第二次等待超时（秒），通常 5~10s 足够
-	 * @param poolName             线程池名称，用于日志
-	 * @return 是否在超时内成功终止
-	 */
-	public boolean shutdownExecutor(ExecutorService executor, int timeoutSeconds, int forceTimeoutSeconds, String poolName) {
-		if (executor == null || executor.isTerminated()) {
-			return true;
-		}
-		executor.shutdown();
-		try {
-			if (executor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS)) {
-				return true;
-			}
-			log.warn("{} 在 {}s 内未终止，强制执行 shutdownNow", poolName, timeoutSeconds);
-		} catch (InterruptedException e) {
-			log.error(e.getMessage(), e);
-			logRemainingTasks(executor.shutdownNow(), poolName);
-			Thread.currentThread().interrupt();
-			return false;
-		}
-		List<Runnable> remaining = executor.shutdownNow();
-		logRemainingTasks(remaining, poolName);
-		try {
-			return executor.awaitTermination(forceTimeoutSeconds, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			log.error(e.getMessage(), e);
-			Thread.currentThread().interrupt();
-			return false;
-		}
-	}
-
-	/**
-	 * 记录 shutdownNow 丢弃的待执行任务数量，便于排查任务丢失问题。
-	 *
-	 * @param remaining 被丢弃的任务列表
-	 * @param poolName  线程池名称，用于日志
-	 */
-	private void logRemainingTasks(List<Runnable> remaining, String poolName) {
-		if (remaining == null || remaining.isEmpty()) {
-			return;
-		}
-		log.warn("{} shutdownNow 丢弃了 {} 个未执行的任务", poolName, remaining.size());
 	}
 
 	@Override

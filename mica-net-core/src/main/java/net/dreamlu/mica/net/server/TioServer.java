@@ -197,6 +197,7 @@ import net.dreamlu.mica.net.core.Node;
 import net.dreamlu.mica.net.server.task.ServerHeartbeatTask;
 import net.dreamlu.mica.net.utils.SysConst;
 import net.dreamlu.mica.net.utils.Version;
+import net.dreamlu.mica.net.utils.thread.ThreadUtils;
 import net.dreamlu.mica.net.utils.hutool.ClassUtil;
 import net.dreamlu.mica.net.utils.hutool.DateUtil;
 import net.dreamlu.mica.net.utils.hutool.StrUtil;
@@ -481,8 +482,8 @@ public class TioServer {
 		serverConfig.setStopped(true);
 		int gracefulTimeoutSec = serverConfig.getGracefulTimeoutSec();
 		int forceTimeoutSec = serverConfig.getForceTimeoutSec();
-		boolean groupRet = serverConfig.shutdownExecutor(serverConfig.groupExecutor, gracefulTimeoutSec, forceTimeoutSec, "groupExecutor");
-		boolean tioRet = serverConfig.shutdownExecutor(serverConfig.tioExecutor, gracefulTimeoutSec, forceTimeoutSec, "tioExecutor");
+		boolean groupRet = ThreadUtils.shutdownExecutor(serverConfig.groupExecutor, gracefulTimeoutSec, forceTimeoutSec, "groupExecutor");
+		boolean tioRet = ThreadUtils.shutdownExecutor(serverConfig.tioExecutor, gracefulTimeoutSec, forceTimeoutSec, "tioExecutor");
 		boolean ret = groupRet && tioRet;
 		log.info("{} stopped ret:{}", this.serverNode, ret);
 		return ret;

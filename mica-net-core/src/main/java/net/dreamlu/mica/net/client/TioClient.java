@@ -195,6 +195,7 @@ package net.dreamlu.mica.net.client;
 
 import net.dreamlu.mica.net.client.task.ClientHeartbeatTask;
 import net.dreamlu.mica.net.core.Node;
+import net.dreamlu.mica.net.utils.thread.ThreadUtils;
 import net.dreamlu.mica.net.utils.hutool.StrUtil;
 import net.dreamlu.mica.net.utils.timer.DefaultTimerTaskService;
 import net.dreamlu.mica.net.utils.timer.TimerTask;
@@ -550,8 +551,8 @@ public class TioClient {
 		clientConfig.setStopped(true);
 		int gracefulTimeoutSec = clientConfig.getGracefulTimeoutSec();
 		int forceTimeoutSec = clientConfig.getForceTimeoutSec();
-		boolean groupRet = clientConfig.shutdownExecutor(clientConfig.groupExecutor, gracefulTimeoutSec, forceTimeoutSec, "groupExecutor");
-		boolean tioRet = clientConfig.shutdownExecutor(clientConfig.tioExecutor, gracefulTimeoutSec, forceTimeoutSec, "tioExecutor");
+		boolean groupRet = ThreadUtils.shutdownExecutor(clientConfig.groupExecutor, gracefulTimeoutSec, forceTimeoutSec, "groupExecutor");
+		boolean tioRet = ThreadUtils.shutdownExecutor(clientConfig.tioExecutor, gracefulTimeoutSec, forceTimeoutSec, "tioExecutor");
 		boolean ret = groupRet && tioRet;
 		// 将对象重置为 null
 		clientConfig.groupExecutor = null;
