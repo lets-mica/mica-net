@@ -547,16 +547,6 @@ public class TioClient {
 		}
 		// 删除实例
 		clientConfig.remove();
-		try {
-			clientConfig.groupExecutor.shutdown();
-		} catch (Exception e1) {
-			log.error(e1.getMessage(), e1);
-		}
-		try {
-			clientConfig.tioExecutor.shutdown();
-		} catch (Exception e1) {
-			log.error(e1.getMessage(), e1);
-		}
 		clientConfig.setStopped(true);
 		int gracefulTimeoutSec = clientConfig.getGracefulTimeoutSec();
 		int forceTimeoutSec = clientConfig.getForceTimeoutSec();
