@@ -217,7 +217,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author tanyaowu
@@ -480,25 +479,11 @@ public class TioServer {
 		}
 		// 停止心跳线程
 		serverConfig.setStopped(true);
-		try {
-			serverConfig.groupExecutor.shutdown();
-		} catch (Exception e1) {
-			log.error(e1.getMessage(), e1);
-		}
-		try {
-			serverConfig.tioExecutor.shutdown();
-		} catch (Exception e1) {
-			log.error(e1.getMessage(), e1);
-		}
-		boolean ret;
-		try {
-			ret = serverConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
-			ret = ret && serverConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			ret = false;
-			Thread.currentThread().interrupt();
-			log.error(e.getMessage(), e);
-		}
+		int gracefulTimeoutSec = serverConfig.getGracefulTimeoutSec();
+		int forceTimeoutSec = serverConfig.getForceTimeoutSec();
+		boolean groupRet = serverConfig.shutdownExecutor(serverConfig.groupExecutor, gracefulTimeoutSec, forceTimeoutSec, "groupExecutor");
+		boolean tioRet = serverConfig.shutdownExecutor(serverConfig.tioExecutor, gracefulTimeoutSec, forceTimeoutSec, "tioExecutor");
+		boolean ret = groupRet && tioRet;
 		log.info("{} stopped ret:{}", this.serverNode, ret);
 		return ret;
 	}

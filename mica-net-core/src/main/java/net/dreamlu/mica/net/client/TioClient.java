@@ -558,15 +558,11 @@ public class TioClient {
 			log.error(e1.getMessage(), e1);
 		}
 		clientConfig.setStopped(true);
-		boolean ret;
-		try {
-			ret = clientConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
-			ret = ret && clientConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			ret = false;
-			Thread.currentThread().interrupt();
-			log.error(e.getMessage(), e);
-		}
+		int gracefulTimeoutSec = clientConfig.getGracefulTimeoutSec();
+		int forceTimeoutSec = clientConfig.getForceTimeoutSec();
+		boolean groupRet = clientConfig.shutdownExecutor(clientConfig.groupExecutor, gracefulTimeoutSec, forceTimeoutSec, "groupExecutor");
+		boolean tioRet = clientConfig.shutdownExecutor(clientConfig.tioExecutor, gracefulTimeoutSec, forceTimeoutSec, "tioExecutor");
+		boolean ret = groupRet && tioRet;
 		// 将对象重置为 null
 		clientConfig.groupExecutor = null;
 		clientConfig.tioExecutor = null;

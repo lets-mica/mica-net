@@ -210,6 +210,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteOrder;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -217,6 +218,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -244,6 +246,14 @@ public abstract class TioConfig {
 	 * 默认的超时时间，60 * 2 * 1000
 	 */
 	public static final long DEFAULT_HEARTBEAT_TIMEOUT = 120_000L;
+	/**
+	 * 线程池优雅关闭默认超时时间（秒）
+	 */
+	public static final int DEFAULT_GRACEFUL_TIMEOUT_SEC = 30;
+	/**
+	 * shutdownNow 后二次等待超时时间（秒），用于回收中断的 worker 线程。
+	 */
+	public static final int DEFAULT_FORCE_TIMEOUT_SEC = 5;
 	private static final AtomicInteger ID_ATOMIC = new AtomicInteger();
 	static Logger log = LoggerFactory.getLogger(TioConfig.class);
 	// 引用类型（指针大小，通常8字节但可能压缩为4字节）
@@ -294,6 +304,16 @@ public abstract class TioConfig {
 	 */
 	public boolean enableSlowPacketDetection = true;
 	protected String name = "未命名";
+	/**
+	 * 线程池优雅关闭等待超时时间（秒），默认 30s。
+	 * 超时后会调用 shutdownNow() 强制中断未完成任务。
+	 */
+	private int gracefulTimeoutSec = DEFAULT_GRACEFUL_TIMEOUT_SEC;
+	/**
+	 * shutdownNow 后的二次等待超时时间（秒），默认 5s。
+	 * 用于回收被中断的 worker 线程，通常 5~10s 足够。
+	 */
+	private int forceTimeoutSec = DEFAULT_FORCE_TIMEOUT_SEC;
 	private int readBufferSize = READ_BUFFER_SIZE;
 	private GroupListener groupListener = null;
 	private TioUuid tioUuid = new DefaultTioUuid();
@@ -519,6 +539,48 @@ public abstract class TioConfig {
 		this.readBufferSize = Math.min(readBufferSize, TcpConst.MAX_DATA_LENGTH);
 	}
 
+	/**
+	 * 获取线程池优雅关闭超时时间（秒）
+	 *
+	 * @return 关闭超时（秒）
+	 */
+	public int getGracefulTimeoutSec() {
+		return gracefulTimeoutSec;
+	}
+
+	/**
+	 * 设置线程池优雅关闭超时时间（秒），建议同时设置部署环境的终止宽限期大于该值。
+	 *
+	 * @param gracefulTimeoutSec 关闭超时（秒），必须大于 0
+	 */
+	public void setGracefulTimeoutSec(int gracefulTimeoutSec) {
+		if (gracefulTimeoutSec <= 0) {
+			throw new IllegalArgumentException("gracefulTimeoutSec must be greater than 0");
+		}
+		this.gracefulTimeoutSec = gracefulTimeoutSec;
+	}
+
+	/**
+	 * 获取 shutdownNow 后的二次等待超时时间（秒）
+	 *
+	 * @return 二次等待超时（秒）
+	 */
+	public int getForceTimeoutSec() {
+		return forceTimeoutSec;
+	}
+
+	/**
+	 * 设置 shutdownNow 后的二次等待超时时间（秒），通常 5~10s 足够。
+	 *
+	 * @param forceTimeoutSec 二次等待超时（秒），必须大于 0
+	 */
+	public void setForceTimeoutSec(int forceTimeoutSec) {
+		if (forceTimeoutSec <= 0) {
+			throw new IllegalArgumentException("forceTimeoutSec must be greater than 0");
+		}
+		this.forceTimeoutSec = forceTimeoutSec;
+	}
+
 	public boolean isSsl() {
 		return sslConfig != null;
 	}
@@ -533,6 +595,55 @@ public abstract class TioConfig {
 		} else {
 			ALL_CLIENT_GROUP_CONTEXTS.remove(this);
 		}
+	}
+
+	/**
+	 * 优雅关闭线程池：先 shutdown() 再 awaitTermination，超时则 shutdownNow() 强制中断。
+	 *
+	 * @param executor             要关闭的线程池
+	 * @param timeoutSeconds       第一次等待超时（秒）
+	 * @param forceTimeoutSeconds  第二次等待超时（秒），通常 5~10s 足够
+	 * @param poolName             线程池名称，用于日志
+	 * @return 是否在超时内成功终止
+	 */
+	public boolean shutdownExecutor(ExecutorService executor, int timeoutSeconds, int forceTimeoutSeconds, String poolName) {
+		if (executor == null || executor.isTerminated()) {
+			return true;
+		}
+		executor.shutdown();
+		try {
+			if (executor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS)) {
+				return true;
+			}
+			log.warn("{} 在 {}s 内未终止，强制执行 shutdownNow", poolName, timeoutSeconds);
+		} catch (InterruptedException e) {
+			log.error(e.getMessage(), e);
+			logRemainingTasks(executor.shutdownNow(), poolName);
+			Thread.currentThread().interrupt();
+			return false;
+		}
+		List<Runnable> remaining = executor.shutdownNow();
+		logRemainingTasks(remaining, poolName);
+		try {
+			return executor.awaitTermination(forceTimeoutSeconds, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			log.error(e.getMessage(), e);
+			Thread.currentThread().interrupt();
+			return false;
+		}
+	}
+
+	/**
+	 * 记录 shutdownNow 丢弃的待执行任务数量，便于排查任务丢失问题。
+	 *
+	 * @param remaining 被丢弃的任务列表
+	 * @param poolName  线程池名称，用于日志
+	 */
+	private void logRemainingTasks(List<Runnable> remaining, String poolName) {
+		if (remaining == null || remaining.isEmpty()) {
+			return;
+		}
+		log.warn("{} shutdownNow 丢弃了 {} 个未执行的任务", poolName, remaining.size());
 	}
 
 	@Override
