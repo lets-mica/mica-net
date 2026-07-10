@@ -318,7 +318,7 @@ public class ThreadUtils {
 	}
 
 	/**
-	 * 优雅关闭线程池：先 shutdown() 再 awaitTermination，超时则 shutdownNow() 强制中断。
+	 * 关闭线程池：先 shutdown() 再 awaitTermination
 	 *
 	 * @param executor            要关闭的线程池
 	 * @param awaitTimeoutSeconds 等待超时（秒）
