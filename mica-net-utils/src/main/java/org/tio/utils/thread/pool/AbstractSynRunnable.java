@@ -242,6 +242,7 @@ public abstract class AbstractSynRunnable implements Runnable {
 	public final void run() {
 		//任务已经被取消
 		if (isCanceled()) {
+			executed = false;
 			return;
 		}
 		boolean tryLock = false;

@@ -29,8 +29,11 @@ nbdist/
 .nb-gradle/
 
 ### AI Code ###
+.agents
+.workbuddy
 .claude
 .opencode
+.codegraph
 -p
 
 ### maven ###
