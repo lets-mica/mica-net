@@ -2,10 +2,8 @@
 
 ## 发行版本
 
-### v2.0.11 - 2026-07-09
+### v2.0.11 - 2026-07-10
 - refactor(core): 移除 `TcpChannelContext` 类，TCP 相关属性与逻辑全部回归 `ChannelContext`，提升通用性与可扩展性。
-- refactor(thread): 提取线程池优雅关闭方法至 `ThreadUtils#shutdownExecutor`，支持先 `shutdown` 再 `awaitTermination`，超时则 `shutdownNow` 强制终止并记录丢弃任务数；`TioClient`/`TioServer` 停止逻辑统一调用该方法；`TioConfig` 新增线程池关闭超时配置项。
-- refactor(thread): 优化 `SystemTimer` 线程池关闭逻辑，增加优雅等待任务结束机制（最长 10 秒），超时后 `shutdownNow` 强制中断，设置中断状态并二次等待确保退出。
 - fix(thread-pool): 修正取消任务时执行状态标记问题，将 `executed` 状态重置为 `false`，避免取消后状态不一致。
 - fix(core): 修复发送字节数（`sentBytes`）统计类型截断问题，移除不必要类型转换；`AbstractSynRunnable#isCanceled` 改为 `volatile` 保证多线程可见性。
 - fix(net): 优化 PROXY protocol 头解析异常日志打印参数顺序及内容完整性；非代理协议头日志级别由 `warn` 降为 `debug`，减少噪音。
