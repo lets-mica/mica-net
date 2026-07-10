@@ -2,6 +2,15 @@
 
 ## 发行版本
 
+### v1.3.7 - 2026-07-10
+- fix(thread-pool): 修正取消任务时执行状态标记问题，将 `executed` 状态重置为 `false`，避免取消后状态不一致。
+- refactor(channel): `ChannelContext#states` 由 `byte` 改为 `final AtomicInteger`，使用 CAS 循环保证多线程状态位更新线程安全。
+- fix(core): 将 `AbstractCloseRunnable` 中对已关闭和已删除通道的处理由 `return` 改为 `continue`，避免提前退出循环。
+
+### v1.3.6 - 2026-06-24
+- feat(net-core): CloseCode 添加 `KICK_EACH_OTHER` 处理互踢错误码
+- fix(core): 修复重连后 TcpSendRunnable.writing 未复位导致 MQTT CONNECT 无法发送的问题 (gitee mica-mqtt #IJVOZ7)
+
 ### v1.3.5 - 2026-04-28
 - perf(tcp): 优化异步写入为零拷贝 scatter-write 批量发送。
 - perf(ssl): 优化ReadCompletionHandler中SslFacade解密流程，改用slice()避免复制字节缓冲区。

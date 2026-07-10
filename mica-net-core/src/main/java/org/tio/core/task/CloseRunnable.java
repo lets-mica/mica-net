@@ -251,11 +251,11 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
 				try {
 					if (channelContext.isClosed() && !isNeedRemove) {
 						log.info("{}, {}已经关闭，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark, throwable == null ? "无" : throwable.toString());
-						return;
+						continue;
 					}
 					if (channelContext.isRemoved()) {
 						log.info("{}, {}已经删除，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark, throwable == null ? "无" : throwable.toString());
-						return;
+						continue;
 					}
 					//必须先取消任务再清空队列
 					channelContext.decodeRunnable.setCanceled(true);
