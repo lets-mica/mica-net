@@ -245,13 +245,10 @@ public abstract class TioConfig {
 	 */
 	public static final long DEFAULT_HEARTBEAT_TIMEOUT = 120_000L;
 	/**
-	 * 线程池优雅关闭默认超时时间（秒）
+	 * 线程池关闭等待超时时间（秒），默认 6000s（约 100 分钟，沿用 t-io 原默认值）。
+	 * 关闭时只做优雅等待、不强制中断，故取值偏保守，给在途任务充分时间完成。
 	 */
-	public static final int DEFAULT_GRACEFUL_TIMEOUT_SEC = 30;
-	/**
-	 * shutdownNow 后二次等待超时时间（秒），用于回收中断的 worker 线程。
-	 */
-	public static final int DEFAULT_FORCE_TIMEOUT_SEC = 5;
+	public static final int DEFAULT_SHUTDOWN_TIMEOUT_SEC = 6000;
 	private static final AtomicInteger ID_ATOMIC = new AtomicInteger();
 	static Logger log = LoggerFactory.getLogger(TioConfig.class);
 	// 引用类型（指针大小，通常8字节但可能压缩为4字节）
@@ -303,15 +300,10 @@ public abstract class TioConfig {
 	public boolean enableSlowPacketDetection = true;
 	protected String name = "未命名";
 	/**
-	 * 线程池优雅关闭等待超时时间（秒），默认 30s。
-	 * 超时后会调用 shutdownNow() 强制中断未完成任务。
+	 * 线程池关闭等待超时时间（秒），默认 6000s（约 100 分钟）。
+	 * 关闭时先 shutdown() 再 awaitTermination，超时即返回失败，不强制中断。
 	 */
-	private int gracefulTimeoutSec = DEFAULT_GRACEFUL_TIMEOUT_SEC;
-	/**
-	 * shutdownNow 后的二次等待超时时间（秒），默认 5s。
-	 * 用于回收被中断的 worker 线程，通常 5~10s 足够。
-	 */
-	private int forceTimeoutSec = DEFAULT_FORCE_TIMEOUT_SEC;
+	private int shutdownTimeoutSec = DEFAULT_SHUTDOWN_TIMEOUT_SEC;
 	private int readBufferSize = READ_BUFFER_SIZE;
 	private GroupListener groupListener = null;
 	private TioUuid tioUuid = new DefaultTioUuid();
@@ -538,45 +530,26 @@ public abstract class TioConfig {
 	}
 
 	/**
-	 * 获取线程池优雅关闭超时时间（秒）
+	 * 获取线程池关闭等待超时时间（秒）
 	 *
 	 * @return 关闭超时（秒）
 	 */
-	public int getGracefulTimeoutSec() {
-		return gracefulTimeoutSec;
+	public int getShutdownTimeoutSec() {
+		return shutdownTimeoutSec;
 	}
 
 	/**
-	 * 设置线程池优雅关闭超时时间（秒），建议同时设置部署环境的终止宽限期大于该值。
+	 * 设置线程池关闭等待超时时间（秒）。
+	 * 注意：该值仅控制 awaitTermination 的阻塞时长，超时不会强制中断线程；
+	 * 超时后仍在运行的任务会继续自生自灭地执行直到自然结束。
 	 *
-	 * @param gracefulTimeoutSec 关闭超时（秒），必须大于 0
+	 * @param shutdownTimeoutSec 关闭超时（秒），必须大于 0
 	 */
-	public void setGracefulTimeoutSec(int gracefulTimeoutSec) {
-		if (gracefulTimeoutSec <= 0) {
-			throw new IllegalArgumentException("gracefulTimeoutSec must be greater than 0");
+	public void setShutdownTimeoutSec(int shutdownTimeoutSec) {
+		if (shutdownTimeoutSec <= 0) {
+			throw new IllegalArgumentException("shutdownTimeoutSec must be greater than 0");
 		}
-		this.gracefulTimeoutSec = gracefulTimeoutSec;
-	}
-
-	/**
-	 * 获取 shutdownNow 后的二次等待超时时间（秒）
-	 *
-	 * @return 二次等待超时（秒）
-	 */
-	public int getForceTimeoutSec() {
-		return forceTimeoutSec;
-	}
-
-	/**
-	 * 设置 shutdownNow 后的二次等待超时时间（秒），通常 5~10s 足够。
-	 *
-	 * @param forceTimeoutSec 二次等待超时（秒），必须大于 0
-	 */
-	public void setForceTimeoutSec(int forceTimeoutSec) {
-		if (forceTimeoutSec <= 0) {
-			throw new IllegalArgumentException("forceTimeoutSec must be greater than 0");
-		}
-		this.forceTimeoutSec = forceTimeoutSec;
+		this.shutdownTimeoutSec = shutdownTimeoutSec;
 	}
 
 	public boolean isSsl() {

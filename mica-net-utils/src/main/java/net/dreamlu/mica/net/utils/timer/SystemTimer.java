@@ -114,7 +114,7 @@ public class SystemTimer implements Timer, Consumer<TimerTaskEntry> {
 
 	@Override
 	public void shutdown() {
-		ThreadUtils.shutdownExecutor(taskExecutor, 10, 5, "SystemTimer");
+		ThreadUtils.shutdownExecutor(taskExecutor, 15, "SystemTimer");
 	}
 
 	private void addTimerTaskEntry(TimerTaskEntry timerTaskEntry) {

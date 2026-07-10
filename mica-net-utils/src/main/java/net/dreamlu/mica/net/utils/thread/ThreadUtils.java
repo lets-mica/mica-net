@@ -320,32 +320,22 @@ public class ThreadUtils {
 	/**
 	 * 优雅关闭线程池：先 shutdown() 再 awaitTermination，超时则 shutdownNow() 强制中断。
 	 *
-	 * @param executor             要关闭的线程池
-	 * @param timeoutSeconds       第一次等待超时（秒）
-	 * @param forceTimeoutSeconds  第二次等待超时（秒），通常 5~10s 足够
-	 * @param poolName             线程池名称，用于日志
+	 * @param executor            要关闭的线程池
+	 * @param awaitTimeoutSeconds 等待超时（秒）
+	 * @param poolName            线程池名称，用于日志
 	 * @return 是否在超时内成功终止
 	 */
-	public static boolean shutdownExecutor(ExecutorService executor, int timeoutSeconds, int forceTimeoutSeconds, String poolName) {
+	public static boolean shutdownExecutor(ExecutorService executor, int awaitTimeoutSeconds, String poolName) {
 		if (executor == null || executor.isTerminated()) {
 			return true;
 		}
 		executor.shutdown();
 		try {
-			if (executor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS)) {
-				return true;
+			boolean done = executor.awaitTermination(awaitTimeoutSeconds, TimeUnit.SECONDS);
+			if (!done) {
+				log.warn("{} 在 {}s 内未终止", poolName, awaitTimeoutSeconds);
 			}
-			log.warn("{} 在 {}s 内未终止，强制执行 shutdownNow", poolName, timeoutSeconds);
-		} catch (InterruptedException e) {
-			log.error(e.getMessage(), e);
-			logRemainingTasks(executor.shutdownNow(), poolName);
-			Thread.currentThread().interrupt();
-			return false;
-		}
-		List<Runnable> remaining = executor.shutdownNow();
-		logRemainingTasks(remaining, poolName);
-		try {
-			return executor.awaitTermination(forceTimeoutSeconds, TimeUnit.SECONDS);
+			return done;
 		} catch (InterruptedException e) {
 			log.error(e.getMessage(), e);
 			Thread.currentThread().interrupt();
@@ -353,16 +343,4 @@ public class ThreadUtils {
 		}
 	}
 
-	/**
-	 * 记录 shutdownNow 丢弃的待执行任务数量，便于排查任务丢失问题。
-	 *
-	 * @param remaining 被丢弃的任务列表
-	 * @param poolName  线程池名称，用于日志
-	 */
-	private static void logRemainingTasks(List<Runnable> remaining, String poolName) {
-		if (remaining == null || remaining.isEmpty()) {
-			return;
-		}
-		log.warn("{} shutdownNow 丢弃了 {} 个未执行的任务", poolName, remaining.size());
-	}
 }

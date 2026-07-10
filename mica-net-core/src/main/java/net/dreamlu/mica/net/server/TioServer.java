@@ -480,10 +480,9 @@ public class TioServer {
 		}
 		// 停止心跳线程
 		serverConfig.setStopped(true);
-		int gracefulTimeoutSec = serverConfig.getGracefulTimeoutSec();
-		int forceTimeoutSec = serverConfig.getForceTimeoutSec();
-		boolean groupRet = ThreadUtils.shutdownExecutor(serverConfig.groupExecutor, gracefulTimeoutSec, forceTimeoutSec, "groupExecutor");
-		boolean tioRet = ThreadUtils.shutdownExecutor(serverConfig.tioExecutor, gracefulTimeoutSec, forceTimeoutSec, "tioExecutor");
+		int shutdownTimeoutSec = serverConfig.getShutdownTimeoutSec();
+		boolean groupRet = ThreadUtils.shutdownExecutor(serverConfig.groupExecutor, shutdownTimeoutSec, "groupExecutor");
+		boolean tioRet = ThreadUtils.shutdownExecutor(serverConfig.tioExecutor, shutdownTimeoutSec, "tioExecutor");
 		boolean ret = groupRet && tioRet;
 		log.info("{} stopped ret:{}", this.serverNode, ret);
 		return ret;
