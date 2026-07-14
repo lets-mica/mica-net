@@ -331,11 +331,8 @@ public class HttpRouter implements HttpRequestHandler {
 			handler = matchNode.allMethodHandler;
 		}
 		if (handler == null) {
-			if (notFoundHandler != null) {
-				return notFoundHandler.handle(request);
-			} else {
-				return getHttpResponse(request, HttpResponseStatus.C404);
-			}
+			// 路径匹配，但是 Method 不匹配，返回 405 Not Allowed
+			return getHttpResponse(request, HttpResponseStatus.C405);
 		}
 
 		for (Map.Entry<String, String> entry : params.entrySet()) {
