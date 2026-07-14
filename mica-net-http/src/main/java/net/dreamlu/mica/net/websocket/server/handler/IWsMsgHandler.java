@@ -194,15 +194,39 @@
 package net.dreamlu.mica.net.websocket.server.handler;
 
 import net.dreamlu.mica.net.core.ChannelContext;
+import net.dreamlu.mica.net.core.TioConfig;
+import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.http.common.HttpRequest;
 import net.dreamlu.mica.net.http.common.HttpResponse;
 import net.dreamlu.mica.net.websocket.common.WsRequest;
+import net.dreamlu.mica.net.websocket.common.WsResponse;
 
 /**
  * @author tanyaowu
  * 2017年7月30日 上午9:34:59
  */
-public interface IWsMsgHandler extends IWsSubProtocolsMsgHandler {
+public interface IWsMsgHandler {
+
+	/**
+	 * 获取支持的子协议
+	 *
+	 * @return 子协议数组
+	 */
+	default String[] getSupportedSubProtocols() {
+		return null;
+	}
+
+	/**
+	 * 解析子编码
+	 *
+	 * @param packet    Packet
+	 * @param tioConfig TioConfig
+	 * @param context   ChannelContext
+	 * @return Packet
+	 */
+	default WsResponse encodeSubProtocol(Packet packet, TioConfig tioConfig, ChannelContext context) {
+		return null;
+	}
 
 	/**
 	 * <li>对httpResponse参数进行补充并返回，如果返回null表示不想和对方建立连接，框架会断开连接，如果返回非null，框架会把这个对象发送给对方</li>
