@@ -1,7 +1,6 @@
 package net.dreamlu.mica.net.http.common.router;
 
 import net.dreamlu.mica.net.http.common.Method;
-import net.dreamlu.mica.net.http.common.handler.HttpRequestHandler;
 
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ class TrieNode {
 			allMethodHandler = handler;
 		} else {
 			if (handlers.containsKey(method)) {
-				throw new IllegalArgumentException("Duplicate route for " + method);
+				throw new IllegalArgumentException("Duplicate route for Method:" + method);
 			}
 			handlers.put(method, handler);
 		}

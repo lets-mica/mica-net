@@ -212,7 +212,7 @@ import java.nio.ByteBuffer;
 public class HttpTioServerHandler implements TioServerHandler {
 	public static final String REQUEST_KEY = "tio_req_key";
 	private static final Logger log = LoggerFactory.getLogger(HttpTioServerHandler.class);
-	protected final HttpConfig httpConfig;
+	private final HttpConfig httpConfig;
 	private final HttpRequestHandler requestHandler;
 
 	public HttpTioServerHandler(HttpConfig httpConfig, HttpRequestHandler requestHandler) {
