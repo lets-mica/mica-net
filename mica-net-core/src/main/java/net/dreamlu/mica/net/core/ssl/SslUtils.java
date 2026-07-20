@@ -202,7 +202,7 @@ import net.dreamlu.mica.net.core.intf.Packet;
 /**
  * @author tanyaowu
  */
-public class SslUtils {
+public final class SslUtils {
 
 	private SslUtils() {
 
@@ -216,7 +216,7 @@ public class SslUtils {
 	 * @return boolean
 	 */
 	public static boolean needSslEncrypt(Packet packet, TioConfig tioConfig) {
-		return !packet.isSslEncrypted() && tioConfig.sslConfig != null;
+		return !packet.isSslEncrypted() && tioConfig.isSsl();
 	}
 
 	/**
