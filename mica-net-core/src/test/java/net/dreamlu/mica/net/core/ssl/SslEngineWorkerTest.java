@@ -37,6 +37,8 @@ import net.dreamlu.mica.net.server.ServerChannelContext;
 import net.dreamlu.mica.net.server.TioServerConfig;
 
 class SslEngineWorkerTest {
+	private static final String KEY_STORE = "classpath:test.jks";
+	private static final String PASSWORD = "501937";
 
 	@Test
 	void shouldHandshakeAndTransferMultipleTlsRecords() throws Exception {
@@ -48,8 +50,8 @@ class SslEngineWorkerTest {
 		AtomicBoolean serverHandshakeCompleted = new AtomicBoolean();
 		AtomicBoolean clientSessionClosed = new AtomicBoolean();
 
-		SslConfig clientSslConfig = SslConfig.forClient("classpath:test.jks", "501937");
-		SslConfig serverSslConfig = SslConfig.forServer("classpath:test.jks", "501937");
+		SslConfig clientSslConfig = SslConfig.forClient(KEY_STORE, PASSWORD);
+		SslConfig serverSslConfig = SslConfig.forServer(KEY_STORE, PASSWORD);
 		SslEngineWorker client = new SslEngineWorker(newClientContext(), clientSslConfig.getSslContext(), true, clientSslConfig,
 			clientToServer::add, clientPlainData::add, () -> clientHandshakeCompleted.set(true), () -> clientSessionClosed.set(true));
 		SslEngineWorker server = new SslEngineWorker(newServerContext(), serverSslConfig.getSslContext(), false, serverSslConfig,
@@ -87,6 +89,90 @@ class SslEngineWorkerTest {
 		server.close();
 		pump(client, server, clientToServer, serverToClient);
 		Assertions.assertTrue(clientSessionClosed.get());
+	}
+
+	@Test
+	void shouldIgnoreDuplicateHandshakeStart() throws Exception {
+		Queue<ByteBuffer> clientToServer = new ArrayDeque<>();
+		Queue<ByteBuffer> serverToClient = new ArrayDeque<>();
+		AtomicBoolean clientCompleted = new AtomicBoolean();
+		AtomicBoolean serverCompleted = new AtomicBoolean();
+		SslConfig clientConfig = SslConfig.forClient(KEY_STORE, PASSWORD);
+		SslConfig serverConfig = SslConfig.forServer(KEY_STORE, PASSWORD);
+		SslEngineWorker client = new SslEngineWorker(newClientContext(), clientConfig.getSslContext(), true, clientConfig,
+			clientToServer::add, data -> { }, () -> clientCompleted.set(true), () -> { });
+		SslEngineWorker server = new SslEngineWorker(newServerContext(), serverConfig.getSslContext(), false, serverConfig,
+			serverToClient::add, data -> { }, () -> serverCompleted.set(true), () -> { });
+
+		server.beginHandshake();
+		client.beginHandshake();
+		int initialClientRecords = clientToServer.size();
+		client.beginHandshake();
+		Assertions.assertEquals(initialClientRecords, clientToServer.size());
+		pump(client, server, clientToServer, serverToClient);
+
+		Assertions.assertTrue(clientCompleted.get());
+		Assertions.assertTrue(serverCompleted.get());
+	}
+
+	@Test
+	void shouldRejectClientWithoutCertificateWhenRequired() throws Exception {
+		Queue<ByteBuffer> clientToServer = new ArrayDeque<>();
+		Queue<ByteBuffer> serverToClient = new ArrayDeque<>();
+		SslConfig clientConfig = SslConfig.forClient(KEY_STORE, PASSWORD);
+		SslConfig serverConfig = SslConfig.forServer(KEY_STORE, PASSWORD, ClientAuth.REQUIRE);
+		SslEngineWorker client = new SslEngineWorker(newClientContext(), clientConfig.getSslContext(), true, clientConfig,
+			clientToServer::add, data -> { }, () -> { }, () -> { });
+		SslEngineWorker server = new SslEngineWorker(newServerContext(), serverConfig.getSslContext(), false, serverConfig,
+			serverToClient::add, data -> { }, () -> { }, () -> { });
+
+		server.beginHandshake();
+		client.beginHandshake();
+		Assertions.assertThrows(SSLException.class, () -> pump(client, server, clientToServer, serverToClient));
+		Assertions.assertFalse(server.isHandshakeCompleted());
+	}
+
+	@Test
+	void shouldAllowMissingClientCertificateWhenOptional() throws Exception {
+		Queue<ByteBuffer> clientToServer = new ArrayDeque<>();
+		Queue<ByteBuffer> serverToClient = new ArrayDeque<>();
+		AtomicBoolean clientCompleted = new AtomicBoolean();
+		AtomicBoolean serverCompleted = new AtomicBoolean();
+		SslConfig clientConfig = SslConfig.forClient(KEY_STORE, PASSWORD);
+		SslConfig serverConfig = SslConfig.forServer(KEY_STORE, PASSWORD, ClientAuth.OPTIONAL);
+		SslEngineWorker client = new SslEngineWorker(newClientContext(), clientConfig.getSslContext(), true, clientConfig,
+			clientToServer::add, data -> { }, () -> clientCompleted.set(true), () -> { });
+		SslEngineWorker server = new SslEngineWorker(newServerContext(), serverConfig.getSslContext(), false, serverConfig,
+			serverToClient::add, data -> { }, () -> serverCompleted.set(true), () -> { });
+
+		server.beginHandshake();
+		client.beginHandshake();
+		pump(client, server, clientToServer, serverToClient);
+		Assertions.assertTrue(clientCompleted.get());
+		Assertions.assertTrue(serverCompleted.get());
+	}
+
+	@Test
+	void shouldRejectPlainTextOnTlsConnection() throws Exception {
+		SslConfig serverConfig = SslConfig.forServer(KEY_STORE, PASSWORD);
+		SslEngineWorker server = new SslEngineWorker(newServerContext(), serverConfig.getSslContext(), false, serverConfig,
+			data -> { }, data -> { }, () -> { }, () -> { });
+		server.beginHandshake();
+
+		ByteBuffer plainHttp = ByteBuffer.wrap("GET / HTTP/1.1\r\n\r\n".getBytes(StandardCharsets.US_ASCII));
+		Assertions.assertThrows(SSLException.class, () -> server.decrypt(plainHttp));
+	}
+
+	@Test
+	void shouldApplyEngineCustomizer() {
+		AtomicBoolean customized = new AtomicBoolean();
+		SslConfig clientConfig = SslConfig.forClient(KEY_STORE, PASSWORD);
+		clientConfig.setSslEngineCustomizer(engine -> customized.set(true));
+
+		new SslEngineWorker(newClientContext(), clientConfig.getSslContext(), true, clientConfig,
+			data -> { }, data -> { }, () -> { }, () -> { });
+
+		Assertions.assertTrue(customized.get());
 	}
 
 	private static void pump(SslEngineWorker client, SslEngineWorker server,
