@@ -265,7 +265,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			if (preParser != null || isServerProxyProtocolEnabled()) {
 				// 情况 1：ProxyProtocol 待解析（SSL / 非 SSL 都先走这一条）。
 				handlePreProxy(readByteBuffer);
-			} else if (channelContext.getSslFacadeContext() != null) {
+			} else if (channelContext.isSslEnabled()) {
 				// 情况 2：纯 SSL，无 Proxy。触发握手后走 SSL 解密。
 				handleSsl(readByteBuffer);
 			} else {
@@ -330,16 +330,16 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			Tio.close(channelContext, e, e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
 			return;
 		}
-		// slice() 创建只读视图，共享底层数组，不分配堆内存不拷贝字节
+		// slice() 创建共享底层存储的视图，不拷贝字节
 		// buf.flip() 后 position=0，slice 从 position 到 limit
-		// SSLFacade.decrypt() 只从 buffer 读取（unwrap 推进 position），不保留引用
+		// SslHandler.decrypt() 只从 buffer 读取，不保留引用
 		// 下次 read() 会重新初始化 readByteBuffer，不会复用已有数据的 slice
 		ByteBuffer plainBuffer = buf.slice();
-		log.debug("{}, 丢给SslFacade解密:{}", channelContext, plainBuffer);
+		log.debug("{}, 丢给SslHandler解密:{}", channelContext, plainBuffer);
 		try {
-			channelContext.getSslFacadeContext().getSslFacade().decrypt(plainBuffer);
+			channelContext.getSslHandler().decrypt(plainBuffer);
 		} catch (Exception e) {
-			log.error("{}, 丢给SslFacade解密失败:{}", channelContext, e.getMessage(), e);
+			log.error("{}, 丢给SslHandler解密失败:{}", channelContext, e.getMessage(), e);
 			Tio.close(channelContext, e, e.getMessage(), CloseCode.SSL_DECRYPT_ERROR);
 		}
 	}
@@ -356,7 +356,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			preParser = new ProxyProtocolDecoder.PreParser(channelContext);
 		}
 		ProxyProtocolDecoder.ParseResult result = preParser.feed(buf);
-		boolean sslEnabled = channelContext.getSslFacadeContext() != null;
+		boolean sslEnabled = channelContext.isSslEnabled();
 		// 按状态处理
 		switch (result.state) {
 			case NEED_MORE:

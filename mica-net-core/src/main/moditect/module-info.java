@@ -6,7 +6,6 @@ open module net.dreamlu.mica.net.core {
 	exports net.dreamlu.mica.net.core.intf;
 	exports net.dreamlu.mica.net.core.maintain;
 	exports net.dreamlu.mica.net.core.ssl;
-	exports net.dreamlu.mica.net.core.ssl.facade;
 	exports net.dreamlu.mica.net.core.stat;
 	exports net.dreamlu.mica.net.core.stat.vo;
 	exports net.dreamlu.mica.net.core.task;

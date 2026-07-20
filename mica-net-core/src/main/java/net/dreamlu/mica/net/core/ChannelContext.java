@@ -5,7 +5,7 @@ import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.Packet.Meta;
 import net.dreamlu.mica.net.core.intf.PacketListener;
 import net.dreamlu.mica.net.core.intf.TioListener;
-import net.dreamlu.mica.net.core.ssl.SslFacadeContext;
+import net.dreamlu.mica.net.core.ssl.SslHandler;
 import net.dreamlu.mica.net.core.stat.ChannelStat;
 import net.dreamlu.mica.net.core.task.AbstractDecodeRunnable;
 import net.dreamlu.mica.net.core.task.HandlerRunnable;
@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.net.ssl.SSLException;
 
 /**
  * @author tanyaowu
@@ -68,7 +69,7 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	private TcpDecodeRunnable decodeRunnable;
 	private HandlerRunnable handlerRunnable;
 	private TcpSendRunnable sendRunnable;
-	private SslFacadeContext sslFacadeContext;
+	private SslHandler sslHandler;
 
 	// 2. 包装类型（可能为 null）
 	private String id;
@@ -164,9 +165,9 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	 * 设置 SSL/TLS
 	 */
 	public void setUpSSL() {
-		if (tioConfig.sslConfig != null && sslFacadeContext == null) {
+		if (tioConfig.sslConfig != null && sslHandler == null) {
 			try {
-				this.sslFacadeContext = new SslFacadeContext(this);
+				this.sslHandler = new SslHandler(this);
 			} catch (Exception e) {
 				log.error("在初始化SSL时发生了异常", e);
 				Tio.close(this, "在初始化SSL时发生了异常" + e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
@@ -177,11 +178,11 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	/**
 	 * 触发服务端 SSL 握手。
 	 *
-	 * @throws Exception 握手启动异常
+	 * @throws SSLException 握手启动异常
 	 */
-	public void beginSslHandshakeIfNeeded() throws Exception {
-		if (sslFacadeContext != null && !sslHandshakeStarted && tioConfig.isServer()) {
-			sslFacadeContext.beginHandshake();
+	public void beginSslHandshakeIfNeeded() throws SSLException {
+		if (sslHandler != null && !sslHandshakeStarted && tioConfig.isServer()) {
+			sslHandler.beginHandshake();
 			sslHandshakeStarted = true;
 		}
 	}
@@ -197,7 +198,7 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	 * 断线重连前重置 I/O 层状态。
 	 */
 	public void resetForReconnect() {
-		this.sslFacadeContext = null;
+		this.sslHandler = null;
 		this.sslHandshakeStarted = false;
 		this.readCompletionHandler.resetProxyProtocolState();
 		setUpSSL();
@@ -229,12 +230,12 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	}
 
 	/**
-	 * 判断是否 ssl
+	 * 判断当前连接是否启用 SSL/TLS。
 	 *
-	 * @return the ssl
+	 * @return SSL 处理器已初始化时返回 true
 	 */
-	public boolean isSsl() {
-		return getSslFacadeContext() != null;
+	public boolean isSslEnabled() {
+		return sslHandler != null;
 	}
 
 	/**
@@ -319,8 +320,8 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 				log.debug("{} 已经发送 {}", this, packet.logstr());
 			}
 			//非SSL or SSL已经握手
-			SslFacadeContext sslCtx = getSslFacadeContext();
-			if (sslCtx == null || sslCtx.isHandshakeCompleted()) {
+			SslHandler handler = getSslHandler();
+			if (handler == null || handler.isHandshakeCompleted()) {
 				TioListener tioListener = tioConfig.getTioListener();
 				if (tioListener != null) {
 					try {
@@ -493,10 +494,10 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	/**
 	 * 获取 SSL 上下文（TCP 子类才有值，UDP 返回 null）
 	 *
-	 * @return SslFacadeContext
+	 * @return SslHandler
 	 */
-	public SslFacadeContext getSslFacadeContext() {
-		return sslFacadeContext;
+	public SslHandler getSslHandler() {
+		return sslHandler;
 	}
 
 	/**

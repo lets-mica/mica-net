@@ -243,7 +243,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			}
 			// 如果非 ssl
 			if (!SslUtils.isSsl(channelContext.tioConfig)) {
-				// 监听器（非 SSL 场景下直接触发，SSL 场景下由 SslHandshakeCompletedListener 触发）
+				// 监听器（非 SSL 场景下直接触发，SSL 场景下在握手完成回调中触发）
 				TioServerListener serverListener = tioServerConfig.getTioServerListener();
 				if (serverListener != null) {
 					try {

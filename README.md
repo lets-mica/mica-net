@@ -91,7 +91,7 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
    ↓ [异步读取]
 2. ReadCompletionHandler.completed()
    ├─ 统计接收字节数、更新时间戳
-   ├─ SSL? → SslFacade.decrypt() 解密后直接触发解码
+   ├─ SSL? → SslHandler.decrypt() 解密后直接触发解码
    └─ 非SSL? → useQueueDecode? 添加到队列 : 直接解码
    ↓
 3. TcpDecodeRunnable.decode()

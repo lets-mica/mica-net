@@ -4,7 +4,6 @@ import net.dreamlu.mica.net.client.ClientChannelContext;
 import net.dreamlu.mica.net.client.ReconnConf;
 import net.dreamlu.mica.net.client.TioClient;
 import net.dreamlu.mica.net.client.TioClientConfig;
-import net.dreamlu.mica.net.core.ssl.SslFacadeContext;
 import net.dreamlu.mica.net.utils.timer.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,11 +46,7 @@ public class ClientReConnTask extends TimerTask {
 		if (channelContext.isRemoved()) {
 			return;
 		}
-		SslFacadeContext sslFacadeContext = channelContext.getSslFacadeContext();
-		if (sslFacadeContext != null) {
-			sslFacadeContext.setHandshakeCompleted(false);
-		}
-		// 重置 SSL 握手标记，重连成功后 resetForReconnect 会重建 SSLEngine
+		// 重置 SSL 握手标记，重连成功后 resetForReconnect 会重建 SslHandler
 		channelContext.resetSslHandshake();
 		// 已经删除的和已经连上的，不需要重新再连
 		if (channelContext.isRemoved() || !channelContext.isClosed()) {

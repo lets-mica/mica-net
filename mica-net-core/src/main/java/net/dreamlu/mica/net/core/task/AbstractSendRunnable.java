@@ -26,8 +26,8 @@ import net.dreamlu.mica.net.core.Tio;
 import net.dreamlu.mica.net.core.TioConfig;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.TcpHandler;
+import net.dreamlu.mica.net.core.ssl.SslHandler;
 import net.dreamlu.mica.net.core.ssl.SslUtils;
-import net.dreamlu.mica.net.core.ssl.SslVo;
 import net.dreamlu.mica.net.utils.thread.pool.AbstractQueueRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,7 +108,8 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 			log.info("{}, 任务已经取消，{}添加到发送队列失败", channelContext, packet.logstr());
 			return false;
 		}
-		if (channelContext.getSslFacadeContext() != null && !channelContext.getSslFacadeContext().isHandshakeCompleted() && SslUtils.needSslEncrypt(packet, tioConfig)) {
+		SslHandler sslHandler = channelContext.getSslHandler();
+		if (sslHandler != null && !sslHandler.isHandshakeCompleted() && SslUtils.needSslEncrypt(packet, tioConfig)) {
 			return this.getForSendAfterSslHandshakeCompleted(true).add(packet);
 		} else {
 			return msgQueue.add(packet);
@@ -152,10 +153,8 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	 */
 	protected ByteBuffer encryptIfNeeded(ByteBuffer byteBuffer, Packet packet, boolean isSsl) {
 		if (isSsl && !packet.isSslEncrypted()) {
-			SslVo sslVo = new SslVo(byteBuffer, packet);
 			try {
-				channelContext.getSslFacadeContext().getSslFacade().encrypt(sslVo);
-				return sslVo.getByteBuffer();
+				return channelContext.getSslHandler().encrypt(byteBuffer);
 			} catch (SSLException e) {
 				log.error("{}, 进行SSL加密时发生了异常", channelContext, e);
 				Tio.close(channelContext, "进行SSL加密时发生了异常", CloseCode.SSL_ENCRYPTION_ERROR);
@@ -168,7 +167,7 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	/**
 	 * 批量 SSL 加密（SSL 需要合并 ByteBuffer，无 SSL 时保持数组以支持 gather write）
 	 */
-	protected ByteBuffer[] encryptBatchIfNeeded(ByteBuffer[] byteBuffers, List<Packet> packets, boolean isSsl, boolean needSslEncrypted) {
+	protected ByteBuffer[] encryptBatchIfNeeded(ByteBuffer[] byteBuffers, boolean isSsl, boolean needSslEncrypted) {
 		if (isSsl && needSslEncrypted) {
 			// SSL 加密需要合并为单个 ByteBuffer
 			int totalCapacity = 0;
@@ -181,10 +180,8 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 			}
 			mergedBuffer.flip();
 
-			SslVo sslVo = new SslVo(mergedBuffer, packets);
 			try {
-				channelContext.getSslFacadeContext().getSslFacade().encrypt(sslVo);
-				return new ByteBuffer[]{sslVo.getByteBuffer()};
+				return new ByteBuffer[]{channelContext.getSslHandler().encrypt(mergedBuffer)};
 			} catch (SSLException e) {
 				log.error("{}, 进行SSL加密时发生了异常", channelContext, e);
 				Tio.close(channelContext, "进行SSL加密时发生了异常", CloseCode.SSL_ENCRYPTION_ERROR);

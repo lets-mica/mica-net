@@ -102,7 +102,7 @@ mvn -pl mica-net-core test -Dmaven.test.skip=false -Dtest=ProxyProtocolDecoderTe
 ### 高层模块要点
 
 - **PROXY Protocol**：`server/proxy/ProxyProtocolDecoder` 同时支持 v1/v2，未携带 PROXY header 的连接不会断开（灰度友好）
-- **SSL**：`core/ssl/SslConfig.forServer()/forClient()`，可注册 `SSLEngineCustomizer` 自定义协议版本与加密套件；`SslFacade` 解密使用 `slice()` 避免复制字节缓冲区
+- **SSL**：`core/ssl/SslConfig.forServer()/forClient()`，可注册 `SSLEngineCustomizer` 自定义协议版本与加密套件；每个连接由 `SslHandler` 管理握手、加解密和 TLS 半包
 - **集群**：`server/cluster` 提供多实例 group/user 同步、广播、节点上下线通知；`lateJoinMembers` 为线程安全 Set
 - **HTTP 模块**：`HttpServerStarter` + 函数式 `HttpRequestHandler`；`HttpRouter` 是基于 Trie 的轻量路由，支持路径参数 + 过滤器 + 全局异常；`HttpStream.startSse` 实现 SSE/chunked
 - **WebSocket**：`WsServerStarter` + `IWsMsgHandler`（`onText/onBytes/onClose/handshake`），客户端数据必须 mask

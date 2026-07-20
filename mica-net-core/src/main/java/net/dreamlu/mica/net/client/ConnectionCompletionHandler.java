@@ -198,7 +198,7 @@ import net.dreamlu.mica.net.core.ChannelContext.CloseCode;
 import net.dreamlu.mica.net.core.Node;
 import net.dreamlu.mica.net.core.ReadCompletionHandler;
 import net.dreamlu.mica.net.core.Tio;
-import net.dreamlu.mica.net.core.ssl.SslFacadeContext;
+import net.dreamlu.mica.net.core.ssl.SslHandler;
 import net.dreamlu.mica.net.core.ssl.SslUtils;
 import net.dreamlu.mica.net.core.tcp.TcpSendRunnable;
 import org.slf4j.Logger;
@@ -303,8 +303,8 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 					channelContext.setReconnect(isReconnect);
 					if (SslUtils.isSsl(channelContext.tioConfig)) {
 						if (isConnected) {
-							SslFacadeContext sslFacadeContext = channelContext.getSslFacadeContext();
-							sslFacadeContext.beginHandshake();
+							SslHandler sslHandler = channelContext.getSslHandler();
+							sslHandler.beginHandshake();
 						} else {
 							if (tioClientListener != null) {
 								tioClientListener.onAfterConnected(channelContext, false, isReconnect);

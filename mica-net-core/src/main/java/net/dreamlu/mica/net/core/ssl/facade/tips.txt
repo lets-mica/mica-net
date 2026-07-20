@@ -1,1 +1,0 @@
-forked from https://github.com/kashifrazzaqui/sslfacade, thanks the author!

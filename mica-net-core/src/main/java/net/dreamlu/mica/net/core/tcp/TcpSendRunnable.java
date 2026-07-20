@@ -80,7 +80,7 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 		}
 
 		// SSL 加密（如果需要，会合并为单个 ByteBuffer）
-		ByteBuffer[] finalBuffers = encryptBatchIfNeeded(result.byteBuffers, result.packets, isSsl, result.needSslEncrypted);
+		ByteBuffer[] finalBuffers = encryptBatchIfNeeded(result.byteBuffers, isSsl, result.needSslEncrypted);
 		if (finalBuffers == null) {
 			return; // 加密失败，已在方法内关闭连接
 		}
