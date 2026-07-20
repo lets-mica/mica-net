@@ -265,7 +265,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			if (preParser != null || isServerProxyProtocolEnabled()) {
 				// 情况 1：ProxyProtocol 待解析（SSL / 非 SSL 都先走这一条）。
 				handlePreProxy(readByteBuffer);
-			} else if (channelContext.isSslEnabled()) {
+			} else if (channelContext.isSsl()) {
 				// 情况 2：纯 SSL，无 Proxy。触发握手后走 SSL 解密。
 				handleSsl(readByteBuffer);
 			} else {
@@ -356,7 +356,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 			preParser = new ProxyProtocolDecoder.PreParser(channelContext);
 		}
 		ProxyProtocolDecoder.ParseResult result = preParser.feed(buf);
-		boolean sslEnabled = channelContext.isSslEnabled();
+		boolean sslEnabled = channelContext.isSsl();
 		// 按状态处理
 		switch (result.state) {
 			case NEED_MORE:

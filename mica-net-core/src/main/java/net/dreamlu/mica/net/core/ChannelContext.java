@@ -234,7 +234,7 @@ public abstract class ChannelContext extends MapPropSupport implements NetChanne
 	 *
 	 * @return SSL 处理器已初始化时返回 true
 	 */
-	public boolean isSslEnabled() {
+	public boolean isSsl() {
 		return sslHandler != null;
 	}
 
