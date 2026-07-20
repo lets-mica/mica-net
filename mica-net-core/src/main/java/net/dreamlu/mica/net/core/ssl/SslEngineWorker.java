@@ -19,7 +19,6 @@ package net.dreamlu.mica.net.core.ssl;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -231,8 +230,10 @@ final class SslEngineWorker {
 					throw new IllegalArgumentException("Unknown auth " + clientAuth);
 			}
 		}
-		Optional.ofNullable(sslConfig.getSslEngineCustomizer())
-			.ifPresent(customizer -> customizer.customize(engine));
+		SSLEngineCustomizer customizer = sslConfig.getSslEngineCustomizer();
+		if (customizer != null) {
+			customizer.customize(engine);
+		}
 		return engine;
 	}
 
