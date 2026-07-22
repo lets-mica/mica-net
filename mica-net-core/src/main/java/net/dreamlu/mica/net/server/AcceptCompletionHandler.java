@@ -193,6 +193,7 @@
 */
 package net.dreamlu.mica.net.server;
 
+import net.dreamlu.mica.net.core.Node;
 import net.dreamlu.mica.net.core.ReadCompletionHandler;
 import net.dreamlu.mica.net.core.ssl.SslUtils;
 import net.dreamlu.mica.net.server.intf.TioServerListener;
@@ -278,7 +279,16 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	 */
 	@Override
 	public void failed(Throwable exc, TioServer tioServer) {
-		log.error("[{}]监听出现异常", tioServer.getServerNode(), exc);
+		Node serverNode = tioServer.getServerNode();
+		log.error("[{}]监听出现异常", serverNode, exc);
+		try {
+			if (!tioServer.isWaitingStop()) {
+				AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
+				serverSocketChannel.accept(tioServer, this);
+			}
+		} catch (Throwable e) {
+			log.error("[{}]重新注册 Accept 监听失败", serverNode, e);
+		}
 	}
 
 }
