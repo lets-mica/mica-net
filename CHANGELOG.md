@@ -2,6 +2,12 @@
 
 ## 发行版本
 
+### v2.0.12 - 2026-07-22
+- refactor(ssl): 重构 SSL 加密处理流程，新增 `SslBuffers` 和 `SslEngineWorker` 单元测试，覆盖缓冲区扩展、分片合并、握手异常、客户端证书验证及 SSL 引擎自定义等场景。
+- refactor(websocket): 将子协议处理能力合并到 `IWsMsgHandler`，新增支持的子协议与编码方法默认实现，简化接口层次。
+- fix(server): 优化异步 Accept 注册逻辑，提前注册下一次监听以避免连接初始化阻塞后续接入，并增强监听异常后的恢复处理及停服状态判断。
+- fix(router): 修复请求路径匹配但方法不匹配时错误返回 404 的问题，调整为返回 405 状态码。
+
 ### v2.0.11 - 2026-07-10
 - refactor(core): 移除 `TcpChannelContext` 类，TCP 相关属性与逻辑全部回归 `ChannelContext`，提升通用性与可扩展性。
 - fix(thread-pool): 修正取消任务时执行状态标记问题，将 `executed` 状态重置为 `false`，避免取消后状态不一致。
