@@ -102,7 +102,7 @@ Adhere strictly to the existing code style. When in doubt, mimic the surrounding
 *   When throwing custom exceptions, use existing exception classes in `net.dreamlu.mica.net.core.exception` if applicable.
 
 ### Comments and Javadoc
-*   **Language:** Existing comments contain Chinese. New comments should ideally be in English for broader accessibility, but Chinese is acceptable if modifying existing Chinese-commented sections to maintain consistency.
+*   **Language:** Prefer Chinese for new comments and Javadoc. Use English only when required by external specifications, APIs, or established terminology, and keep the surrounding file consistent.
 *   **Javadoc:** Required for public classes and interfaces.
 *   **Implementation Comments:** Add comments for complex logic explaining *why*, not just *what*.
 

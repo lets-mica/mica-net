@@ -193,7 +193,6 @@
 */
 package net.dreamlu.mica.net.server;
 
-import net.dreamlu.mica.net.core.Node;
 import net.dreamlu.mica.net.core.ReadCompletionHandler;
 import net.dreamlu.mica.net.core.ssl.SslUtils;
 import net.dreamlu.mica.net.server.intf.TioServerListener;
@@ -220,6 +219,8 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	 */
 	@Override
 	public void completed(AsynchronousSocketChannel asynchronousSocketChannel, TioServer tioServer) {
+		// 先注册下一次 Accept，避免当前连接的初始化过程阻塞后续连接接入。
+		acceptNext(tioServer);
 		try {
 			TioServerConfig tioServerConfig = tioServer.getServerConfig();
 			if (tioServerConfig.statOn) {
@@ -263,13 +264,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			}
 		} catch (Throwable e) {
 			log.error(e.getMessage(), e);
-		} finally {
-			if (tioServer.isWaitingStop()) {
-				log.info("{}即将关闭服务器，不再接受新请求", tioServer.getServerNode());
-			} else {
-				AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
-				serverSocketChannel.accept(tioServer, this);
-			}
 		}
 	}
 
@@ -279,15 +273,40 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	 */
 	@Override
 	public void failed(Throwable exc, TioServer tioServer) {
-		Node serverNode = tioServer.getServerNode();
-		log.error("[{}]监听出现异常", serverNode, exc);
-		try {
+		log.error("[{}]监听出现异常", tioServer.getServerNode(), exc);
+		acceptNext(tioServer);
+	}
+
+	/**
+	 * 注册下一次异步 Accept 操作。
+	 * <p>
+	 * 每次异步 Accept 操作只能接收一个连接，因此无论接收成功还是失败，都需要重新注册。
+	 * 在处理当前连接前调用此方法，可以避免连接初始化和监听器回调阻塞后续连接接入。
+	 *
+	 * @param tioServer Accept 操作关联的服务端
+	 */
+	private void acceptNext(TioServer tioServer) {
+		// 停服过程中不再创建新的 Accept 操作。
+		if (tioServer.isWaitingStop()) {
+			return;
+		}
+
+		AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
+		// 避免在尚未初始化或已经关闭的服务端通道上注册 Accept。
+		if (serverSocketChannel == null || !serverSocketChannel.isOpen()) {
 			if (!tioServer.isWaitingStop()) {
-				AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
-				serverSocketChannel.accept(tioServer, this);
+				log.warn("[{}]无法重新注册 Accept 监听，服务端通道已关闭", tioServer.getServerNode());
 			}
+			return;
+		}
+
+		try {
+			serverSocketChannel.accept(tioServer, this);
 		} catch (Throwable e) {
-			log.error("[{}]重新注册 Accept 监听失败", serverNode, e);
+			// 状态检查与注册操作之间，服务端通道仍可能被其他线程关闭。
+			if (!tioServer.isWaitingStop()) {
+				log.error("[{}]重新注册 Accept 监听失败", tioServer.getServerNode(), e);
+			}
 		}
 	}
 
