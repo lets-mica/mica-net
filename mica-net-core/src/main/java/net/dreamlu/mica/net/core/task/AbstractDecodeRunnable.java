@@ -18,10 +18,7 @@ package net.dreamlu.mica.net.core.task;
 
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.TioConfig;
-import net.dreamlu.mica.net.core.intf.IgnorePacket;
-import net.dreamlu.mica.net.core.intf.Packet;
-import net.dreamlu.mica.net.core.intf.TioHandler;
-import net.dreamlu.mica.net.core.intf.TioListener;
+import net.dreamlu.mica.net.core.intf.*;
 import net.dreamlu.mica.net.utils.thread.pool.AbstractQueueRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +39,7 @@ public abstract class AbstractDecodeRunnable extends AbstractQueueRunnable<ByteB
 	// 共享字段
 	protected final ChannelContext channelContext;
 	protected final TioConfig tioConfig;
-	protected final TioHandler tioHandler;
+	protected final TcpHandler tioHandler;
 	protected final TioListener tioListener;
 	protected final Queue<ByteBuffer> msgQueue;
 

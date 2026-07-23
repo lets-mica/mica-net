@@ -4,11 +4,11 @@
 
 ## 📋 项目概述
 
-mica-net 是基于 t-io 简化而来的高性能 Java 网络通信框架，使用 Java NIO 的 AsynchronousSocketChannel 实现异步非阻塞网络通信。
+mica-net 是基于 t-io 简化而来的高性能 Java 网络通信框架，TCP 使用 Java AIO 的 `AsynchronousSocketChannel`，UDP 使用 Java NIO 的 `DatagramChannel` 实现非阻塞网络通信。
 
 核心能力包括：
 
-- **TCP/UDP 网络通信**：基于 NIO `AsynchronousSocketChannel` 实现的异步非阻塞通信
+- **TCP/UDP 网络通信**：TCP 基于 AIO `AsynchronousSocketChannel`，UDP 基于 NIO `DatagramChannel`
 - **HTTP/HTTPS 与 WebSocket**：内置编解码器，支持 SSE、Stream、Router 等
 - **MCP（Model Context Protocol）服务端**：完整实现 `tools`、`resources`、`prompts`、`sampling` 等协议能力
 - **TCP 代理协议**：支持 PROXY protocol V1/V2，可解析 nginx、ELB 转发的原始 IP
@@ -30,11 +30,11 @@ mica-net 是基于 t-io 简化而来的高性能 Java 网络通信框架，使�
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                NetChannel / ChannelContext                  │
+│          NetChannel / ChannelContext / UdpChannel           │
 │  • NetChannel：抽象网络通道接口（send、close）                │
-│  • ChannelContext：每个TCP/UDP连接对应一个                   │
-│  • 维护连接状态、统计信息、绑定关系                            │
-│  • 包含 3 个核心 Runnable：Decode/Handler/Send Runnable    │
+│  • ChannelContext：TCP 连接上下文                            │
+│  • UdpChannel：UDP 通道抽象                                  │
+│  • TCP 上下文维护连接状态、统计信息、绑定关系及核心任务          │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -44,7 +44,7 @@ mica-net 是基于 t-io 简化而来的高性能 Java 网络通信框架，使�
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌──────────────────┬──────────────────┬───────────────────────┐
-│  DecodeRunnable  │ HandlerRunnable  │   SendRunnable        │
+│TcpDecodeRunnable │ HandlerRunnable  │  TcpSendRunnable      │
 │  (解码任务)       │  (业务处理任务)   │   (发送任务)           │
 └──────────────────┴──────────────────┴───────────────────────┘
 ```
@@ -56,7 +56,7 @@ mica-net 是基于 t-io 简化而来的高性能 Java 网络通信框架，使�
 ```
 [网络I/O] → [解码队列] → [处理队列] → [发送队列] → [网络I/O]
     ↓            ↓            ↓            ↓
-ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
+ReadCompletionHandler  TcpDecodeRunnable  HandlerRunnable  TcpSendRunnable
 ```
 
 
@@ -74,11 +74,11 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 - WriteCompletionHandler: 异步写完成处理器
 
-- DecodeRunnable: 解码任务（粘包/半包处理）
+- TcpDecodeRunnable: TCP 解码任务（粘包/半包处理）
 
 - HandlerRunnable: 业务处理任务
 
-- SendRunnable: 发送任务（批量合并、SSL加密）
+- TcpSendRunnable: TCP 发送任务（批量处理、SSL 加密）
 
 ------
 
@@ -118,9 +118,9 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
    ├─ 检查连接状态
    ├─ PacketConverter 转换（可选）
    ├─ useQueueSend?
-   │   ├─ true → 添加到队列，触发 SendRunnable
+   │   ├─ true → 添加到队列，触发 TcpSendRunnable
    │   └─ false → 直接发送
-   └─ 触发 SendRunnable.execute()
+   └─ 触发 TcpSendRunnable.execute()
    ↓
 2. TcpSendRunnable.runTask()
    ├─ writing.get()? → 有写操作进行中，直接返回
@@ -129,14 +129,14 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
        ├─ 自适应批量大小（根据队列积压）
        ├─ TcpHandler.encode() 编码
        ├─ SSL 加密（encryptBatchIfNeeded）
-       └─ sendByteBuffers() gather-write 零拷贝
+       └─ sendByteBuffers() gathering write，避免批量缓冲区合并复制
    ↓
 3. sendByteBuffer() / sendByteBuffers()
    ├─ 设置 writing.set(true) 防 WritePendingException
-   └─ 统一 scatter-write：AsynchronousSocketChannel.write(ByteBuffer[])
+   └─ 统一 gathering write：AsynchronousSocketChannel.write(ByteBuffer[])
    ↓
 4. WriteCompletionHandler.completed()
-   ├─ hasRemaining? → scatter-write 续写（利用 offset+length 参数）
+   ├─ hasRemaining? → gathering write 续写（利用 offset+length 参数）
    ├─ 所有 buffer 发送完毕 → handle()
    │   ├─ signal condition 唤醒等待线程
    │   ├─ 统计发送字节数
@@ -151,7 +151,7 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 ## 🔊 注意（开发细节）
 
-- 客户端主动断开用 close(Tio.close)，服务端主动断开用（Tio.remove）。
+- `Tio.close` 关闭连接时可保留客户端重连等维护逻辑；`Tio.remove` 关闭连接后不再进行重连等维护。
 
 ## 💡 使用文档（useage）
 
@@ -185,7 +185,7 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 
 - **ChannelContext** 采用二进制位标识状态位，减少内存占用，预留 `isAccepted`、`isBizStatus` 给业务使用
 - **Packet** 使用位域压缩技术，将 boolean 标志合并到 byte 中
-- **LongAdder** 替换 AtomicInteger，提升统计性能
+- 组级统计使用 **LongAdder** 降低高并发下的统计竞争
 - 使用**并发集合**替换锁，降低锁竞争
 - **TioConfig** 字段排序优化，减少内存 padding 提升缓存命中
 - **ChannelStat** 按 JVM 对齐原则重排字段，引用类型集中放置
@@ -194,7 +194,7 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 ### 性能优化
 
 - **无锁异步写入**：移除 ReentrantLock，改用无锁异步写入逻辑
-- **scatter-write 零拷贝**：优化异步写入为零拷贝批量发送，减少内存分配
+- **gathering write 批量发送**：避免批量缓冲区合并复制，减少内存分配
 - **SSL 解密优化**：使用 slice() 替代字节缓冲区复制，降低内存开销
 - **自适应批量发送**：动态调整批量发送大小，适应高负载场景
 - **滑动窗口慢包检测**：实现滑动窗口算法检测慢包攻击，降低检测开销
@@ -215,7 +215,6 @@ ReadHandler  DecodeRunnable  HandlerRunnable  SendRunnable
 - **SSE（Server-Sent Events）**：支持 HTTP Server-Sent Events
 - **时间轮心跳**：服务端心跳改为时间轮，减少线程数
 - **心跳超时策略**：支持 HeartbeatTimeoutStrategy，支持发送 ping 或断开等待重连
-- **虚拟线程支持**：biz 线程池支持虚拟线程
 - **模块化支持**：添加 `module-info.java`，支持 Java Platform Module System
 - **SSLEngineCustomizer**：用于配置 TLS 协议版本和加密套件
 

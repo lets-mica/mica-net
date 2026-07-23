@@ -15,13 +15,12 @@
  */
 package net.dreamlu.mica.net.core.tcp;
 
-import net.dreamlu.mica.net.core.task.AbstractCloseRunnable;
 import net.dreamlu.mica.net.client.ClientChannelContext;
 import net.dreamlu.mica.net.client.ReconnConf;
 import net.dreamlu.mica.net.client.TioClientConfig;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.maintain.MaintainUtils;
-import net.dreamlu.mica.net.core.task.AbstractSendRunnable;
+import net.dreamlu.mica.net.core.task.AbstractCloseRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,10 +47,8 @@ public class TcpCloseRunnable extends AbstractCloseRunnable {
 		// 关闭前重置 writing 状态，防止 write 挂起导致 writing 未复位，
 		// 重连后 runTask() 因 writing==true 直接 return
 		// （ConnectionCompletionHandler 重连分支也会调 resetWriting()，此处为防御性双重保护）
-		AbstractSendRunnable sendRunnable = channelContext.getSendRunnable();
-		if (sendRunnable instanceof TcpSendRunnable) {
-			((TcpSendRunnable) sendRunnable).resetWriting();
-		}
+		TcpSendRunnable sendRunnable = channelContext.getSendRunnable();
+		sendRunnable.resetWriting();
 		sendRunnable.setCanceled(true);
 	}
 
