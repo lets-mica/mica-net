@@ -151,7 +151,8 @@ ReadCompletionHandler  TcpDecodeRunnable  HandlerRunnable  TcpSendRunnable
 
 ## 🔊 注意（开发细节）
 
-- `Tio.close` 关闭连接时可保留客户端重连等维护逻辑；`Tio.remove` 关闭连接后不再进行重连等维护。
+- `Tio.close` 关闭连接时可保留客户端重连等维护逻辑，适用于客户端；
+- `Tio.remove` 关闭连接后不再进行重连等维护，适用于服务端。
 
 ## 💡 使用文档（useage）
 
