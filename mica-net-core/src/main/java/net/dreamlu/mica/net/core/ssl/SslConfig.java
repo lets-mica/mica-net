@@ -212,6 +212,27 @@ public class SslConfig {
 	private final ClientAuth clientAuth;
 	private final KeyManager[] kms;
 	private final TrustManager[] tms;
+	/**
+	 * 启用的 TLS 协议，为空时使用 JDK 默认配置
+	 */
+	private String[] protocols;
+	/**
+	 * 启用的密码套件，为空时使用 JDK 默认配置
+	 */
+	private String[] cipherSuites;
+	/**
+	 * 是否优先使用本地密码套件顺序
+	 */
+	private Boolean useCipherSuitesOrder;
+	/**
+	 * 端点识别算法，生产环境建议配置为 HTTPS，用于客户端
+	 */
+	private String endpointIdentificationAlgorithm;
+	/**
+	 * SNI 服务名，为空时使用客户端连接地址，用于客户端
+	 */
+	private String serverName;
+
 	private SSLEngineCustomizer sslEngineCustomizer;
 
 	public SslConfig(TrustManager[] tms) {
@@ -505,6 +526,46 @@ public class SslConfig {
 		} catch (NoSuchAlgorithmException | KeyManagementException e) {
 			throw new IllegalArgumentException(e);
 		}
+	}
+
+	public String[] getProtocols() {
+		return protocols;
+	}
+
+	public void setProtocols(String[] protocols) {
+		this.protocols = protocols;
+	}
+
+	public String[] getCipherSuites() {
+		return cipherSuites;
+	}
+
+	public void setCipherSuites(String[] cipherSuites) {
+		this.cipherSuites = cipherSuites;
+	}
+
+	public Boolean getUseCipherSuitesOrder() {
+		return useCipherSuitesOrder;
+	}
+
+	public void setUseCipherSuitesOrder(Boolean useCipherSuitesOrder) {
+		this.useCipherSuitesOrder = useCipherSuitesOrder;
+	}
+
+	public String getEndpointIdentificationAlgorithm() {
+		return endpointIdentificationAlgorithm;
+	}
+
+	public void setEndpointIdentificationAlgorithm(String endpointIdentificationAlgorithm) {
+		this.endpointIdentificationAlgorithm = endpointIdentificationAlgorithm;
+	}
+
+	public String getServerName() {
+		return serverName;
+	}
+
+	public void setServerName(String serverName) {
+		this.serverName = serverName;
 	}
 
 	public SSLEngineCustomizer getSslEngineCustomizer() {
