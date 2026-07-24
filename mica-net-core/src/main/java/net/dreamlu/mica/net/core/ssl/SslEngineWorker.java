@@ -251,12 +251,6 @@ final class SslEngineWorker {
 		if (cipherSuites != null && cipherSuites.length > 0) {
 			sslParameters.setCipherSuites(cipherSuites);
 		}
-		// 3.3 是否按客户端顺序选择密码套件(true 时服务端遵循客户端列表顺序),
-		//    null 表示沿用 JDK 当前值,不做强制设置。
-		Boolean useCipherSuitesOrder = sslConfig.getUseCipherSuitesOrder();
-		if (useCipherSuitesOrder != null) {
-			sslParameters.setUseCipherSuitesOrder(useCipherSuitesOrder);
-		}
 		// 4. 仅客户端模式下的额外配置:端点校验和 SNI。
 		//    服务端使用这些字段没有意义,且部分实现在 server 模式下拒绝设置。
 		if (engine.getUseClientMode()) {
@@ -273,6 +267,12 @@ final class SslEngineWorker {
 				List<SNIServerName> serverNames = new ArrayList<>(1);
 				serverNames.add(new SNIHostName(serverName));
 				sslParameters.setServerNames(serverNames);
+			}
+		} else {
+			// 是否按客户端顺序选择密码套件(true 时服务端遵循客户端列表顺序),
+			Boolean useCipherSuitesOrder = sslConfig.getUseCipherSuitesOrder();
+			if (useCipherSuitesOrder != null) {
+				sslParameters.setUseCipherSuitesOrder(useCipherSuitesOrder);
 			}
 		}
 		// 5. 将叠加后的 SSLParameters 一次性回写到引擎,
