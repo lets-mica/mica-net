@@ -16,7 +16,6 @@
 
 package net.dreamlu.mica.net.core.tcp;
 
-import net.dreamlu.mica.net.client.ConnectionCompletionHandler;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.WriteCompletionHandler.WriteCompletionVo;
 import net.dreamlu.mica.net.core.intf.Packet;
@@ -57,24 +56,25 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	@Override
 	public void runTask() {
 		// 如果有写操作正在进行，直接返回，避免 WritePendingException
-		if (writing.get() || msgQueue.isEmpty()) {
+		if (writing.get()) {
 			return;
 		}
 
-		boolean isSsl = SslUtils.isSsl(tioConfig);
-		int queueSize = msgQueue.size();
+		Packet firstPacket = msgQueue.poll();
+		if (firstPacket == null) {
+			return;
+		}
 
+		// 判断是否启用 SSL
+		boolean isSsl = SslUtils.isSsl(tioConfig);
 		// 单个包直接发送
-		if (queueSize == 1) {
-			Packet packet = msgQueue.poll();
-			if (packet != null) {
-				sendPacket(packet, isSsl);
-			}
+		if (msgQueue.isEmpty()) {
+			sendPacket(firstPacket, isSsl);
 			return;
 		}
 
 		// 批量发送
-		BatchEncodeResult result = batchEncode(queueSize, isSsl);
+		BatchEncodeResult result = batchEncode(firstPacket, isSsl);
 		if (result == null) {
 			return;
 		}
@@ -164,7 +164,6 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	 * writing 可能仍为 true，若不重置，重连后 runTask() 会因
 	 * writing.get() == true 直接 return，导致消息（如 MQTT CONNECT）永远发不出去。
 	 *
-	 * @see ConnectionCompletionHandler#handler(...) 重连成功后的重置
 	 * @see TcpCloseRunnable 连接关闭前的重置
 	 */
 	public void resetWriting() {
