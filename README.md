@@ -1,10 +1,10 @@
-# mica-net 网络编程
+# mica-net Java 网络框架
 [![Mica net Maven release](https://img.shields.io/maven-central/v/net.dreamlu/mica-net-core.svg?style=flat-square)](https://central.sonatype.com/artifact/net.dreamlu/mica-net-core/versions)
 ![Mica Maven SNAPSHOT](https://img.shields.io/maven-metadata/v?metadataUrl=https://central.sonatype.com/repository/maven-snapshots/net/dreamlu/mica-net-core/maven-metadata.xml)
 
 ## 📋 项目概述
 
-mica-net 是基于 t-io 简化而来的高性能 Java 网络通信框架，TCP 使用 Java AIO 的 `AsynchronousSocketChannel`，UDP 使用 Java NIO 的 `DatagramChannel` 实现非阻塞网络通信。
+mica-net 是 mica-mqtt 的底层网络框架，基于 Java AIO 的轻量、高性能非阻塞网络通信框架，TCP 使用 Java AIO 的 `AsynchronousSocketChannel`，UDP 使用 Java NIO 的 `DatagramChannel` 实现非阻塞网络通信。
 
 核心能力包括：
 
@@ -169,15 +169,14 @@ ReadCompletionHandler  TcpDecodeRunnable  HandlerRunnable  TcpSendRunnable
 
 ## 📄 声明
 
-该项目基于 t-io（Apache License v2）简化而来，并且完全遵循 **Apache License v2** 协议。
+该项目遵循 **Apache License v2** 协议开源。
 
 ## 📝 变更内容
 
 ### 基础改造
 
 - 使用 **Java 8** 作为最低编译版本
-- 基于 **t-io 3.8.1.v20220401-RELEASE** 简化而来
-- mica-net 2.0.0 开始调整了包名，从 `org.tio` 迁移到 `net.dreamlu.mica.net` 避免跟原版 t-io 包冲突。
+- mica-net 2.0.0 开始调整了包名，从 `org.tio` 迁移到 `net.dreamlu.mica.net`
 - 去除了一些使用不到的模块和代码，代码更精简
 - **不强制依赖 fastjson**，支持多种 JSON 工具（Jackson2、Jackson3、Fastjson、Fastjson2、Gson、Hutool-json、Snack3、Snack4）
 - 添加 mica 中的 **HexUtils、DigestUtils、ExceptionUtils** 等工具类
