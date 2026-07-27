@@ -23,6 +23,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * ByteBuffer 工具类，提供ByteBuffer的读写、复制、转换等操作
@@ -712,6 +713,35 @@ public class ByteBufferUtil {
 		ret.put(byteBuffer2);
 		ret.rewind();
 		return ret;
+	}
+
+	/**
+	 * 组合多个 ByteBuffer 的可读部分为一个新的 ByteBuffer
+	 *
+	 * @param buffers buffers
+	 * @return    组合后的新 ByteBuffer
+	 */
+	public static ByteBuffer combine(List<ByteBuffer> buffers) {
+		return combine(buffers.toArray(new ByteBuffer[0]));
+	}
+
+	/**
+	 * 组合多个 ByteBuffer 的可读部分为一个新的 ByteBuffer
+	 *
+	 * @param buffers buffers
+	 * @return    组合后的新 ByteBuffer
+	 */
+	public static ByteBuffer combine(ByteBuffer[] buffers) {
+		int length = 0;
+		for (ByteBuffer buffer : buffers) {
+			length += buffer.remaining();
+		}
+		ByteBuffer combined = ByteBuffer.allocate(length);
+		for (ByteBuffer buffer : buffers) {
+			combined.put(buffer);
+		}
+		combined.flip();
+		return combined;
 	}
 
 	/**

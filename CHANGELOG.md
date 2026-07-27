@@ -2,6 +2,10 @@
 
 ## 发行版本
 
+### v2.0.13 - 2026-08-01
+- feat(ssl): `SslConfig` 新增 TLS 协议、密码套件、密码套件顺序、端点识别算法及 SNI 服务名称等自定义配置字段，`SslEngineWorker` 加载并应用新增 SSL 参数；客户端模式支持端点识别算法及 SNI 配置，保留原有 SSLParameters 增量配置逻辑。
+- refactor(tcp): 优化发送批量数据包逻辑，移除队列大小自动调整批量大小的方法，改为固定初始容量常量；`batchEncode` 从首个数据包开始批量收集，避免调用队列 `size`；批量收集限制最大批量大小及总字节容量，保证同批次内 SSL 加密状态一致；`TcpSendRunnable#runTask` 改为首次取包决定单包或批量发送；新增单元测试覆盖批量发送逻辑，确保不依赖队列 size 计算且正确拆分数据包，保持 SSL 加密包与明文包分批发送。
+
 ### v2.0.12 - 2026-07-23
 - refactor(ssl): 重构 SSL 加密处理流程，新增 `SslBuffers` 和 `SslEngineWorker` 单元测试，覆盖缓冲区扩展、分片合并、握手异常、客户端证书验证及 SSL 引擎自定义等场景。
 - refactor(websocket): 将子协议处理能力合并到 `IWsMsgHandler`，新增支持的子协议与编码方法默认实现，简化接口层次。

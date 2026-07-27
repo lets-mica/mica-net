@@ -21,6 +21,7 @@ import java.util.Arrays;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 
+import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -78,7 +79,7 @@ class SslBuffersTest {
 	void shouldCombineOnlyRemainingBytes() {
 		ByteBuffer first = ByteBuffer.wrap(new byte[]{0, 1, 2});
 		first.position(1);
-		ByteBuffer combined = SslBuffers.combine(Arrays.asList(first, ByteBuffer.wrap(new byte[]{3, 4})));
+		ByteBuffer combined = ByteBufferUtil.combine(Arrays.asList(first, ByteBuffer.wrap(new byte[]{3, 4})));
 		byte[] actual = new byte[combined.remaining()];
 		combined.get(actual);
 		Assertions.assertArrayEquals(new byte[]{1, 2, 3, 4}, actual);

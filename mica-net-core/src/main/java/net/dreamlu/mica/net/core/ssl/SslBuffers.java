@@ -16,9 +16,8 @@
 
 package net.dreamlu.mica.net.core.ssl;
 
-import java.nio.ByteBuffer;
-import java.util.List;
 import javax.net.ssl.SSLSession;
+import java.nio.ByteBuffer;
 
 /**
  * SSLEngine buffer allocation and inbound TLS fragment accumulation.
@@ -70,19 +69,6 @@ final class SslBuffers {
 	static ByteBuffer toReadBuffer(ByteBuffer buffer) {
 		buffer.flip();
 		return buffer;
-	}
-
-	static ByteBuffer combine(List<ByteBuffer> buffers) {
-		int length = 0;
-		for (ByteBuffer buffer : buffers) {
-			length += buffer.remaining();
-		}
-		ByteBuffer combined = ByteBuffer.allocate(length);
-		for (ByteBuffer buffer : buffers) {
-			combined.put(buffer);
-		}
-		combined.flip();
-		return combined;
 	}
 
 	private void ensureInboundCapacity(int additionalBytes) {

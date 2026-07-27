@@ -28,6 +28,7 @@ import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.TcpHandler;
 import net.dreamlu.mica.net.core.ssl.SslHandler;
 import net.dreamlu.mica.net.core.ssl.SslUtils;
+import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 import net.dreamlu.mica.net.utils.thread.pool.AbstractQueueRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,16 +150,7 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	protected ByteBuffer[] encryptBatchIfNeeded(ByteBuffer[] byteBuffers, boolean isSsl, boolean needSslEncrypted) {
 		if (isSsl && needSslEncrypted) {
 			// SSL 加密需要合并为单个 ByteBuffer
-			int totalCapacity = 0;
-			for (ByteBuffer buffer : byteBuffers) {
-				totalCapacity += buffer.remaining();
-			}
-			ByteBuffer mergedBuffer = ByteBuffer.allocate(totalCapacity);
-			for (ByteBuffer buffer : byteBuffers) {
-				mergedBuffer.put(buffer);
-			}
-			mergedBuffer.flip();
-
+			ByteBuffer mergedBuffer = ByteBufferUtil.combine(byteBuffers);
 			try {
 				return new ByteBuffer[]{channelContext.getSslHandler().encrypt(mergedBuffer)};
 			} catch (SSLException e) {

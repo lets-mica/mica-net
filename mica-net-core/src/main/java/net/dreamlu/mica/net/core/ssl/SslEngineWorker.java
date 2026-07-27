@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.net.ssl.*;
 
+import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 import net.dreamlu.mica.net.utils.hutool.StrUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +92,7 @@ final class SslEngineWorker {
 				throw new SSLException("SSLEngine.wrap made no progress");
 			}
 		}
-		return SslBuffers.combine(encryptedBuffers);
+		return ByteBufferUtil.combine(encryptedBuffers);
 	}
 
 	void decrypt(ByteBuffer encryptedData) throws SSLException {
