@@ -199,7 +199,6 @@ import net.dreamlu.mica.net.client.task.HeartbeatTimeoutStrategy;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.Tio;
 import net.dreamlu.mica.net.core.TioConfig;
-import net.dreamlu.mica.net.core.intf.TioHandler;
 import net.dreamlu.mica.net.core.intf.TioListener;
 import net.dreamlu.mica.net.core.ssl.SslConfig;
 import net.dreamlu.mica.net.core.stat.GroupStat;

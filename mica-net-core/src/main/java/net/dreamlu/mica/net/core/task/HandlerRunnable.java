@@ -198,7 +198,7 @@ import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.PacketHandlerMode;
 import net.dreamlu.mica.net.core.TioConfig;
 import net.dreamlu.mica.net.core.intf.Packet;
-import net.dreamlu.mica.net.core.intf.TioHandler;
+import net.dreamlu.mica.net.core.intf.TcpHandler;
 import net.dreamlu.mica.net.core.intf.TioListener;
 import net.dreamlu.mica.net.utils.thread.pool.AbstractQueueRunnable;
 import org.slf4j.Logger;
@@ -220,7 +220,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	private final ChannelContext channelContext;
 	private final TioConfig tioConfig;
 	private final TioListener tioListener;
-	private final TioHandler tioHandler;
+	private final TcpHandler tioHandler;
 	private final AtomicLong synFailCount = new AtomicLong();
 	/**
 	 * The msg queue.
@@ -281,18 +281,17 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	 * @param cost   处理耗时
 	 */
 	private void updateStatistics(Packet packet, long cost) {
-		if (!tioConfig.statOn) {
-			return;
+		if (tioConfig.statOn) {
+			int byteCount = packet.getByteCount();
+			// 更新通道统计
+			channelContext.stat.handledPackets.incrementAndGet();
+			channelContext.stat.handledBytes.addAndGet(byteCount);
+			channelContext.stat.handledPacketCosts.addAndGet(cost);
+			// 更新组统计
+			tioConfig.groupStat.handledPackets.increment();
+			tioConfig.groupStat.handledBytes.add(byteCount);
+			tioConfig.groupStat.handledPacketCosts.add(cost);
 		}
-		int byteCount = packet.getByteCount();
-		// 更新通道统计
-		channelContext.stat.handledPackets.incrementAndGet();
-		channelContext.stat.handledBytes.addAndGet(byteCount);
-		channelContext.stat.handledPacketCosts.addAndGet(cost);
-		// 更新组统计
-		tioConfig.groupStat.handledPackets.increment();
-		tioConfig.groupStat.handledBytes.add(byteCount);
-		tioConfig.groupStat.handledPacketCosts.add(cost);
 	}
 
 	@Override

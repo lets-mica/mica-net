@@ -195,7 +195,6 @@ package net.dreamlu.mica.net.server;
 
 import net.dreamlu.mica.net.core.Tio;
 import net.dreamlu.mica.net.core.TioConfig;
-import net.dreamlu.mica.net.core.intf.TioHandler;
 import net.dreamlu.mica.net.core.intf.TioListener;
 import net.dreamlu.mica.net.core.ssl.ClientAuth;
 import net.dreamlu.mica.net.core.ssl.SslConfig;
