@@ -49,8 +49,8 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	private static final Logger log = LoggerFactory.getLogger(AbstractSendRunnable.class);
 	protected static final int MAX_CAPACITY_MIN = TcpConst.MAX_DATA_LENGTH - 1024;
 	protected static final int MAX_CAPACITY_MAX = MAX_CAPACITY_MIN * 10;
-	protected static final int MAX_BATCH_SIZE = 4096;
-	private static final int INITIAL_BATCH_CAPACITY = 64;
+	protected static final int MAX_BATCH_SIZE = 512;
+	private static final int INITIAL_BATCH_CAPACITY = 32;
 	// 共享字段
 	protected final ChannelContext channelContext;
 	protected final TioConfig tioConfig;

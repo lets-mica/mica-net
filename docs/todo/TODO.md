@@ -1,465 +1,252 @@
 # mica-net 优化待办事项
 
-> 基于 2026-02-11 全局架构、内存和性能分析
+> 最后核查：2026-07-27
 >
-> 优化目标：
-> - 内存占用降低 40-50%
-> - GC 停顿时间减少 60%+
-> - 吞吐量提升 30-50%
+> 原文中的内存、GC 和吞吐收益百分比尚无可复现基准支撑，已移除。后续优化以压测结果为准。
+
+## 状态总览
+
+### 已完成
+
+- [x] TCP gather write 与原数组续写。
+- [x] 消除发送热路径中的 `ConcurrentLinkedQueue.size()`。
+- [x] 发送批次包数和字节数限制。
+- [x] SSL 批次加密状态隔离。
+- [x] 慢包检测滑动窗口。
+
+### 部分完成
+
+- [~] 读取路径拷贝：普通同步解码和 SSL 路径已避免深拷贝，Queue Decode 仍需复制。
+- [~] 同步消息响应：响应侧已使用 `CompletableFuture`，但缺少完整的公开注册、发送和超时 API。
+
+### 待实施
+
+- [ ] ByteBuffer Pool 与 Queue Decode Buffer 所有权管理。
+- [ ] 半包组合结构重新设计。
+- [ ] 业务线程池隔离。
+- [ ] DirectByteBuffer 混合策略。
+- [ ] 统计模块分级控制。
+- [ ] `ConcurrentLinkedQueue` Node 分配优化。
+- [ ] 百万连接集合热点分析。
+- [ ] 对象复用的协议级扩展点。
+- [ ] 编解码性能监控和基准测试。
 
 ---
 
-## P0 - 立即优化（收益显著）
+## P0：先建立基准并处理明确热点
 
-### 1. ByteBuffer 池化机制
+### 1. 自动化性能基准
 
-**问题描述：**
-- `ReadCompletionHandler` 和 `SendRunnable` 中频繁调用 `ByteBuffer.allocate()`
-- 每次读取都进行深拷贝，导致高频 GC
-- 堆内存分配压力大，Young GC 频繁
+**目标：**
 
-**优化方案：**
-- 引入 ByteBuffer Pool（参考 Netty PooledByteBufAllocator）
-- 使用 ThreadLocal 缓存常用大小的 ByteBuffer
-- 实现分级池化：Small (< 8KB), Medium (8-64KB), Large (> 64KB)
-- 增加引用计数机制管理生命周期
+- 建立优化前后的可复现对照。
+- 避免根据静态代码直接推导整体收益。
 
-**关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/ReadCompletionHandler.java` (深拷贝位于 ~246-258)
-- `mica-net-core/src/main/java/org/tio/core/tcp/TcpSendRunnable.java`
-- 新增 `mica-net-core/src/main/java/org/tio/core/buffer/ByteBufferPool.java`
+**场景：**
 
-**预期收益：**
-- 减少 50-70% 的内存分配
-- Young GC 频率降低 60%+
+1. 1K 长连接、100K 小包/秒。
+2. 发送队列分别积压 10、100、1K、10K 个包。
+3. `useQueueDecode` 开启和关闭对比。
+4. SSL 小包及 SSL 协议数据与业务数据交错。
+5. 64 KB 以上大包。
+6. 50% 半包比例。
 
-**实施步骤：**
-- [ ] 设计 ByteBufferPool 接口和实现类
-- [ ] 实现分级池化策略（Small/Medium/Large）
-- [ ] 在 TioConfig 中添加池化配置选项
-- [ ] 重构 ReadCompletionHandler 使用池化 Buffer
-- [ ] 重构 SendRunnable 使用池化 Buffer
-- [ ] 添加引用计数和泄漏检测机制
-- [ ] 编写单元测试和压力测试
+**指标：**
 
----
+- [ ] QPS/TPS。
+- [ ] P50/P95/P99 延迟。
+- [ ] CPU 使用率。
+- [ ] 对象分配率和 GC 停顿。
+- [ ] 堆内存和 DirectMemory。
+- [ ] 队列深度和单批包数。
 
-### 2. 消除 ReadCompletionHandler 中的内存拷贝
+### 2. 发送队列遍历优化（已完成）
 
-**问题描述：**
-```java
-// ReadCompletionHandler.completed()
-if (useQueueDecode || sslFacadeContext != null) {
-    newByteBuffer = ByteBufferUtil.copy(readByteBuffer);  // ⚠️ 性能杀手
-}
-```
-- 每次读取都深拷贝整个 buffer
-- 读取路径是最高频操作，影响整体性能
+**当前实现：**
 
-**优化方案：**
+- `TcpSendRunnable.runTask()` 先 `poll()` 首包，不再调用 O(n) 的 `ConcurrentLinkedQueue.size()`。
+- 非 SSL 批量路径使用单次 `poll()` 继续收集。
+- SSL 路径只在检查下一包加密状态时使用 `peek()`。
+- 单批最多 512 个包，初始列表容量为 32。
+- 单批累计字节数仍受 `MAX_CAPACITY_MAX` 限制。
+- 达到上限后的剩余包由写完成回调继续触发发送。
 
-**方案 1：引用计数 + 读写分离**
-- readByteBuffer 设置为只读，传递引用而非拷贝
-- DecodeRunnable 完成后释放引用计数
-- 配合 P0-1 的池化机制实现
+**测试：**
 
-**方案 2：双缓冲策略**
-- 每个连接维护两个 buffer 交替使用
-- 读取时切换 buffer，解码使用另一个
-- 适用于不需要池化的简化场景
+- [x] 单包路径不调用 `size()`。
+- [x] 批量路径不调用 `size()`。
+- [x] 包数上限后保留并续发剩余包。
+- [x] 字节上限后保留剩余包。
+- [x] SSL 明文到密文边界。
+- [x] SSL 密文到明文边界。
+- [ ] 补充实际 Socket 压测。
 
-**关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/ReadCompletionHandler.java` (~246-258)
-- `mica-net-core/src/main/java/org/tio/core/ChannelContext.java`（增加双缓冲字段）
+### 3. Queue Decode 拷贝（部分完成）
 
-**预期收益：**
-- 读取路径性能提升 30-40%
-- 内存拷贝开销降低 90%+
+**当前事实：**
 
-**实施步骤：**
-- [ ] 评估方案 1 vs 方案 2（建议方案 1 配合池化）
-- [ ] 修改 ReadCompletionHandler 逻辑
-- [ ] 在 ChannelContext 中增加引用计数管理
-- [ ] 确保 DecodeRunnable 正确释放引用
-- [ ] 测试并发场景下的线程安全性
-- [ ] 压力测试验证性能提升
+- `ReadCompletionHandler` 的读 Buffer 按连接复用，并非每次读取都重新分配。
+- 普通同步解码直接消费当前 Buffer。
+- SSL 路径使用 `slice()`，不再执行原文描述的完整深拷贝。
+- `useQueueDecode=true` 时仍调用 `ByteBufferUtil.copy(buf)`，这是异步所有权隔离所必需的当前实现。
+
+**后续步骤：**
+
+- [ ] 记录 Queue Decode 场景的分配率和吞吐。
+- [ ] 设计池化 Buffer 的获取、移交和释放协议。
+- [ ] 覆盖解码积压、连接关闭、SSL 和异常路径。
+- [ ] 增加泄漏检测与并发测试。
 
 ---
 
-### 3. ByteBufferUtil.composite() 零拷贝改造
+## P1：稳定性和可配置能力
 
-**问题描述：**
-```java
-// ByteBufferUtil.composite() 现有实现
-ByteBuffer ret = ByteBuffer.allocate(capacity);
-ret.put(byteBuffer1);
-ret.put(byteBuffer2);  // 物理拷贝
-```
-- `ByteBufferUtil.composite()` 已存在，但实现为 `allocate + put` 全量拷贝
-- 半包场景频繁时成为性能热点
+### 4. 业务线程池隔离
 
-**优化方案：**
-- 不新增类，改造现有 `ByteBufferUtil.composite()` 方法
-- 内部维护 ByteBuffer 数组 + 偏移量/长度信息（逻辑组合）
-- 提供统一的读写接口，数据仅在真正需要连续内存时才合并
-- 参考 Netty CompositeByteBuf 设计思路
+**当前事实：**
 
-**关键代码位置：**
-- `mica-net-utils/src/main/java/org/tio/utils/buffer/ByteBufferUtil.java`（现有 composite 方法）
-- `mica-net-core/src/main/java/org/tio/core/tcp/TcpDecodeRunnable.java`（半包处理调用点）
+- `decodeRunnable`、`handlerRunnable` 和 `sendRunnable` 当前都绑定 `tioExecutor`。
+- `PacketHandlerMode.SINGLE_THREAD` 默认直接在解码线程执行 handler。
 
-**预期收益：**
-- 半包场景性能提升 20-30%
-- 减少内存分配和 GC 压力
+**设计要求：**
 
-**实施步骤：**
-- [ ] 设计逻辑组合结构（维护 ByteBuffer 数组 + 偏移量）
-- [ ] 改造 ByteBufferUtil.composite() 内部实现
-- [ ] 实现统一读取接口（get, position, limit, remaining）
-- [ ] 半包场景测试验证
-- [ ] 性能测试对比优化前后差异
+- [ ] 在 `TioConfig` 中增加可选 `businessExecutor`。
+- [ ] 未配置时保持当前行为，确保兼容。
+- [ ] 配置后仍保证单连接消息有序。
+- [ ] 明确用户提供线程池是否由框架关闭。
+- [ ] 增加阻塞 handler 和顺序性测试。
 
----
+### 5. 统计模块分级
 
-## P1 - 中期优化（提升稳定性和灵活性）
+**当前事实：**
 
-### 4. 业务线程池隔离 ⚠️ 待核实
+- 只有 `TioConfig.statOn`，尚无 `StatLevel`。
+- `HandlerRunnable` 即使关闭统计，仍可能因监听器需要而计算耗时。
 
-**问题描述：**
-- HandlerRunnable 在 tioExecutor 中执行
-- 若业务 handler() 耗时阻塞，会占用核心线程池资源
-- 影响编解码效率，甚至导致系统雪崩
+**后续步骤：**
 
-**优化方案：**
-- 在 TioConfig 中增加独立的 businessExecutor 配置项
-- 提供配置选项决定是否使用独立线程池
-- 耗时业务操作自动切换到 businessExecutor
+- [ ] 先消除统计关闭且无监听器时的非必要计时。
+- [ ] 设计 `OFF/BASIC/NORMAL/DETAILED`。
+- [ ] 保留 `statOn` 的兼容映射。
+- [ ] 对各级别进行性能对比。
 
-**关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/TioConfig.java`
-- `mica-net-core/src/main/java/org/tio/core/task/HandlerRunnable.java`
+### 6. DirectByteBuffer 混合策略
 
-**实施步骤：**
-- [ ] 在 TioConfig 中添加 businessExecutor 字段
-- [ ] 提供配置方法 setBusinessExecutor(ExecutorService)
-- [ ] 修改 HandlerRunnable 判断逻辑
-- [ ] 增加业务线程池监控指标
-- [ ] 编写配置示例文档
-- [ ] 测试不同线程池配置下的性能表现
+- [ ] 先建立大包 Heap/Direct 对照。
+- [ ] 与 Buffer Pool 一并设计，避免频繁申请和释放 DirectMemory。
+- [ ] 提供阈值、开关及 DirectMemory 监控。
+- [ ] 小包默认继续使用 HeapByteBuffer。
 
-> ⚠️ **状态待核实**：`businessExecutor` 配置项目前未在代码中实现，仅在 TODO 文档中存在。
+### 7. 任务队列 Node 分配
+
+**当前事实：**
+
+- 发送、Queue Decode 和队列 Handler 仍使用 `ConcurrentLinkedQueue`。
+- 发送路径的 O(n) `size()` 已消除，但入队 Node 分配仍存在。
+
+**后续步骤：**
+
+- [ ] 测量 Node 分配占总分配率的比例。
+- [ ] 评估 MPSC 队列。
+- [ ] 定义有界队列满载策略和背压语义。
+- [ ] 分阶段替换，优先验证发送队列。
 
 ---
 
-### 5. DirectByteBuffer 混合策略
+## P2：需要架构设计或明确数据后再实施
 
-**问题描述：**
-- 当前主要使用 HeapByteBuffer
-- 大包场景下存在内核态到用户态的额外拷贝
+### 8. ByteBuffer Pool
 
-**优化方案：**
-- 对大包（> 64KB）使用 DirectByteBuffer 减少内核拷贝
-- 小包仍用 HeapBuffer 避免 DirectMemory 碎片
-- 在 TioConfig 中提供配置开关
+- [ ] 定义 Pool 接口和大小分级。
+- [ ] 明确 Heap/Direct 策略。
+- [ ] 明确异步读、解码、SSL、异步写和关闭路径的所有权。
+- [ ] 增加引用计数或等价生命周期机制。
+- [ ] 增加泄漏检测和压力测试。
 
-**关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/TioConfig.java`
-- ByteBuffer Pool 实现（配合 P0-1）
+> 不建议直接复用 Netty 的完整分配器设计；应根据 mica-net 的 Buffer 生命周期裁剪。
 
-**实施步骤：**
-- [ ] 在 TioConfig 添加配置项（directBufferThreshold, useDirectBuffer）
-- [ ] 修改 ByteBufferPool 支持 Direct/Heap 混合分配
-- [ ] 增加 DirectMemory 使用量监控
-- [ ] 测试大包场景性能提升
-- [ ] 编写最佳实践文档
+### 9. `ByteBufferUtil.composite()` 零拷贝
 
----
+**当前事实：**
 
-### 6. 统计模块分级控制 ⚠️ 待核实
+- 现有实现仍为 `allocate + put`。
+- 标准 `ByteBuffer` 返回类型不能表达多个离散 Buffer 的逻辑组合。
 
-**问题描述：**
-- 当前 `TioConfig.statOn` 是单一 boolean 开关，不够灵活
-- 统计操作（AtomicLong.addAndGet）在极高 QPS 下仍有微量开销
+**后续步骤：**
 
-**优化方案：**
-- 提供分级统计机制：
-  - Level 0: 关闭所有统计
-  - Level 1: 仅统计连接数和错误数
-  - Level 2: 增加流量统计（receivedBytes, sentBytes）
-  - Level 3: 全量统计（包括耗时、队列深度等）
+- [ ] 先验证半包合并是否为实际热点。
+- [ ] 评估新组合 Buffer 抽象。
+- [ ] 评估修改 decode API 支持分段读取的兼容成本。
+- [ ] 不再采用“保持 `ByteBuffer` 返回类型、仅修改内部实现”的不可行方案。
 
-**关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/TioConfig.java`
-- `mica-net-core/src/main/java/org/tio/core/stat/ChannelStat.java`
-- `mica-net-core/src/main/java/org/tio/core/stat/GroupStat.java`
+### 10. 集合分片
 
-**实施步骤：**
-- [ ] 设计 StatLevel 枚举（OFF, BASIC, NORMAL, DETAILED）
-- [ ] 在 TioConfig 中添加 setStatLevel(StatLevel level)
-- [ ] 修改各统计点增加级别判断
-- [ ] 性能测试不同级别的性能差异
-- [ ] 更新配置文档
+- [ ] 对 `Users`、`Groups`、`Ids`、`Tokens` 等维护结构进行百万连接压测。
+- [ ] 使用分析结果确定热点，而不是预先引入分片 Map。
+- [ ] 评估连接清理策略及额外索引的内存成本。
 
-> ⚠️ **状态待核实**：`TioConfig` 中目前仅有 `statOn` 单一 boolean 开关，`StatLevel` 分级机制未在代码中实现。
+### 11. 对象复用
 
----
-
-## P2 - 长期优化（微优化和扩展性）
-
-### 7. 集合分片优化（支持百万级连接）
-
-**问题描述：**
-- TioConfig 维护多维度映射（Users, Groups, Ids, Tokens）
-- 百万级连接下，多个 ConcurrentHashMap 同步维护带来压力
-
-**优化方案：**
-- 引入分段 Map 或分片策略
-- 提供连接清理策略配置（idle timeout 自动清理）
-- 考虑使用更紧凑的数据结构（如 Roaring Bitmap 存储 ID 集合）
-
-**关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/TioConfig.java`
-- `mica-net-core/src/main/java/org/tio/core/maintain/*`（各维度管理类）
-
-**实施步骤：**
-- [ ] 分析当前集合操作的热点路径
-- [ ] 设计分片策略（按 hash 或 ID 范围分片）
-- [ ] 实现分片 Map 包装类
-- [ ] 增加自动清理机制（基于 idle time）
-- [ ] 百万级连接压力测试
-- [ ] 内存占用对比测试
-
----
-
-### 8. write 分散聚集 I/O 支持
-
-**问题描述：**
-- 当前批量发送需要将多个小包合并到一个 ByteBuffer
-- 合并过程仍涉及内存拷贝
-
-**优化方案：**
-- 使用 `AsynchronousSocketChannel.write(ByteBuffer[] srcs)`
-- 避免多个小包合并时的内存拷贝
-- 直接传递 ByteBuffer 数组给内核
-
-**关键代码位置：**
-- `mica-net-core/src/main/java/org/tio/core/tcp/TcpSendRunnable.java`
-
-**实施步骤：**
-- [ ] 修改 SendRunnable 支持 ByteBuffer[] 批量发送
-- [ ] 增加配置开关（useWrite）
-- [ ] 测试不同包大小下的性能表现
-- [ ] 对比单 Buffer 和数组方式的性能差异
-
----
-
-### 9. 同步消息机制优化 ⚠️ 文档标记失实
-
-**问题描述：**
-```java
-// HandlerRunnable 同步消息处理（当前实现）
-synchronized(initPacket) {
-    initPacket.notify();
-}
-```
-- Monitor 锁开销较大
-- 在高并发同步调用下存在竞争
-
-**优化方案：CompletableFuture 异步响应**
-
-> ⚠️ **严重错误**：以下文档标记为"✅ 已完成"，但 **代码中不存在** 对应实现。
->
-> 核查结果：
-> - `net.dreamlu.mica.net.core.async.TioFuture` ❌ 不存在
-> - `Tio.sendAsync()` / `Tio.sendAndAwait()` ❌ 不存在
-> - `waitingAsyncResps` ❌ 不存在于 TioConfig
-> - `HandlerRunnable.java` 中无异步 API 相关代码
-> - 测试文件 `TioAsyncExample.java` ❌ 不存在
->
-> **文档中的"已完成"标记与代码现状严重不符，需核实原实现是否被回滚或从未合并。**
-
-**待实施步骤：**
-- [ ] 核查原实现历史（是否曾有 CompletableFuture 方案）
-- [ ] 如需重新实现，参考文档中的设计思路
-- [ ] 实现 TioFuture 核心类
-- [ ] 在 Tio 中添加异步 API
-- [ ] 编写测试和示例
-
----
-
-### 10. 慢包攻击检测优化 ✅ 已完成
-
-**问题描述：**
-- DecodeRunnable 每次解码都计算平均包长
-- 虽然逻辑简单，但在极高 QPS 下仍有优化空间
-
-**优化方案：滑动窗口算法** ✅
-
-已实现基于滑动窗口的慢包检测器，显著降低计算开销。
-
-**已完成的实现：**
-
-1. ✅ **核心类 SlowPacketDetector**
-   - 位置：`net.dreamlu.mica.net.SlowPacketDetector`
-   - 功能：环形缓冲区实现的滑动窗口统计
-   - 特性：无锁设计，O(1) 时间复杂度
-
-2. ✅ **TioConfig 配置支持**
-   - `enableSlowPacketDetection`：检测开关（默认 true）
-   - `slowPacketWindowSize`：滑动窗口大小（默认 16）
-   - `slowPacketCheckInterval`：检测间隔（默认 1，每次失败都检测）
-   - `maxDecodeFailCount`：最大失败次数阈值
-
-3. ✅ **TcpDecodeRunnable 集成**
-   - 在解码失败时记录数据长度到滑动窗口
-   - 使用 `shouldCheck()` 降低检测频率
-   - 自动计算滑动窗口内的平均值
-   - 代码位置：`TcpDecodeRunnable.java:124-170`
-
-4. ✅ **ChannelStat 扩展**
-   - 延迟初始化检测器（避免无用开销）
-   - 通过 `hasSlowPacketDetector()` 判断是否已启用
-   - 支持自定义窗口大小和检测间隔
-
-**优化效果：**
-- ✅ 使用环形缓冲区避免重复计算
-- ✅ O(1) 复杂度更新和查询
-- ✅ 支持可配置的检测频率（降低 CPU 开销）
-- ✅ 无锁设计适合高并发场景
-- ✅ 向后兼容（可通过配置关闭）
-
-**配置示例：**
-
-```java
-// 启用慢包检测，使用 32 个样本的滑动窗口，每 5 次失败检测一次
-TioConfig tioConfig = new TioConfig();
-tioConfig.setEnableSlowPacketDetection(true);
-tioConfig.setSlowPacketWindowSize(32);
-tioConfig.setSlowPacketCheckInterval(5);  // 降低检测频率，减少 CPU 开销
-tioConfig.setMaxDecodeFailCount(10);
-```
-
-**实施状态：**
-- [x] 实现滑动窗口统计算法
-- [x] 添加检测频率配置
-- [x] 增加检测开关（enableSlowPacketDetection）
-- [x] 集成到 TcpDecodeRunnable
-- [x] 延迟初始化机制
-- [ ] 性能测试对比优化前后（待补充）
-
-**Git 提交：**
-- d8eaf3c: feat(stat): 添加慢包攻击检测器及滑动窗口算法优化
-
----
-
-## 补充优化项
-
-### 11. 对象复用优化
-
-**问题描述：**
-- Packet 对象频繁创建
-
-**优化方案：**
-- 为高频协议（如心跳包）提供单例复用
-- 对固定格式的响应包使用对象池
-- 在 TioHandler 中提供 newPacket() 接口支持自定义池化
-
-**实施步骤：**
-- [ ] 分析 Packet 创建热点
-- [ ] 设计对象池接口
-- [ ] 实现心跳包单例
-- [ ] 提供配置选项
-
----
+- [ ] 分析 Packet 创建热点。
+- [ ] 优先由具体协议复用不可变心跳包和固定响应包。
+- [ ] 不对可变 Packet 直接提供全局单例。
+- [ ] 如需框架扩展点，明确 reset 和跨线程所有权规则。
 
 ### 12. 编解码性能监控
 
-**问题描述：**
-- 缺少编解码性能的细粒度监控
-
-**优化方案：**
-- 增加编解码耗时统计
-- 记录慢编解码操作（超过阈值）
-- 提供性能诊断 API
-
-**实施步骤：**
-- [ ] 在 DecodeRunnable 增加耗时统计
-- [ ] 在 SendRunnable 增加编码耗时统计
-- [ ] 增加慢操作日志（可配置阈值）
-- [ ] 提供 JMX 监控接口
+- [ ] 提供可关闭的编码、解码耗时采样。
+- [ ] 增加可配置慢操作阈值。
+- [ ] 避免默认对每个包进行高成本计时。
+- [ ] 根据实际接入方式决定是否需要 JMX。
 
 ---
 
-## 性能测试计划
+## 已完成项目说明
 
-### 基准测试场景
+### TCP gather write
 
-1. **高并发短连接**
-   - 10K QPS，每个连接发送 10 个包后断开
-   - 关注：连接建立/销毁开销、集合操作性能
+- `TcpSendRunnable` 已使用 `AsynchronousSocketChannel.write(ByteBuffer[], ...)`。
+- `WriteCompletionHandler` 使用原数组的 `offset/length` 进行续写。
+- 非 SSL 多包发送不再先合并到单个 ByteBuffer。
+- SSL 明文批次仍需合并后交给当前加密接口。
 
-2. **长连接高吞吐**
-   - 1K 长连接，每秒 100K 小包（< 1KB）
-   - 关注：ByteBuffer 分配、GC 频率
+### 同步消息响应（部分完成）
 
-3. **大包传输**
-   - 1K 长连接，每秒 1K 大包（> 64KB）
-   - 关注：DirectBuffer 效果、内存拷贝优化
+- `TioConfig.waitingResps` 已存在，类型为 `ConcurrentMap<Integer, CompletableFuture<Packet>>`。
+- `HandlerRunnable` 收到带 `synSeq` 的响应后会移除并完成对应 Future。
+- 当前没有完整的 `Tio.sendAsync()`、`sendAndAwait()` 或等价公开 API，也没有框架内的 Future 注册和超时清理流程。
+- 后续应先明确 API 需求，再决定是否继续完善；不再标记为“完全不存在”或“已经全部完成”。
 
-4. **半包场景**
-   - 模拟网络抖动，50% 包被拆分
-   - 关注：CompositeByteBuffer 效果
+### 慢包检测滑动窗口
 
-### 性能指标
+- 实现类：`net.dreamlu.mica.net.core.stat.SlowPacketDetector`。
+- `ChannelStat` 延迟创建检测器。
+- `TcpDecodeRunnable` 在解码失败路径记录样本并按间隔检查。
+- 当前配置位于 `TioConfig` 公共字段：
 
-- [ ] 吞吐量（QPS/TPS）
-- [ ] 延迟（P50/P95/P99）
-- [ ] 内存占用（堆内存、DirectMemory）
-- [ ] GC 频率和停顿时间
-- [ ] CPU 使用率
+```java
+tioConfig.enableSlowPacketDetection = true;
+tioConfig.slowPacketWindowSize = 32;
+tioConfig.slowPacketCheckInterval = 5;
+tioConfig.maxDecodeFailCount = 10;
+```
 
----
-
-## 实施建议
-
-### 阶段 1（1-2 周）
-- 完成 P0-1: ByteBuffer 池化机制
-- 完成 P0-2: 消除 ReadCompletionHandler 拷贝
-
-### 阶段 2（1-2 周）
-- 完成 P0-3: CompositeByteBuffer 实现
-- 完成 P1-4: 业务线程池隔离
-
-### 阶段 3（2-3 周）
-- 完成 P1-5: DirectByteBuffer 混合策略
-- 完成 P1-6: 统计模块分级控制
-- 进行全面性能测试
-
-### 阶段 4（按需）
-- 根据性能测试结果选择实施 P2 优化项
+- [ ] 仍需补充优化前后的性能基准。
 
 ---
 
-## 注意事项
+## 实施顺序建议
 
-1. **向后兼容性**
-   - 所有优化必须保持 API 兼容性
-   - 新功能提供配置开关，默认关闭
+1. 建立自动化性能基准。
+2. 业务线程池隔离。
+3. 统计热路径减负和分级。
+4. 根据分配率决定是否替换任务队列。
+5. 根据 Queue Decode 基准决定是否引入 Buffer Pool。
+6. 根据半包基准决定是否调整解码接口。
 
-2. **测试覆盖**
-   - 每个优化必须有对应的单元测试
-   - 关键优化需要压力测试验证
+## 通用要求
 
-3. **文档更新**
-   - 更新 CLAUDE.md 中的优化说明
-   - 提供配置示例和最佳实践
-
-4. **性能回归测试**
-   - 建立自动化性能测试基准
-   - 每次优化后进行对比测试
-
----
-
-**最后更新：** 2026-04-02（经代码核查后修正）
-**状态：** 待实施
-**预期总体收益：** 内存占用 ↓40-50%，GC 停顿 ↓60%+，吞吐量 ↑30-50%
+1. 新配置保持默认行为兼容。
+2. 并发优化必须覆盖关闭、异常和积压路径。
+3. 性能收益必须给出同环境前后对照。
+4. 更新实现时同步维护本文和 `performance.md`。
