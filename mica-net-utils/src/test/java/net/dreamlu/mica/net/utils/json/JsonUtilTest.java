@@ -19,6 +19,7 @@ class JsonUtilTest {
 		Map<String, Object> map = new HashMap<>();
 		map.put("name", name);
 		map.put("age", 18);
+		JsonUtil.getJsonAdapter(new Jackson2JsonAdapter());
 		User user = JsonUtil.convertValue(map, User.class);
 		Assertions.assertEquals(18, user.getAge());
 		Assertions.assertEquals(name, user.getName());
