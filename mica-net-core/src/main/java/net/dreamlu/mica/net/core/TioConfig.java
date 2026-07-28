@@ -278,8 +278,8 @@ public abstract class TioConfig {
 	public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD;    //.queue;
 	public SynThreadPoolExecutor tioExecutor;
 	public ExecutorService groupExecutor;
-	/** TCP 关闭连接处理器（懒加载） */
-	private AbstractCloseRunnable tcpCloseRunnable;
+	/** TCP 关闭连接处理器 */
+	private final AbstractCloseRunnable tcpCloseRunnable;
 	public ClientNodes clientNodes = new ClientNodes();
 	public Set<ChannelContext> connections = ConcurrentHashMap.newKeySet();
 	public Groups groups = new Groups();
@@ -341,6 +341,7 @@ public abstract class TioConfig {
 		if (this.groupExecutor == null) {
 			this.groupExecutor = ThreadUtils.getGroupExecutor();
 		}
+		this.tcpCloseRunnable = new TcpCloseRunnable(this.tioExecutor);
 	}
 
 	/**
@@ -358,14 +359,11 @@ public abstract class TioConfig {
 	public abstract TioListener getTioListener();
 
 	/**
-	 * 获取关闭连接处理器（懒加载）。
+	 * 获取关闭连接处理器。
 	 *
 	 * @return AbstractCloseRunnable
 	 */
 	public AbstractCloseRunnable getCloseRunnable() {
-		if (tcpCloseRunnable == null) {
-			tcpCloseRunnable = new TcpCloseRunnable(this.tioExecutor);
-		}
 		return tcpCloseRunnable;
 	}
 

@@ -477,12 +477,13 @@ public class Tio {
 
 		if (needCloseLock) {
 			WriteLock writeLock = context.closeLock.writeLock();
-			boolean tryLock = writeLock.tryLock();
-			if (!tryLock) {
-				return;
+			// 用 lock 替代 tryLock：重连任务持有写锁时不能静默丢弃关闭
+			writeLock.lock();
+			try {
+				context.setWaitingClose(true);
+			} finally {
+				writeLock.unlock();
 			}
-			context.setWaitingClose(true);
-			writeLock.unlock();
 		} else {
 			context.setWaitingClose(true);
 		}
