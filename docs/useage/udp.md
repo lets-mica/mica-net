@@ -18,12 +18,21 @@ UDP 与 TCP 共用 `mica-net-core`，无需额外模块：
 
 | 名称 | 作用 |
 | ---- | ---- |
-| `UdpChannel` | UDP 网络通道：暴露 `send(Packet)`、`close(remark)`、`remoteAddress()`、`getConfig()`；是 UDP 中唯一的「上下文」 |
+| `UdpChannel` | UDP 网络通道：暴露 `send(Packet)`、`remoteAddress()`、`getConfig()`；是 UDP 中唯一的「上下文」 |
 | `UdpHandler` | UDP 业务接口：`decode` / `encode` / `handler` 三段式 |
-| `UdpConfig` / `UdpServerConfig` / `UdpClientConfig` | I/O 配置：`readBufferSize` 与可选的 `workerPool` |
-| `UdpServer` / `UdpClient` | 启动器：`start()` 后阻塞读循环；`close()` 释放资源 |
+| `UdpConfig` / `UdpServerConfig` / `UdpClientConfig` | I/O 配置：`readBufferSize`、可选 `workerPool`，以及 server/client 专有项 |
+| `UdpServer` / `UdpClient` | 启动器：`start()` 启动后台 I/O 线程后立即返回；`close()` 释放资源 |
 
-> UDP 是无连接的，handler 中的 `UdpChannel` 只代表「这一次数据交换」，不是长连接。
+> UDP 本身无连接。服务端会按对端 `InetSocketAddress` **复用** `UdpServerChannel`（便于维护 per-peer 状态），并按 `peerIdleTimeoutMs` / `maxPeers` 约束会话；`close()` 或 `UdpChannel#close(remark)` 会移除该会话。客户端始终对应配置中的单一目标地址。
+>
+> 同一对端的 `handler` **串行**执行（per-peer 队列）；不同对端仍可并行。回包经有界发送队列由单线程写出。
+
+### 解码约定
+
+- 以 **单个 datagram** 为界循环调用 `decode`，一包可含多帧。
+- **不会**跨 datagram 自动拼接半包；`decode` 返回 `null` 即丢弃本 datagram 剩余数据。
+- 返回 `Packet` 后应推进 `ByteBuffer#position`；若不推进，框架为防死循环只处理一帧。
+- `readBufferSize` 小于实际 datagram 时可能被截断（框架会打 warn）。
 
 ## 3. 最简单的服务端
 
@@ -46,9 +55,8 @@ public class UdpEchoServer {
                 // 数据不足一帧返回 null；这里直接以"缓冲区剩余全部作为一包"为例
                 if (readableLength <= 0) return null;
                 byte[] body = new byte[readableLength];
-                for (int i = 0; i < readableLength; i++) {
-                    body[i] = buffer.get(position + i);
-                }
+                buffer.position(position);
+                buffer.get(body);
                 return new TextPacket(new String(body, StandardCharsets.UTF_8));
             }
 
@@ -104,9 +112,8 @@ public class UdpEchoClient {
                                 int readableLength, UdpChannel ctx) {
                 if (readableLength <= 0) return null;
                 byte[] body = new byte[readableLength];
-                for (int i = 0; i < readableLength; i++) {
-                    body[i] = buffer.get(position + i);
-                }
+                buffer.position(position);
+                buffer.get(body);
                 return new UdpEchoServer.TextPacket(new String(body, StandardCharsets.UTF_8));
             }
             @Override public ByteBuffer encode(Packet p, UdpConfig c, UdpChannel ch) {
@@ -131,7 +138,7 @@ public class UdpEchoClient {
 }
 ```
 
-> `client.send(packet)` 默认发往配置中的 `host:port`；如要发往其他地址，使用 `UdpChannel#send(packet, InetSocketAddress)`。
+> `client.send(packet)` / `UdpChannel#send(packet)` 均发往客户端配置中的 `host:port`。服务端回包则发往该会话的 `remoteAddress()`。当前不提供「同一 channel 改发其他地址」的 API。
 
 ## 5. UdpConfig 常用项
 
@@ -139,7 +146,17 @@ public class UdpEchoClient {
 UdpServerConfig cfg = UdpServerConfig.builder()
     .port(9999)
     .readBufferSize(4096)                              // 单次 UDP 读取缓冲
+    .workerThreads(8)                                  // 默认池线程数（未注入 workerPool 时）
+    .peerIdleTimeoutMs(300_000)                        // 对端空闲淘汰；0 表示不按空闲淘汰
+    .maxPeers(10_000)                                  // 对端会话上限，满则丢弃新对端报文
+    .sendQueueCapacity(4096)                           // 回包发送队列；满则 send 返回 false
     .workerPool(ThreadUtils.getGroupExecutor())        // 可选：复用业务线程池
+    .build();
+
+UdpClientConfig clientCfg = UdpClientConfig.builder()
+    .host("127.0.0.1")
+    .port(9999)
+    .sendQueueCapacity(1024)                           // 发送队列满时 send 返回 false
     .build();
 ```
 
@@ -147,8 +164,12 @@ UdpServerConfig cfg = UdpServerConfig.builder()
 | ---- | ---- | ---- |
 | `port` | 必填（server） | 监听端口 |
 | `host` | `127.0.0.1`（client） | 对端地址 |
-| `readBufferSize` | `2048` | UDP 读取缓冲，建议 ≤ MTU（约 1500/9000） |
+| `readBufferSize` | `2048` | UDP 读取缓冲；过小会导致 datagram 截断 |
 | `workerPool` | `null` | 注入业务线程池；为 null 时由 mica 自管理 |
+| `workerThreads` | `max(2, CPUs*2)`（server） | 默认业务池线程数 |
+| `peerIdleTimeoutMs` | `300000`（server） | 对端会话空闲超时；`0` 关闭空闲淘汰 |
+| `maxPeers` | `10000`（server） | 对端会话上限 |
+| `sendQueueCapacity` | `4096`（server）/ `1024`（client） | 发送队列容量，满则 `send` 返回 `false` |
 
 ## 6. 典型使用场景
 
@@ -158,6 +179,7 @@ UdpServerConfig cfg = UdpServerConfig.builder()
 - **日志/指标通道**：高并发、低开销、按需丢弃数据。
 
 > 重要业务（订单、消息）请走 TCP；UDP 应用层需自行实现 ACK/重传与幂等。
+> 非阻塞发送在内核缓冲区满时可能丢包（`send` 返回 `false` / 客户端累计 `getDroppedSendCount()`）。
 
 ## 7. 完整 Demo
 

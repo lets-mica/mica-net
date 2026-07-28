@@ -157,7 +157,7 @@ public class UdpDemo {
 	}
 
 	/**
-	 * 长度前缀编解码工具：所有操作使用绝对索引，不修改 buffer 的 position/limit。
+	 * 长度前缀编解码工具：decode 成功后推进 position，配合框架 datagram 内多帧循环。
 	 */
 	static final class Codec {
 		private Codec() {
@@ -176,14 +176,13 @@ public class UdpDemo {
 			if (readableLength < 2) {
 				return null;
 			}
-			int len = ((buffer.get(position) & 0xff) << 8) | (buffer.get(position + 1) & 0xff);
-			if (len < 0 || readableLength < 2 + len) {
+			int len = buffer.getShort(position) & 0xffff;
+			if (readableLength < 2 + len) {
 				return null;
 			}
+			buffer.position(position + 2);
 			byte[] body = new byte[len];
-			for (int i = 0; i < len; i++) {
-				body[i] = buffer.get(position + 2 + i);
-			}
+			buffer.get(body);
 			return new TextPacket(new String(body, StandardCharsets.UTF_8));
 		}
 	}

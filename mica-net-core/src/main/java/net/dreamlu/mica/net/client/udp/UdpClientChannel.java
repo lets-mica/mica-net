@@ -8,12 +8,11 @@ package net.dreamlu.mica.net.client.udp;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.UdpChannel;
 import net.dreamlu.mica.net.core.intf.UdpHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * UDP 客户端 {@link UdpChannel} 实现。
@@ -27,20 +26,22 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author L.cm
  */
 public class UdpClientChannel implements UdpChannel {
-	private static final Logger log = LoggerFactory.getLogger(UdpClientChannel.class);
 	private final UdpClientConfig config;
 	private final UdpHandler handler;
 	private final InetSocketAddress remote;
 	private final LinkedBlockingQueue<ByteBuffer> sendQueue;
+	private final AtomicBoolean running;
 
 	UdpClientChannel(UdpClientConfig config,
 					 UdpHandler handler,
 					 InetSocketAddress remote,
-					 LinkedBlockingQueue<ByteBuffer> sendQueue) {
+					 LinkedBlockingQueue<ByteBuffer> sendQueue,
+					 AtomicBoolean running) {
 		this.config = config;
 		this.handler = handler;
 		this.remote = remote;
 		this.sendQueue = sendQueue;
+		this.running = running;
 	}
 
 	@Override
@@ -55,7 +56,13 @@ public class UdpClientChannel implements UdpChannel {
 
 	@Override
 	public boolean send(Packet packet) {
-		ByteBuffer encoded = handler.encode(packet, config,this);
+		if (!running.get()) {
+			return false;
+		}
+		if (packet == null) {
+			return false;
+		}
+		ByteBuffer encoded = handler.encode(packet, config, this);
 		if (encoded == null) {
 			return false;
 		}

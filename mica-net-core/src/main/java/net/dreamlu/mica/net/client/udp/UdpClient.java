@@ -24,14 +24,17 @@ import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 标准 Java NIO UDP 客户端，偏生产级实现。
  * <p>
- * 单 DatagramChannel + Selector 读取服务端响应；发送采用无锁队列 +
+ * 单 DatagramChannel + Selector 读取服务端响应；发送采用有界队列 +
  * 发送线程，避免在业务线程上阻塞 I/O。
  * <p>
  * 该实现与 mica-net 的 TCP / UDP 框架完全解耦，
@@ -39,6 +42,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * 业务回调中拿到的会话类型是 {@link UdpChannel}（接口），实际对象为
  * {@link UdpClientChannel}，可按需强转。
+ * <p>
+ * 解码语义：以单个 datagram 为界循环调用 {@code decode}；跨 datagram 半包不拼接。
+ * 业务 {@code decode} 返回 Packet 后应推进 position，否则只处理一帧。
  *
  * @author L.cm
  */
@@ -49,12 +55,14 @@ public class UdpClient implements Closeable, Runnable {
 	private final InetSocketAddress serverAddress;
 	private final ExecutorService workerPool;
 	private final boolean ownsWorkerPool;
+	private final AtomicBoolean running = new AtomicBoolean(false);
+	private final LinkedBlockingQueue<ByteBuffer> sendQueue;
 	private final UdpClientChannel clientChannel;
+	private final AtomicLong droppedSendCount = new AtomicLong();
 	private DatagramChannel channel;
 	private Selector selector;
 	private Thread sendThread;
-	private final LinkedBlockingQueue<ByteBuffer> sendQueue = new LinkedBlockingQueue<>();
-	private volatile boolean running;
+	private Thread receiveThread;
 
 	public UdpClient(UdpClientConfig config, UdpHandler handler) {
 		if (config == null) {
@@ -66,7 +74,8 @@ public class UdpClient implements Closeable, Runnable {
 		this.config = config;
 		this.handler = handler;
 		this.serverAddress = new InetSocketAddress(config.getHost(), config.getPort());
-		this.clientChannel = new UdpClientChannel(config, handler, serverAddress, sendQueue);
+		this.sendQueue = new LinkedBlockingQueue<>(config.getSendQueueCapacity());
+		this.clientChannel = new UdpClientChannel(config, handler, serverAddress, sendQueue, running);
 		ExecutorService provided = config.getWorkerPool();
 		if (provided != null) {
 			this.workerPool = provided;
@@ -92,7 +101,7 @@ public class UdpClient implements Closeable, Runnable {
 	}
 
 	public synchronized void start() throws IOException {
-		if (running) {
+		if (running.get()) {
 			return;
 		}
 		selector = Selector.open();
@@ -103,19 +112,20 @@ public class UdpClient implements Closeable, Runnable {
 		channel.setOption(StandardSocketOptions.SO_SNDBUF, bufSize);
 		channel.connect(serverAddress);
 		channel.register(selector, SelectionKey.OP_READ);
+		// 必须先置 running，再启动 sendLoop，避免空队列时发送线程直接退出
+		running.set(true);
 		sendThread = new Thread(this::sendLoop, "udp-client-sender");
 		sendThread.setDaemon(true);
 		sendThread.start();
-		running = true;
-		Thread t = new Thread(this, "udp-client-receiver");
-		t.setDaemon(true);
-		t.start();
+		receiveThread = new Thread(this, "udp-client-receiver");
+		receiveThread.setDaemon(true);
+		receiveThread.start();
 		log.info("NIO UDP client started, target {}:{}", config.getHost(), config.getPort());
 	}
 
 	@Override
 	public void run() {
-		while (running) {
+		while (running.get()) {
 			try {
 				if (selector.select(500) <= 0) {
 					continue;
@@ -134,7 +144,7 @@ public class UdpClient implements Closeable, Runnable {
 			} catch (ClosedSelectorException e) {
 				return;
 			} catch (Throwable e) {
-				if (running) {
+				if (running.get()) {
 					log.error("udp client selector loop error", e);
 				}
 			}
@@ -155,21 +165,38 @@ public class UdpClient implements Closeable, Runnable {
 				return;
 			}
 			buf.flip();
+			if (buf.limit() == buf.capacity()) {
+				log.warn("udp datagram may be truncated, bufferSize={}", buf.capacity());
+			}
 			final ByteBuffer copy = ByteBuffer.allocate(buf.remaining());
 			copy.put(buf);
 			copy.flip();
 			final UdpChannel session = clientChannel;
-			workerPool.execute(() -> {
-				try {
-					Packet packet = handler.decode(copy, copy.limit(), copy.position(), copy.remaining(), session);
-					if (packet == null) {
-						return;
+			try {
+				workerPool.execute(() -> {
+					try {
+						dispatch(session, copy);
+					} catch (Throwable e) {
+						log.error("udp client handler error", e);
 					}
-					handler.handler(packet, session);
-				} catch (Throwable e) {
-					log.error("udp client handler error", e);
-				}
-			});
+				});
+			} catch (RejectedExecutionException e) {
+				log.warn("udp client handler rejected");
+			}
+		}
+	}
+
+	private void dispatch(UdpChannel session, ByteBuffer data) throws Exception {
+		while (data.hasRemaining()) {
+			int before = data.position();
+			Packet packet = handler.decode(data, data.limit(), before, data.remaining(), session);
+			if (packet == null) {
+				return;
+			}
+			handler.handler(packet, session);
+			if (data.position() == before) {
+				return;
+			}
 		}
 	}
 
@@ -180,25 +207,11 @@ public class UdpClient implements Closeable, Runnable {
 	 * @return 是否成功入队
 	 */
 	public boolean send(Packet packet) {
-		if (!running) {
-			return false;
-		}
-		if (packet == null) {
-			return false;
-		}
-		ByteBuffer encoded = handler.encode(packet, config, clientChannel);
-		if (encoded == null) {
-			return false;
-		}
-		boolean offered = sendQueue.offer(encoded);
-		if (offered) {
-			selector.wakeup();
-		}
-		return offered;
+		return clientChannel.send(packet);
 	}
 
 	private void sendLoop() {
-		while (running || !sendQueue.isEmpty()) {
+		while (running.get() || !sendQueue.isEmpty()) {
 			ByteBuffer buf;
 			try {
 				buf = sendQueue.poll(200, TimeUnit.MILLISECONDS);
@@ -209,30 +222,63 @@ public class UdpClient implements Closeable, Runnable {
 			if (buf == null) {
 				continue;
 			}
+			if (channel == null || !channel.isOpen()) {
+				droppedSendCount.incrementAndGet();
+				continue;
+			}
 			try {
-				channel.write(buf);
+				int written = channel.write(buf);
+				if (written <= 0) {
+					droppedSendCount.incrementAndGet();
+					log.warn("udp client send dropped (write returned {})", written);
+				}
 			} catch (IOException e) {
+				droppedSendCount.incrementAndGet();
 				log.error("udp client send error", e);
 			}
 		}
 	}
 
 	public boolean isRunning() {
-		return running;
+		return running.get();
 	}
 
 	public UdpClientConfig getConfig() {
 		return config;
 	}
 
+	/**
+	 * 累计因 write 返回 0 / IO 错误 / channel 已关闭而丢弃的发包数。
+	 *
+	 * @return 丢弃次数
+	 */
+	public long getDroppedSendCount() {
+		return droppedSendCount.get();
+	}
+
 	@Override
 	public synchronized void close() {
-		if (!running) {
+		if (!running.getAndSet(false)) {
 			return;
 		}
-		running = false;
 		if (selector != null) {
 			selector.wakeup();
+		}
+		// 先等发送线程排空队列，再关 channel，避免对已关闭 socket 写
+		if (sendThread != null) {
+			try {
+				sendThread.join(2000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				sendThread.interrupt();
+			}
+		}
+		if (receiveThread != null) {
+			try {
+				receiveThread.join(1000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 		}
 		if (channel != null) {
 			try {
@@ -248,8 +294,7 @@ public class UdpClient implements Closeable, Runnable {
 				log.error(e.getMessage(), e);
 			}
 		}
-		// 优雅关闭 worker pool：先等待 in-flight 任务完成，超时则强制 shutdownNow。
-		// 自有 pool 才管生命周期，用户注入的 pool 由用户自己管。
+		sendQueue.clear();
 		if (ownsWorkerPool && workerPool != null) {
 			workerPool.shutdown();
 			try {
@@ -261,9 +306,6 @@ public class UdpClient implements Closeable, Runnable {
 				workerPool.shutdownNow();
 				Thread.currentThread().interrupt();
 			}
-		}
-		if (sendThread != null) {
-			sendThread.interrupt();
 		}
 		log.info("NIO UDP client stopped, target {}:{}", config.getHost(), config.getPort());
 	}

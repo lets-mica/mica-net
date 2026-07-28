@@ -3,6 +3,8 @@
 ## 发行版本
 
 ### v2.0.13 - 2026-08-01
+- fix(udp): 服务端回包改为有界发送队列 + 单发送线程，同对端 handler 串行调度；新增 `maxPeers` / `sendQueueCapacity`，`UdpChannel#close` 可移除会话。
+- fix(udp): 修复非阻塞 `send`/`write` 返回 0 仍视为成功、客户端发送线程启动竞态、无界发送队列与关闭竞态；服务端增加 peer 空闲淘汰与 `close` 清理，datagram 内多帧 decode 循环，并处理 worker 拒绝提交；同步修正 UDP 文档与 Demo。
 - feat(ssl): `SslConfig` 新增 TLS 协议、密码套件、密码套件顺序、端点识别算法及 SNI 服务名称等自定义配置字段，`SslEngineWorker` 加载并应用新增 SSL 参数；客户端模式支持端点识别算法及 SNI 配置，保留原有 SSLParameters 增量配置逻辑。
 - refactor(tcp): 优化发送批量数据包逻辑，移除队列大小自动调整批量大小的方法，改为固定初始容量常量；`batchEncode` 从首个数据包开始批量收集，避免调用队列 `size`；批量收集限制最大批量大小及总字节容量，保证同批次内 SSL 加密状态一致；`TcpSendRunnable#runTask` 改为首次取包决定单包或批量发送；新增单元测试覆盖批量发送逻辑，确保不依赖队列 size 计算且正确拆分数据包，保持 SSL 加密包与明文包分批发送。
 

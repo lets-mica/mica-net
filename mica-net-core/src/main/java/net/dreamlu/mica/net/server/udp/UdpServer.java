@@ -8,6 +8,7 @@ package net.dreamlu.mica.net.server.udp;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.UdpChannel;
 import net.dreamlu.mica.net.core.intf.UdpHandler;
+import net.dreamlu.mica.net.server.udp.UdpServerChannel.OutboundDatagram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -25,21 +27,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 标准 Java NIO UDP 服务端，偏生产级实现。
  * <p>
- * 单 Selector 线程负责 I/O，业务逻辑通过 {@link UdpHandler} 回调，
- * 内部使用业务线程池把处理从 Selector 线程剥离，避免业务阻塞 I/O 循环。
+ * 单 Selector 线程负责读；业务经 {@link UdpHandler} 回调，按对端串行调度到业务线程池；
+ * 回包经有界发送队列由单发送线程写出，避免多线程争用 {@code DatagramChannel}。
  * <p>
- * 该实现与 mica-net 的 TCP / UDP 框架完全解耦，
- * 仅依赖 JDK NIO 与 SLF4J，可作为 UDP 协议的参考实现。
+ * 同一对端地址复用 {@link UdpServerChannel}，受 {@link UdpServerConfig#getMaxPeers()}
+ * 与 {@link UdpServerConfig#getPeerIdleTimeoutMs()} 约束。
  * <p>
- * 业务回调中拿到的会话类型是 {@link UdpChannel}（接口），实际对象为
- * {@link UdpServerChannel}，可按需强转。
+ * 解码语义：以单个 datagram 为界循环调用 {@code decode}；跨 datagram 半包不拼接。
+ * 业务 {@code decode} 返回 Packet 后应推进 position，否则只处理一帧。
  *
  * @author L.cm
  */
@@ -51,9 +57,14 @@ public class UdpServer implements Closeable, Runnable {
 	private final ExecutorService workerPool;
 	private final boolean ownsWorkerPool;
 	private final ConcurrentMap<InetSocketAddress, UdpServerChannel> peerChannels = new ConcurrentHashMap<>();
+	private final LinkedBlockingQueue<OutboundDatagram> sendQueue;
+	private final AtomicBoolean running = new AtomicBoolean(false);
+	private final AtomicLong droppedInboundCount = new AtomicLong();
 	private DatagramChannel channel;
 	private Selector selector;
-	private volatile boolean running;
+	private Thread ioThread;
+	private Thread sendThread;
+	private long lastPeerPurgeNanos;
 
 	public UdpServer(UdpServerConfig config, UdpHandler handler) {
 		if (config == null) {
@@ -65,6 +76,7 @@ public class UdpServer implements Closeable, Runnable {
 		this.config = config;
 		this.handler = handler;
 		this.bindAddress = new InetSocketAddress(config.getPort());
+		this.sendQueue = new LinkedBlockingQueue<>(config.getSendQueueCapacity());
 		ExecutorService provided = config.getWorkerPool();
 		if (provided != null) {
 			this.workerPool = provided;
@@ -89,7 +101,7 @@ public class UdpServer implements Closeable, Runnable {
 	}
 
 	public synchronized void start() throws IOException {
-		if (running) {
+		if (running.get()) {
 			return;
 		}
 		final int port = config.getPort();
@@ -98,21 +110,27 @@ public class UdpServer implements Closeable, Runnable {
 		channel = DatagramChannel.open();
 		channel.configureBlocking(false);
 		channel.setOption(StandardSocketOptions.SO_RCVBUF, Math.max(readBufferSize * 4, 64 * 1024));
+		channel.setOption(StandardSocketOptions.SO_SNDBUF, Math.max(readBufferSize * 4, 64 * 1024));
 		channel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
 		channel.bind(bindAddress);
 		channel.register(selector, SelectionKey.OP_READ);
-		running = true;
-		Thread t = new Thread(this, "udp-server-accept-" + port);
-		t.setDaemon(false);
-		t.start();
+		running.set(true);
+		lastPeerPurgeNanos = System.nanoTime();
+		sendThread = new Thread(this::sendLoop, "udp-server-sender-" + port);
+		sendThread.setDaemon(true);
+		sendThread.start();
+		ioThread = new Thread(this, "udp-server-accept-" + port);
+		ioThread.setDaemon(false);
+		ioThread.start();
 		log.info("NIO UDP server started on port {}", port);
 	}
 
 	@Override
 	public void run() {
-		while (running) {
+		while (running.get()) {
 			try {
 				if (selector.select(500) <= 0) {
+					purgeIdlePeersIfNeeded();
 					continue;
 				}
 				Iterator<SelectionKey> it = selector.selectedKeys().iterator();
@@ -126,8 +144,11 @@ public class UdpServer implements Closeable, Runnable {
 						handleRead((DatagramChannel) key.channel());
 					}
 				}
+				purgeIdlePeersIfNeeded();
+			} catch (ClosedSelectorException e) {
+				return;
 			} catch (Throwable e) {
-				if (running) {
+				if (running.get()) {
 					log.error("udp server selector loop error", e);
 				}
 			}
@@ -148,51 +169,199 @@ public class UdpServer implements Closeable, Runnable {
 				return;
 			}
 			buf.flip();
+			if (buf.limit() == buf.capacity()) {
+				log.warn("udp datagram may be truncated from {}, bufferSize={}", remote, buf.capacity());
+			}
 			final InetSocketAddress remoteAddr = (InetSocketAddress) remote;
+			final UdpServerChannel session = resolvePeer(remoteAddr);
+			if (session == null) {
+				droppedInboundCount.incrementAndGet();
+				continue;
+			}
+			session.touch();
 			final ByteBuffer copy = ByteBuffer.allocate(buf.remaining());
 			copy.put(buf);
 			copy.flip();
-			// 同一对端复用同一个 UdpServerChannel 实例，避免每包分配 + 让 handler 维护 per-peer 状态。
-			final UdpServerChannel session = peerChannels.computeIfAbsent(remoteAddr,
-				addr -> new UdpServerChannel(config, handler, ch, addr));
-			workerPool.execute(() -> {
-				try {
-					dispatch(session, copy);
-				} catch (Throwable e) {
-					log.error("udp handler error from {}", remoteAddr, e);
+			try {
+				session.executeSerially(workerPool, () -> {
+					try {
+						dispatch(session, copy);
+					} catch (Throwable e) {
+						log.error("udp handler error from {}", remoteAddr, e);
+					}
+				});
+			} catch (RejectedExecutionException e) {
+				log.warn("udp handler rejected from {}", remoteAddr);
+			}
+		}
+	}
+
+	private UdpServerChannel resolvePeer(InetSocketAddress remoteAddr) {
+		UdpServerChannel existing = peerChannels.get(remoteAddr);
+		if (existing != null) {
+			if (!existing.isClosed()) {
+				return existing;
+			}
+			peerChannels.remove(remoteAddr, existing);
+		}
+		if (peerChannels.size() >= config.getMaxPeers()) {
+			log.warn("udp maxPeers={} reached, drop datagram from {}", config.getMaxPeers(), remoteAddr);
+			return null;
+		}
+		UdpServerChannel created = new UdpServerChannel(
+			config,
+			handler,
+			remoteAddr,
+			running,
+			this::offerSend,
+			peerChannels::remove
+		);
+		UdpServerChannel raced = peerChannels.putIfAbsent(remoteAddr, created);
+		if (raced != null) {
+			return raced.isClosed() ? null : raced;
+		}
+		if (peerChannels.size() > config.getMaxPeers()) {
+			peerChannels.remove(remoteAddr, created);
+			log.warn("udp maxPeers={} raced, drop datagram from {}", config.getMaxPeers(), remoteAddr);
+			return null;
+		}
+		return created;
+	}
+
+	private boolean offerSend(OutboundDatagram datagram) {
+		if (!running.get()) {
+			return false;
+		}
+		return sendQueue.offer(datagram);
+	}
+
+	private void sendLoop() {
+		while (running.get() || !sendQueue.isEmpty()) {
+			OutboundDatagram outbound;
+			try {
+				outbound = sendQueue.poll(200, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+			if (outbound == null) {
+				continue;
+			}
+			if (channel == null || !channel.isOpen()) {
+				continue;
+			}
+			try {
+				int sent = channel.send(outbound.buffer, outbound.remote);
+				if (sent <= 0) {
+					UdpServerChannel peer = peerChannels.get(outbound.remote);
+					if (peer != null) {
+						peer.incrementDroppedSend();
+					}
+					log.warn("udp send dropped to {} (send returned {})", outbound.remote, sent);
 				}
-			});
+			} catch (IOException e) {
+				UdpServerChannel peer = peerChannels.get(outbound.remote);
+				if (peer != null) {
+					peer.incrementDroppedSend();
+				}
+				log.warn("udp send dropped to {}: {}", outbound.remote, e.getMessage());
+			}
 		}
 	}
 
 	/**
-	 * 解码循环：UdpHandler.decode 可能需要累积多包；这里以单包为最小演示单位，
-	 * 真实协议中应支持粘包 / 半包。
+	 * 在单个 datagram 内循环 decode；跨包半包不保留。
+	 * decode 返回 Packet 后若未推进 position，则只处理这一帧后退出，避免死循环。
 	 */
 	private void dispatch(UdpChannel channel, ByteBuffer data) throws Exception {
-		Packet packet = handler.decode(data, data.limit(), data.position(), data.remaining(), channel);
-		if (packet == null) {
+		while (data.hasRemaining()) {
+			int before = data.position();
+			Packet packet = handler.decode(data, data.limit(), before, data.remaining(), channel);
+			if (packet == null) {
+				return;
+			}
+			handler.handler(packet, channel);
+			if (data.position() == before) {
+				return;
+			}
+		}
+	}
+
+	private void purgeIdlePeersIfNeeded() {
+		long timeoutMs = config.getPeerIdleTimeoutMs();
+		if (timeoutMs <= 0) {
 			return;
 		}
-		handler.handler(packet, channel);
+		long now = System.nanoTime();
+		if (now - lastPeerPurgeNanos < TimeUnit.SECONDS.toNanos(1)) {
+			return;
+		}
+		lastPeerPurgeNanos = now;
+		long timeoutNanos = TimeUnit.MILLISECONDS.toNanos(timeoutMs);
+		peerChannels.entrySet().removeIf(e ->
+			e.getValue().isClosed() || now - e.getValue().getLastActiveNanos() > timeoutNanos);
 	}
 
 	public boolean isRunning() {
-		return running;
+		return running.get();
 	}
 
 	public UdpServerConfig getConfig() {
 		return config;
 	}
 
+	/**
+	 * 当前缓存的对端会话数（测试 / 监控用）。
+	 *
+	 * @return peer 数量
+	 */
+	public int getPeerChannelCount() {
+		return peerChannels.size();
+	}
+
+	/**
+	 * 因 maxPeers 满而丢弃的入站 datagram 数。
+	 *
+	 * @return 丢弃次数
+	 */
+	public long getDroppedInboundCount() {
+		return droppedInboundCount.get();
+	}
+
 	@Override
 	public synchronized void close() {
-		if (!running) {
+		if (!running.getAndSet(false)) {
 			return;
 		}
-		running = false;
 		if (selector != null) {
 			selector.wakeup();
+		}
+		if (ioThread != null) {
+			try {
+				ioThread.join(2000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
+		if (ownsWorkerPool && workerPool != null) {
+			workerPool.shutdown();
+			try {
+				if (!workerPool.awaitTermination(5, TimeUnit.SECONDS)) {
+					log.warn("udp server worker pool did not terminate in 5s, forcing shutdownNow");
+					workerPool.shutdownNow();
+				}
+			} catch (InterruptedException e) {
+				workerPool.shutdownNow();
+				Thread.currentThread().interrupt();
+			}
+		}
+		if (sendThread != null) {
+			try {
+				sendThread.join(2000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				sendThread.interrupt();
+			}
 		}
 		if (channel != null) {
 			try {
@@ -208,20 +377,8 @@ public class UdpServer implements Closeable, Runnable {
 				log.error(e.getMessage(), e);
 			}
 		}
-		// 优雅关闭 worker pool：先等待 in-flight 任务完成，超时则强制 shutdownNow。
-		// 自有 pool 才管生命周期，用户注入的 pool 由用户自己管。
-		if (ownsWorkerPool && workerPool != null) {
-			workerPool.shutdown();
-			try {
-				if (!workerPool.awaitTermination(5, TimeUnit.SECONDS)) {
-					log.warn("udp server worker pool did not terminate in 5s, forcing shutdownNow");
-					workerPool.shutdownNow();
-				}
-			} catch (InterruptedException e) {
-				workerPool.shutdownNow();
-				Thread.currentThread().interrupt();
-			}
-		}
+		sendQueue.clear();
+		peerChannels.clear();
 		log.info("NIO UDP server stopped on port {}", config.getPort());
 	}
 }

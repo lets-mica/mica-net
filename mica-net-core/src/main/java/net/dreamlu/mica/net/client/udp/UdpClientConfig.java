@@ -16,6 +16,7 @@ import net.dreamlu.mica.net.core.udp.UdpConfig;
  *     .host("127.0.0.1")
  *     .port(9999)
  *     .readBufferSize(4096)
+ *     .sendQueueCapacity(1024)
  *     .build();
  * UdpClient client = new UdpClient(cfg, handler);
  * }</pre>
@@ -25,11 +26,13 @@ import net.dreamlu.mica.net.core.udp.UdpConfig;
 public final class UdpClientConfig extends UdpConfig {
 	private final String host;
 	private final int port;
+	private final int sendQueueCapacity;
 
 	private UdpClientConfig(Builder builder) {
 		super(builder);
 		this.host = builder.host;
 		this.port = builder.port;
+		this.sendQueueCapacity = builder.sendQueueCapacity;
 	}
 
 	public String getHost() {
@@ -40,6 +43,13 @@ public final class UdpClientConfig extends UdpConfig {
 		return port;
 	}
 
+	/**
+	 * @return 发送队列容量；满时 {@code send} 返回 {@code false}
+	 */
+	public int getSendQueueCapacity() {
+		return sendQueueCapacity;
+	}
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -47,6 +57,7 @@ public final class UdpClientConfig extends UdpConfig {
 	public static final class Builder extends UdpConfig.Builder<Builder> {
 		private String host = "127.0.0.1";
 		private int port;
+		private int sendQueueCapacity = 1024;
 
 		private Builder() {
 		}
@@ -58,6 +69,20 @@ public final class UdpClientConfig extends UdpConfig {
 
 		public Builder port(int port) {
 			this.port = port;
+			return this;
+		}
+
+		/**
+		 * 发送队列容量，必须 &gt; 0。
+		 *
+		 * @param sendQueueCapacity 容量
+		 * @return Builder
+		 */
+		public Builder sendQueueCapacity(int sendQueueCapacity) {
+			if (sendQueueCapacity <= 0) {
+				throw new IllegalArgumentException("sendQueueCapacity must be > 0");
+			}
+			this.sendQueueCapacity = sendQueueCapacity;
 			return this;
 		}
 
