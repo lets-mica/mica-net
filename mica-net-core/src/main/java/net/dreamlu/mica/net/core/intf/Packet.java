@@ -221,9 +221,9 @@ public class Packet implements java.io.Serializable {
 	 */
 	private int byteCount = 0;
 	/**
-	 * 同步发送时，需要的同步序列号
+	 * 同步发送时，用于关联请求和响应的请求 ID
 	 */
-	private int synSeq = 0;
+	private int syncReqId = 0;
 	// 3. byte/boolean 放最后（1字节）
 	/**
 	 * ⭐ 方案2：位域压缩 - 用一个 byte 存储多个 boolean 标志
@@ -275,17 +275,17 @@ public class Packet implements java.io.Serializable {
 	}
 
 	/**
-	 * @return the synSeq
+	 * @return 同步请求 ID
 	 */
-	public int getSynSeq() {
-		return synSeq;
+	public int getSyncReqId() {
+		return syncReqId;
 	}
 
 	/**
-	 * @param synSeq the synSeq to set
+	 * @param syncReqId 同步请求 ID
 	 */
-	public void setSynSeq(int synSeq) {
-		this.synSeq = synSeq;
+	public void setSyncReqId(int syncReqId) {
+		this.syncReqId = syncReqId;
 	}
 
 	public String logstr() {

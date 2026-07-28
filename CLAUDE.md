@@ -67,7 +67,7 @@ mvn -pl mica-net-core test -Dmaven.test.skip=false -Dtest=ProxyProtocolDecoderTe
 ```
 
 - `AbstractDecodeRunnable` / `TcpDecodeRunnable`：粘包/半包解码，循环调用 `TcpHandler.decode`；包含滑动窗口慢包攻击检测
-- `HandlerRunnable`：业务处理；`synSeq > 0` 时通过 `CompletableFuture` 异步响应；调用 `TcpHandler.handler`
+- `HandlerRunnable`：业务处理；`syncReqId > 0` 时通过 `CompletableFuture` 异步响应；调用 `TcpHandler.handler`
 - `AbstractSendRunnable` / `TcpSendRunnable`：自适应批量发送，scatter-write 零拷贝
 
 读路径入口：`ReadCompletionHandler.completed` → 解码 → 业务处理；写路径由 `WriteCompletionHandler.completed` 续写。
@@ -89,7 +89,7 @@ mvn -pl mica-net-core test -Dmaven.test.skip=false -Dtest=ProxyProtocolDecoderTe
 
 ### ChannelContext 状态位
 
-`ChannelContext#states` 为 `AtomicInteger`，通过位运算标识连接状态，业务可使用 `isAccepted`、`isBizStatus` 等预留位。状态变更使用 CAS 循环保证线程安全。同步包使用 `synSeq`，通过 `CompletableFuture` 实现请求-响应模式。
+`ChannelContext#states` 为 `AtomicInteger`，通过位运算标识连接状态，业务可使用 `isAccepted`、`isBizStatus` 等预留位。状态变更使用 CAS 循环保证线程安全。同步包使用 `syncReqId`，通过 `CompletableFuture` 实现请求-响应模式。
 
 ### 网络层默认行为
 

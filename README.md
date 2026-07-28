@@ -1,4 +1,5 @@
 # mica-net Java 网络框架
+[![Java CI](https://github.com/lets-mica/mica-net/actions/workflows/test-and-build.yml/badge.svg)](https://github.com/lets-mica/mica-net/actions/workflows/test-and-build.yml)
 [![Mica net Maven release](https://img.shields.io/maven-central/v/net.dreamlu/mica-net-core.svg?style=flat-square)](https://central.sonatype.com/artifact/net.dreamlu/mica-net-core/versions)
 ![Mica Maven SNAPSHOT](https://img.shields.io/maven-metadata/v?metadataUrl=https://central.sonatype.com/repository/maven-snapshots/net/dreamlu/mica-net-core/maven-metadata.xml)
 
@@ -102,8 +103,8 @@ ReadCompletionHandler  TcpDecodeRunnable  HandlerRunnable  TcpSendRunnable
    └─ 数据不够 → 保存 lastByteBuffer 等待更多数据
    ↓
 4. HandlerRunnable.handler()
-   ├─ synSeq > 0? → CompletableFuture 异步响应
-   ├─ synSeq == 0 → TcpHandler.handler() 业务处理
+   ├─ syncReqId > 0? → CompletableFuture 异步响应
+   ├─ syncReqId == 0 → TcpHandler.handler() 业务处理
    └─ 统计处理时长、更新 ChannelStat
 ```
 

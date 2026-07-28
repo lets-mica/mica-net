@@ -221,7 +221,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	private final TioConfig tioConfig;
 	private final TioListener tioListener;
 	private final TcpHandler tioHandler;
-	private final AtomicLong synFailCount = new AtomicLong();
+	private final AtomicLong syncFailCount = new AtomicLong();
 	/**
 	 * The msg queue.
 	 */
@@ -244,16 +244,16 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
 	public void handler(Packet packet) {
 		long start = System.currentTimeMillis();
 		try {
-			int synSeq = packet.getSynSeq();
-			if (synSeq > 0) {
+			int syncReqId = packet.getSyncReqId();
+			if (syncReqId > 0) {
 				// 使用 CompletableFuture 异步响应机制（无锁）
 				Map<Integer, CompletableFuture<Packet>> asyncResps = tioConfig.getWaitingResps();
-				CompletableFuture<Packet> f = asyncResps.remove(synSeq);
+				CompletableFuture<Packet> f = asyncResps.remove(syncReqId);
 				if (f != null) {
 					// 使用 CompletableFuture 完成响应
 					f.complete(packet);
 				} else {
-					log.error("[{}]同步消息失败, synSeq is {}, 但是异步响应集合中没有对应key值", synFailCount.incrementAndGet(), synSeq);
+					log.error("[{}]同步消息失败, syncReqId is {}, 但是异步响应集合中没有对应key值", syncFailCount.incrementAndGet(), syncReqId);
 				}
 			} else {
 				tioHandler.handler(packet, channelContext);

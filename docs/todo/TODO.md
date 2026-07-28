@@ -213,7 +213,7 @@
 ### 同步消息响应（部分完成）
 
 - `TioConfig.waitingResps` 已存在，类型为 `ConcurrentMap<Integer, CompletableFuture<Packet>>`。
-- `HandlerRunnable` 收到带 `synSeq` 的响应后会移除并完成对应 Future。
+- `HandlerRunnable` 收到带 `syncReqId` 的响应后会移除并完成对应 Future。
 - 当前没有完整的 `Tio.sendAsync()`、`sendAndAwait()` 或等价公开 API，也没有框架内的 Future 注册和超时清理流程。
 - 后续应先明确 API 需求，再决定是否继续完善；不再标记为“完全不存在”或“已经全部完成”。
 
