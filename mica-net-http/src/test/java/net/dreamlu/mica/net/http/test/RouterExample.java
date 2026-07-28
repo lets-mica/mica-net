@@ -54,7 +54,7 @@ public class RouterExample {
 		// 4. 匹配所有 Method
 		router.route("/health", request -> ok(request, "OK"));
 
-		// 5. 通配符（静态资源）
+		// 5. 通配符（末尾 ** 可承接剩余路径，如 /static/js/app.js）
 		router.get("/static/**", request -> {
 			String path = request.getRequestLine().getPath();
 			return ok(request, "Static resource: " + path);

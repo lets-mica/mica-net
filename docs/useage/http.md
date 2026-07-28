@@ -74,11 +74,16 @@ router.delete("/api/user/{id}", req -> ok(req, "delete " + req.getPathParam("id"
 // 任意 method
 router.route("/health", req -> ok(req, "OK"));
 
-// 通配符（静态资源代理）
+// 路由通配符 **：建议写在末尾，命中后承接剩余路径（如 /static/js/app.js）
 router.get("/static/**", req -> ok(req, "Static: " + req.getRequestLine().getPath()));
 
 new HttpServerStarter(8080, router).start();
 ```
+
+> **注意**：路由里的 `**` 与过滤器里的 `**` 实现不同，不要混为一谈。
+>
+> - **路由** `get("/static/**", ...)`：Trie 通配节点，通常放在路径末尾；命中后不再继续按段匹配，可承接该前缀下的剩余路径。
+> - **过滤器** `filter("/api/**", ...)`：Ant 风格路径模式，`**` 明确表示多层子路径。
 
 ```java
 private static HttpResponse ok(HttpRequest request, String body) {

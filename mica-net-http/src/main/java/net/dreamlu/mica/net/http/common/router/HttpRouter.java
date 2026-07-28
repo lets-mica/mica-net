@@ -22,11 +22,13 @@ import java.util.Map;
  *   <li>路径段支持三种匹配模式，匹配优先级从高到低依次为：
  *     <ol>
  *       <li>精确匹配：普通字符串段，如 {@code /api/user}</li>
- *       <li>参数匹配：{@code {name}} 形式的占位符，匹配后可通过 {@link HttpRequest#getAttribute(String)} 获取</li>
- *       <li>通配符：{@code **}，匹配单层任意内容（注意：当前实现在路径段上匹配，行为等价于前缀或单层通配）</li>
+ *       <li>参数匹配：{@code {name}} 形式的占位符，匹配单段任意内容，匹配后可通过 {@link HttpRequest#getAttribute(String)} 获取</li>
+ *       <li>通配符：{@code **}，通常写在路径末尾（如 {@code /static/**}、{@code /**}），命中后不再继续匹配后续段，
+ *           因而可承接该前缀下的剩余路径；与写在路径中间、按段递归展开的 Spring {@code **} 不完全相同。
+ *           过滤器中的 {@code **} 见 {@link #filter(String, HttpFilter)}，为独立的 Ant 风格匹配</li>
  *     </ol>
  *   </li>
- *   <li>过滤器链：按注册顺序对匹配路径的请求执行 {@link HttpFilter}，支持 {@code /path/**}、{@code /path/*} 形式的 Ant 风格模式</li>
+ *   <li>过滤器链：按注册顺序对匹配路径的请求执行 {@link HttpFilter}，支持 {@code /path/**}、{@code /path/*} 形式的 Ant 风格模式（此处 {@code **} 匹配多层子路径）</li>
  *   <li>404 与全局异常处理：未匹配或抛出异常时分别回调 {@link #notFound(RouteHandler)} 与 {@link #error(ErrorHandler)}</li>
  * </ul>
  *
@@ -166,7 +168,8 @@ public class HttpRouter implements HttpRequestHandler {
 	 *   <li>普通字符串：精确匹配</li>
 	 *   <li>{@code {name}}：参数占位符，匹配单段任意内容，并在匹配时将实际值写入
 	 *       {@link HttpRequest#setAttribute(String, Serializable)}，可通过 {@link HttpRequest#getAttribute(String)} 获取</li>
-	 *   <li>{@code **}：通配符段</li>
+	 *   <li>{@code **}：通配符段，建议放在路径末尾；匹配时命中即返回该节点，可承接后续剩余路径（如 {@code /static/**}
+	 *       可匹配 {@code /static/js/app.js}）。不捕获路径参数。过滤器请用 {@link #filter(String, HttpFilter)} 的 Ant 模式</li>
 	 * </ul>
 	 *
 	 * <p>同一 Method 重复注册同一路径将抛出 {@link IllegalArgumentException}。
@@ -366,7 +369,7 @@ public class HttpRouter implements HttpRequestHandler {
 	 * <ol>
 	 *   <li>精确匹配（{@code children}）</li>
 	 *   <li>参数匹配（{@code paramChildren}，将实际值写入 {@code params}）</li>
-	 *   <li>通配符（{@code wildcardChild}）</li>
+	 *   <li>通配符（{@code wildcardChild}）：命中后直接返回该节点，不再继续匹配后续路径段</li>
 	 * </ol>
 	 *
 	 * <p>仅当匹配到的节点上注册了处理器（{@link TrieNode#hasHandler()}）时才视为匹配成功。
