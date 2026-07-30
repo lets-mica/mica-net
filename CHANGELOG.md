@@ -2,7 +2,7 @@
 
 ## 发行版本
 
-### v2.0.13 - 2026-08-01
+### v2.0.13 - 2026-07-30
 - docs(http): 澄清 `HttpRouter` 路由 `**` 与过滤器 Ant 风格 `**` 的差异；路由末尾 `**` 可承接剩余路径，同步修正使用文档。
 - fix(core): `Tio.close` 在 `closeLock` 争用时改为阻塞获取写锁并双重检查 `isWaitingClose`，避免与重连任务并发时静默丢弃关闭请求；`TioConfig#getCloseRunnable` 改为构造时初始化，避免并发懒加载产生多个关闭队列导致连接泄漏。
 - fix(udp): 服务端回包改为有界发送队列 + 单发送线程，同对端 handler 串行调度；新增 `maxPeers` / `sendQueueCapacity`，`UdpChannel#close` 可移除会话。
