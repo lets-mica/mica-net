@@ -470,16 +470,22 @@ public class Tio {
 			return;
 		}
 
-		//先立即取消各项任务，这样可防止有新的任务被提交进来
-		context.getDecodeRunnable().setCanceled(true);
-		context.getHandlerRunnable().setCanceled(true);
-		context.getSendRunnable().setCanceled(true);
-
 		if (needCloseLock) {
 			WriteLock writeLock = context.closeLock.writeLock();
-			// 用 lock 替代 tryLock：重连任务持有写锁时不能静默丢弃关闭
-			writeLock.lock();
+			// 必须使用 tryLock：ClientReConnTask 持有写锁期间执行同步 reconnect()
+			//（最长阻塞 2s），若此处阻塞等待，等获取到锁时连接可能已重连成功，
+			// asynchronousSocketChannel 已被替换，继续执行会误关闭新连接（TOCTOU）。
+			// tryLock 失败说明正在重连，直接返回即可；任务取消必须放在锁之后，
+			// 否则 tryLock 失败时任务被取消却未入关闭队列，连接会处于僵尸状态。
+			boolean locked = writeLock.tryLock();
+			if (!locked) {
+				return;
+			}
 			try {
+				// 双重检查：获取锁后再次确认，防止并发重复关闭
+				if (context.isWaitingClose()) {
+					return;
+				}
 				context.setWaitingClose(true);
 			} finally {
 				writeLock.unlock();
@@ -487,6 +493,11 @@ public class Tio {
 		} else {
 			context.setWaitingClose(true);
 		}
+
+		// 确认关闭后，取消各项任务，防止有新的任务被提交进来
+		context.getDecodeRunnable().setCanceled(true);
+		context.getHandlerRunnable().setCanceled(true);
+		context.getSendRunnable().setCanceled(true);
 
 		if (closeCode == null) {
 			if (context.getCloseCode() == CloseCode.INIT_STATUS) {

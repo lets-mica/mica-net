@@ -2,6 +2,9 @@
 
 ## 发行版本
 
+### v2.0.14 - 2026-08-10
+- fix(core): 修复 v2.0.13 中 `Tio.close` 将 `tryLock` 改为阻塞 `lock` 导致的 TOCTOU 竞态（重连任务持锁期间 `lock` 阻塞等待，等获取锁时连接已重连成功并替换了 socket，继续执行会误关闭新连接）；改回 `tryLock`，并将任务取消移到锁之后避免 `tryLock` 失败时连接僵尸化，增加锁内 `isWaitingClose` 双重检查。
+
 ### v2.0.13 - 2026-07-30
 - docs(http): 澄清 `HttpRouter` 路由 `**` 与过滤器 Ant 风格 `**` 的差异；路由末尾 `**` 可承接剩余路径，同步修正使用文档。
 - fix(core): `Tio.close` 在 `closeLock` 争用时改为阻塞获取写锁并双重检查 `isWaitingClose`，避免与重连任务并发时静默丢弃关闭请求；`TioConfig#getCloseRunnable` 改为构造时初始化，避免并发懒加载产生多个关闭队列导致连接泄漏。
