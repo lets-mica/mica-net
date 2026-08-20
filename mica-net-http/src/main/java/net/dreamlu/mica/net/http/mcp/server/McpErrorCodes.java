@@ -26,4 +26,10 @@ public interface McpErrorCodes {
 	 */
 	int PROMPT_NOT_FOUND = -32005;
 
+	/**
+	 * 协议版本不兼容（2026-07-28+）。
+	 * <p>data 字段应携带 {@code supportedVersions} 列表，便于 client 选择合适的协议版本重试。</p>
+	 */
+	int UNSUPPORTED_PROTOCOL_VERSION = -32006;
+
 }

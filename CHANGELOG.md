@@ -2,6 +2,13 @@
 
 ## 发行版本
 
+### v2.0.15 - 2026-08-17
+- feat(mcp): 升级 MCP 协议到 2026-07-28，dual-era 双轨实现。删除 `Mcp-Session-Id` / `DELETE` 端点；新增 `server/discover` RPC；modern 协议下每个请求通过 `_meta.io.modelcontextprotocol/protocolVersion` 传递版本，每个 Result 注入 `resultType` 与 `_meta.io.modelcontextprotocol/serverInfo`；列表响应（tools / resources / prompts / templates）附加 `ttlMs` 与 `cacheScope` 缓存字段；新增 `McpRequestContext` 用于在 transport 与 handler 间传递协议上下文；新增 `McpDiscoverResult` schema 与 `UNSUPPORTED_PROTOCOL_VERSION`（-32006）错误码；新增 `McpSchema.MCP_2026_07_28`、`MCP_LATEST` 常量与 `Mcp-Method` / `Mcp-Name` Header 常量。`StreamableHttpTransport` 保留 legacy 分支（`SseTransport` / `initialize` / 旧 method 完整保留 12 个月迁移窗口）。
+- feat(mcp): `McpJsonSchema` 扩展到完整 JSON Schema 2020-12 支持。新增 `$schema` / `$id` / `$anchor` / `$defs` / `$ref`、`prefixItems` / `additionalItems`、`allOf` / `anyOf` / `oneOf` / `not`、`const` / `enum` / `nullable`、`format` / `pattern` / `minimum` / `maximum` / `exclusiveMinimum` / `exclusiveMaximum`、`minLength` / `maxLength` / `minItems` / `maxItems` / `uniqueItems` / `minProperties` / `maxProperties`、`title` / `description` / `default` / `examples` 等字段，原 draft-04 字段（type / properties / required / additionalProperties）保留。
+- feat(mcp): SEP-2577 Deprecated 警告。`sampling/createMessage` 与 `roots/list` 在 modern 协议下返回 `{deprecated, method, reason, removalWindowMonths: 12}` 的警告结果；legacy 协议下保持空对象兼容旧 client。
+- test(mcp): 补充 5 个 MRTR + JSON Schema 2020-12 单元测试，覆盖 modern input_required、legacy fallback、deprecated 警告、$defs / $ref / 组合关键字 / 序列化往返。
+- test(mcp): 补充 11 个 modern 协议单元测试覆盖 `server/discover`、`resultType` 注入、列表缓存字段、确定性顺序、`MCP_2026_07_28` 注册等场景。
+
 ### v2.0.14 - 2026-08-10
 - fix(core): 修复 v2.0.13 中 `Tio.close` 将 `tryLock` 改为阻塞 `lock` 导致的 TOCTOU 竞态（重连任务持锁期间 `lock` 阻塞等待，等获取锁时连接已重连成功并替换了 socket，继续执行会误关闭新连接）；改回 `tryLock`，并将任务取消移到锁之后避免 `tryLock` 失败时连接僵尸化，增加锁内 `isWaitingClose` 双重检查。
 

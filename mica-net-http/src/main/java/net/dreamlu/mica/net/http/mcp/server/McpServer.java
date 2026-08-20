@@ -44,6 +44,26 @@ public class McpServer {
 	private static final McpImplementation DEFAULT_SERVER_INFO = new McpImplementation("mcp-server", "1.0.0");
 
 	/**
+	 * 列表响应默认缓存 TTL（毫秒）。2026-07-28+ modern 协议下生效。
+	 */
+	private static final long DEFAULT_LIST_TTL_MS = 60_000L;
+
+	/**
+	 * 列表响应默认缓存作用范围。
+	 */
+	private static final String DEFAULT_LIST_CACHE_SCOPE = "global";
+
+	/**
+	 * Result 类型字段名：作为 modern 协议下 result 对象的必填字段（SEP-2322）。
+	 */
+	private static final String FIELD_RESULT_TYPE = "resultType";
+
+	/**
+	 * _meta 字段名：modern 协议下携带 serverInfo 等元数据。
+	 */
+	private static final String FIELD_META = "_meta";
+
+	/**
 	 * 注册的传输层列表
 	 */
 	private final List<McpTransport> transports = new ArrayList<>();
@@ -102,6 +122,7 @@ public class McpServer {
 	 */
 	private void registerBuiltinHandlers() {
 		methodHandlers.put(McpSchema.METHOD_INITIALIZE, this::handleInitialize);
+		methodHandlers.put(McpSchema.METHOD_SERVER_DISCOVER, this::handleServerDiscover);
 		methodHandlers.put(McpSchema.METHOD_PING, this::handlePing);
 		methodHandlers.put(McpSchema.METHOD_TOOLS_LIST, this::handleToolsList);
 		methodHandlers.put(McpSchema.METHOD_TOOLS_CALL, this::handleToolsCall);
@@ -114,6 +135,32 @@ public class McpServer {
 		methodHandlers.put(McpSchema.METHOD_PROMPT_GET, this::handlePromptGet);
 		methodHandlers.put(McpSchema.METHOD_LOGGING_SET_LEVEL, this::handleLoggingSetLevel);
 		methodHandlers.put(McpSchema.METHOD_COMPLETION_COMPLETE, this::handleCompletionComplete);
+		// 2026-07-28 Deprecated（ SEP-2577 ）：保留 12 个月迁移窗口；modern 协议下返回 deprecated 警告。
+		methodHandlers.put(McpSchema.METHOD_SAMPLING_CREATE_MESSAGE, this::handleDeprecated);
+		methodHandlers.put(McpSchema.METHOD_ROOTS_LIST, this::handleDeprecated);
+	}
+
+	/**
+	 * Deprecated method handler：modern 协议下返回 deprecated 警告结果，legacy 协议下保持原行为。
+	 * <p>当前对应 {@code sampling/createMessage} 与 {@code roots/list}。
+	 * 旧 server 主动调用流程已迁移到 MRTR 与 extensions。</p>
+	 */
+	private JsonRpcResponse handleDeprecated(McpServerSession session, JsonRpcRequest request) {
+		String method = request.getMethod();
+		McpRequestContext ctx = CURRENT_CONTEXT.get();
+		if (ctx != null && ctx.isModern()) {
+			// modern 协议下走 deprecated 警告：返回 result + _meta.deprecation 字段
+			Map<String, Object> result = new HashMap<>(2);
+			result.put("deprecated", Boolean.TRUE);
+			result.put("method", method);
+			result.put("reason", "Deprecated since MCP 2026-07-28; " +
+				"use MRTR (input_required) or extensions instead");
+			result.put("removalWindowMonths", 12);
+			return successResponse(request.getId(), result, ctx, McpSchema.RESULT_TYPE_COMPLETE);
+		}
+		// legacy 协议：返回空对象保持兼容（等价于未实现）
+		log.debug("Legacy deprecated method invoked: {}", method);
+		return successResponse(request.getId(), Collections.emptyMap());
 	}
 
 	/**
@@ -155,14 +202,24 @@ public class McpServer {
 	private static String negotiateProtocolVersion(String clientVersion) {
 		// 客户端版本为空
 		if (clientVersion == null || clientVersion.isEmpty()) {
-			return McpSchema.MCP_2025_11_25;
+			return McpSchema.MCP_LATEST;
 		}
 		// 如果支持客户端版本
 		if (McpSchema.MCP_VERSION_LIST.contains(clientVersion)) {
 			return clientVersion;
 		}
-		log.warn("Unknown MCP protocol version from client: {}, fallback to {}", clientVersion, McpSchema.MCP_2025_11_25);
-		return McpSchema.MCP_2025_11_25;
+		log.warn("Unknown MCP protocol version from client: {}, fallback to {}", clientVersion, McpSchema.MCP_LATEST);
+		return McpSchema.MCP_LATEST;
+	}
+
+	private JsonRpcResponse handleServerDiscover(McpServerSession session, JsonRpcRequest request) {
+		// 2026-07-28+ modern 协议的发现 RPC，替代 initialize 握手。
+		McpDiscoverResult result = new McpDiscoverResult();
+		// 现代 server 应同时声明所支持的版本列表，便于 client 在不兼容时回退。
+		result.setSupportedProtocolVersions(new ArrayList<>(McpSchema.MCP_VERSION_LIST));
+		result.setCapabilities(serverCapabilities);
+		result.setServerInfo(serverInfo);
+		return successResponse(request.getId(), result);
 	}
 
 	private JsonRpcResponse handlePing(McpServerSession session, JsonRpcRequest request) {
@@ -176,6 +233,9 @@ public class McpServer {
 			toolDefs.add(spec.getTool());
 		}
 		result.setTools(toolDefs);
+		// 2026-07-28+：列表响应附加缓存提示，便于 client 在 ttlMs 内复用
+		result.setTtlMs(DEFAULT_LIST_TTL_MS);
+		result.setCacheScope(DEFAULT_LIST_CACHE_SCOPE);
 		return successResponse(request.getId(), result);
 	}
 
@@ -201,6 +261,9 @@ public class McpServer {
 			} else {
 				result = spec.getCall().apply(session, arguments);
 			}
+		} catch (McpInputRequiredException e) {
+			// MRTR 中间响应：modern 协议返回 input_required；legacy 协议降级为 isError=true + prompt 文本。
+			return handleInputRequired(session, request, e.getResult());
 		} catch (McpException e) {
 			throw e;
 		} catch (Exception e) {
@@ -216,6 +279,31 @@ public class McpServer {
 		return successResponse(request.getId(), result);
 	}
 
+	/**
+	 * 处理 MRTR 中间响应。
+	 *
+	 * <ul>
+	 *   <li>modern 协议（ctx 非空且 isModern）：result 包装为 {@code resultType: "input_required"} 的 map</li>
+	 *   <li>legacy 协议：降级为普通 {@link McpCallToolResult}，{@code isError=true} 并附 prompt 文本</li>
+	 * </ul>
+	 */
+	private JsonRpcResponse handleInputRequired(McpServerSession session, JsonRpcRequest request,
+	                                            McpInputRequiredResult ir) {
+		McpRequestContext ctx = CURRENT_CONTEXT.get();
+		if (ctx != null && ctx.isModern()) {
+			return successResponse(request.getId(), ir, ctx, McpSchema.RESULT_TYPE_INPUT_REQUIRED);
+		}
+		// legacy 降级
+		McpCallToolResult fallback = new McpCallToolResult();
+		StringBuilder text = new StringBuilder("[input_required] ");
+		if (ir != null && ir.getPrompt() != null) {
+			text.append(ir.getPrompt());
+		}
+		fallback.setContent(Collections.singletonList(new McpTextContent(text.toString())));
+		fallback.setError(Boolean.TRUE);
+		return successResponse(request.getId(), fallback);
+	}
+
 	private JsonRpcResponse handleResourcesList(McpServerSession session, JsonRpcRequest request) {
 		McpListResourcesResult result = new McpListResourcesResult();
 		List<McpResource> list = new ArrayList<>(resources.size());
@@ -223,6 +311,8 @@ public class McpServer {
 			list.add(spec.getResource());
 		}
 		result.setResources(list);
+		result.setTtlMs(DEFAULT_LIST_TTL_MS);
+		result.setCacheScope(DEFAULT_LIST_CACHE_SCOPE);
 		return successResponse(request.getId(), result);
 	}
 
@@ -272,6 +362,8 @@ public class McpServer {
 			list.add(spec.getResource());
 		}
 		result.setResourceTemplates(list);
+		result.setTtlMs(DEFAULT_LIST_TTL_MS);
+		result.setCacheScope(DEFAULT_LIST_CACHE_SCOPE);
 		return successResponse(request.getId(), result);
 	}
 
@@ -301,6 +393,8 @@ public class McpServer {
 			list.add(spec.getPrompt());
 		}
 		result.setPrompts(list);
+		result.setTtlMs(DEFAULT_LIST_TTL_MS);
+		result.setCacheScope(DEFAULT_LIST_CACHE_SCOPE);
 		return successResponse(request.getId(), result);
 	}
 
@@ -589,12 +683,70 @@ public class McpServer {
 			"Tool arguments must be a JSON object, got: " + arguments.getClass().getSimpleName());
 	}
 
-	private static JsonRpcResponse successResponse(Object id, Object result) {
+	private JsonRpcResponse successResponse(Object id, Object result) {
+		return successResponse(id, result, CURRENT_CONTEXT.get(), McpSchema.RESULT_TYPE_COMPLETE);
+	}
+
+	/**
+	 * 构造成功响应，并根据上下文注入 {@code resultType} 与 {@code _meta}。
+	 *
+	 * <p>2026-07-28+ modern 协议要求 result 对象必须携带 {@code resultType} 字段；
+	 * 同时每个 Result 通过 {@code _meta.io.modelcontextprotocol/serverInfo} 携带 server 实现信息。</p>
+	 *
+	 * @param id         请求 id
+	 * @param result     业务结果（POJO/Map）
+	 * @param ctx       请求上下文（modern 协议下会注入 _meta；legacy 协议为 null）
+	 * @param resultType {@code "complete"} 或 {@code "input_required"}（MRTR）
+	 * @return JsonRpcResponse
+	 */
+	private JsonRpcResponse successResponse(Object id, Object result, McpRequestContext ctx, String resultType) {
+		Object wrapped = wrapResult(result, ctx, resultType);
 		JsonRpcResponse response = new JsonRpcResponse();
 		response.setJsonrpc(McpSchema.JSONRPC_VERSION);
 		response.setId(id);
-		response.setResult(result);
+		response.setResult(wrapped);
 		return response;
+	}
+
+	/**
+	 * 将业务 result 对象包装为 modern 协议要求的格式：
+	 * <ul>
+	 *   <li>注入 {@code resultType} 字段</li>
+	 *   <li>modern 协议下注入 {@code _meta.io.modelcontextprotocol/serverInfo}</li>
+	 * </ul>
+	 *
+	 * <p>仅在 modern 协议下做包装；legacy 协议下保持 result 原样输出，兼容旧 client。</p>
+	 */
+	@SuppressWarnings("unchecked")
+	private Object wrapResult(Object result, McpRequestContext ctx, String resultType) {
+		// 仅 modern 协议且 result 非空时进行包装
+		boolean modern = ctx != null && ctx.isModern();
+		if (!modern) {
+			return result;
+		}
+		Map<String, Object> map;
+		if (result instanceof Map) {
+			map = new LinkedHashMap<>((Map<String, Object>) result);
+		} else if (result != null) {
+			// 把 POJO 转 map，便于注入 resultType 与 _meta
+			map = new LinkedHashMap<>(JsonUtil.convertValue(result, Map.class));
+		} else {
+			map = new LinkedHashMap<>();
+		}
+		// 1) 注入 resultType
+		map.put(FIELD_RESULT_TYPE, resultType);
+		// 2) 注入 _meta.io.modelcontextprotocol/serverInfo
+		// transport 层应通过 ctx 把内部 serverInfo 注入到 meta 中；缺省情况下使用 server 内置的 serverInfo。
+		Map<String, Object> meta = new HashMap<>(4);
+		Map<String, Object> sourceMeta = ctx.getMeta();
+		Object existingMetaServerInfo = sourceMeta == null ? null : sourceMeta.get(McpSchema.META_SERVER_INFO);
+		if (existingMetaServerInfo != null) {
+			meta.put(McpSchema.META_SERVER_INFO, existingMetaServerInfo);
+		} else {
+			meta.put(McpSchema.META_SERVER_INFO, serverInfo);
+		}
+		map.put(FIELD_META, meta);
+		return map;
 	}
 
 	private static JsonRpcResponse errorResponse(Object id, int code, String message) {
@@ -620,11 +772,23 @@ public class McpServer {
 	 *
 	 * <p>此方法保证不会抛出异常，永远返回 {@link JsonRpcResponse}。</p>
 	 *
-	 * @param session McpServerSession
+	 * @param session McpServerSession（legacy 协议下非空；modern 协议下为 null）
 	 * @param request incoming JSON-RPC request
 	 * @return JsonRpcResponse
 	 */
 	public JsonRpcResponse handleIncomingRequest(McpServerSession session, JsonRpcRequest request) {
+		return handleIncomingRequest(null, session, request);
+	}
+
+	/**
+	 * 处理 incoming JSON-RPC 请求，modern 协议下传入 {@link McpRequestContext}。
+	 *
+	 * @param ctx    请求上下文（modern 协议下非空；legacy 协议下可传 null）
+	 * @param session legacy session
+	 * @param request JSON-RPC 请求
+	 * @return JSON-RPC 响应
+	 */
+	public JsonRpcResponse handleIncomingRequest(McpRequestContext ctx, McpServerSession session, JsonRpcRequest request) {
 		if (request == null) {
 			return errorResponse(null, JsonRpcErrorCodes.INVALID_REQUEST, "Request must not be null");
 		}
@@ -640,7 +804,18 @@ public class McpServer {
 			return errorResponse(request.getId(), JsonRpcErrorCodes.METHOD_NOT_FOUND, "Method not found: " + method);
 		}
 		try {
-			return handler.handle(session, request);
+			// 临时把 ctx 写入 threadLocal，handler 内部 successResponse 会读取。
+			// 由于 handler 签名只接收 (session, request)，这里用 threadLocal 传递 ctx。
+			McpRequestContext prev = CURRENT_CONTEXT.get();
+			CURRENT_CONTEXT.set(ctx);
+			try {
+				JsonRpcResponse resp = handler.handle(session, request);
+				CURRENT_CONTEXT.set(prev);
+				return resp;
+			} catch (Throwable t) {
+				CURRENT_CONTEXT.set(prev);
+				throw t;
+			}
 		} catch (McpException e) {
 			log.warn("MCP handler error: method={}, code={}, message={}", method, e.getCode(), e.getMessage());
 			return errorResponse(request.getId(), e.getCode(), e.getMessage(), e.getData());
@@ -650,6 +825,12 @@ public class McpServer {
 				"Internal error: " + e.getMessage());
 		}
 	}
+
+	/**
+	 * 当前请求的上下文（ThreadLocal，由 transport 设置）。
+	 * <p>handler 调用 successResponse 时会读取该值。</p>
+	 */
+	private static final ThreadLocal<McpRequestContext> CURRENT_CONTEXT = new ThreadLocal<>();
 
 	// ============================================================
 	//  Builder API

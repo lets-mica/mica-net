@@ -6,8 +6,11 @@ import net.dreamlu.mica.net.http.jsonrpc.JsonRpcResponse;
 import net.dreamlu.mica.net.http.mcp.schema.*;
 import net.dreamlu.mica.net.http.mcp.server.McpErrorCodes;
 import net.dreamlu.mica.net.http.mcp.server.McpException;
+import net.dreamlu.mica.net.http.mcp.server.McpInputRequiredException;
+import net.dreamlu.mica.net.http.mcp.server.McpRequestContext;
 import net.dreamlu.mica.net.http.mcp.server.McpServer;
 import net.dreamlu.mica.net.http.mcp.server.McpServerSession;
+import net.dreamlu.mica.net.utils.json.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -383,7 +386,7 @@ class McpServerTest {
 		assertNotNull(resp);
 		assertNotNull(resp.getResult());
 		McpInitializeResult result = (McpInitializeResult) resp.getResult();
-		assertEquals(McpSchema.MCP_2025_11_25, result.getProtocolVersion());
+		assertEquals(McpSchema.MCP_LATEST, result.getProtocolVersion());
 	}
 
 	/**
@@ -411,7 +414,7 @@ class McpServerTest {
 			newRequest(102, McpSchema.METHOD_INITIALIZE, params));
 		assertNotNull(resp);
 		McpInitializeResult result = (McpInitializeResult) resp.getResult();
-		assertEquals(McpSchema.MCP_2025_11_25, result.getProtocolVersion());
+		assertEquals(McpSchema.MCP_LATEST, result.getProtocolVersion());
 	}
 
 	/**
@@ -530,5 +533,349 @@ class McpServerTest {
 		assertSame(resource, spec.getResource());
 		// 编译期保障:不再有 setResource/setReadHandler;反射层面也不期望调用。
 		assertNull(spec.getReadHandler());
+	}
+
+	// ============================================================
+	//  2026-07-28 modern 协议覆盖测试
+	// ============================================================
+
+	/**
+	 * 构造 modern 协议下的请求上下文。
+	 */
+	private static McpRequestContext modernCtx() {
+		Map<String, Object> meta = new HashMap<>();
+		meta.put(McpSchema.META_PROTOCOL_VERSION, McpSchema.MCP_2026_07_28);
+		McpImplementation clientInfo = new McpImplementation("test-client", "1.0.0");
+		meta.put(McpSchema.META_CLIENT_INFO, clientInfo);
+		Map<String, Object> caps = new HashMap<>();
+		caps.put("roots", Collections.emptyMap());
+		meta.put(McpSchema.META_CLIENT_CAPABILITIES, caps);
+		return new McpRequestContext(McpSchema.MCP_2026_07_28, clientInfo,
+			JsonUtil.convertValue(caps, McpClientCapabilities.class), meta, null);
+	}
+
+	/**
+	 * server/discover 是 modern 协议必实现的 RPC。
+	 */
+	@Test
+	void testServerDiscoverReturnsCapabilitiesAndInfo() {
+		JsonRpcResponse resp = server.handleIncomingRequest(modernCtx(), null,
+			newRequest(300, McpSchema.METHOD_SERVER_DISCOVER, null));
+		assertNotNull(resp);
+		assertNull(resp.getError());
+		Object result = resp.getResult();
+		assertNotNull(result);
+		assertTrue(result instanceof Map, "Modern result should be wrapped as Map, got " + result.getClass());
+		Map<String, Object> map = (Map<String, Object>) result;
+		assertEquals(McpSchema.RESULT_TYPE_COMPLETE, map.get("resultType"));
+		Object serverInfoObj = map.get("serverInfo");
+		assertNotNull(serverInfoObj);
+		assertTrue(serverInfoObj instanceof Map);
+		Map<String, Object> serverInfo = (Map<String, Object>) serverInfoObj;
+		assertEquals("test", serverInfo.get("name"));
+		Object supported = map.get("supportedProtocolVersions");
+		assertNotNull(supported);
+		assertTrue(supported instanceof List);
+		assertTrue(((List<?>) supported).contains(McpSchema.MCP_2026_07_28));
+	}
+
+	/**
+	 * 现代协议下 result 必须注入 resultType 与 _meta.io.modelcontextprotocol/serverInfo。
+	 */
+	@Test
+	void testModernResponseCarriesResultTypeAndServerInfoMeta() {
+		JsonRpcResponse resp = server.handleIncomingRequest(modernCtx(), null,
+			newRequest(301, McpSchema.METHOD_PING, null));
+		assertNotNull(resp);
+		Object raw = resp.getResult();
+		assertNotNull(raw);
+		assertTrue(raw instanceof Map, "Modern result must be a Map");
+		Map<String, Object> result = (Map<String, Object>) raw;
+		assertEquals(McpSchema.RESULT_TYPE_COMPLETE, result.get("resultType"));
+		Object meta = result.get("_meta");
+		assertNotNull(meta);
+		assertTrue(meta instanceof Map);
+		Map<String, Object> metaMap = (Map<String, Object>) meta;
+		Object serverInfo = metaMap.get(McpSchema.META_SERVER_INFO);
+		assertNotNull(serverInfo);
+	}
+
+	/**
+	 * 现代协议下的 tools/list 应附加 ttlMs / cacheScope 缓存字段。
+	 */
+	@Test
+	void testModernToolsListHasCacheFields() {
+		McpTool tool = new McpTool();
+		tool.setName("foo");
+		server.tool(tool, (s, a) -> {
+			McpCallToolResult r = new McpCallToolResult();
+			r.setContent(Collections.emptyList());
+			return r;
+		});
+		JsonRpcResponse resp = server.handleIncomingRequest(modernCtx(), null,
+			newRequest(302, McpSchema.METHOD_TOOLS_LIST, null));
+		assertNotNull(resp);
+		Object result = resp.getResult();
+		assertNotNull(result);
+		assertTrue(result instanceof Map, "Modern result should be Map for cache injection");
+		Map<String, Object> map = (Map<String, Object>) result;
+		assertNotNull(map.get("tools"));
+		assertNotNull(map.get("ttlMs"), "ttlMs should be present in modern response");
+		assertNotNull(map.get("cacheScope"), "cacheScope should be present in modern response");
+		assertEquals("complete", map.get("resultType"));
+	}
+
+	/**
+	 * 现代协议下 prompts/list / resources/list / resources/templates/list 同样附加缓存字段。
+	 */
+	@Test
+	void testModernOtherListsHaveCacheFields() {
+		JsonRpcResponse prompts = server.handleIncomingRequest(modernCtx(), null,
+			newRequest(303, McpSchema.METHOD_PROMPT_LIST, null));
+		JsonRpcResponse resources = server.handleIncomingRequest(modernCtx(), null,
+			newRequest(304, McpSchema.METHOD_RESOURCES_LIST, null));
+		JsonRpcResponse templates = server.handleIncomingRequest(modernCtx(), null,
+			newRequest(305, McpSchema.METHOD_RESOURCES_TEMPLATES_LIST, null));
+		assertTrue(prompts.getResult() instanceof Map);
+		assertTrue(resources.getResult() instanceof Map);
+		assertTrue(templates.getResult() instanceof Map);
+		assertNotNull(((Map<String, Object>) prompts.getResult()).get("ttlMs"));
+		assertNotNull(((Map<String, Object>) resources.getResult()).get("ttlMs"));
+		assertNotNull(((Map<String, Object>) templates.getResult()).get("ttlMs"));
+	}
+
+	/**
+	 * legacy 协议（无 modern ctx）下，result 不注入 resultType，行为保持原样。
+	 */
+	@Test
+	void testLegacyResponseIsUnchanged() {
+		JsonRpcResponse resp = server.handleIncomingRequest(null, null,
+			newRequest(306, McpSchema.METHOD_PING, null));
+		assertNotNull(resp);
+		Object result = resp.getResult();
+		// legacy 协议下 result 保持为 Map（来自 Collections.emptyMap()），不含 resultType/_meta
+		if (result instanceof Map) {
+			Map<String, Object> map = (Map<String, Object>) result;
+			assertNull(map.get("resultType"), "Legacy result must not carry resultType");
+			assertNull(map.get("_meta"), "Legacy result must not carry _meta");
+		}
+	}
+
+	/**
+	 * 现代协议下注册顺序即返回顺序（确定性顺序）。
+	 */
+	@Test
+	void testModernToolsListOrderIsDeterministic() {
+		for (String name : new String[]{"alpha", "beta", "gamma"}) {
+			McpTool tool = new McpTool();
+			tool.setName(name);
+			server.tool(tool, (s, a) -> {
+				McpCallToolResult r = new McpCallToolResult();
+				r.setContent(Collections.emptyList());
+				return r;
+			});
+		}
+		JsonRpcResponse resp = server.handleIncomingRequest(modernCtx(), null,
+			newRequest(307, McpSchema.METHOD_TOOLS_LIST, null));
+		Map<String, Object> map = (Map<String, Object>) resp.getResult();
+		List<Map<String, Object>> tools = (List<Map<String, Object>>) map.get("tools");
+		assertEquals("alpha", tools.get(0).get("name"));
+		assertEquals("beta", tools.get(1).get("name"));
+		assertEquals("gamma", tools.get(2).get("name"));
+	}
+
+	/**
+	 * 现代协议下仍能处理 tool call，并把 result 包装为 map 含 resultType。
+	 */
+	@Test
+	void testModernToolCallStillWorks() {
+		McpTool tool = new McpTool();
+		tool.setName("echo");
+		server.tool(tool, (s, a) -> {
+			McpCallToolResult r = new McpCallToolResult();
+			r.setContent(Collections.singletonList(new McpTextContent("ok")));
+			return r;
+		});
+		Map<String, Object> arguments = new HashMap<>();
+		arguments.put("msg", "hi");
+		McpCallToolRequest params = new McpCallToolRequest();
+		params.setName("echo");
+		params.setArguments(arguments);
+		JsonRpcResponse resp = server.handleIncomingRequest(modernCtx(), null,
+			newRequest(308, McpSchema.METHOD_TOOLS_CALL, params));
+		assertNotNull(resp);
+		assertNull(resp.getError());
+		assertTrue(resp.getResult() instanceof Map);
+		assertEquals("complete", ((Map<String, Object>) resp.getResult()).get("resultType"));
+	}
+
+	/**
+	 * MCP_2026_07_28 已纳入版本列表。
+	 */
+	@Test
+	void testModernProtocolVersionIsRegistered() {
+		assertTrue(McpSchema.MCP_VERSION_LIST.contains(McpSchema.MCP_2026_07_28));
+		assertEquals(McpSchema.MCP_2026_07_28, McpSchema.MCP_LATEST);
+	}
+
+	// ============================================================
+	//  MRTR 中间响应（input_required）+ JSON Schema 2020-12
+	// ============================================================
+
+	/**
+	 * MRTR：modern 协议下 tool handler 抛 {@link McpInputRequiredException}，
+	 * server 应返回 resultType=input_required 的中间响应。
+	 */
+	@Test
+	void testMrtrInputRequiredOnModernProtocol() {
+		McpTool tool = new McpTool();
+		tool.setName("needs-input");
+		server.tool(tool, (s, a) -> {
+			McpInputRequiredResult ir = new McpInputRequiredResult();
+			ir.setPrompt("please provide your name");
+			ir.setContinuationId("cont-1");
+			throw new McpInputRequiredException(ir);
+		});
+		McpCallToolRequest params = new McpCallToolRequest();
+		params.setName("needs-input");
+		params.setArguments(null);
+		JsonRpcResponse resp = server.handleIncomingRequest(modernCtx(), null,
+			newRequest(400, McpSchema.METHOD_TOOLS_CALL, params));
+		assertNotNull(resp);
+		assertNull(resp.getError(), "MRTR should not return error");
+		Object raw = resp.getResult();
+		assertTrue(raw instanceof Map, "MRTR modern result must be a Map");
+		Map<String, Object> map = (Map<String, Object>) raw;
+		assertEquals(McpSchema.RESULT_TYPE_INPUT_REQUIRED, map.get("resultType"));
+		assertNotNull(map.get("prompt"));
+		assertEquals("cont-1", map.get("continuationId"));
+	}
+
+	/**
+	 * MRTR：legacy 协议下抛 {@link McpInputRequiredException}，
+	 * 应降级为 isError=true + prompt 文本的普通 tool result。
+	 */
+	@Test
+	void testMrtrInputRequiredFallsBackOnLegacy() {
+		McpTool tool = new McpTool();
+		tool.setName("needs-input-legacy");
+		server.tool(tool, (s, a) -> {
+			McpInputRequiredResult ir = new McpInputRequiredResult();
+			ir.setPrompt("legacy prompt");
+			throw new McpInputRequiredException(ir);
+		});
+		McpCallToolRequest params = new McpCallToolRequest();
+		params.setName("needs-input-legacy");
+		params.setArguments(null);
+		JsonRpcResponse resp = server.handleIncomingRequest(null, null,
+			newRequest(401, McpSchema.METHOD_TOOLS_CALL, params));
+		assertNotNull(resp);
+		assertNull(resp.getError());
+		Object raw = resp.getResult();
+		assertTrue(raw instanceof McpCallToolResult,
+			"Legacy MRTR should produce McpCallToolResult, got " + (raw == null ? "null" : raw.getClass()));
+		McpCallToolResult callResult = (McpCallToolResult) raw;
+		assertEquals(Boolean.TRUE, callResult.getError());
+		boolean hasLegacyPrompt = callResult.getContent().stream()
+			.anyMatch(c -> c instanceof McpTextContent
+				&& ((McpTextContent) c).getText() != null
+				&& ((McpTextContent) c).getText().contains("legacy prompt"));
+		assertTrue(hasLegacyPrompt);
+	}
+
+	/**
+	 * Deprecated method：modern 协议下返回 deprecated 警告结果。
+	 */
+	@Test
+	void testDeprecatedSamplingReturnsWarningOnModern() {
+		JsonRpcResponse resp = server.handleIncomingRequest(modernCtx(), null,
+			newRequest(402, McpSchema.METHOD_SAMPLING_CREATE_MESSAGE, null));
+		assertNotNull(resp);
+		assertNull(resp.getError());
+		Object raw = resp.getResult();
+		assertTrue(raw instanceof Map);
+		Map<String, Object> map = (Map<String, Object>) raw;
+		assertEquals(Boolean.TRUE, map.get("deprecated"));
+		assertEquals(McpSchema.METHOD_SAMPLING_CREATE_MESSAGE, map.get("method"));
+		assertEquals(Integer.valueOf(12), map.get("removalWindowMonths"));
+		assertEquals(McpSchema.RESULT_TYPE_COMPLETE, map.get("resultType"));
+	}
+
+	/**
+	 * Deprecated method：legacy 协议下返回空 Map，保持向后兼容。
+	 */
+	@Test
+	void testDeprecatedRootsListReturnsEmptyOnLegacy() {
+		JsonRpcResponse resp = server.handleIncomingRequest(null, null,
+			newRequest(403, McpSchema.METHOD_ROOTS_LIST, null));
+		assertNotNull(resp);
+		assertNull(resp.getError());
+		assertNotNull(resp.getResult());
+	}
+
+	// ============================================================
+	//  JSON Schema 2020-12 字段
+	// ============================================================
+
+	/**
+	 * JSON Schema 2020-12 字段：McpJsonSchema 支持 $schema、$defs、prefixItems、
+	 * allOf、anyOf、oneOf、const、enum、format、minimum、maximum、nullable 等。
+	 */
+	@Test
+	void testJsonSchemaSupports2020Keywords() {
+		McpJsonSchema schema = new McpJsonSchema();
+		schema.setSchema("https://json-schema.org/draft/2020-12/schema");
+		schema.setAnchor("root");
+		Map<String, Object> defs = new HashMap<>();
+		Map<String, Object> foo = new HashMap<>();
+		foo.put("type", "object");
+		defs.put("Foo", foo);
+		schema.setDefs(defs);
+		schema.setPrefixItems(java.util.Arrays.asList(
+			java.util.Collections.singletonMap("type", "string"),
+			java.util.Collections.singletonMap("type", "number")
+		));
+		schema.setAllOf(java.util.Arrays.asList(java.util.Collections.singletonMap("type", "object")));
+		schema.setAnyOf(java.util.Arrays.asList(java.util.Collections.singletonMap("type", "string")));
+		schema.setOneOf(java.util.Arrays.asList(java.util.Collections.singletonMap("type", "number")));
+		schema.setConstValue(42);
+		schema.setEnumValues(java.util.Arrays.asList("a", "b", "c"));
+		schema.setFormat("uri");
+		schema.setPattern("^[a-z]+$");
+		schema.setMinimum(0);
+		schema.setMaximum(100);
+		schema.setNullable(Boolean.TRUE);
+		schema.setRef("#/$defs/Foo");
+
+		// 字段读写
+		assertEquals("https://json-schema.org/draft/2020-12/schema", schema.getSchema());
+		assertEquals("root", schema.getAnchor());
+		assertNotNull(schema.getDefs());
+		assertEquals("Foo", schema.getDefs().keySet().iterator().next());
+		assertEquals(2, schema.getPrefixItems().size());
+		assertNotNull(schema.getAllOf());
+		assertNotNull(schema.getAnyOf());
+		assertNotNull(schema.getOneOf());
+		assertEquals(42, schema.getConstValue());
+		assertEquals(3, schema.getEnumValues().size());
+		assertEquals("uri", schema.getFormat());
+		assertEquals("^[a-z]+$", schema.getPattern());
+		assertEquals(0, schema.getMinimum());
+		assertEquals(100, schema.getMaximum());
+		assertEquals(Boolean.TRUE, schema.getNullable());
+		assertEquals("#/$defs/Foo", schema.getRef());
+
+		// 旧字段保留
+		schema.setType("object");
+		schema.setRequired(java.util.Collections.singletonList("name"));
+		assertEquals("object", schema.getType());
+		assertEquals(1, schema.getRequired().size());
+
+		// JSON 序列化往返
+		String json = JsonUtil.toJsonString(schema);
+		assertTrue(json.contains("$schema") || json.contains("schema"));
+		McpJsonSchema restored = JsonUtil.readValue(json, McpJsonSchema.class);
+		assertEquals(schema.getSchema(), restored.getSchema());
+		assertEquals(schema.getRef(), restored.getRef());
 	}
 }

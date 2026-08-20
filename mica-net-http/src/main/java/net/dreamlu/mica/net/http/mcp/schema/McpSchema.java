@@ -39,9 +39,22 @@ public interface McpSchema {
 	String MCP_2025_11_25 = "2025-11-25";
 
 	/**
+	 * MCP protocol version for 2026-07-28.
+	 * <p>无状态协议核心：删除 initialize / Mcp-Session-Id，新增 server/discover 与 Multi Round-Trip Requests。</p>
+	 * https://modelcontextprotocol.io/specification/2026-07-28
+	 */
+	String MCP_2026_07_28 = "2026-07-28";
+
+	/**
+	 * 当前 mica-net 默认实现的协议版本（modern）。
+	 */
+	String MCP_LATEST = MCP_2026_07_28;
+
+	/**
 	 * mcp 版本列表
 	 */
-	List<String> MCP_VERSION_LIST = Arrays.asList(MCP_2024_11_05, MCP_2025_03_26, MCP_2025_06_18, MCP_2025_11_25);
+	List<String> MCP_VERSION_LIST = Arrays.asList(
+		MCP_2024_11_05, MCP_2025_03_26, MCP_2025_06_18, MCP_2025_11_25, MCP_2026_07_28);
 
 	String JSONRPC_VERSION = "2.0";
 
@@ -49,12 +62,58 @@ public interface McpSchema {
 	// Method Names
 	// ---------------------------
 
-	// Lifecycle Methods
+	// Lifecycle Methods (legacy: 2025-11-25 及更早)
 	String METHOD_INITIALIZE = "initialize";
 
 	String METHOD_NOTIFICATION_INITIALIZED = "notifications/initialized";
 
 	String METHOD_PING = "ping";
+
+	// Lifecycle Methods (modern: 2026-07-28)
+	/**
+	 * server/discover：modern 协议必实现的 RPC，用于声明 server 的协议版本、capabilities、identity。
+	 */
+	String METHOD_SERVER_DISCOVER = "server/discover";
+
+	/**
+	 * server 信息在 _meta 中的字段名。
+	 */
+	String META_SERVER_INFO = "io.modelcontextprotocol/serverInfo";
+
+	/**
+	 * client 信息在 _meta 中的字段名。
+	 */
+	String META_CLIENT_INFO = "io.modelcontextprotocol/clientInfo";
+
+	/**
+	 * 客户端能力声明在 _meta 中的字段名。
+	 */
+	String META_CLIENT_CAPABILITIES = "io.modelcontextprotocol/clientCapabilities";
+
+	/**
+	 * 协议版本在 _meta 中的字段名。
+	 */
+	String META_PROTOCOL_VERSION = "io.modelcontextprotocol/protocolVersion";
+
+	/**
+	 * Result 类型：普通响应。
+	 */
+	String RESULT_TYPE_COMPLETE = "complete";
+
+	/**
+	 * Result 类型：MRTR 中间响应（需要 client 提供更多信息）。
+	 */
+	String RESULT_TYPE_INPUT_REQUIRED = "input_required";
+
+	/**
+	 * Streamable HTTP POST 必需 Header：方法名。
+	 */
+	String HEADER_MCP_METHOD = "Mcp-Method";
+
+	/**
+	 * Streamable HTTP POST 必需 Header：tool/prompt/resource 名。
+	 */
+	String HEADER_MCP_NAME = "Mcp-Name";
 
 	// Tool Methods
 	String METHOD_TOOLS_LIST = "tools/list";

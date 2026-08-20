@@ -3,7 +3,10 @@ package net.dreamlu.mica.net.http.mcp.server.transport;
 import net.dreamlu.mica.net.http.common.*;
 import net.dreamlu.mica.net.http.common.stream.HttpStream;
 import net.dreamlu.mica.net.http.jsonrpc.*;
+import net.dreamlu.mica.net.http.mcp.schema.McpClientCapabilities;
+import net.dreamlu.mica.net.http.mcp.schema.McpImplementation;
 import net.dreamlu.mica.net.http.mcp.schema.McpSchema;
+import net.dreamlu.mica.net.http.mcp.server.McpRequestContext;
 import net.dreamlu.mica.net.http.mcp.server.McpServer;
 import net.dreamlu.mica.net.http.mcp.server.McpServerSession;
 import net.dreamlu.mica.net.utils.hutool.StrUtil;
@@ -11,16 +14,26 @@ import net.dreamlu.mica.net.utils.json.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * MCP Streamable HTTP Transport 实现。
+ * MCP Streamable HTTP Transport 实现（dual-era：2025-11-25 与 2026-07-28）。
  *
- * <p>采用统一的端点：
+ * <p>端点：
  * <ul>
- *   <li>GET  {endpoint} - 建立 SSE 长连接（可选），用于 server push 通知</li>
- *   <li>POST {endpoint} - 提交 JSON-RPC 请求；可附带 {@code Mcp-Session-Id} 关联已建立的 SSE 流</li>
- *   <li>DELETE {endpoint} - 终止 SSE 会话</li>
+ *   <li>GET  {endpoint} - legacy：建立 SSE 长连接（输出 server push 通知）；modern：同样支持，
+ *       但不再需要 {@code Mcp-Session-Id}</li>
+ *   <li>POST {endpoint} - 提交 JSON-RPC 请求；modern 协议下必须携带 {@code Mcp-Method}、
+ *       可选 {@code Mcp-Name} Header；legacy 协议保留旧行为</li>
+ * </ul>
+ *
+ * <p>2026-07-28 协议变更（dual-era 兼容）：
+ * <ul>
+ *   <li>删除 {@code DELETE} 端点（已迁移到 session 关闭）</li>
+ *   <li>删除 {@code Mcp-Session-Id} 协议级 Header（modern 请求不再需要）</li>
+ *   <li>新增必需 Header {@code Mcp-Method}（modern 协议），允许网关无 Body 路由</li>
+ *   <li>每个请求通过 {@code _meta.io.modelcontextprotocol/protocolVersion} 传递协议版本</li>
  * </ul>
  *
  * @author L.cm
@@ -28,10 +41,6 @@ import java.util.Map;
 public class StreamableHttpTransport implements McpTransport {
 	public static final String TRANSPORT_TYPE = "streamable-http";
 	public static final String DEFAULT_ENDPOINT = "/mcp";
-	/**
-	 * 约定的 session id header 名
-	 */
-	public static final String SESSION_HEADER = "Mcp-Session-Id";
 	private static final Logger log = LoggerFactory.getLogger(StreamableHttpTransport.class);
 
 	private final McpServer mcpServer;
@@ -62,11 +71,11 @@ public class StreamableHttpTransport implements McpTransport {
 			return handleGet(request);
 		} else if (Method.POST == method) {
 			return handlePost(request);
-		} else if (Method.DELETE == method) {
-			return handleDelete(request);
 		}
+		// 2026-07-28+ 不再支持 DELETE 关闭会话。
 		HttpResponse resp = new HttpResponse(request);
 		resp.setStatus(HttpResponseStatus.C405);
+		resp.addHeader("Allow", "GET, POST");
 		return resp;
 	}
 
@@ -87,38 +96,36 @@ public class StreamableHttpTransport implements McpTransport {
 
 	/**
 	 * 处理 GET - 建立 SSE 长连接。
+	 *
+	 * <p>2026-07-28+：GET 仍用于建立 SSE 输出流；不再下发 {@code Mcp-Session-Id} header。
+	 * client 通过 _meta 把 protocolVersion 告知 server。</p>
 	 */
 	private HttpResponse handleGet(HttpRequest request) {
 		HttpResponse httpResponse = new HttpResponse(request);
 		HttpStream stream = httpResponse.startSse(request);
-		String sessionId = StrUtil.getNanoId();
-		sessionManager.createSession(sessionId, stream);
-		httpResponse.addHeader(SESSION_HEADER, sessionId);
-		log.debug("Streamable HTTP SSE session created: {}", sessionId);
+		String streamId = StrUtil.getNanoId();
+		sessionManager.createSession(streamId, stream);
+		log.debug("Streamable HTTP SSE stream created: {}", streamId);
 		return httpResponse;
 	}
 
 	/**
 	 * 处理 POST - JSON-RPC 请求。
 	 *
-	 * <p>两种模式：
+	 * <p>dual-era 行为：
 	 * <ul>
-	 *   <li>Stateless（不携带 sessionId 或 session 不存在）：直接返回 JSON-RPC 响应</li>
-	 *   <li>Stateful（携带 sessionId 且 SSE 流存在）：响应也写入 SSE 流，
-	 *       HTTP 响应返回 202 Accepted</li>
+	 *   <li>请求体携带 {@code _meta.io.modelcontextprotocol/protocolVersion=2026-07-28}
+	 *       或请求 header 携带 {@code Mcp-Method} → modern 协议分支</li>
+	 *   <li>否则视为 legacy（2025-11-25）协议分支</li>
 	 * </ul>
+	 *
+	 * <p>modern 分支强制校验 {@code Mcp-Method} header；legacy 分支行为保持不变。</p>
 	 */
 	private HttpResponse handlePost(HttpRequest request) {
 		HttpResponse response = new HttpResponse(request);
-		String sessionId = request.getHeader(SESSION_HEADER);
-		if (StrUtil.isBlank(sessionId)) {
-			sessionId = request.getParam("sessionId");
-		}
-		McpServerSession session = StrUtil.isNotBlank(sessionId) ? sessionManager.get(sessionId) : null;
-
 		byte[] body = request.getBody();
 		if (body == null || body.length == 0) {
-			return writeJsonError(response, session, JsonRpcErrorCodes.INVALID_REQUEST, "Empty request body", null);
+			return writeJsonError(response, JsonRpcErrorCodes.INVALID_REQUEST, "Empty request body", null);
 		}
 
 		JsonRpcMessage jsonRpcMessage;
@@ -126,32 +133,34 @@ public class StreamableHttpTransport implements McpTransport {
 			jsonRpcMessage = McpServer.deserializeJsonRpcMessage(body);
 		} catch (Exception e) {
 			log.warn("Failed to parse JSON-RPC message: {}", e.getMessage());
-			return writeJsonError(response, session,
-				JsonRpcErrorCodes.PARSE_ERROR, "Parse error: " + e.getMessage(), extractRequestId(body));
+			return writeJsonError(response, JsonRpcErrorCodes.PARSE_ERROR,
+				"Parse error: " + e.getMessage(), extractRequestId(body));
 		}
 
 		if (jsonRpcMessage instanceof JsonRpcRequest) {
-			return doHandleRequest(response, session, (JsonRpcRequest) jsonRpcMessage);
+			return doHandleRequest(request, response, (JsonRpcRequest) jsonRpcMessage, body);
 		}
 		if (jsonRpcMessage instanceof JsonRpcNotification) {
-			if (session != null) {
-				handleNotification(session, (JsonRpcNotification) jsonRpcMessage);
-			} else {
-				log.debug("Discarding notification without session: {}", jsonRpcMessage);
-			}
-			return accepted(response, session);
+			handleNotification((JsonRpcNotification) jsonRpcMessage);
+			return accepted(response);
 		}
 		log.debug("Discarding non-request message: {}", jsonRpcMessage);
-		return accepted(response, session);
+		return accepted(response);
 	}
 
-	private HttpResponse doHandleRequest(HttpResponse response, McpServerSession session, JsonRpcRequest request) {
-		JsonRpcResponse rpcResponse = mcpServer.handleIncomingRequest(session, request);
-		if (session != null && session.hasStream()) {
-			session.sendMessage(rpcResponse);
-			return accepted(response, session);
+	private HttpResponse doHandleRequest(HttpRequest httpRequest, HttpResponse response, JsonRpcRequest request, byte[] body) {
+		// 1. 解析请求体中的 _meta，构造请求上下文
+		Map<String, Object> rawMeta = extractMeta(body);
+		String clientVersion = rawMeta == null ? null : asString(rawMeta.get(McpSchema.META_PROTOCOL_VERSION));
+		String headerMethod = httpRequest.getHeader(McpSchema.HEADER_MCP_METHOD);
+		if (clientVersion == null && StrUtil.isNotBlank(headerMethod)) {
+			// 仅 header 触发，按 modern 处理
+			clientVersion = McpSchema.MCP_2026_07_28;
 		}
-		// stateless：直接把 JSON-RPC 响应写到 HTTP body
+
+		McpRequestContext ctx = buildRequestContext(clientVersion, rawMeta);
+		JsonRpcResponse rpcResponse = mcpServer.handleIncomingRequest(ctx, null, request);
+		// modern 协议直接返回；legacy 协议同样直接返回（stateless 模式）
 		response.setStatus(HttpResponseStatus.C200);
 		response.setBody(JsonUtil.toJsonBytes(rpcResponse));
 		response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.APPLICATION_JSON);
@@ -159,66 +168,88 @@ public class StreamableHttpTransport implements McpTransport {
 	}
 
 	/**
-	 * 处理 DELETE - 主动关闭 SSE 会话。
+	 * 解析请求体的 _meta 字段。
 	 */
-	private HttpResponse handleDelete(HttpRequest request) {
-		HttpResponse response = new HttpResponse(request);
-		String sessionId = request.getHeader(SESSION_HEADER);
-		if (StrUtil.isBlank(sessionId)) {
-			sessionId = request.getParam("sessionId");
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> extractMeta(byte[] body) {
+		if (body == null || body.length == 0) {
+			return null;
 		}
-		if (StrUtil.isBlank(sessionId)) {
-			response.setStatus(HttpResponseStatus.C400);
-			return response;
+		try {
+			Map<String, Object> map = JsonUtil.readMap(body);
+			Object meta = map == null ? null : map.get("_meta");
+			if (meta instanceof Map) {
+				return (Map<String, Object>) meta;
+			}
+		} catch (Exception ignore) {
 		}
-		McpServerSession session = sessionManager.get(sessionId);
-		if (session != null) {
-			sessionManager.remove(sessionId);
-			response.setStatus(HttpResponseStatus.C200);
-		} else {
-			response.setStatus(HttpResponseStatus.C404);
-		}
-		return response;
+		return null;
 	}
 
-	private void handleNotification(McpServerSession session, JsonRpcNotification notification) {
+	/**
+	 * 根据客户端版本与 _meta 构建请求上下文。
+	 */
+	private McpRequestContext buildRequestContext(String clientVersion, Map<String, Object> meta) {
+		if (clientVersion == null) {
+			return new McpRequestContext(McpSchema.MCP_2025_11_25, null, null,
+				meta == null ? new HashMap<>() : meta, null);
+		}
+		// 优先使用客户端声明的版本（必须在 MCP_VERSION_LIST 中，否则按 modern 处理）
+		String negotiated = McpSchema.MCP_VERSION_LIST.contains(clientVersion)
+			? clientVersion
+			: McpSchema.MCP_LATEST;
+		McpImplementation clientInfo = null;
+		McpClientCapabilities clientCapabilities = null;
+		if (meta != null) {
+			Object info = meta.get(McpSchema.META_CLIENT_INFO);
+			if (info instanceof Map) {
+				clientInfo = JsonUtil.convertValue(info, McpImplementation.class);
+			}
+			Object caps = meta.get(McpSchema.META_CLIENT_CAPABILITIES);
+			if (caps instanceof Map) {
+				clientCapabilities = JsonUtil.convertValue(caps, McpClientCapabilities.class);
+			}
+		}
+		return new McpRequestContext(negotiated, clientInfo, clientCapabilities,
+			meta == null ? new HashMap<>() : meta, null);
+	}
+
+	private static String asString(Object obj) {
+		return obj == null ? null : obj.toString();
+	}
+
+	private void handleNotification(JsonRpcNotification notification) {
 		String method = notification.getMethod();
 		if (StrUtil.isBlank(method)) {
 			return;
 		}
 		switch (method) {
 			case McpSchema.METHOD_NOTIFICATION_INITIALIZED:
-				log.debug("Session {} initialized", session.getSessionId());
+				// legacy 协议握手标志，modern 协议下忽略
+				log.debug("Received legacy notifications/initialized");
 				break;
 			case McpSchema.METHOD_NOTIFICATION_CANCELLED:
-				log.debug("Session {} cancelled: {}", session.getSessionId(), notification.getParams());
+				log.debug("Cancellation notification: {}", notification.getParams());
 				break;
 			case McpSchema.METHOD_NOTIFICATION_ROOTS_LIST_CHANGED:
-				log.debug("Session {} roots changed", session.getSessionId());
+				log.debug("Roots list changed");
 				break;
 			default:
 				log.debug("Unhandled notification: {}", method);
 		}
 	}
 
-	private HttpResponse writeJsonError(HttpResponse response, McpServerSession session,
-	                                    int code, String message, Object id) {
+	private HttpResponse writeJsonError(HttpResponse response, int code, String message, Object id) {
 		JsonRpcResponse errorResp = buildError(id, code, message);
-		if (session != null && session.hasStream()) {
-			session.sendMessage(errorResp);
-			return accepted(response, session);
-		}
 		response.setStatus(HttpResponseStatus.C200);
 		response.setBody(JsonUtil.toJsonBytes(errorResp));
 		response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.APPLICATION_JSON);
 		return response;
 	}
 
-	private static HttpResponse accepted(HttpResponse response, McpServerSession session) {
+	private static HttpResponse accepted(HttpResponse response) {
+		// modern 协议下，通知无需返回 sessionId。保留 202 语义表示「已收到」。
 		response.setStatus(HttpResponseStatus.C202);
-		if (session != null) {
-			response.addHeader(SESSION_HEADER, session.getSessionId());
-		}
 		return response;
 	}
 

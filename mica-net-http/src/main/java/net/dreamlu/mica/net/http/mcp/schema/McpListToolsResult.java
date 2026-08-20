@@ -10,6 +10,15 @@ import java.util.List;
 public class McpListToolsResult {
 	private List<McpTool> tools;
 	private String nextCursor;
+	/**
+	 * 缓存 TTL（毫秒，2026-07-28+）。
+	 * <p>client 可在 ttlMs 时间内缓存本响应，无需再次调用 tools/list。</p>
+	 */
+	private Long ttlMs;
+	/**
+	 * 缓存作用范围（2026-07-28+），例如 "user" / "session" / "global"。
+	 */
+	private String cacheScope;
 
 	public McpListToolsResult() {
 	}
@@ -35,11 +44,29 @@ public class McpListToolsResult {
 		this.nextCursor = nextCursor;
 	}
 
+	public Long getTtlMs() {
+		return ttlMs;
+	}
+
+	public void setTtlMs(Long ttlMs) {
+		this.ttlMs = ttlMs;
+	}
+
+	public String getCacheScope() {
+		return cacheScope;
+	}
+
+	public void setCacheScope(String cacheScope) {
+		this.cacheScope = cacheScope;
+	}
+
 	@Override
 	public String toString() {
 		return "McpListToolsResult{" +
 			"tools=" + tools +
 			", nextCursor='" + nextCursor + '\'' +
+			", ttlMs=" + ttlMs +
+			", cacheScope='" + cacheScope + '\'' +
 			'}';
 	}
 }
