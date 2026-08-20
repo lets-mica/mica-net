@@ -31,11 +31,14 @@ import java.util.Map;
  *   <li>POST {messageEndpoint}?sessionId=xxx - 发送 JSON-RPC 消息</li>
  * </ul>
  *
+ * <p>默认端点挂在 {@code /mcp/sse} 前缀下，与 {@link StreamableHttpTransport} 默认的
+ * {@code /mcp} 保持同一根路径，避免同时启用两个 transport 时路由冲突。</p>
+ *
  * @author L.cm
  */
 public class SseTransport implements McpTransport {
 	public static final String TRANSPORT_TYPE = "sse";
-	public static final String DEFAULT_SSE_ENDPOINT = "/sse";
+	public static final String DEFAULT_SSE_ENDPOINT = "/mcp/sse";
 	public static final String DEFAULT_MESSAGE_ENDPOINT = DEFAULT_SSE_ENDPOINT + "/message";
 	public static final String ENDPOINT_EVENT_TYPE = "endpoint";
 	private static final Logger log = LoggerFactory.getLogger(SseTransport.class);
