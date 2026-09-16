@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * 集群实现
@@ -61,7 +60,7 @@ public class ClusterImpl implements ClusterApi {
 	/**
 	 * 种子成员
 	 */
-	private final List<Node> seedMembers;
+	private final Set<Node> seedMembers;
 	/**
 	 * 后加入的成员
 	 */
@@ -92,22 +91,11 @@ public class ClusterImpl implements ClusterApi {
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;
 		this.localMember = new Node(config.getHost(), config.getPort());
-		this.seedMembers = filterSeedMembers(config);
+		this.seedMembers = Collections.unmodifiableSet(config.getSeedMembers());
 		this.lateJoinMembers = ConcurrentHashMap.newKeySet();
 		this.messageDecoder = new ClusterMessageDecoder();
 		this.syncMessageMap = new ConcurrentHashMap<>();
 		this.snowflake = new Snowflake(ThreadLocalRandom.current().nextInt(1, 30), ThreadLocalRandom.current().nextInt(1, 30));
-	}
-
-	/**
-	 * 过滤种子成员，去掉自己
-	 *
-	 * @return members
-	 */
-	private static List<Node> filterSeedMembers(ClusterConfig config) {
-		return config.getSeedMembers().stream()
-			.distinct()
-			.collect(Collectors.toList());
 	}
 
 	@Override
@@ -231,16 +219,16 @@ public class ClusterImpl implements ClusterApi {
 
 	@Override
 	public boolean isLateJoinMember() {
-		return !this.config.getSeedMembers().contains(this.localMember);
+		return !this.seedMembers.contains(this.localMember);
 	}
 
 	@Override
-	public Collection<Node> getSeedMembers() {
-		return Collections.unmodifiableList(this.config.getSeedMembers());
+	public Set<Node> getSeedMembers() {
+		return seedMembers;
 	}
 
 	@Override
-	public Collection<Node> getRemoteMembers() {
+	public Set<Node> getRemoteMembers() {
 		Set<Node> remoteMembers = new HashSet<>(seedMembers);
 		remoteMembers.addAll(lateJoinMembers);
 		remoteMembers.remove(localMember);
@@ -248,7 +236,7 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
-	public Set<Node> getOnlineNodes() {
+	public Set<Node> getOnlineMembers() {
 		Set<Node> nodes = new HashSet<>();
 		for (Map.Entry<Node, ChannelContext> entry : memberChannels.entrySet()) {
 			ChannelContext context = entry.getValue();

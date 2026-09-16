@@ -21,7 +21,6 @@ import net.dreamlu.mica.net.server.cluster.message.ClusterDataMessage;
 import net.dreamlu.mica.net.server.cluster.message.ClusterSyncAckMessage;
 import net.dreamlu.mica.net.utils.timer.TimerTask;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
@@ -148,14 +147,14 @@ public interface ClusterApi {
 	 *
 	 * @return 种子成员列表
 	 */
-	Collection<Node> getSeedMembers();
+	Set<Node> getSeedMembers();
 
 	/**
 	 * 获取集群中的成员，不包含当前成员
 	 *
 	 * @return 成员列表，不包含自己
 	 */
-	Collection<Node> getRemoteMembers();
+	Set<Node> getRemoteMembers();
 
 	/**
 	 * 获取当前直连且未关闭的集群成员节点集合（不含本节点）。
@@ -167,7 +166,7 @@ public interface ClusterApi {
 	 *
 	 * @return 在线节点集合（不可变快照）
 	 */
-	Set<Node> getOnlineNodes();
+	Set<Node> getOnlineMembers();
 
 	/**
 	 * 获取本地成员

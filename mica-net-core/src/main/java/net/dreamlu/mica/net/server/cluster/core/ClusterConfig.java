@@ -18,8 +18,9 @@ package net.dreamlu.mica.net.server.cluster.core;
 
 import net.dreamlu.mica.net.core.Node;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 集群配置
@@ -39,7 +40,7 @@ public class ClusterConfig {
 	/**
 	 * 种子成员
 	 */
-	private final List<Node> seedMembers = new ArrayList<>();
+	private final Set<Node> seedMembers = new LinkedHashSet<>();
 	/**
 	 * server 侧消息监听器（处理来自其它节点主动发来的 ClusterDataMessage）
 	 */
@@ -109,7 +110,7 @@ public class ClusterConfig {
 		return port;
 	}
 
-	public List<Node> getSeedMembers() {
+	public Set<Node> getSeedMembers() {
 		return seedMembers;
 	}
 
