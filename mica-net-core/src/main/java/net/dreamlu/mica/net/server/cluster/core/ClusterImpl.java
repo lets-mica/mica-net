@@ -135,7 +135,7 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	private void startClusterTcpClient() throws Exception {
-		TioClientHandler tioHandler = new ClusterTcpClientHandler(this.messageDecoder, syncMessageMap);
+		TioClientHandler tioHandler = new ClusterTcpClientHandler(this.messageDecoder, syncMessageMap, config.getClientMessageListener());
 		TioClientListener tioListener = new ClusterTcpClientListener(this);
 		// 配置
 		TioClientConfig clientConfig = new TioClientConfig(tioHandler, tioListener);

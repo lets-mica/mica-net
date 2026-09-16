@@ -24,6 +24,7 @@ import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.server.cluster.codec.ClusterMessageDecoder;
 import net.dreamlu.mica.net.server.cluster.codec.ClusterMessageEncoder;
 import net.dreamlu.mica.net.server.cluster.message.AbsClusterMessage;
+import net.dreamlu.mica.net.server.cluster.message.ClusterDataMessage;
 import net.dreamlu.mica.net.server.cluster.message.ClusterPingMessage;
 import net.dreamlu.mica.net.server.cluster.message.ClusterSyncAckMessage;
 
@@ -43,12 +44,23 @@ public class ClusterTcpClientHandler implements TioClientHandler {
 	 * 同步消息处理，key：messageId，value：CompletableFuture
 	 */
 	private final ConcurrentMap<Long, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap;
+	/**
+	 * client 侧 ClusterDataMessage 监听器，可为 null
+	 */
+	private final ClusterMessageListener clientMessageListener;
 
 	public ClusterTcpClientHandler(ClusterMessageDecoder messageDecoder,
 	                               ConcurrentMap<Long, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap) {
+		this(messageDecoder, syncMessageMap, null);
+	}
+
+	public ClusterTcpClientHandler(ClusterMessageDecoder messageDecoder,
+	                               ConcurrentMap<Long, CompletableFuture<ClusterSyncAckMessage>> syncMessageMap,
+	                               ClusterMessageListener clientMessageListener) {
 		this.messageEncoder = ClusterMessageEncoder.INSTANCE;
 		this.messageDecoder = messageDecoder;
 		this.syncMessageMap = syncMessageMap;
+		this.clientMessageListener = clientMessageListener;
 	}
 
 	@Override
@@ -74,6 +86,12 @@ public class ClusterTcpClientHandler implements TioClientHandler {
 			CompletableFuture<ClusterSyncAckMessage> future = syncMessageMap.get(messageId);
 			if (future != null) {
 				future.complete(message);
+			}
+		} else if (packet instanceof ClusterDataMessage) {
+			// client 侧入站 data 消息派发；与 server 侧的 ClusterMessageListener 对称
+			ClusterMessageListener listener = this.clientMessageListener;
+			if (listener != null) {
+				listener.onMessage((ClusterDataMessage) packet);
 			}
 		}
 	}

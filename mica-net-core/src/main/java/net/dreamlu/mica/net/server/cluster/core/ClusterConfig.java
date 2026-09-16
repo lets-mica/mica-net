@@ -41,9 +41,13 @@ public class ClusterConfig {
 	 */
 	private final List<Node> seedMembers = new ArrayList<>();
 	/**
-	 * 消息监听器
+	 * server 侧消息监听器（处理来自其它节点主动发来的 ClusterDataMessage）
 	 */
 	private final ClusterMessageListener messageListener;
+	/**
+	 * client 侧消息监听器（处理本节点作为 client 时收到的 ClusterDataMessage），可为 null
+	 */
+	private final ClusterMessageListener clientMessageListener;
 	/**
 	 * 群组是否集群（同一个群组是否会分布在不同的机器上），false:不集群，默认不集群
 	 */
@@ -70,13 +74,31 @@ public class ClusterConfig {
 	private boolean cluster4all = true;
 
 	public ClusterConfig(String host, int port, ClusterMessageListener messageListener) {
+		this(host, port, messageListener, null);
+	}
+
+	/**
+	 * 构造集群配置，同时注册 server 侧与 client 侧的 ClusterDataMessage 回调。
+	 *
+	 * @param host                  集群间互相可访问的 ip 或者域名
+	 * @param port                  集群端口
+	 * @param messageListener       server 侧消息监听器（处理其它节点主动发来的 ClusterDataMessage）
+	 * @param clientMessageListener client 侧消息监听器（处理本节点作为 client 时收到的 ClusterDataMessage），可为 null
+	 */
+	public ClusterConfig(String host, int port, ClusterMessageListener messageListener,
+						 ClusterMessageListener clientMessageListener) {
 		this.host = host;
 		this.port = port;
 		this.messageListener = messageListener;
+		this.clientMessageListener = clientMessageListener;
 	}
 
 	public ClusterMessageListener getMessageListener() {
 		return messageListener;
+	}
+
+	public ClusterMessageListener getClientMessageListener() {
+		return clientMessageListener;
 	}
 
 	public String getHost() {
