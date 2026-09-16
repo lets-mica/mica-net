@@ -248,6 +248,18 @@ public class ClusterImpl implements ClusterApi {
 	}
 
 	@Override
+	public Set<Node> getOnlineNodes() {
+		Set<Node> nodes = new HashSet<>();
+		for (Map.Entry<Node, ChannelContext> entry : memberChannels.entrySet()) {
+			ChannelContext context = entry.getValue();
+			if (context != null && !context.isClosed()) {
+				nodes.add(entry.getKey());
+			}
+		}
+		return Collections.unmodifiableSet(nodes);
+	}
+
+	@Override
 	public Node getLocalMember() {
 		return this.localMember;
 	}

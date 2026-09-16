@@ -22,6 +22,7 @@ import net.dreamlu.mica.net.server.cluster.message.ClusterSyncAckMessage;
 import net.dreamlu.mica.net.utils.timer.TimerTask;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 /**
@@ -155,6 +156,18 @@ public interface ClusterApi {
 	 * @return 成员列表，不包含自己
 	 */
 	Collection<Node> getRemoteMembers();
+
+	/**
+	 * 获取当前直连且未关闭的集群成员节点集合（不含本节点）。
+	 * <p>
+	 * 与 {@link #getRemoteMembers()} 的区别：本方法会过滤掉已断开/未连接的节点，
+	 * 返回的是「此刻可以直接 send/sendSync/broadcast」的可变快照。
+	 * <p>
+	 * 返回的 {@link Set} 是不可变视图，业务侧不应持有引用并期望它跟随连接状态变化。
+	 *
+	 * @return 在线节点集合（不可变快照）
+	 */
+	Set<Node> getOnlineNodes();
 
 	/**
 	 * 获取本地成员

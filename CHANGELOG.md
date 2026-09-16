@@ -4,6 +4,7 @@
 
 ### v2.1.0 - 2026-10-03
 - feat(cluster): `ClusterConfig` 新增 client 侧 `ClusterDataMessage` 派发回调，复用 `ClusterMessageListener`，与 server 侧完全对称（同一接口、同一方法 `onMessage`）。新增 4 参构造器 `ClusterConfig(host, port, messageListener, clientMessageListener)`，3 参构造器保留向后兼容（`clientMessageListener` 为 null）。`ClusterTcpClientHandler#handler` 在收到 `ClusterDataMessage` 时回调 `clientMessageListener.onMessage`，业务不再需要通过反射替换 `TioClientHandler` 来获取入站数据。
+- feat(cluster): `ClusterApi` 新增 `Set<Node> getOnlineNodes()`，返回当前直连且未关闭的集群成员节点集合（不可变快照），过滤掉已断开/未连接的节点，业务侧可直接用于 `send/sendSync/broadcast`。
 
 ### v2.0.15 - 2026-09-03
 - feat(mcp): 升级 MCP 协议到 2026-07-28，dual-era 双轨实现。删除 `Mcp-Session-Id` / `DELETE` 端点；新增 `server/discover` RPC；modern 协议下每个请求通过 `_meta.io.modelcontextprotocol/protocolVersion` 传递版本，每个 Result 注入 `resultType` 与 `_meta.io.modelcontextprotocol/serverInfo`；列表响应（tools / resources / prompts / templates）附加 `ttlMs` 与 `cacheScope` 缓存字段；新增 `McpRequestContext` 用于在 transport 与 handler 间传递协议上下文；新增 `McpDiscoverResult` schema 与 `UNSUPPORTED_PROTOCOL_VERSION`（-32006）错误码；新增 `McpSchema.MCP_2026_07_28`、`MCP_LATEST` 常量与 `Mcp-Method` / `Mcp-Name` Header 常量。`StreamableHttpTransport` 保留 legacy 分支（`SseTransport` / `initialize` / 旧 method 完整保留 12 个月迁移窗口）。
