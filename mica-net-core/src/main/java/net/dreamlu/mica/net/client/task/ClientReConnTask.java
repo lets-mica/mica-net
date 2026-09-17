@@ -49,7 +49,7 @@ public class ClientReConnTask extends TimerTask {
 		// 重置 SSL 握手标记，重连成功后 resetForReconnect 会重建 SslHandler
 		channelContext.resetSslHandshake();
 		// 已经删除的和已经连上的，不需要重新再连
-		if (channelContext.isRemoved() || !channelContext.isClosed()) {
+		if (channelContext.isRemoved() || connectedFilter.test(channelContext)) {
 			return;
 		}
 		int reConnCount = channelContext.getReConnCount().incrementAndGet();

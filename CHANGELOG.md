@@ -3,6 +3,7 @@
 ## 发行版本
 
 ### v2.1.0 - 2026-10-03
+- fix(core): 修复 `ClientReConnTask` 重连时错误判断，将 `channelContext.isClosed()` 替换为 `connectedFilter.test()`。
 - feat(cluster): `ClusterConfig` 新增 client 侧 `ClusterDataMessage` 派发回调，复用 `ClusterMessageListener`，与 server 侧完全对称（同一接口、同一方法 `onMessage`）。新增 4 参构造器 `ClusterConfig(host, port, messageListener, clientMessageListener)`，3 参构造器保留向后兼容（`clientMessageListener` 为 null）。`ClusterTcpClientHandler#handler` 在收到 `ClusterDataMessage` 时回调 `clientMessageListener.onMessage`，业务不再需要通过反射替换 `TioClientHandler` 来获取入站数据。
 - feat(cluster): `ClusterApi` 新增 `Set<Node> getOnlineNodes()`，返回当前直连且未关闭的集群成员节点集合（不可变快照），过滤掉已断开/未连接的节点，业务侧可直接用于 `send/sendSync/broadcast`。
 
