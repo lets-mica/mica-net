@@ -234,6 +234,10 @@ public class TioClient {
 		configReConnTask();
 	}
 
+	/**
+	 * 时间轮粒度见 {@link DefaultTimerTaskService#DEFAULT_TICK_MS}，
+	 * 不要在业务层另起一套，避免多处硬编码不一致。
+	 */
 	private static TimerTaskService getTimerTaskService(TimerTaskService taskService) {
 		return taskService == null ? new DefaultTimerTaskService() : taskService;
 	}
