@@ -1,154 +1,169 @@
-# Agent Guidelines for mica-net
+# AGENTS.md
 
-This document provides essential information for AI agents working on the mica-net repository. It covers build commands, testing procedures, and code style guidelines to ensure consistency and quality.
+本文件是 mica-net 仓库的 AI 代理指南，覆盖项目概览、构建与测试命令、架构核心、代码风格约定。
 
-## 1. Project Overview
+## 项目概述
 
-**mica-net** is a non-blocking network framework based on Java AIO (Asynchronous I/O).
-*   **Java Version:** 1.8
-*   **Build System:** Maven
-*   **Key Dependencies:** fastjson/fastjson2, hutool, slf4j, tinylog (testing).
+mica-net 是基于 t-io 简化而来的 Java 网络通信框架，使用 Java NIO `AsynchronousSocketChannel` 实现异步非阻塞网络通信。最低编译目标为 **Java 1.8**，默认 Maven 多模块工程（`<revision>2.0.17-SNAPSHOT</revision>`）。自 mica-net 2.0.0 起包名从 `org.tio` 迁移为 `net.dreamlu.mica.net.*`。
 
-### Module Structure
-*   `mica-net-core`: Core networking implementation (AIO, TCP, UDP).
-*   `mica-net-http`: HTTP protocol support.
-*   `mica-net-utils`: Common utility classes.
+核心能力：TCP/UDP 通信、HTTP/HTTPS、WebSocket、SSE、`Model Context Protocol (MCP)` 服务端、PROXY protocol V1/V2、SSL/TLS（双向认证、PKCS12）、节点集群与心跳。
 
-## 2. Build and Test Commands
+## 模块结构
 
-### Build
-To build the entire project, run:
+```
+mica-net-utils     基础工具（buffer、cache、hutool、json、queue、timer、thread 等）
+mica-net-core      AIO 核心：AIO TCP/UDP、SSL、PROXY protocol、集群、统计
+mica-net-http      基于 core 构建的 HTTP、WebSocket、SSE、HttpRouter、MCP 服务端
+mica-net-http 依赖于 mica-net-core，而 mica-net-core 依赖于 mica-net-utils
+```
+
+## 常用命令
+
+### 构建
+
 ```bash
+# 全量构建（默认跳过测试，根 pom 中 <maven.test.skip>true</maven.test.skip>）
 mvn clean install
-```
 
-To build without running tests (faster):
-```bash
-mvn clean install -Dmaven.test.skip=true
-```
+# 构建并运行测试（必须显式覆盖 skip）
+mvn clean install -Dmaven.test.skip=false
 
-To build a specific module (e.g., core):
-```bash
+# 仅打包，跳过测试
+mvn clean package -Dmaven.test.skip=true
+
+# 单独构建一个模块（-am 会把依赖模块也一起构建）
 mvn clean install -pl mica-net-core -am
+
+# 发布（CI 流程是 mvn clean package -P !develop）
+mvn clean package -P !develop
+./deploy.sh release   # 实际部署，会调用 vfox 切到 java 8
 ```
 
-### Testing
-This project uses **JUnit 5** for testing.
+### 测试
 
-**Run all tests:**
+测试使用 JUnit 5 + tinylog（参考 `mica-net-core/src/test/java`）。注意根 pom 默认 `maven.test.skip=true`，所以必须显式 `-Dmaven.test.skip=false`，否则 `mvn test` 会静默跳过全部用例。
+
 ```bash
-mvn test
+# 跑全部测试
+mvn test -Dmaven.test.skip=false
+
+# 跑单个测试类
+mvn -pl mica-net-core test -Dmaven.test.skip=false -Dtest=TcpClientTest
+
+# 跑单个方法
+mvn -pl mica-net-core test -Dmaven.test.skip=false -Dtest=ProxyProtocolDecoderTest#testIPV4Decode
 ```
 
-**Run a single test class:**
-```bash
-mvn -Dtest=TestClassName test
-# Example:
-mvn -Dtest=TcpClientTest test
+### 配置仓库
+
+`develop` profile（默认激活）走阿里云镜像。CI 用 `mvn clean package -P !develop` 关闭 develop profile 后使用 Maven Central。
+
+## 架构核心（必须先理解）
+
+### 三层任务队列
+
+```
+[网络I/O] → DecodeRunnable → HandlerRunnable → SendRunnable → [网络I/O]
 ```
 
-**Run a specific test method:**
-```bash
-mvn -Dtest=TestClassName#methodName test
-# Example:
-mvn -Dtest=TcpClientTest#testConnection test
-```
+- `core/task/AbstractDecodeRunnable`、`core/tcp/TcpDecodeRunnable`：粘包/半包解码，循环调用 `TcpHandler.decode`；包含滑动窗口慢包攻击检测
+- `core/task/HandlerRunnable`：业务处理；`syncReqId > 0` 时通过 `CompletableFuture` 异步响应；调用 `TcpHandler.handler`
+- `core/task/AbstractSendRunnable`、`core/tcp/TcpSendRunnable`：自适应批量发送，scatter-write 零拷贝
 
-**Note on Logs:** Test logs typically use `tinylog`. Check console output for details.
+读路径入口：`ReadCompletionHandler.completed` → 解码 → 业务处理；写路径由 `WriteCompletionHandler.completed` 续写。
 
-## 3. Code Style Guidelines
+### 关键类与职责
 
-Adhere strictly to the existing code style. When in doubt, mimic the surrounding code.
+| 类型 | 说明 |
+| ---- | ---- |
+| `core.Tio` | 对外 API 入口：`send/bSend/close/remove/bind/unbind/schedule` 等 |
+| `core.TioConfig` / `server.TioServerConfig` / `client.TioClientConfig` | 全局配置（线程池、统计、心跳、SSL、backlog） |
+| `core.ChannelContext` | 每个 TCP/UDP 连接对应一个上下文（抽象类，`extends MapPropSupport implements NetChannel`）；`states` 为 `final AtomicInteger`（CAS），业务可通过 `tioConfig` 访问全局配置 |
+| `server.ServerChannelContext` / `client.ClientChannelContext` | 扩展自 `ChannelContext`，按端区分 |
+| `core.intf.NetChannel` / `core.intf.UdpChannel` | 抽象网络通道；TCP/UDP 共用抽象 |
+| `core.intf.TcpHandler` | TCP 三段式接口（`decode/encode/handler`） |
+| `server.intf.TioServerHandler` / `client.intf.TioClientHandler` | 分别面向 server/client 的 `TcpHandler` 子接口 |
+| `core.intf.UdpHandler` | UDP 业务接口（基于 `UdpChannel`） |
+| `core.ReadCompletionHandler` / `core.WriteCompletionHandler` | AIO 完成处理器 |
+| `core.intf.Packet` / `EncodedPacket` / `IgnorePacket` | 业务包抽象；`EncodedPacket` 直接携带已编码字节 |
+| `server.TioServer` / `client.TioClient` | 服务端/客户端启动入口 |
 
-### Formatting
-*   **Indentation:** Use **Tabs** or 4 spaces (detect from file). Most files appear to use **Tabs**.
-*   **Braces:** K&R style (opening brace on the same line).
-*   **Encoding:** UTF-8.
-*   **Line Endings:** LF (Unix) or CRLF (Windows) - respect the file's existing setting.
+### ChannelContext 状态位
 
-### Imports
-*   **No Wildcard Imports:** Do not use `import java.util.*;`. Import each class explicitly.
-*   **Ordering:**
-    1.  Standard Java imports (`java.*`, `javax.*`)
-    2.  Third-party imports (`org.slf4j.*`, `com.alibaba.*`)
-    3.  Project imports (`net.dreamlu.mica.net.*`, `net.dreamlu.mica.net.utils.*`)
-*   **Cleanup:** Remove unused imports.
+`ChannelContext#states` 为 `AtomicInteger`，通过位运算标识连接状态，业务可使用 `isAccepted`、`isBizStatus` 等预留位。状态变更使用 CAS 循环保证线程安全。同步包在 `Packet#syncReqId` 上标记，`syncReqId > 0` 时由 `HandlerRunnable` 通过 `CompletableFuture` 实现请求-响应模式。
 
-### Naming Conventions
-*   **Classes/Interfaces:** `PascalCase` (e.g., `ChannelContext`, `TioServer`).
-*   **Methods/Variables:** `camelCase` (e.g., `sendPacket`, `clientNode`).
-*   **Constants:** `UPPER_SNAKE_CASE` (e.g., `MAX_DATA_LENGTH`, `UNKNOWN_ADDRESS_IP`).
-*   **Packages:** `lowercase` (e.g., `net.dreamlu.mica.net.core`).
+### 网络层默认行为
 
-### Logging
-*   Use **SLF4J** for logging.
-*   **Logger Declaration:**
-    ```java
-    private static final Logger log = LoggerFactory.getLogger(CurrentClass.class);
-    ```
-*   **Usage:** Use placeholders `{}` instead of string concatenation.
-    ```java
-    // Good
-    log.error("Connection failed for user: {}", userId, e);
-    
-    // Avoid
-    log.error("Connection failed for user: " + userId, e);
-    ```
+- 客户端 `close`：调用 `Tio.close`；连接关闭时（`TcpCloseRunnable`）若配置了 `ReconnConf`，会注册重连任务，由时间轮周期性尝试重连
+- 服务端踢人：使用 `Tio.remove`（不是 close）
+- 心跳与定时任务基于 `mica-net-utils` 自研时间轮（`utils.timer` 下的 `TimingWheel`/`TimingWheelThread`/`SystemTimer`/`DefaultTimerTaskService`），不再单独起线程
+- `useQueueDecode`、`useQueueSend` 控制是否走线程池
+- `TcpSendRunnable#writing`（`AtomicBoolean`）用于保护 `AsynchronousSocketChannel` 的 `WritePendingException`
 
-### Error Handling
-*   Use `try-catch` blocks where appropriate.
-*   Log exceptions with stack traces using `log.error(msg, e)`.
-*   Avoid swallowing exceptions without logging or handling.
-*   When throwing custom exceptions, use existing exception classes in `net.dreamlu.mica.net.core.exception` if applicable.
+### 高层模块要点
 
-### Comments and Javadoc
-*   **Language:** Prefer Chinese for new comments and Javadoc. Use English only when required by external specifications, APIs, or established terminology, and keep the surrounding file consistent.
-*   **Javadoc:** Required for public classes and interfaces.
-*   **Implementation Comments:** Add comments for complex logic explaining *why*, not just *what*.
+- **PROXY Protocol**：`server/proxy/ProxyProtocolDecoder` 同时支持 v1/v2，未携带 PROXY header 的连接不会断开（灰度友好）
+- **SSL**：`core/ssl/SslConfig.forServer()/forClient()`，可注册 `SSLEngineCustomizer` 自定义协议版本与加密套件；每个连接由 `SslHandler` 管理握手、加解密和 TLS 半包
+- **集群**：`server/cluster` 提供多实例 group/user 同步、广播、节点上下线通知；`lateJoinMembers` 为线程安全 Set
+- **HTTP 模块**：`HttpServerStarter` + 函数式 `HttpRequestHandler`；`HttpRouter` 是基于 Trie 的轻量路由，支持路径参数 + 过滤器 + 全局异常；`HttpStream.startSse` 实现 SSE/chunked
+- **WebSocket**：`WsServerStarter` + `IWsMsgHandler`（`onText/onBytes/onClose/handshake`），客户端数据必须 mask
+- **MCP（mica-net-http）**：实现 `tools`、`resources`、`prompts`、`sampling`、`roots`、`completion`、`cancellation` 等协议能力，位于 `http/mcp`
 
-### License Header
-New files must include the Apache License 2.0 header. Copy it from an existing file (e.g., `mica-net-core/src/main/java/org/tio/core/ChannelContext.java`).
+## 协议：三段式编解码
+
+`TcpHandler.decode` 返回 `null` 表示半包，框架会自动拼接 `lastByteBuffer` 等待下次数据：**不够一帧时绝不要消费 `ByteBuffer`**。
 
 ```java
-/*
-    Apache License
-    Version 2.0, January 2004
-    http://www.apache.org/licenses/
-    ... (See full header in existing files)
-*/
+public Packet decode(ByteBuffer buf, int limit, int pos, int readable, ChannelContext ctx) {
+    if (readable < HEADER_LEN) return null;  // 半包
+    if (readable < HEADER_LEN + bodyLen) return null;
+    // 完整帧：从 buf 取数据构造 Packet
+}
 ```
 
-## 4. Specific Patterns
+`encode` 返回 `ByteBuffer`，`SendRunnable` 会自动按需做 SSL 加密和 scatter-write 批量发送。
 
-### ChannelContext
-*   `ChannelContext` is the core state object for a connection.
-*   It extends `MapPropSupport` for attaching custom properties.
-*   Use `tioConfig` to access global configuration.
+## 约定与风格
 
-### ByteBuffer Handling
-*   The framework relies heavily on `java.nio.ByteBuffer`.
-*   Ensure buffers are flipped (`buffer.flip()`) before reading after writing to them.
-*   Watch out for buffer underflows/overflows.
+代码风格已经在 `.editorconfig` 中固化：**Java 文件使用 Tab 缩进**，JSON/YAML 用 2 空格，LF 行尾，UTF-8。新代码必须包含 Apache 2.0 license header（参考 `mica-net-core/src/main/java/net/dreamlu/mica/net/core/intf/TcpHandler.java`）。
 
-### JSON Serialization
-*   The project supports multiple JSON libraries (`fastjson`, `gson`, `jackson`).
-*   Check `mica-net-utils` or local configuration to see which one is active or preferred in a specific context.
+- 包名统一 `net.dreamlu.mica.net.*`，模块化由 `moditect-maven-plugin` 在 `package` 阶段注入 JPMS `module-info`
+- 不使用通配符 import；import 顺序为 `java.*`/`javax.*` → 第三方（如 `org.slf4j.*`、`com.alibaba.*`）→ 项目包（`net.dreamlu.mica.net.*`），并移除未使用的 import
+- 字符串常量：`UPPER_SNAKE_CASE`；类/接口 `PascalCase`；方法/变量 `camelCase`；包名全小写
+- 日志使用 SLF4J（`private static final Logger log = LoggerFactory.getLogger(...)`），必须用 `{}` 占位符
+- 异常处理：用 `try-catch` 兜住需要容错的分支，异常必须 `log.error(msg, e)` 带堆栈记录，不允许静默吞掉；自定义异常优先复用 `net.dreamlu.mica.net.core.exception` 下已有的异常类
+- 注释与 Javadoc：**与本仓库现状保持一致，优先使用中文**；修改已有中文注释的区块时保持中文一致；英文仅用于外部规范、API 或既有术语；公共类与接口需要 Javadoc，复杂逻辑注释解释「为什么」而不只是「做了什么」
+- `mica-net-utils` 下多套 JSON 适配（fastjson1/fastjson2/gson/jackson2/jackson3/hutool-json/snack3/snack4），按需选用，业务代码默认走 `JsonUtil`
 
-## 5. Development Workflow for Agents
+## 关键配置项
 
-1.  **Explore:** Before changing code, read related files to understand the context.
-    *   Use `grep` to find usages of methods/classes.
-    *   Use `read` to inspect file content.
-2.  **Verify:**
-    *   Check for existing tests in `src/test/java`.
-    *   Create new tests if adding new functionality.
-    *   Run `mvn test` to ensure no regressions.
-3.  **Implement:**
-    *   Apply changes respecting the code style.
-    *   Keep changes atomic and focused.
+| 字段 | 所属类 | 默认 | 说明 |
+| ---- | ---- | ---- | ---- |
+| `heartbeatTimeout` | `TioConfig` | `120000ms` | 心跳超时 |
+| `useQueueDecode` | `TioConfig` | `false` | 解码是否走线程池 |
+| `useQueueSend` | `TioConfig` | `true` | 发送是否入队批量 |
+| `debug` | `TioConfig` | `false` | 是否输出详细日志 |
+| `packetHandlerMode` | `TioConfig` | `SINGLE_THREAD` | 包处理模式 |
+| `maxDecodeFailCount` | `TioConfig` | `10` | 解码失败最大次数 |
+| `slowPacketWindowSize` | `TioConfig` | `16` | 慢包检测滑动窗口大小 |
+| `slowPacketCheckInterval` | `TioConfig` | `1` | 慢包检测间隔（每 N 次解码失败检测一次） |
+| `backlog` | `TioServerConfig` | `1024` | 服务端 accept backlog |
+| `heartbeatTimeoutStrategy` | `TioClientConfig` | `null`（不处理） | `PING` 超时后发 ping；`CLOSE` 超时后断开 |
 
-## 6. Miscellaneous
+## 重要补充
 
-*   **Null Checks:** Use `java.util.Objects.requireNonNull` or explicitly check for nulls where necessary.
-*   **Concurrency:** The framework is multi-threaded. Be careful with shared state. Use `AtomicInteger`, `ConcurrentHashMap`, etc., where appropriate.
-*   **Git:** Do not commit `.idea`, `.vscode`, `target/` directories.
+- 较老代码可能残留 `org.tio.*` import，是 v2.0.0 之前的 t-io 风格，新写代码不要再使用
+- `ChannelContext` 已不再保留旧 `TcpChannelContext`，TCP 相关字段全部回归 `ChannelContext` 自身（参见 commit `60cb0aa`）
+- 重连：`TioClientConfig.setReconnConf(new ReconnConf())`；`ReconnConf#connectedFilter` 可自定义「是否已连接」的断言
+- 不要提交 `.idea/`、`.codegraph/`、`.claude/`、`.workbuddy/`、`target/`、`.flattened-pom.xml`（见 `.gitignore`）
+- 用户级使用文档见 `docs/useage/{tcp,udp,http,websocket}.md`；变更记录见 `CHANGELOG.md`
+- 任何新的源码改动请同步更新 `CHANGELOG.md`（按 `feat|fix|refactor|perf|chore(scope): 简述` 格式）
+
+## AI 代理协作约定
+
+1. 改代码前先 `grep` 或 `codegraph_explore` 看清调用链，避免破坏 AIO 写路径的状态机
+2. 修改公共 API（`Tio`、`TcpHandler`、`HttpRouter` 等）时同步更新 `docs/useage/` 中对应文档
+3. 测试默认被跳过，提交前请跑 `mvn test -Dmaven.test.skip=false -pl <module>` 验证
+4. 不要忽略 `mvn clean package` 的报错；注意 `.flattened-pom.xml` 在 .gitignore 中，每次构建会重新生成
+5. 框架是多线程的，共享状态用 `AtomicInteger`、`ConcurrentHashMap` 等并发容器处理；必要的判空用 `java.util.Objects.requireNonNull`
+6. 保持改动原子、聚焦；新增功能要补测试到 `src/test/java`
