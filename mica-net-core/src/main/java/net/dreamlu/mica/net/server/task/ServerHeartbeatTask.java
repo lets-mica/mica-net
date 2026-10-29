@@ -88,7 +88,7 @@ public class ServerHeartbeatTask extends TimerTask {
 				long interval = currTime - compareTime;
 				boolean needRemove;
 				if (context.heartbeatTimeout != null && context.heartbeatTimeout > 0) {
-					needRemove = interval > context.heartbeatTimeout * heartbeatBackoff;
+					needRemove = interval > context.heartbeatTimeout * heartbeatBackoff * 2;
 				} else {
 					needRemove = interval > heartbeatTimeout;
 				}
