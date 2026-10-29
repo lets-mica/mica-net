@@ -14,6 +14,9 @@ import java.util.Map;
 /**
  * 定时缓存<br>
  * 此缓存没有容量限制，对象只有在过期后才会被移除
+ * <p>
+ * 过期判定在读路径上即时完成（{@code get} 命中即校验），定时清理只负责回收
+ * 「无人访问的过期条目」，因此清理周期按秒级即可，不支持毫秒级精度。
  *
  * @param <K> 键类型
  * @param <V> 值类型
@@ -21,6 +24,17 @@ import java.util.Map;
  */
 public class TimedCache<K extends Serializable, V extends Serializable> extends ReentrantCache<K, V> implements Closeable {
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 清理周期下限，单位毫秒。
+	 * <p>
+	 * 清理任务由时间轮调度，而时间轮的最小粒度是 {@link DefaultTimerTaskService#DEFAULT_TICK_MS}。
+	 * 周期小于一个 tick 时，{@code TimingWheel#add} 会把任务当成「已到期」而立即执行（延时退化为 0），
+	 * 而任务执行完又会重新入队，于是退化成空转，持续占用一个 CPU 核，并把同进程的线程调度拖慢。
+	 * <p>
+	 * 由于过期判定本来就在读路径上即时完成，这里把清理周期兜底到秒级即可。
+	 */
+	public static final long MIN_CLEANUP_MS = 1000L;
 
 	/**
 	 * 时间轮
@@ -101,15 +115,19 @@ public class TimedCache<K extends Serializable, V extends Serializable> extends 
 
 	/**
 	 * 定时清理
+	 * <p>
+	 * 清理周期兜底到 {@link #MIN_CLEANUP_MS}（秒级），避免小于时间轮粒度时任务立即执行导致空转。
 	 *
 	 * @param delay 间隔时长，单位毫秒
 	 */
 	protected void schedulePrune(long delay) {
-		this.timerTask = timerTaskService.addTask(timer -> new TimerTask(delay) {
+		long period = Math.max(delay, MIN_CLEANUP_MS);
+		this.timerTask = timerTaskService.addTask(timer -> new TimerTask(period) {
 			@Override
 			public void run() {
 				timer.add(this);
-				TimedCache.this.pruneCache();
+				// 必须走 prune()（内部持锁），直接调用 pruneCache() 会与业务线程并发读写底层 map
+				TimedCache.this.prune();
 			}
 		});
 	}

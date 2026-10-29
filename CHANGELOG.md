@@ -6,6 +6,11 @@
 - fix(cluster): 修复 `ClusterImpl#stop()` 空指针。集群客户端与服务端都是 `start()` 子步骤才创建的，未调用 `start()` 或启动中途失败（如端口被占用）时任一字段为 `null`，原实现无条件解引用抛出 NPE，导致调用方的清理流程被中断、端口与线程无法释放。现改为客户端与服务端各自判空后再停、互不牵连，停完把字段置为 `null`（字段加 `volatile`，保证置空对其它线程可见），使重复 `stop()` 成为真正的 no-op，同时让「集群是否已启动」的状态保持准确；停止时一并清空 `lateJoinMembers`，避免重启后因「已加入」而跳过与该节点的返回连接。
 - fix(cluster): 加固 `ClusterImpl` 同类暴露面。`broadcast` / `schedule` / `scheduleOnce` / `addJoinMember` 在集群客户端尚未创建时不再抛 NPE，改为记 warn 并返回空结果：`schedule` 系列返回 `null`，`broadcast` 直接返回，`addJoinMember` 跳过连接且不将成员标记为已加入（避免后续重试被跳过）。
 - test(cluster): 新增 `ClusterImplStopTest` 与 `ClusterImplUnstartedTest`，覆盖未启动直接停止、启动成功后连续停止两次、启动中途失败后停止（校验端口已释放）、停止后重启，以及未启动时广播、定时任务、新成员加入的健壮性。
+- fix(cache): `TimedCache` 定时清理改为调用持锁的 `prune()`。原实现直接调用 `pruneCache()`，绕过了 `ReentrantCache` 的锁，与业务线程并发读写底层 `HashMap`，实测可触发 `ConcurrentModificationException`；该异常抛在定时线程上并被时间轮的 `submit()` 静默吞掉，业务侧完全无感知，表现为缓存条目残留、清理不干净。
+- fix(cache): `TimedCache` 清理周期下限兜底为 1 秒（新增常量 `MIN_CLEANUP_MS`）。清理周期小于时间轮粒度（`DefaultTimerTaskService#DEFAULT_TICK_MS` = 10ms）时，`TimingWheel#add` 会把任务当成「已到期」而立即执行，任务执行完又重新入队，于是退化成空转并持续占用一个 CPU 核（实测 100ms 内清理 29 万次），并把同进程的线程调度拖慢。本缓存的过期判定本就在读路径上即时完成，清理只负责回收无人访问的过期条目，按秒级使用即可。
+- fix(timer): `DefaultTimerTaskService#stop()` 调整停止顺序：先停时间轮线程、再关任务线程池。原先先关线程池，轮线程 flush 桶时向已关闭的线程池提交任务会抛 `RejectedExecutionException`，且该异常抛在轮线程上无人接管；`TioClient` / `TioServer` 的关闭同样走这条路径。
+- perf(timer): `TimingWheelThread` 关闭时中断轮线程，使其立刻从 `delayQueue.poll` 中醒来退出，避免每次关闭都空等一个 `workTimeoutMs`（200ms）。
+- test(cache): `TimedCacheTest` 改为秒级粒度（默认过期 1 秒），`CacheTest#whenContainsKeyTimeout_shouldCallOnRemove` 同步迁移到秒级；新增「定时清理必须在持锁状态下执行」回归用例。原用例以 4ms 过期配合 2ms 等待做断言，余量远小于线程调度抖动，实测 8 次有 6 次偶发失败。
 
 ### v2.0.16 - 2026-09-19
 - fix(core): 修复 `ClientReConnTask` 重连时错误判断，将 `channelContext.isClosed()` 替换为 `connectedFilter.test()`。
