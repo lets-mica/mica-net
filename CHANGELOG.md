@@ -2,6 +2,11 @@
 
 ## 发行版本
 
+### v2.0.17 - 2026-10-29
+- fix(cluster): 修复 `ClusterImpl#stop()` 空指针。集群客户端与服务端都是 `start()` 子步骤才创建的，未调用 `start()` 或启动中途失败（如端口被占用）时任一字段为 `null`，原实现无条件解引用抛出 NPE，导致调用方的清理流程被中断、端口与线程无法释放。现改为客户端与服务端各自判空后再停、互不牵连，停完把字段置为 `null`（字段加 `volatile`，保证置空对其它线程可见），使重复 `stop()` 成为真正的 no-op，同时让「集群是否已启动」的状态保持准确；停止时一并清空 `lateJoinMembers`，避免重启后因「已加入」而跳过与该节点的返回连接。
+- fix(cluster): 加固 `ClusterImpl` 同类暴露面。`broadcast` / `schedule` / `scheduleOnce` / `addJoinMember` 在集群客户端尚未创建时不再抛 NPE，改为记 warn 并返回空结果：`schedule` 系列返回 `null`，`broadcast` 直接返回，`addJoinMember` 跳过连接且不将成员标记为已加入（避免后续重试被跳过）。
+- test(cluster): 新增 `ClusterImplStopTest` 与 `ClusterImplUnstartedTest`，覆盖未启动直接停止、启动成功后连续停止两次、启动中途失败后停止（校验端口已释放）、停止后重启，以及未启动时广播、定时任务、新成员加入的健壮性。
+
 ### v2.0.16 - 2026-09-19
 - fix(core): 修复 `ClientReConnTask` 重连时错误判断，将 `channelContext.isClosed()` 替换为 `connectedFilter.test()`。
 - feat(cluster): `ClusterConfig` 新增 client 侧 `ClusterDataMessage` 派发回调，复用 `ClusterMessageListener`，与 server 侧完全对称（同一接口、同一方法 `onMessage`）。新增 4 参构造器 `ClusterConfig(host, port, messageListener, clientMessageListener)`，3 参构造器保留向后兼容（`clientMessageListener` 为 null）。`ClusterTcpClientHandler#handler` 在收到 `ClusterDataMessage` 时回调 `clientMessageListener.onMessage`，业务不再需要通过反射替换 `TioClientHandler` 来获取入站数据。
