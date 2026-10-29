@@ -87,6 +87,9 @@ public class TimingWheelThread extends Thread {
 				shutdownInitiated.countDown();
 			}
 		}
+		// 中断轮线程，使其立刻从 delayQueue.poll 中醒来退出，
+		// 否则最多要等满一个 workTimeoutMs 才能感知到关闭
+		this.interrupt();
 	}
 
 	/**

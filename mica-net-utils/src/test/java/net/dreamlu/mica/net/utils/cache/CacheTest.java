@@ -134,7 +134,8 @@ public class CacheTest {
 	 */
 	@Test
 	public void whenContainsKeyTimeout_shouldCallOnRemove() throws IOException {
-		int timeout = 50;
+		// 缓存按秒级使用：超时 1 秒，定时清理周期同为秒级
+		int timeout = 1000;
 		try (TimedCache<Integer, String> ALARM_CACHE = new TimedCache<>(timeout)) {
 			AtomicInteger counter = new AtomicInteger(0);
 			ALARM_CACHE.setListener((key, value) -> {
@@ -143,7 +144,9 @@ public class CacheTest {
 
 			ALARM_CACHE.put(1, "value1");
 
-			ThreadUtil.sleep(100);
+			// 清理周期与超时同为 1 秒，第一次清理可能正好落在过期时刻，
+			// 故等两轮清理，确保有一轮是在过期之后执行的
+			ThreadUtil.sleep(3000);
 
 			assertFalse(ALARM_CACHE.containsKey(1));
 			assertEquals(1, counter.get());

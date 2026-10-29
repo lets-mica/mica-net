@@ -95,9 +95,11 @@ public class DefaultTimerTaskService implements TimerTaskService {
 
 	@Override
 	public void stop() {
-		// 先关闭线程池，防止新任务加入
-		systemTimer.shutdown();
+		// 先停止时间轮线程：轮线程 flush 桶时会向任务线程池提交任务，
+		// 若此时线程池已关闭会抛 RejectedExecutionException，且该异常抛在轮线程上无人接管
 		timingWheelThread.shutdown();
+		// 再关闭任务线程池，防止新任务加入
+		systemTimer.shutdown();
 		started.set(false);
 	}
 
