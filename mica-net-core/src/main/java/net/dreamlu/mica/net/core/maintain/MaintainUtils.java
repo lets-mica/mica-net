@@ -217,6 +217,7 @@ public class MaintainUtils {
 		}
 		tioConfig.connections.remove(channelContext);
 		tioConfig.ids.unbind(channelContext);
+        tioConfig.clientNodes.remove(channelContext);
 		close(channelContext);
 	}
 
