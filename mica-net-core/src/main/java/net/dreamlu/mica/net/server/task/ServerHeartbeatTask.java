@@ -73,6 +73,7 @@ public class ServerHeartbeatTask extends TimerTask {
 		long heartbeatPeriod = serverConfig.heartbeatTimeout;
 		// keepAlive * keepAliveBackoff * 2 时间作为服务端心跳超时时间
 		float heartbeatBackoff = serverConfig.getHeartbeatBackoff();
+		float heartbeatBackoff2x = heartbeatBackoff * 2;
 		long heartbeatTimeout = (long) (heartbeatPeriod * heartbeatBackoff);
 		long start1 = 0;
 		int count = 0;
@@ -88,8 +89,9 @@ public class ServerHeartbeatTask extends TimerTask {
 				long interval = currTime - compareTime;
 				boolean needRemove;
 				if (context.heartbeatTimeout != null && context.heartbeatTimeout > 0) {
-					needRemove = interval > context.heartbeatTimeout * heartbeatBackoff * 2;
+					needRemove = interval > context.heartbeatTimeout * heartbeatBackoff2x;
 				} else {
+					// 服务端默认是 120s，算已经 x 2 过的，不需在额外乘 2
 					needRemove = interval > heartbeatTimeout;
 				}
 				if (needRemove && !serverListener.onHeartbeatTimeout(context, interval, context.stat.heartbeatTimeoutCount.incrementAndGet())) {
