@@ -80,13 +80,13 @@ public class ClusterImpl implements ClusterApi {
 	 */
 	private final Snowflake snowflake;
 	/**
-	 * tcp 集群服务
+	 * tcp 集群服务，stop() 后置为 null，用 volatile 保证置空对其它线程可见
 	 */
-	private TioServer tcpClusterServer;
+	private volatile TioServer tcpClusterServer;
 	/**
-	 * tcp 客户端
+	 * tcp 客户端，stop() 后置为 null，用 volatile 保证置空对其它线程可见
 	 */
-	private TioClient tcpClusterClient;
+	private volatile TioClient tcpClusterClient;
 
 	public ClusterImpl(ClusterConfig config) {
 		this.config = config;
@@ -142,14 +142,42 @@ public class ClusterImpl implements ClusterApi {
 		}
 	}
 
+	/**
+	 * 停止集群。
+	 * <p>
+	 * 客户端与服务端都是 start() 的子步骤才创建的，可能一个都没创建、一个只创建了一半
+	 * （例如端口被占用时服务端启动失败），所以这里必须各自判空后再停，
+	 * 并且不能因为其中一个为 null 就跳过另一个的释放。
+	 * <p>
+	 * 停止后把字段置为 null，使重复调用成为真正的 no-op，同时让「集群是否已启动」
+	 * 这一状态保持准确。
+	 */
 	@Override
 	public void stop() {
 		// 1. 停止客户端
-		this.tcpClusterClient.stop();
+		TioClient client = this.tcpClusterClient;
+		if (client != null) {
+			try {
+				client.stop();
+			} catch (Exception e) {
+				log.error("停止集群客户端失败", e);
+			}
+		}
+		this.tcpClusterClient = null;
 		// 2. 停止服务端
-		this.tcpClusterServer.stop();
+		TioServer server = this.tcpClusterServer;
+		if (server != null) {
+			try {
+				server.stop();
+			} catch (Exception e) {
+				log.error("停止集群服务端失败", e);
+			}
+		}
+		this.tcpClusterServer = null;
 		// 3. 清理映射
 		this.memberChannels.clear();
+		// 清空后加入成员，避免重启后因「已加入」而跳过与该节点的返回连接
+		this.lateJoinMembers.clear();
 	}
 
 	@Override
@@ -191,30 +219,55 @@ public class ClusterImpl implements ClusterApi {
 
 	@Override
 	public void broadcast(ClusterDataMessage message) {
+		TioClient client = this.tcpClusterClient;
+		if (client == null) {
+			log.warn("集群客户端未启动，忽略广播消息");
+			return;
+		}
 		// 所有在线节点
 		Set<ChannelContext> contextSet = new HashSet<>(memberChannels.values());
-		TioClientConfig clientConfig = this.tcpClusterClient.getClientConfig();
+		TioClientConfig clientConfig = client.getClientConfig();
 		Tio.sendToSet(clientConfig, contextSet, message, null);
 	}
 
 	@Override
 	public TimerTask schedule(Runnable command, long delay) {
-		return this.tcpClusterClient.schedule(command, delay);
+		TioClient client = this.tcpClusterClient;
+		if (client == null) {
+			log.warn("集群客户端未启动，无法添加定时任务");
+			return null;
+		}
+		return client.schedule(command, delay);
 	}
 
 	@Override
 	public TimerTask schedule(Runnable command, long delay, Executor executor) {
-		return this.tcpClusterClient.schedule(command, delay, executor);
+		TioClient client = this.tcpClusterClient;
+		if (client == null) {
+			log.warn("集群客户端未启动，无法添加定时任务");
+			return null;
+		}
+		return client.schedule(command, delay, executor);
 	}
 
 	@Override
 	public TimerTask scheduleOnce(Runnable command, long delay) {
-		return this.tcpClusterClient.scheduleOnce(command, delay);
+		TioClient client = this.tcpClusterClient;
+		if (client == null) {
+			log.warn("集群客户端未启动，无法添加定时任务");
+			return null;
+		}
+		return client.scheduleOnce(command, delay);
 	}
 
 	@Override
 	public TimerTask scheduleOnce(Runnable command, long delay, Executor executor) {
-		return this.tcpClusterClient.scheduleOnce(command, delay, executor);
+		TioClient client = this.tcpClusterClient;
+		if (client == null) {
+			log.warn("集群客户端未启动，无法添加定时任务");
+			return null;
+		}
+		return client.scheduleOnce(command, delay, executor);
 	}
 
 	@Override
@@ -282,10 +335,16 @@ public class ClusterImpl implements ClusterApi {
 	 * @param joinMember 新加入的节点
 	 */
 	void addJoinMember(Node joinMember) {
+		TioClient client = this.tcpClusterClient;
+		if (client == null) {
+			// 未启动时无法建立返回连接，也不能把成员标记为已加入，否则后续重试会被跳过
+			log.warn("集群客户端未启动，忽略新成员:{}", joinMember);
+			return;
+		}
 		if (lateJoinMembers.add(joinMember)) {
 			try {
 				// 主动建立到新节点的 client 连接（返回连接）
-				this.tcpClusterClient.connect(joinMember);
+				client.connect(joinMember);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
