@@ -231,10 +231,14 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 		TioClientListener tioClientListener = tioClientConfig.getTioClientListener();
 		boolean isReconnect = attachment.isReconnect();
 		boolean isConnected = false;
+		// 重连时的旧 socket，待新连接就绪后再关闭
+		AsynchronousSocketChannel oldSocket = null;
 
 		try {
 			if (throwable == null) {
 				if (isReconnect) {
+					// 记录旧 socket，稍后在新连接注册完读事件后关闭
+					oldSocket = channelContext.asynchronousSocketChannel;
 					// 设置异步连接处理器
 					channelContext.setAsynchronousSocketChannel(asynchronousSocketChannel);
 					// 服务端重启后必须重建 SSLEngine / 清空 Proxy 半包缓冲，否则 SSL 握手会卡死
@@ -264,10 +268,17 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
 				tioClientConfig.connecteds.add(channelContext);
 
 				ReadCompletionHandler readCompletionHandler = channelContext.getReadCompletionHandler();
-				ByteBuffer readByteBuffer = readCompletionHandler.getReadByteBuffer();
-				readByteBuffer.position(0);
-				readByteBuffer.limit(readByteBuffer.capacity());
-				asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
+				readCompletionHandler.registerRead(asynchronousSocketChannel);
+				if (oldSocket != null && oldSocket != asynchronousSocketChannel) {
+					// 旧 socket 必须关闭：否则旧连接上 pending 的读回调会一直挂着，
+					// 且旧连接的资源不会释放。关闭动作放在新连接注册读事件之后，
+					// 这样旧 socket 的迟到回调会被 ReadCompletionHandler 按归属丢弃。
+					try {
+						oldSocket.close();
+					} catch (Throwable e) {
+						log.warn("{}, 关闭旧连接的 socket 失败:{}", channelContext, e.getMessage());
+					}
+				}
 				log.info("connected to {}", serverNode);
 				if (!isReconnect) {
 					channelContext.stat.setTimeFirstConnected(System.currentTimeMillis());

@@ -19,6 +19,7 @@ package net.dreamlu.mica.net.core.ssl;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import javax.net.ssl.*;
 
@@ -37,6 +38,10 @@ import net.dreamlu.mica.net.core.ChannelContext;
 final class SslEngineWorker {
 	private static final Logger log = LoggerFactory.getLogger(SslEngineWorker.class);
 	private static final ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
+	/**
+	 * wrap 未能推进时的最大重试次数，防止握手状态机异常时死循环
+	 */
+	private static final int MAX_WRAP_RETRY = 8;
 
 	private final ChannelContext channelContext;
 	private final SSLEngine engine;
@@ -45,8 +50,22 @@ final class SslEngineWorker {
 	private final Consumer<ByteBuffer> plainDataConsumer;
 	private final Runnable handshakeCompletedListener;
 	private final Runnable sessionClosedListener;
-	private boolean handshakeStarted;
+	/**
+	 * SSLEngine 不是线程安全的：读线程调用 unwrap、写线程调用 wrap，
+	 * 并发访问会导致序号/密钥状态错乱，表现为 Tag mismatch、握手期发出非法记录等。
+	 * 这里用连接级锁把引擎访问串行化。
+	 */
+	private final ReentrantLock engineLock = new ReentrantLock();
+	private volatile boolean handshakeStarted;
 	private volatile boolean handshakeCompleted;
+	/**
+	 * 本端是否已主动关闭会话。
+	 * <p>
+	 * 主动关闭后引擎自身的 inbound 也会被关闭，此时 unwrap 同样返回 CLOSED，
+	 * 但这不是"对端关闭"，不能再触发 session closed 回调，否则会造成误报。
+	 * </p>
+	 */
+	private volatile boolean closed;
 
 	SslEngineWorker(ChannelContext channelContext, SSLContext sslContext, boolean clientMode, SslConfig sslConfig,
 					Consumer<ByteBuffer> encryptedDataConsumer, Consumer<ByteBuffer> plainDataConsumer,
@@ -74,28 +93,69 @@ final class SslEngineWorker {
 	}
 
 	ByteBuffer encrypt(ByteBuffer plainData) throws SSLException {
+		engineLock.lock();
+		try {
+			return doEncrypt(plainData);
+		} finally {
+			engineLock.unlock();
+		}
+	}
+
+	private ByteBuffer doEncrypt(ByteBuffer plainData) throws SSLException {
+		// 握手未完成时不能加密业务数据:此时 wrap 只会产出握手记录,业务数据不会被消费,
+		// 握手记录还会被误当作业务密文丢弃,导致对端收不到 ClientHello 而握手卡死。
+		// 正常流程下握手完成前业务包会滞留在 sendRunnable 的待发送队列里,不会走到这里。
+		if (!handshakeCompleted) {
+			throw new SSLException("SSL 握手尚未完成，无法加密业务数据");
+		}
 		// 单次业务数据可能跨越多个 TLS Record,需要循环 wrap 并合并
 		List<ByteBuffer> encryptedBuffers = new ArrayList<>();
+		int retry = 0;
 		while (plainData.hasRemaining()) {
 			int position = plainData.position();
 			WrapResult wrapResult = wrap(plainData);
 			if (wrapResult.encryptedData.hasRemaining()) {
 				encryptedBuffers.add(wrapResult.encryptedData);
 			}
+			SSLEngineResult.HandshakeStatus handshakeStatus = wrapResult.result.getHandshakeStatus();
 			// wrap 后状态可能进入握手阶段,继续驱动状态机
-			handleHandshakeStatus(wrapResult.result.getHandshakeStatus());
+			handleHandshakeStatus(handshakeStatus);
 			if (wrapResult.result.getStatus() == SSLEngineResult.Status.CLOSED) {
 				break;
 			}
-			// wrap 没推进也没产生数据,避免死循环
+			// 握手尚未完成时 JDK 不会消费应用数据(bytesConsumed=0),此时应先推进握手状态机再重试,
+			// 直接判定失败会丢失业务包(表现为 SSLEngine.wrap made no progress)
 			if (plainData.position() == position && !wrapResult.encryptedData.hasRemaining()) {
+				if (!handshakeCompleted) {
+					// 握手未完成就加密业务数据,通常意味着握手被提前判定完成(业务包被提前放行),
+					// 此时对端收到的是非法的 TLS 记录,这里给出明确的错误信息便于定位
+					throw new SSLException("SSL 握手尚未完成，无法加密业务数据");
+				}
+				if (handshakeStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP
+					|| handshakeStatus == SSLEngineResult.HandshakeStatus.NEED_TASK) {
+					if (++retry > MAX_WRAP_RETRY) {
+						throw new SSLException("SSLEngine.wrap made no progress after " + retry + " retries");
+					}
+					continue;
+				}
+				// wrap 没推进也没产生数据,避免死循环
 				throw new SSLException("SSLEngine.wrap made no progress");
 			}
+			retry = 0;
 		}
 		return ByteBufferUtil.combine(encryptedBuffers);
 	}
 
 	void decrypt(ByteBuffer encryptedData) throws SSLException {
+		engineLock.lock();
+		try {
+			doDecrypt(encryptedData);
+		} finally {
+			engineLock.unlock();
+		}
+	}
+
+	private void doDecrypt(ByteBuffer encryptedData) throws SSLException {
 		buffers.appendEncrypted(encryptedData);
 		ByteBuffer networkBuffer = buffers.beginUnwrap();
 		boolean underflow = false;
@@ -114,10 +174,17 @@ final class SslEngineWorker {
 
 				handleHandshakeStatus(result.getHandshakeStatus());
 				if (applicationBuffer.position() > 0) {
+					if (!handshakeCompleted) {
+						// 兜底：能解出应用数据说明握手实际已经完成，
+						// 避免握手完成信号丢失导致业务包永久滞留在待发送队列里
+						completeHandshake();
+					}
 					plainDataConsumer.accept(SslBuffers.toReadBuffer(applicationBuffer));
 				}
 				if (result.getStatus() == SSLEngineResult.Status.CLOSED) {
-					sessionClosedListener.run();
+					if (!closed) {
+						sessionClosedListener.run();
+					}
 					return;
 				}
 				if (result.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
@@ -134,8 +201,11 @@ final class SslEngineWorker {
 	}
 
 	void close() {
+		// 标记为本端主动关闭，之后引擎自身触发的 CLOSED 不再回调 session closed
+		closed = true;
 		engine.closeOutbound();
 		try {
+			// 驱动一次 wrap，把 close_notify 记录发出去，让对端知道是主动断开而不是异常断流
 			driveHandshake();
 			engine.closeInbound();
 		} catch (SSLException e) {
@@ -144,6 +214,7 @@ final class SslEngineWorker {
 	}
 
 	void terminate() {
+		closed = true;
 		engine.closeOutbound();
 		try {
 			engine.closeInbound();
@@ -153,6 +224,9 @@ final class SslEngineWorker {
 	}
 
 	private void handleHandshakeStatus(SSLEngineResult.HandshakeStatus handshakeStatus) throws SSLException {
+		if (log.isDebugEnabled()) {
+			log.debug("{} 握手状态:{}", channelContext, handshakeStatus);
+		}
 		if (handshakeStatus == SSLEngineResult.HandshakeStatus.FINISHED) {
 			completeHandshake();
 		}
@@ -173,7 +247,8 @@ final class SslEngineWorker {
 					if (wrapResult.encryptedData.hasRemaining()) {
 						encryptedDataConsumer.accept(wrapResult.encryptedData);
 					}
-					if (wrapResult.result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED) {
+					if (wrapResult.result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED
+						|| engine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED) {
 						completeHandshake();
 					}
 					if (wrapResult.result.getStatus() == SSLEngineResult.Status.CLOSED) {
@@ -184,9 +259,9 @@ final class SslEngineWorker {
 					completeHandshake();
 					return;
 				case NOT_HANDSHAKING:
-					if (handshakeStarted) {
-						completeHandshake();
-					}
+					// NOT_HANDSHAKING 只表示"当前没有握手在进行",不能作为握手成功的判据。
+					// 握手完成的唯一判据是 FINISHED;此处若提前宣告完成,业务包会在握手真正结束前被加密并发出,
+					// 对端会收到非法的 TLS 记录(握手期收到 application_data),表现为 bad record type。
 					return;
 				case NEED_UNWRAP:
 				default:

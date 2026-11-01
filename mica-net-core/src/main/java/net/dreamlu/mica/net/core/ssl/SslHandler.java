@@ -147,6 +147,12 @@ public final class SslHandler {
 	}
 
 	private void onSessionClosed() {
-		Tio.close(channelContext, null, "SSL SessionClosed", channelContext.isServer(), CloseCode.SSL_SESSION_CLOSED);
+		// 细分关闭原因，便于区分"握手完成后正常关闭"与"握手期间被掐断"
+		boolean handshakeCompleted = isHandshakeCompleted();
+		String remark = handshakeCompleted
+			? "SSL SessionClosed（握手已完成，收到对端 close_notify）"
+			: "SSL SessionClosed（握手未完成即收到 close_notify）";
+		log.info("{}, {}", channelContext, remark);
+		Tio.close(channelContext, null, remark, channelContext.isServer(), CloseCode.SSL_SESSION_CLOSED);
 	}
 }
