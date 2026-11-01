@@ -97,7 +97,8 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	/**
 	 * 发送单个数据包（TCP 异步）
 	 */
-	public boolean sendPacket(Packet packet, boolean isSsl) {
+	@Override
+    public boolean sendPacket(Packet packet, boolean isSsl) {
 		ByteBuffer byteBuffer = getByteBuffer(packet);
 
 		// SSL 加密
@@ -153,6 +154,7 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	/**
 	 * 检查是否有写操作正在进行
 	 */
+	@Override
 	public boolean isWriting() {
 		return writing.get();
 	}

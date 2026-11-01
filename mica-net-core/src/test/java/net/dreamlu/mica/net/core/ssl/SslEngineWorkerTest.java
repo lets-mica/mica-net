@@ -21,6 +21,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLContext;
@@ -318,6 +322,131 @@ class SslEngineWorkerTest {
 			fragment.limit(currentFragmentLength);
 			receiver.decrypt(fragment);
 			encryptedData.position(encryptedData.position() + currentFragmentLength);
+		}
+	}
+
+	/**
+	 * 加密（wrap）与解密（unwrap）并发访问同一个 SSLEngine 时，数据必须保持完整。
+	 * <p>
+	 * SSLEngine 不是线程安全的，并发访问会导致序号/密钥状态错乱，
+	 * 线上表现为 {@code Tag mismatch!} / {@code AEADBadTagException}，连接反复重连。
+	 * </p>
+	 */
+	@Test
+	void shouldKeepDataIntactWhenEncryptAndDecryptRunConcurrently() throws Exception {
+		Queue<ByteBuffer> clientToServer = new ConcurrentLinkedQueue<>();
+		Queue<ByteBuffer> serverToClient = new ConcurrentLinkedQueue<>();
+		Queue<ByteBuffer> clientPlainData = new ConcurrentLinkedQueue<>();
+		Queue<ByteBuffer> serverPlainData = new ConcurrentLinkedQueue<>();
+
+		SslConfig clientSslConfig = SslConfig.forClient(KEY_STORE, PASSWORD);
+		SslConfig serverSslConfig = SslConfig.forServer(KEY_STORE, PASSWORD);
+		SslEngineWorker client = new SslEngineWorker(newClientContext(), clientSslConfig.getSslContext(), true, clientSslConfig,
+			clientToServer::add, clientPlainData::add, () -> { }, () -> { });
+		SslEngineWorker server = new SslEngineWorker(newServerContext(), serverSslConfig.getSslContext(), false, serverSslConfig,
+			serverToClient::add, serverPlainData::add, () -> { }, () -> { });
+
+		server.beginHandshake();
+		client.beginHandshake();
+		pump(client, server, clientToServer, serverToClient);
+		Assertions.assertTrue(client.isHandshakeCompleted());
+		Assertions.assertTrue(server.isHandshakeCompleted());
+
+		int rounds = 200;
+		byte[] payload = testData(512);
+		AtomicBoolean writing = new AtomicBoolean(true);
+		ExecutorService executor = Executors.newFixedThreadPool(4);
+		try {
+			// 写线程：client 与 server 各自持续加密
+			executor.submit(() -> {
+				try {
+					for (int i = 0; i < rounds; i++) {
+						clientToServer.add(client.encrypt(ByteBuffer.wrap(payload)));
+					}
+				} catch (SSLException e) {
+					throw new IllegalStateException(e);
+				}
+			});
+			executor.submit(() -> {
+				try {
+					for (int i = 0; i < rounds; i++) {
+						serverToClient.add(server.encrypt(ByteBuffer.wrap(payload)));
+					}
+				} catch (SSLException e) {
+					throw new IllegalStateException(e);
+				}
+			});
+			// 读线程：与写线程并发地对同一个引擎执行 unwrap
+			executor.submit(() -> {
+				try {
+					while (writing.get() || !clientToServer.isEmpty()) {
+						ByteBuffer encrypted = clientToServer.poll();
+						if (encrypted == null) {
+							Thread.sleep(1L);
+							continue;
+						}
+						server.decrypt(encrypted);
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				} catch (SSLException e) {
+					throw new IllegalStateException(e);
+				}
+			});
+			executor.submit(() -> {
+				try {
+					while (writing.get() || !serverToClient.isEmpty()) {
+						ByteBuffer encrypted = serverToClient.poll();
+						if (encrypted == null) {
+							Thread.sleep(1L);
+							continue;
+						}
+						client.decrypt(encrypted);
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				} catch (SSLException e) {
+					throw new IllegalStateException(e);
+				}
+			});
+			// 等待写线程结束
+			Thread.sleep(200L);
+			writing.set(false);
+			executor.shutdown();
+			Assertions.assertTrue(executor.awaitTermination(30, TimeUnit.SECONDS));
+		} finally {
+			executor.shutdownNow();
+		}
+
+		assertRepeatedPayload(serverPlainData, payload, rounds);
+		assertRepeatedPayload(clientPlainData, payload, rounds);
+	}
+
+	/**
+	 * 握手未完成时加密业务数据必须给出明确错误，而不是含糊的 "made no progress"。
+	 */
+	@Test
+	void shouldRejectEncryptBeforeHandshakeCompleted() throws Exception {
+		SslConfig clientSslConfig = SslConfig.forClient(KEY_STORE, PASSWORD);
+		SslEngineWorker client = new SslEngineWorker(newClientContext(), clientSslConfig.getSslContext(), true, clientSslConfig,
+			data -> { }, data -> { }, () -> { }, () -> { });
+		client.beginHandshake();
+		SSLException exception = Assertions.assertThrows(SSLException.class,
+			() -> client.encrypt(ByteBuffer.wrap("hello".getBytes(StandardCharsets.UTF_8))));
+		Assertions.assertTrue(exception.getMessage().contains("握手"), exception.getMessage());
+	}
+
+	/**
+	 * 校验解密出来的数据是 payload 重复 rounds 次。
+	 */
+	private static void assertRepeatedPayload(Queue<ByteBuffer> plainData, byte[] payload, int rounds) {
+		ByteBuffer combined = combine(plainData);
+		Assertions.assertEquals(payload.length * rounds, combined.remaining(), "解密数据长度不正确");
+		byte[] actual = new byte[combined.remaining()];
+		combined.get(actual);
+		for (int i = 0; i < rounds; i++) {
+			byte[] chunk = Arrays.copyOfRange(actual, i * payload.length, (i + 1) * payload.length);
+			Assertions.assertArrayEquals(payload, chunk, "第 " + i + " 段数据不一致");
 		}
 	}
 

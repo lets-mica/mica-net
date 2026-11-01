@@ -203,17 +203,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 
 /**
+ * 异步读完成处理器。
+ * <p>
+ * 每次读操作都会携带一个 {@link ReadAttachment} 附件，附件里记录了本次读所属的 socket 与缓冲区。
+ * 断线重连时 socket 会被替换，旧 socket 上 pending 的读回调仍可能迟到（返回 EOF 或异常），
+ * 若不做归属校验，这些迟到回调会把刚重连成功的新连接误判为"对方关闭了连接"而关闭。
+ * </p>
+ *
  * @author tanyaowu
  * 2017年4月4日 上午9:22:04
  */
-public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
+public class ReadCompletionHandler implements CompletionHandler<Integer, ReadCompletionHandler.ReadAttachment> {
 	private static final Logger log = LoggerFactory.getLogger(ReadCompletionHandler.class);
 
 	private final ChannelContext channelContext;
-	private ByteBuffer readByteBuffer;
+	/**
+	 * 当前有效的读操作附件。
+	 * <p>
+	 * 换 socket（断线重连）时会重新创建，旧附件对应的迟到回调据此被识别并丢弃。
+	 * </p>
+	 */
+	private volatile ReadAttachment currentAttachment;
 	/**
 	 * ProxyProtocol 预解析器（懒加载）。
 	 * <p>
@@ -228,8 +242,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 
 	public ReadCompletionHandler(ChannelContext channelContext) {
 		this.channelContext = channelContext;
-		this.readByteBuffer = ByteBuffer.allocate(channelContext.getReadBufferSize());
-		this.readByteBuffer.order(channelContext.tioConfig.getByteOrder());
 	}
 
 	/**
@@ -239,8 +251,41 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 		this.preParser = null;
 	}
 
+	/**
+	 * 在指定 socket 上注册一次异步读。
+	 * <p>
+	 * socket 变化（断线重连）时会新建缓冲区与附件，保证新旧连接不共用缓冲区；
+	 * 否则旧连接残留的数据会污染新连接。
+	 * </p>
+	 *
+	 * @param socket 待注册的 socket
+	 */
+	public void registerRead(AsynchronousSocketChannel socket) {
+		ReadAttachment attachment = currentAttachment;
+		if (attachment == null || attachment.getSocket() != socket) {
+			attachment = new ReadAttachment(socket, allocateBuffer());
+			currentAttachment = attachment;
+		} else {
+			ByteBuffer buffer = attachment.getBuffer();
+			buffer.position(0);
+			buffer.limit(buffer.capacity());
+		}
+		try {
+			socket.read(attachment.getBuffer(), attachment, this);
+		} catch (Throwable e) {
+			log.error(e.getMessage(), e);
+			failed(e, attachment);
+		}
+	}
+
 	@Override
-	public void completed(Integer result, ByteBuffer byteBuffer) {
+	public void completed(Integer result, ReadAttachment attachment) {
+		if (attachment != currentAttachment) {
+			// 旧连接的迟到回调：既不能读它的数据，也不能用它去关闭当前连接
+			log.debug("{}, 忽略旧连接的读回调, result:{}", channelContext, result);
+			return;
+		}
+		ByteBuffer byteBuffer = attachment.getBuffer();
 		if (result > 0) {
 			TioConfig tioConfig = channelContext.tioConfig;
 			if (tioConfig.statOn) {
@@ -261,16 +306,16 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 				}
 			}
 
-			readByteBuffer.flip();
+			byteBuffer.flip();
 			if (preParser != null || isServerProxyProtocolEnabled()) {
 				// 情况 1：ProxyProtocol 待解析（SSL / 非 SSL 都先走这一条）。
-				handlePreProxy(readByteBuffer);
+				handlePreProxy(byteBuffer);
 			} else if (channelContext.isSsl()) {
 				// 情况 2：纯 SSL，无 Proxy。触发握手后走 SSL 解密。
-				handleSsl(readByteBuffer);
+				handleSsl(byteBuffer);
 			} else {
 				// 情况 3：非 SSL，无 Proxy。直接喂 decode runnable。
-				feedToDecodeRunnable(readByteBuffer);
+				feedToDecodeRunnable(byteBuffer);
 			}
 
 			if (TioUtils.checkBeforeIO(channelContext)) {
@@ -398,35 +443,77 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 		}
 	}
 
+	/**
+	 * 继续在当前 socket 上注册下一次异步读。
+	 */
 	private void read() {
-		if (readByteBuffer.capacity() == channelContext.getReadBufferSize()) {
-			readByteBuffer.position(0);
-			readByteBuffer.limit(readByteBuffer.capacity());
-		} else {
-			readByteBuffer = ByteBuffer.allocate(channelContext.getReadBufferSize());
+		ReadAttachment attachment = currentAttachment;
+		if (attachment == null) {
+			return;
 		}
-		// 读取时有可能出现异常，gitee: https://gitee.com/dromara/mica-mqtt/issues/IBSM9W
+		ByteBuffer buffer = attachment.getBuffer();
+		if (buffer.capacity() != channelContext.getReadBufferSize()) {
+			// 读缓冲大小被调整过，换一个新缓冲
+			attachment = new ReadAttachment(attachment.getSocket(), allocateBuffer());
+			currentAttachment = attachment;
+		} else {
+			buffer.position(0);
+			buffer.limit(buffer.capacity());
+		}
 		try {
-			channelContext.asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, this);
+			attachment.getSocket().read(attachment.getBuffer(), attachment, this);
 		} catch (Throwable e) {
 			log.error(e.getMessage(), e);
-			failed(e, null);
+			failed(e, attachment);
 		}
 	}
 
+	private ByteBuffer allocateBuffer() {
+		ByteBuffer buffer = ByteBuffer.allocate(channelContext.getReadBufferSize());
+		buffer.order(channelContext.tioConfig.getByteOrder());
+		return buffer;
+	}
+
 	/**
-	 * @param exc        Throwable
-	 * @param byteBuffer ByteBuffer
+	 * @param exc       Throwable
+	 * @param attachment 读操作附件
 	 */
 	@Override
-	public void failed(Throwable exc, ByteBuffer byteBuffer) {
+	public void failed(Throwable exc, ReadAttachment attachment) {
+		if (attachment != currentAttachment) {
+			// 旧连接的迟到异常，不能用它去关闭当前连接
+			log.debug("{}, 忽略旧连接的读异常", channelContext, exc);
+			return;
+		}
 		Tio.close(channelContext, exc, "读数据时发生异常: " + exc.getClass().getName(), CloseCode.READ_ERROR);
 	}
 
 	/**
-	 * @return ByteBuffer
+	 * @return 当前读缓冲区
 	 */
 	public ByteBuffer getReadByteBuffer() {
-		return readByteBuffer;
+		ReadAttachment attachment = currentAttachment;
+		return attachment == null ? null : attachment.getBuffer();
+	}
+
+	/**
+	 * 一次读操作的附件，记录本次读所属的 socket 与缓冲区。
+	 */
+	public static final class ReadAttachment {
+		private final AsynchronousSocketChannel socket;
+		private final ByteBuffer buffer;
+
+		ReadAttachment(AsynchronousSocketChannel socket, ByteBuffer buffer) {
+			this.socket = socket;
+			this.buffer = buffer;
+		}
+
+		public AsynchronousSocketChannel getSocket() {
+			return socket;
+		}
+
+		public ByteBuffer getBuffer() {
+			return buffer;
+		}
 	}
 }

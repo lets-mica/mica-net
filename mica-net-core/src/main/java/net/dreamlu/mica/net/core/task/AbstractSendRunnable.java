@@ -212,6 +212,18 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 		return msgQueue;
 	}
 
+	/**
+	 * 是否有写操作正在进行。
+	 * <p>
+	 * 默认没有进行中的写操作，TCP 实现会返回真实的写状态。
+	 * </p>
+	 *
+	 * @return true 表示正在写
+	 */
+	public boolean isWriting() {
+		return false;
+	}
+
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + ':' + channelContext.toString();

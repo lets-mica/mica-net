@@ -78,7 +78,11 @@ public abstract class AbstractCloseRunnable extends AbstractQueueRunnable<Channe
 						continue;
 					}
 
-					// 1. 取消任务（子类实现）
+					// 1. 优雅关闭（子类实现，如 SSL 场景发送 close_notify）
+					//    必须在取消任务与清空队列之前执行，否则数据还没发出去就被丢弃
+					doGracefulShutdown(channelContext);
+
+					// 1.1 取消任务（子类实现）
 					doCancelTasks(channelContext);
 
 					// 2. 清空队列（通用逻辑，TCP/UDP 相同）
@@ -107,6 +111,18 @@ public abstract class AbstractCloseRunnable extends AbstractQueueRunnable<Channe
 				channelContext.setWaitingClose(false);
 			}
 		}
+	}
+
+	/**
+	 * 优雅关闭（关闭 socket 之前的收尾动作）。
+	 * <p>
+	 * 默认无操作。TCP 实现会在 SSL 场景下发送 TLS close_notify，
+	 * 让对端感知到是本端主动断开，而不是网络异常断流。
+	 * </p>
+	 *
+	 * @param channelContext ChannelContext
+	 */
+	protected void doGracefulShutdown(ChannelContext channelContext) {
 	}
 
 	/**
