@@ -19,6 +19,7 @@ package net.dreamlu.mica.net.core.ssl;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import javax.net.ssl.*;
@@ -59,6 +60,14 @@ final class SslEngineWorker {
 	private volatile boolean handshakeStarted;
 	private volatile boolean handshakeCompleted;
 	/**
+	 * 握手完成通知只触发一次
+	 */
+	private final AtomicBoolean handshakeNotified = new AtomicBoolean(false);
+	/**
+	 * 握手已完成但回调尚未触发（等待释放 engineLock 后再触发）
+	 */
+	private volatile boolean handshakeCompletedPending;
+	/**
 	 * 本端是否已主动关闭会话。
 	 * <p>
 	 * 主动关闭后引擎自身的 inbound 也会被关闭，此时 unwrap 同样返回 CLOSED，
@@ -84,8 +93,15 @@ final class SslEngineWorker {
 			return;
 		}
 		handshakeStarted = true;
-		engine.beginHandshake();
-		driveHandshake();
+		engineLock.lock();
+		try {
+			engine.beginHandshake();
+			driveHandshake();
+		} finally {
+			engineLock.unlock();
+			// 同 encrypt()：握手完成回调放到锁外触发。
+			fireHandshakeCompleted();
+		}
 	}
 
 	boolean isHandshakeCompleted() {
@@ -98,6 +114,10 @@ final class SslEngineWorker {
 			return doEncrypt(plainData);
 		} finally {
 			engineLock.unlock();
+			// 握手完成回调必须在释放 engineLock 之后触发：
+			// 回调里往往会同步发送业务包（如 mica-mqtt 用 Tio.bSend 发 CONNECT），
+			// 而发送需要 engineLock 加密，若在锁内触发会形成自死锁（客户端表现为 TLS 一直连不上）。
+			fireHandshakeCompleted();
 		}
 	}
 
@@ -147,15 +167,42 @@ final class SslEngineWorker {
 	}
 
 	void decrypt(ByteBuffer encryptedData) throws SSLException {
-		engineLock.lock();
+		DecryptOutcome outcome = new DecryptOutcome();
+		boolean success = false;
 		try {
-			doDecrypt(encryptedData);
+			engineLock.lock();
+			try {
+				doDecrypt(encryptedData, outcome);
+				success = true;
+			} finally {
+				engineLock.unlock();
+				// 同 encrypt()：握手完成回调放到锁外触发，避免回调内同步发包与加密互锁。
+				fireHandshakeCompleted();
+			}
 		} finally {
-			engineLock.unlock();
+			if (success) {
+				// 明文数据必须在释放 engineLock 之后再交给业务：
+				// decode/handler 里通常伴随同步发送（如 mica-mqtt 处理消息后回复），
+				// 而发送线程加密数据需要同一把引擎锁，锁内回调会形成互相等待。
+				for (ByteBuffer plainData : outcome.plainDataList) {
+					plainDataConsumer.accept(plainData);
+				}
+				if (outcome.sessionClosed) {
+					sessionClosedListener.run();
+				}
+			}
 		}
 	}
 
-	private void doDecrypt(ByteBuffer encryptedData) throws SSLException {
+	/**
+	 * 一次解密的产出，需要在释放 engineLock 之后再交给业务处理
+	 */
+	private static final class DecryptOutcome {
+		private final List<ByteBuffer> plainDataList = new ArrayList<>(2);
+		private boolean sessionClosed;
+	}
+
+	private void doDecrypt(ByteBuffer encryptedData, DecryptOutcome outcome) throws SSLException {
 		buffers.appendEncrypted(encryptedData);
 		ByteBuffer networkBuffer = buffers.beginUnwrap();
 		boolean underflow = false;
@@ -179,11 +226,11 @@ final class SslEngineWorker {
 						// 避免握手完成信号丢失导致业务包永久滞留在待发送队列里
 						completeHandshake();
 					}
-					plainDataConsumer.accept(SslBuffers.toReadBuffer(applicationBuffer));
+					outcome.plainDataList.add(SslBuffers.toReadBuffer(applicationBuffer));
 				}
 				if (result.getStatus() == SSLEngineResult.Status.CLOSED) {
 					if (!closed) {
-						sessionClosedListener.run();
+						outcome.sessionClosed = true;
 					}
 					return;
 				}
@@ -203,23 +250,31 @@ final class SslEngineWorker {
 	void close() {
 		// 标记为本端主动关闭，之后引擎自身触发的 CLOSED 不再回调 session closed
 		closed = true;
-		engine.closeOutbound();
+		engineLock.lock();
 		try {
+			engine.closeOutbound();
 			// 驱动一次 wrap，把 close_notify 记录发出去，让对端知道是主动断开而不是异常断流
 			driveHandshake();
 			engine.closeInbound();
 		} catch (SSLException e) {
 			log.debug("{} 关闭SSL会话时忽略异常", channelContext, e);
+		} finally {
+			engineLock.unlock();
+			fireHandshakeCompleted();
 		}
 	}
 
 	void terminate() {
 		closed = true;
-		engine.closeOutbound();
+		engineLock.lock();
 		try {
+			engine.closeOutbound();
 			engine.closeInbound();
 		} catch (SSLException e) {
 			log.debug("{} 终止SSL会话时忽略异常", channelContext, e);
+		} finally {
+			engineLock.unlock();
+			fireHandshakeCompleted();
 		}
 	}
 
@@ -288,7 +343,28 @@ final class SslEngineWorker {
 			return;
 		}
 		handshakeCompleted = true;
-		handshakeCompletedListener.run();
+		handshakeCompletedPending = true;
+		fireHandshakeCompleted();
+	}
+
+	/**
+	 * 触发握手完成回调。
+	 * <p>
+	 * 若当前线程持有 engineLock（解密/加密过程中完成握手），则延迟到锁释放后再触发，
+	 * 否则回调里同步发包会与加密争锁形成死锁。
+	 */
+	private void fireHandshakeCompleted() {
+		if (!handshakeCompletedPending) {
+			return;
+		}
+		if (engineLock.isHeldByCurrentThread()) {
+			// 仍在锁内，等调用方释放锁后再触发
+			return;
+		}
+		handshakeCompletedPending = false;
+		if (handshakeNotified.compareAndSet(false, true)) {
+			handshakeCompletedListener.run();
+		}
 	}
 
 	private static SSLEngine createEngine(SSLContext context, boolean clientMode, SslConfig sslConfig) {
