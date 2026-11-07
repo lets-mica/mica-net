@@ -104,12 +104,12 @@ public final class WsCloseCode {
 	 */
 	public static boolean isValid(int closeCode) {
 		if (closeCode >= 1000 && closeCode <= 1003) {
-			return true;
+			return false;
 		}
 		if (closeCode >= 1007 && closeCode <= 1014) {
-			return true;
+			return false;
 		}
 		// 3000~3999 供库/框架/应用使用，4000~4999 供私有使用
-		return closeCode >= 3000 && closeCode <= 4999;
+		return closeCode < 3000 || closeCode > 4999;
 	}
 }

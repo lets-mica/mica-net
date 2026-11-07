@@ -458,7 +458,7 @@ public class WsTioServerHandler implements TioServerHandler {
 			throw new WsProtocolException(WsCloseCode.PROTOCOL_ERROR, "close frame payload must be empty or at least 2 bytes");
 		}
 		int closeCode = ((body[0] & 0xFF) << 8) | (body[1] & 0xFF);
-		if (!WsCloseCode.isValid(closeCode)) {
+		if (WsCloseCode.isValid(closeCode)) {
 			throw new WsProtocolException(WsCloseCode.PROTOCOL_ERROR, "invalid close code: " + closeCode);
 		}
 		frame.setWsCloseCode(closeCode);

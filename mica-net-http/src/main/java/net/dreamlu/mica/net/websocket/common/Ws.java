@@ -73,7 +73,7 @@ public final class Ws {
 		if (session == null || !session.isHandshaked() || session.isCloseSent()) {
 			return false;
 		}
-		if (!WsCloseCode.isValid(closeCode)) {
+		if (WsCloseCode.isValid(closeCode)) {
 			// 1004 / 1005 / 1006 / 1015 等保留码不允许出现在 Close 帧中
 			log.warn("{} 非法的 websocket 关闭码：{}，改用 {}", context, closeCode, WsCloseCode.NORMAL);
 			closeCode = WsCloseCode.NORMAL;
