@@ -230,9 +230,37 @@ mica-net 暂未内置 WS 客户端，推荐使用：
 
 ```java
 // 最完整的多功能示例直接抄这里：
+// mica-net-http/src/test/java/.../WsExample.java    ← WebSocket 服务（可直接 main 启动）
 // mica-net-http/src/test/java/.../SseExample.java   ← SSE 三种用法
 // mica-net-http/src/test/java/.../RouterExample.java ← HTTP + 可与 WS 共存
 //
-// 上述两个示例展示了 mica-net-http 提供的完整服务能力，可以作为 WebSocket
+// 上述几个示例展示了 mica-net-http 提供的完整服务能力，可以作为 WebSocket
 // 服务端启动后再扩展业务的参考。
 ```
+
+### 12.1 启动 WS 测试服务
+
+`WsExample` 可以直接跑起来验证协议行为：
+
+```bash
+# 默认监听 8182，也可以传端口：java ... WsExample 9090
+mvn -pl mica-net-http test-compile
+java -cp mica-net-http/target/test-classes:... net.dreamlu.mica.net.http.test.WsExample
+```
+
+```javascript
+// 浏览器控制台
+let ws = new WebSocket('ws://localhost:8182');
+ws.onmessage = e => console.log('recv', e.data);
+ws.onopen = () => ws.send('hello');
+```
+
+| 发送内容 | 服务端行为 |
+| ---- | ---- |
+| `hello` | 回显 `echo:hello` |
+| `ping` | 服务端发 Ping 帧，对端的 Pong 会打印到控制台 |
+| `push` | 服务端连续推送 10 条 `tick-N` |
+| `close` | 发起关闭握手，服务端与客户端互相回 Close 帧后断开 TCP |
+
+连接串带 `?token=wrong` 会命中握手阶段的拦截，返回 401。
+
