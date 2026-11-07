@@ -293,4 +293,16 @@ public interface IWsMsgHandler {
 	default Object onText(WsRequest request, String text, ChannelContext context) throws Exception {
 		return null;
 	}
+
+	/**
+	 * <li>当收到Opcode.PONG消息时，执行该方法，框架收到Ping帧会自动回Pong帧，这里收到的是对端主动发来的Pong帧</li>
+	 *
+	 * @param request WsRequest
+	 * @param bytes   Pong帧的附加数据
+	 * @param context ChannelContext
+	 * @throws Exception Exception
+	 */
+	default void onPong(WsRequest request, byte[] bytes, ChannelContext context) throws Exception {
+
+	}
 }

@@ -194,15 +194,36 @@
 package net.dreamlu.mica.net.websocket.common;
 
 /**
+ * WebSocket 操作码，参考 RFC 6455 §5.2 <a href="https://tools.ietf.org/html/rfc6455#section-5.2">Base Framing Protocol</a>。
+ *
  * @author tanyaowu
  * 2017年6月30日 下午5:06:09
  */
 public enum Opcode {
-
 	/**
-	 * Opcode
+	 * 0x0，分片消息的续帧（continuation frame），承接上一帧未结束的消息
 	 */
-	NOT_FIN((byte) 0), TEXT((byte) 1), BINARY((byte) 2), CLOSE((byte) 8), PING((byte) 9), PONG((byte) 10);
+	CONTINUATION((byte) 0),
+	/**
+	 * 0x1，文本帧（text frame），负载必须是合法的 UTF-8
+	 */
+	TEXT((byte) 1),
+	/**
+	 * 0x2，二进制帧（binary frame）
+	 */
+	BINARY((byte) 2),
+	/**
+	 * 0x8，关闭帧（close frame），用于关闭握手
+	 */
+	CLOSE((byte) 8),
+	/**
+	 * 0x9，Ping 帧，收到后必须回一个 Pong 帧
+	 */
+	PING((byte) 9),
+	/**
+	 * 0xA，Pong 帧，Ping 帧的应答
+	 */
+	PONG((byte) 10);
 
 	private final byte code;
 
@@ -210,10 +231,16 @@ public enum Opcode {
 		this.code = code;
 	}
 
+	/**
+	 * 根据操作码获取枚举值
+	 *
+	 * @param code 操作码
+	 * @return 对应的枚举值，协议未定义的操作码返回 null
+	 */
 	public static Opcode valueOf(byte code) {
 		switch (code) {
 			case 0:
-				return NOT_FIN;
+				return CONTINUATION;
 			case 1:
 				return TEXT;
 			case 2:
@@ -225,7 +252,7 @@ public enum Opcode {
 			case 10:
 				return PONG;
 			default:
-				throw new IllegalArgumentException("Invalid input: " + code);
+				return null;
 		}
 	}
 
@@ -233,4 +260,21 @@ public enum Opcode {
 		return code;
 	}
 
+	/**
+	 * 是否是控制帧，参考 RFC 6455 §5.5
+	 *
+	 * @return true 表示是控制帧
+	 */
+	public boolean isControlFrame() {
+		return this == CLOSE || this == PING || this == PONG;
+	}
+
+	/**
+	 * 是否是数据帧（TEXT / BINARY / CONTINUATION）
+	 *
+	 * @return true 表示是数据帧
+	 */
+	public boolean isDataFrame() {
+		return this == CONTINUATION || this == TEXT || this == BINARY;
+	}
 }

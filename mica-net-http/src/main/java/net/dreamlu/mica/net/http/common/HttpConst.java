@@ -318,6 +318,7 @@ public interface HttpConst {
 		String Connection = "Connection";                        //Upgrade, keep-alive
 		String Keep_Alive = "Keep-Alive";                        //Keep-Alive: timeout=20
 		String Sec_WebSocket_Accept = "Sec-WebSocket-Accept";
+		String Sec_WebSocket_Version = "Sec-WebSocket-Version";
 		String Upgrade = "Upgrade";
 		String Access_Control_Allow_Credentials = "Access-Control-Allow-Credentials";
 		/**

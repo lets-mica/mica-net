@@ -177,7 +177,7 @@
 	the same "printed page" as the copyright notice for easier identification within
 	third-party archives.
 
-	   Copyright 2018 JFinal
+	   Copyright 2020 t-io
 
 	   Licensed under the Apache License, Version 2.0 (the "License");
 	   you may not use this file except in compliance with the License.
@@ -194,101 +194,129 @@
 package net.dreamlu.mica.net.websocket.common;
 
 import net.dreamlu.mica.net.core.ChannelContext;
-import net.dreamlu.mica.net.core.exception.TioDecodeException;
-import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 
 /**
+ * WebSocket 帧解码器，参考 RFC 6455 §5.2 <a href="https://tools.ietf.org/html/rfc6455#section-5.2">Base Framing Protocol</a>。
+ *
+ * <p>只负责「一帧」的解析，不含分片消息的拼装逻辑（分片状态机在 {@link WsSessionContext} 中维护）。</p>
+ *
  * @author tanyaowu
  * 2017年7月30日 上午10:10:50
  */
 public class WsServerDecoder {
-	private static final Logger log = LoggerFactory.getLogger(WsServerDecoder.class);
 
 	private WsServerDecoder() {
 	}
 
-	public static WsRequest decode(ByteBuffer buf, ChannelContext channelContext) throws TioDecodeException {
-		// 第一阶段解析
-		int initPosition = buf.position();
-		int readableLength = buf.limit() - initPosition;
-		int headLength = WsPacket.MINIMUM_HEADER_LENGTH;
-		if (readableLength < headLength) {
+	/**
+	 * 解析一个 WebSocket 帧
+	 *
+	 * @param buf           缓冲区，解析成功后 position 会移动到帧尾
+	 * @param channelContext 连接上下文
+	 * @return 解析成功返回帧，数据不足返回 null
+	 * @throws WsProtocolException 帧不符合 RFC 6455 规范
+	 */
+	public static WsRequest decode(ByteBuffer buf, ChannelContext channelContext) throws WsProtocolException {
+		int pos = buf.position();
+		int limit = buf.limit();
+		int readable = limit - pos;
+		if (readable < WsPacket.MINIMUM_HEADER_LENGTH) {
 			return null;
 		}
 
-		byte first = buf.get();
-		//		int b = first & 0xFF; //转换成32位
-		boolean fin = (first & 0x80) > 0; // 得到第8位 10000000>0
-		byte opCodeByte = (byte) (first & 0x0F); // 后四位为opCode 00001111
-		Opcode opcode = Opcode.valueOf(opCodeByte);
-		if (opcode == Opcode.CLOSE) {
-			//			Tio.remove(channelContext, "收到opcode:" + opcode);
-			//			return null;
-		}
-		byte second = buf.get(); // 向后读取一个字节
-		boolean hasMask = (second & 0xFF) >> 7 == 1; // 用于标识PayloadData是否经过掩码处理。如果是1，Masking-key域的数据即是掩码密钥，用于解码PayloadData。客户端发出的数据帧需要进行掩码处理，所以此位是1。
+		int b0 = buf.get(pos) & 0xFF;
+		int b1 = buf.get(pos + 1) & 0xFF;
+		// FIN：标志帧是否为消息的最后一帧
+		boolean fin = (b0 & 0x80) != 0;
+		// RSV1/2/3：未协商扩展时必须为 0
+		int rsv = b0 & 0x70;
+		int opcodeValue = b0 & 0x0F;
+		// MASK：负载是否经过掩码处理，客户端发往服务端的帧必须置 1
+		boolean masked = (b1 & 0x80) != 0;
+		int length7 = b1 & 0x7F;
 
-		// Client data must be masked
-		if (!hasMask) { // 第9为为mask,必须为1
-			throw new TioDecodeException("websocket client data must be masked");
-		} else {
-			headLength += 4;
+		if (rsv != 0) {
+			throw new WsProtocolException(WsCloseCode.PROTOCOL_ERROR, "RSV bits must be 0, but was 0x" + Integer.toHexString(rsv));
 		}
-		int payloadLength = second & 0x7F; // 读取后7位  Payload legth，如果<126则payloadLength
 
-		byte[] mask = null;
-		if (payloadLength == 126) { // 为126读2个字节，后两个字节为payloadLength
-			headLength += 2;
-			if (readableLength < headLength) {
+		Opcode opcode = Opcode.valueOf((byte) opcodeValue);
+		if (opcode == null) {
+			throw new WsProtocolException(WsCloseCode.PROTOCOL_ERROR, "unknown opcode: " + opcodeValue);
+		}
+
+		// 控制帧不能被分片，且负载长度不能超过 125
+		if (opcode.isControlFrame()) {
+			if (!fin) {
+				throw new WsProtocolException(WsCloseCode.PROTOCOL_ERROR, "control frame must not be fragmented");
+			}
+			if (length7 > 125) {
+				throw new WsProtocolException(WsCloseCode.PROTOCOL_ERROR, "control frame payload length must not exceed 125 bytes");
+			}
+		}
+
+		// 客户端发往服务端的帧必须带掩码
+		if (!masked) {
+			throw new WsProtocolException(WsCloseCode.PROTOCOL_ERROR, "client frame must be masked");
+		}
+
+		// 扩展长度：126 表示后跟 2 字节，127 表示后跟 8 字节
+		int extendedLengthBytes = 0;
+		long payloadLength = length7;
+		if (length7 == 126) {
+			extendedLengthBytes = 2;
+			if (readable < 2 + extendedLengthBytes) {
 				return null;
 			}
-			payloadLength = ByteBufferUtil.readUnsignedShortBE(buf);
-			log.debug("{} payloadLengthFlag: 126，payloadLength {}", channelContext, payloadLength);
-		} else if (payloadLength == 127) { // 127读8个字节,后8个字节为payloadLength
-			headLength += 8;
-			if (readableLength < headLength) {
+			payloadLength = ((long) (buf.get(pos + 2) & 0xFF) << 8) | (buf.get(pos + 3) & 0xFF);
+		} else if (length7 == 127) {
+			extendedLengthBytes = 8;
+			if (readable < 2 + extendedLengthBytes) {
 				return null;
 			}
-			payloadLength = (int) buf.getLong();
-			log.debug("{} payloadLengthFlag: 127，payloadLength {}", channelContext, payloadLength);
+			long value = 0L;
+			for (int i = 0; i < 8; i++) {
+				value = (value << 8) | (buf.get(pos + 2 + i) & 0xFF);
+			}
+			// 64 位长度的最高位必须为 0
+			if (value < 0) {
+				throw new WsProtocolException(WsCloseCode.PROTOCOL_ERROR, "payload length most significant bit must be 0");
+			}
+			payloadLength = value;
 		}
 
-		if (payloadLength < 0 || payloadLength > WsPacket.MAX_BODY_LENGTH) {
-			throw new TioDecodeException("body length(" + payloadLength + ") is not right");
+		if (payloadLength > WsPacket.MAX_BODY_LENGTH) {
+			throw new WsProtocolException(WsCloseCode.MESSAGE_TOO_BIG, "payload length too large: " + payloadLength);
 		}
 
-		if (readableLength < headLength + payloadLength) {
+		int payloadLengthInt = (int) payloadLength;
+		int maskOffset = pos + 2 + extendedLengthBytes;
+		int payloadOffset = maskOffset + 4;
+		if (readable < payloadOffset - pos + payloadLengthInt) {
 			return null;
 		}
 
-		if (hasMask) {
-			mask = ByteBufferUtil.readBytes(buf, 4);
+		// 掩码密钥
+		byte[] mask = new byte[4];
+		for (int i = 0; i < 4; i++) {
+			mask[i] = buf.get(maskOffset + i);
 		}
 
-		// 第二阶段解析
-		WsRequest websocketPacket = new WsRequest();
-		websocketPacket.setWsEof(fin);
-		websocketPacket.setWsHasMask(hasMask);
-		websocketPacket.setWsMask(mask);
-		websocketPacket.setWsOpcode(opcode);
-		websocketPacket.setWsBodyLength(payloadLength);
-
-		if (payloadLength == 0) {
-			return websocketPacket;
+		// 解掩码后的负载
+		byte[] payload = new byte[payloadLengthInt];
+		for (int i = 0; i < payloadLengthInt; i++) {
+			payload[i] = (byte) (buf.get(payloadOffset + i) ^ mask[i % 4]);
 		}
+		buf.position(payloadOffset + payloadLengthInt);
 
-		byte[] array = ByteBufferUtil.readBytes(buf, payloadLength);
-		if (hasMask) {
-			for (int i = 0; i < array.length; i++) {
-				array[i] = (byte) (array[i] ^ mask[i % 4]);
-			}
-		}
-		websocketPacket.setBody(array);
-		return websocketPacket;
+		WsRequest request = new WsRequest();
+		request.setWsEof(fin);
+		request.setWsHasMask(masked);
+		request.setWsMask(mask);
+		request.setWsOpcode(opcode);
+		request.setWsBodyLength(payloadLength);
+		request.setBody(payload);
+		return request;
 	}
-
 }

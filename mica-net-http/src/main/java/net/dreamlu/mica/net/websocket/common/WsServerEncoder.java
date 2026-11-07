@@ -198,10 +198,14 @@ import net.dreamlu.mica.net.utils.buffer.ByteBufferUtil;
 import java.nio.ByteBuffer;
 
 /**
- * 参考了baseio: https://gitee.com/generallycloud/baseio
- * com.generallycloud.nio.codec.http11.WebSocketProtocolEncoder
+ * WebSocket 帧编码器，参考 RFC 6455 §5.2 <a href="https://tools.ietf.org/html/rfc6455#section-5.2">Base Framing Protocol</a>。
+ *
+ * <p>服务端发往客户端的帧不允许掩码（MASK 位为 0），长度使用最少的字节数编码。</p>
  *
  * @author tanyaowu
+ * <p>
+ * 参考了baseio: https://gitee.com/generallycloud/baseio
+ * com.generallycloud.nio.codec.http11.WebSocketProtocolEncoder
  */
 public class WsServerEncoder {
 
@@ -209,26 +213,33 @@ public class WsServerEncoder {
 
 	}
 
+	/**
+	 * 编码一个 WebSocket 帧
+	 *
+	 * @param wsResponse 待发送的帧
+	 * @return 编码后的数据
+	 */
 	public static ByteBuffer encode(WsResponse wsResponse) {
 		// 就是ws的body，不包括ws的头
 		byte[] wsBody = wsResponse.getBody();
 		byte[][] wsBodies = wsResponse.getBodys();
 		int wsBodyLength = 0;
 		if (wsBody != null) {
-			wsBodyLength += wsBody.length;
+			wsBodyLength = wsBody.length;
 		} else if (wsBodies != null) {
 			for (byte[] bs : wsBodies) {
 				wsBodyLength += bs.length;
 			}
 		}
 
-		byte header0 = (byte) (0x8f & (wsResponse.getWsOpcode().getCode() | 0xf0));
+		// FIN 位置 1，RSV1/2/3 位置 0，MASK 位置 0（服务端发出的帧不得掩码）
+		byte header0 = (byte) (0x80 | wsResponse.getWsOpcode().getCode());
 		ByteBuffer buf;
 		if (wsBodyLength < 126) {
 			buf = ByteBuffer.allocate(2 + wsBodyLength);
 			buf.put(header0);
 			buf.put((byte) wsBodyLength);
-		} else if (wsBodyLength < (1 << 16) - 1) {
+		} else if (wsBodyLength <= 0xFFFF) {
 			buf = ByteBuffer.allocate(4 + wsBodyLength);
 			buf.put(header0);
 			buf.put((byte) 126);
@@ -240,7 +251,7 @@ public class WsServerEncoder {
 			ByteBufferUtil.writeLongBE(buf, wsBodyLength);
 		}
 
-		if (wsBody != null && wsBody.length > 0) {
+		if (wsBody != null) {
 			buf.put(wsBody);
 		} else if (wsBodies != null) {
 			for (byte[] bs : wsBodies) {
@@ -249,5 +260,4 @@ public class WsServerEncoder {
 		}
 		return buf;
 	}
-
 }

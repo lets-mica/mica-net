@@ -3,6 +3,16 @@
 ## 发行版本
 
 ### v2.0.18 - 2026-11-08
+- feat(websocket): WebSocket 协议层按 RFC 6455 重写。握手阶段校验请求方法、`Upgrade`、`Connection`、`Sec-WebSocket-Version` 与 `Sec-WebSocket-Key`，不通过时返回 405 / 400 / 426（带 `Sec-WebSocket-Version: 13`）并断开连接，不再直接抛异常断链；子协议协商改为按服务端声明的优先级挑选。
+- feat(websocket): 控制帧按 RFC 6455 §5.5 处理。收到 Ping 自动回 Pong（负载原样带回），收到 Close 自动回 Close 且状态码与对端保持一致，关闭帧写出后再关闭 TCP 连接；Close 帧的原因按 UTF-8 校验，状态码按 RFC 校验，非法关闭码按 1002 断开。
+- fix(websocket): TEXT / BINARY 的空消息不再被丢弃，会正常交给业务处理（此前空负载的数据帧直接忽略）。
+- feat(websocket): 帧解析补齐 RFC 校验。RSV 位必须为 0、控制帧不可分片且负载不超过 125 字节、64 位长度最高位必须为 0、客户端发往服务端的帧必须带掩码；违反协议时先回对应状态码的 Close 帧（1002 / 1007 / 1009）再断开连接。
+- feat(websocket): 分片消息按 RFC 6455 §5.4 拼装。续帧必须跟随首帧、分片途中插入新的数据帧按协议错误处理，顺序非法时回 1002；TEXT 帧在全部分片拼装完成后才做 UTF-8 校验，非法序列回 1007。
+- feat(websocket): 新增 `Ws` 门面（`close` / `ping` / `pong`）与 `WsCloseCode` 关闭码常量，服务端可发起完整关闭握手（`Tio.remove` 仍是直接断 TCP，客户端会看到 1006 异常断开）；`IWsMsgHandler` 新增 `onPong` 回调；`WsResponse` 新增 `fromPing` / `fromPong` / `fromClose` 工厂方法。
+- refactor(websocket): `Opcode.NOT_FIN` 更名为 `Opcode.CONTINUATION`（0x0 的正确语义是续帧，FIN 是独立标志位）；`Opcode.valueOf(byte)` 遇到协议未定义的操作码返回 null 而不是抛异常；`WsSessionContext` 的 `lastParts` 字段由分片状态机取代。
+- fix(websocket): 编码器按 RFC 6455 §5.2 用最少的字节数编码长度（65535 及以下用 16 位长度），服务端发出的帧不带掩码位；101 协议切换响应不再附带 `Content-Length`。
+- feat(core): `TioServerConfig#getTaskService()` 在服务端启动后返回实际使用的定时任务服务（此前仅在用户显式设置时才有值），业务侧可以复用服务端的时间轮。
+- test(websocket): 新增 34 个用例覆盖帧格式校验（解码器 12）、编码规则（编码器 8）与端到端行为（14），包含握手各分支、ping/pong、关闭握手、分片拼装与协议错误断链。
 - fix(ssl): 修复 `SslEngineWorker#engineLock` 引入的自死锁，表现为 TLS 客户端「一直连不上」。握手完成回调（`TioListener.onAfterConnected`）此前是在持有 `engineLock` 时触发的，而业务通常在该回调里同步阻塞发送首包（如 mica-mqtt 用 `Tio.bSend` 发 CONNECT）：发送线程需要 `engineLock` 才能加密数据，而 `engineLock` 正被回调线程持有 → 读线程等发送完成、发送线程等锁，互相等待，`bSend` 10s 超时后连接被关闭并触发无限重连。现把握手完成通知、明文数据投递（decode/handler）与 session 关闭回调全部移到释放 `engineLock` 之后执行，锁内不再回调任何业务代码；`beginHandshake` / `close` / `terminate` 也纳入同一把锁，避免 `SSLEngine` 被并发访问。
 - fix(ssl): `SslEngineWorker` 的 `SSLEngine` 增加连接级 `ReentrantLock`，把读线程的 `unwrap` 与写线程的 `wrap` 串行化。`SSLEngine` 非线程安全，并发访问会导致序号/密钥状态错乱，线上表现为 `Tag mismatch!` / `AEADBadTagException`，连接反复重连。
 - fix(ssl): `SslEngineWorker#driveHandshake` 移除 `NOT_HANDSHAKING` 状态下提前 `completeHandshake()` 的误判，握手完成只认 `FINISHED`。此前握手被提前判定完成后，业务包会在握手真正结束前被加密发出，对端收到非法的 TLS 记录，nginx 侧报 `bad record type`、access log 出现 `500 client:0/0 ssl:(NONE)`。同时在解密出应用数据时补一层兜底，避免握手完成信号丢失导致业务包永久滞留在待发送队列。

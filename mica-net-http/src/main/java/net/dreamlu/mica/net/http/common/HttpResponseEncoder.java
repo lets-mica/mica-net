@@ -372,6 +372,10 @@ public final class HttpResponseEncoder {
 		if (HttpResponseStatus.C204 == httpResponseStatus) {
 			return false;
 		}
+		// 101 协议切换的响应没有消息体
+		if (HttpResponseStatus.C101 == httpResponseStatus) {
+			return false;
+		}
 		HeaderValue contentType = headers.get(HeaderName.Content_Type);
 		if (HeaderValue.Content_Type.TEXT_EVENT_STREAM.equals(contentType)) {
 			return false;

@@ -196,9 +196,9 @@ package net.dreamlu.mica.net.websocket.common;
 import net.dreamlu.mica.net.http.common.HttpRequest;
 import net.dreamlu.mica.net.http.common.HttpResponse;
 
-import java.util.List;
-
 /**
+ * WebSocket 会话上下文，保存握手信息、分片消息状态与关闭握手状态
+ *
  * @author tanyaowu
  */
 public class WsSessionContext {
@@ -214,15 +214,46 @@ public class WsSessionContext {
 	 */
 	private HttpResponse handshakeResponse = null;
 
-	//websocket 协议用到的，有时候数据包是分几个到的，注意那个fin字段，本im暂时不支持
-	private List<byte[]> lastParts = null;
-
 	private String token = null;
 
 	/**
 	 * 是否已经握过手
 	 */
 	private boolean isHandshaked = false;
+
+	/**
+	 * 分片消息已接收的内容
+	 */
+	private byte[] fragmentBuffer = null;
+	/**
+	 * 分片消息已接收的长度
+	 */
+	private int fragmentLength = 0;
+	/**
+	 * 分片消息首帧的操作码（TEXT 或 BINARY），续帧的 opcode 为 CONTINUATION
+	 */
+	private Opcode fragmentOpcode = null;
+	/**
+	 * 是否正在接收分片消息
+	 */
+	private boolean fragmenting = false;
+
+	/**
+	 * 本端是否已经发送过 Close 帧
+	 */
+	private volatile boolean closeSent = false;
+	/**
+	 * 对端是否已经发送过 Close 帧
+	 */
+	private volatile boolean closeReceived = false;
+	/**
+	 * 对端发来的关闭码
+	 */
+	private volatile int closeCode = 0;
+	/**
+	 * 对端发来的关闭原因
+	 */
+	private volatile String closeReason = null;
 
 	public WsSessionContext() {
 
@@ -257,20 +288,6 @@ public class WsSessionContext {
 	}
 
 	/**
-	 * @return the lastPart
-	 */
-	public List<byte[]> getLastParts() {
-		return lastParts;
-	}
-
-	/**
-	 * @param lastParts the lastPart to set
-	 */
-	public void setLastParts(List<byte[]> lastParts) {
-		this.lastParts = lastParts;
-	}
-
-	/**
 	 * @return the token
 	 */
 	public String getToken() {
@@ -298,4 +315,134 @@ public class WsSessionContext {
 		this.isHandshaked = isHandshaked;
 	}
 
+	/**
+	 * @return 是否正在接收分片消息
+	 */
+	public boolean isFragmenting() {
+		return fragmenting;
+	}
+
+	/**
+	 * @return 分片消息首帧的操作码
+	 */
+	public Opcode getFragmentOpcode() {
+		return fragmentOpcode;
+	}
+
+	/**
+	 * 开始接收一个分片消息
+	 *
+	 * @param opcode 首帧的操作码（TEXT 或 BINARY）
+	 */
+	public void startFragment(Opcode opcode) {
+		this.fragmentOpcode = opcode;
+		this.fragmenting = true;
+		this.fragmentBuffer = null;
+		this.fragmentLength = 0;
+	}
+
+	/**
+	 * 追加分片内容
+	 *
+	 * @param data 分片内容
+	 * @throws WsProtocolException 消息长度超过限制
+	 */
+	public void appendFragment(byte[] data) throws WsProtocolException {
+		if (data == null || data.length == 0) {
+			return;
+		}
+		int newLength = fragmentLength + data.length;
+		if (newLength > WsPacket.MAX_BODY_LENGTH) {
+			throw new WsProtocolException(WsCloseCode.MESSAGE_TOO_BIG, "message length too large: " + newLength);
+		}
+		if (fragmentBuffer == null) {
+			fragmentBuffer = new byte[newLength];
+		} else if (fragmentBuffer.length < newLength) {
+			byte[] newBuffer = new byte[newLength];
+			System.arraycopy(fragmentBuffer, 0, newBuffer, 0, fragmentLength);
+			fragmentBuffer = newBuffer;
+		}
+		System.arraycopy(data, 0, fragmentBuffer, fragmentLength, data.length);
+		fragmentLength = newLength;
+	}
+
+	/**
+	 * 取出分片消息的完整内容，并重置分片状态
+	 *
+	 * @return 分片消息的完整内容
+	 */
+	public byte[] takeFragment() {
+		byte[] data = fragmentBuffer == null ? new byte[0] : fragmentBuffer;
+		fragmentBuffer = null;
+		fragmentLength = 0;
+		fragmentOpcode = null;
+		fragmenting = false;
+		return data;
+	}
+
+	/**
+	 * 重置分片状态
+	 */
+	public void resetFragment() {
+		fragmentBuffer = null;
+		fragmentLength = 0;
+		fragmentOpcode = null;
+		fragmenting = false;
+	}
+
+	/**
+	 * @return 本端是否已经发送过 Close 帧
+	 */
+	public boolean isCloseSent() {
+		return closeSent;
+	}
+
+	/**
+	 * @param closeSent 本端是否已经发送过 Close 帧
+	 */
+	public void setCloseSent(boolean closeSent) {
+		this.closeSent = closeSent;
+	}
+
+	/**
+	 * @return 对端是否已经发送过 Close 帧
+	 */
+	public boolean isCloseReceived() {
+		return closeReceived;
+	}
+
+	/**
+	 * @param closeReceived 对端是否已经发送过 Close 帧
+	 */
+	public void setCloseReceived(boolean closeReceived) {
+		this.closeReceived = closeReceived;
+	}
+
+	/**
+	 * @return 对端发来的关闭码
+	 */
+	public int getCloseCode() {
+		return closeCode;
+	}
+
+	/**
+	 * @param closeCode 对端发来的关闭码
+	 */
+	public void setCloseCode(int closeCode) {
+		this.closeCode = closeCode;
+	}
+
+	/**
+	 * @return 对端发来的关闭原因
+	 */
+	public String getCloseReason() {
+		return closeReason;
+	}
+
+	/**
+	 * @param closeReason 对端发来的关闭原因
+	 */
+	public void setCloseReason(String closeReason) {
+		this.closeReason = closeReason;
+	}
 }

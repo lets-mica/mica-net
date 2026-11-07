@@ -251,7 +251,10 @@ public class TioServer {
 	 * @return TimerTaskService
 	 */
 	private static TimerTaskService getTimerTaskService(TioServerConfig serverConfig) {
-		return Optional.ofNullable(serverConfig.getTaskService()).orElseGet(DefaultTimerTaskService::new);
+		TimerTaskService taskService = Optional.ofNullable(serverConfig.getTaskService()).orElseGet(DefaultTimerTaskService::new);
+		// 回填到配置中，业务侧（如 websocket 关闭握手超时）可以复用同一个定时任务服务
+		serverConfig.setTaskService(taskService);
+		return taskService;
 	}
 
 	/**

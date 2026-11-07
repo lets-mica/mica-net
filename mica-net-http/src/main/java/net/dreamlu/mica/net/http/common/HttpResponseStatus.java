@@ -328,6 +328,10 @@ public enum HttpResponseStatus {
 	 */
 	C416((short) 416, "Requested Range Not Satisfiable", "416 Requested Range Not Satisfiable"),
 	/**
+	 * 客户端请求的协议版本服务器不支持，需要客户端升级协议，websocket握手版本不支持时返回该状态码。
+	 */
+	C426((short) 426, "Upgrade Required", "426 Upgrade Required"),
+	/**
 	 * 服务器遇到了意料不到的情况，不能完成客户的请求。
 	 */
 	C500((short) 500, "Internal Server Error", "500 Internal Server Error"),

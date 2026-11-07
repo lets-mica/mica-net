@@ -225,6 +225,10 @@ public class WsPacket extends Packet {
 	private long wsBodyLength;
 	private byte[] wsMask;
 	/**
+	 * Close 帧携带的状态码，参考 RFC 6455 §7.4
+	 */
+	private int wsCloseCode = 0;
+	/**
 	 * 当为文本时才有此字段
 	 */
 	private String wsBodyText;
@@ -292,6 +296,20 @@ public class WsPacket extends Packet {
 	 */
 	public void setWsMask(byte[] wsMask) {
 		this.wsMask = wsMask;
+	}
+
+	/**
+	 * @return the wsCloseCode
+	 */
+	public int getWsCloseCode() {
+		return wsCloseCode;
+	}
+
+	/**
+	 * @param wsCloseCode the wsCloseCode to set
+	 */
+	public void setWsCloseCode(int wsCloseCode) {
+		this.wsCloseCode = wsCloseCode;
 	}
 
 	/**

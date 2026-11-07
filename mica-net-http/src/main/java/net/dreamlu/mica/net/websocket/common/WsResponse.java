@@ -194,13 +194,22 @@
 package net.dreamlu.mica.net.websocket.common;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
+ * WebSocket 响应（服务端发往客户端的帧）
+ *
  * @author tanyaowu
  * 2017年7月30日 上午10:09:59
  */
 public class WsResponse extends WsPacket {
 	private static final long serialVersionUID = 963847148301021559L;
+
+	/**
+	 * Close 帧中原因（reason）的最大字节数，控制帧负载最长 125 字节，其中 2 字节是状态码
+	 */
+	private static final int MAX_CLOSE_REASON_LENGTH = 123;
 
 	public static WsResponse fromText(String text, Charset charset) {
 		WsResponse wsResponse = new WsResponse();
@@ -213,6 +222,84 @@ public class WsResponse extends WsPacket {
 		WsResponse wsResponse = new WsResponse();
 		wsResponse.setBody(bytes);
 		wsResponse.setWsOpcode(Opcode.BINARY);
+		return wsResponse;
+	}
+
+	/**
+	 * 构造 Ping 帧
+	 *
+	 * @param applicationData 附加数据，可为 null
+	 * @return Ping 帧
+	 */
+	public static WsResponse fromPing(byte[] applicationData) {
+		WsResponse wsResponse = new WsResponse();
+		wsResponse.setBody(applicationData == null ? new byte[0] : applicationData);
+		wsResponse.setWsOpcode(Opcode.PING);
+		return wsResponse;
+	}
+
+	/**
+	 * 构造 Pong 帧
+	 *
+	 * @param applicationData 附加数据，可为 null
+	 * @return Pong 帧
+	 */
+	public static WsResponse fromPong(byte[] applicationData) {
+		WsResponse wsResponse = new WsResponse();
+		wsResponse.setBody(applicationData == null ? new byte[0] : applicationData);
+		wsResponse.setWsOpcode(Opcode.PONG);
+		return wsResponse;
+	}
+
+	/**
+	 * 构造不带状态码的 Close 帧，负载为空
+	 *
+	 * @return Close 帧
+	 */
+	public static WsResponse fromClose() {
+		WsResponse wsResponse = new WsResponse();
+		wsResponse.setWsOpcode(Opcode.CLOSE);
+		wsResponse.setBody(new byte[0]);
+		return wsResponse;
+	}
+
+	/**
+	 * 构造 Close 帧，负载为「2 字节状态码 + 原因」
+	 *
+	 * @param closeCode 关闭码
+	 * @return Close 帧
+	 */
+	public static WsResponse fromClose(int closeCode) {
+		return fromClose(closeCode, null, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * 构造 Close 帧，负载为「2 字节状态码 + 原因」
+	 *
+	 * @param closeCode 关闭码
+	 * @param reason    关闭原因，可为 null
+	 * @param charset   字符集
+	 * @return Close 帧
+	 */
+	public static WsResponse fromClose(int closeCode, String reason, Charset charset) {
+		WsResponse wsResponse = new WsResponse();
+		wsResponse.setWsOpcode(Opcode.CLOSE);
+		wsResponse.setWsCloseCode(closeCode);
+
+		byte[] reasonBytes = reason == null ? new byte[0] : reason.getBytes(charset);
+		if (reasonBytes.length > MAX_CLOSE_REASON_LENGTH) {
+			// 原因过长时截断，并回退到合法的 UTF-8 边界，避免截断出半个字符
+			reasonBytes = Arrays.copyOf(reasonBytes, MAX_CLOSE_REASON_LENGTH);
+			while (reasonBytes.length > 0 && WsUtf8Validator.isValidUtf8(reasonBytes)) {
+				reasonBytes = Arrays.copyOf(reasonBytes, reasonBytes.length - 1);
+			}
+		}
+
+		byte[] body = new byte[2 + reasonBytes.length];
+		body[0] = (byte) ((closeCode >> 8) & 0xFF);
+		body[1] = (byte) (closeCode & 0xFF);
+		System.arraycopy(reasonBytes, 0, body, 2, reasonBytes.length);
+		wsResponse.setBody(body);
 		return wsResponse;
 	}
 }
