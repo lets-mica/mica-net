@@ -17,7 +17,7 @@
 package net.dreamlu.mica.net.core.ssl;
 
 import java.nio.ByteBuffer;
-import java.util.Queue;
+import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 
@@ -76,6 +76,19 @@ public final class SslHandler {
 		engineWorker.close();
 	}
 
+	/**
+	 * 优雅关闭：产出 close_notify 记录并关闭引擎。
+	 * <p>
+	 * 返回的记录需要由调用方直接写入 socket，不能走发送队列——关闭流程里发送任务已被取消、
+	 * socket 也即将关闭，走队列的 close_notify 会被丢弃。
+	 * </p>
+	 *
+	 * @return close_notify 记录；无可发送内容时返回 null
+	 */
+	public ByteBuffer closeGracefully() {
+		return engineWorker.closeOutboundAndGetCloseNotify();
+	}
+
 	public void terminate() {
 		engineWorker.terminate();
 	}
@@ -125,16 +138,15 @@ public final class SslHandler {
 		}
 
 		AbstractSendRunnable sendRunnable = channelContext.getSendRunnable();
-		Queue<Packet> pendingPackets = sendRunnable.getForSendAfterSslHandshakeCompleted(false);
-		if (pendingPackets == null || pendingPackets.isEmpty()) {
+		List<Packet> pendingPackets = sendRunnable.takeDeferredPackets();
+		if (pendingPackets.isEmpty()) {
 			return;
 		}
 		if (log.isDebugEnabled()) {
 			log.debug("{} 业务层在SSL握手前有{}条数据待发送", channelContext, pendingPackets.size());
 		}
 		boolean useQueueSend = tioConfig.useQueueSend;
-		Packet packet;
-		while ((packet = pendingPackets.poll()) != null) {
+		for (Packet packet : pendingPackets) {
 			if (useQueueSend) {
 				sendRunnable.addMsg(packet);
 			} else {
@@ -152,7 +164,7 @@ public final class SslHandler {
 		String remark = handshakeCompleted
 			? "SSL SessionClosed（握手已完成，收到对端 close_notify）"
 			: "SSL SessionClosed（握手未完成即收到 close_notify）";
-		log.info("{}, {}", channelContext, remark);
+		log.debug("{}, {}", channelContext, remark);
 		Tio.close(channelContext, null, remark, channelContext.isServer(), CloseCode.SSL_SESSION_CLOSED);
 	}
 }

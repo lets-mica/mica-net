@@ -74,11 +74,15 @@ class NetE2EReconnectTest {
 	}
 
 	private void runScenario(boolean ssl, boolean reconnect) throws Exception {
-		int port = 18900 + (ssl ? 10 : 0) + (reconnect ? 1 : 0);
+		// 随机可用端口，避免与本机其它服务冲突
+		int port;
+		try (java.net.ServerSocket socket = new java.net.ServerSocket(0)) {
+			port = socket.getLocalPort();
+		}
 		int expect = reconnect ? 2 : 1;
 		CountDownLatch serverReceived = new CountDownLatch(expect);
 		// 重连场景下服务端只在第二次交互时回包，客户端只会收到一次 pong
-		CountDownLatch clientReceived = new CountDownLatch(reconnect ? 1 : 1);
+		CountDownLatch clientReceived = new CountDownLatch(1);
 		AtomicReference<String> serverPayload = new AtomicReference<>();
 		AtomicReference<String> clientPayload = new AtomicReference<>();
 		AtomicInteger serverRecvCount = new AtomicInteger();

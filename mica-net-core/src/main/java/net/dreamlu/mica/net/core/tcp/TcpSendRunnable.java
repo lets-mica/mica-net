@@ -67,6 +67,11 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 
 		// 判断是否启用 SSL
 		boolean isSsl = SslUtils.isSsl(tioConfig);
+		// SSL 握手未完成时，业务包不能加密，暂存起来等握手完成后统一发出
+		if (deferIfSslHandshakeNotCompleted(firstPacket)) {
+			deferRemainingPackets();
+			return;
+		}
 		// 单个包直接发送
 		if (msgQueue.isEmpty()) {
 			sendPacket(firstPacket, isSsl);
@@ -89,6 +94,20 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 		sendByteBuffers(finalBuffers, result.packets);
 	}
 
+	/**
+	 * 把队列里剩余的业务包也暂存起来（SSL 握手未完成时统一等待握手完成后发出）。
+	 */
+	private void deferRemainingPackets() {
+		Packet packet;
+		while ((packet = msgQueue.poll()) != null) {
+			if (!deferIfSslHandshakeNotCompleted(packet)) {
+				// 不需要加密的包无法暂存，放回队列，下轮再处理
+				msgQueue.add(packet);
+				break;
+			}
+		}
+	}
+
 	@Override
 	public boolean sendPacket(Packet packet) {
 		return sendPacket(packet, SslUtils.isSsl(tioConfig));
@@ -98,7 +117,12 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	 * 发送单个数据包（TCP 异步）
 	 */
 	@Override
-    public boolean sendPacket(Packet packet, boolean isSsl) {
+	public boolean sendPacket(Packet packet, boolean isSsl) {
+		// SSL 握手未完成时不能加密业务数据，暂存起来等握手完成后统一发出。
+		// 直接加密会拿到握手记录而不是业务密文，对端收到的是非法 TLS 记录。
+		if (deferIfSslHandshakeNotCompleted(packet)) {
+			return true;
+		}
 		ByteBuffer byteBuffer = getByteBuffer(packet);
 
 		// SSL 加密

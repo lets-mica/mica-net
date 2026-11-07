@@ -58,6 +58,15 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	protected final TcpHandler tioHandler;
 	protected final Queue<Packet> msgQueue;
 	protected Queue<Packet> forSendAfterSslHandshakeCompleted = null;
+	/**
+	 * 握手完成前暂存业务包时的锁。
+	 * <p>
+	 * 暂存（放入）与握手完成后的排空（取出）都在这把锁内完成，
+	 * 避免"放入与排空交叉"导致业务包被永久滞留：排空一定发生在握手完成之后，
+	 * 而暂存时的握手状态判断与放入是原子的，两者不会错开。
+	 * </p>
+	 */
+	private final Object sslDeferredLock = new Object();
 
 	public AbstractSendRunnable(ChannelContext channelContext, Executor executor) {
 		this(channelContext, executor, new ConcurrentLinkedQueue<>());
@@ -82,27 +91,83 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 		return forSendAfterSslHandshakeCompleted;
 	}
 
+	/**
+	 * SSL 握手未完成时，把需要加密的业务包暂存起来，等握手完成后再发送。
+	 * <p>
+	 * 握手未完成时不能加密业务数据：引擎此时只会产出握手记录，业务数据不会被消费，
+	 * 直接发出去对端收到的是非法 TLS 记录。
+	 * </p>
+	 *
+	 * @param packet 业务包
+	 * @return true 表示已暂存（调用方不要再走正常发送路径）；false 表示握手已完成或该包无需加密，走正常发送路径
+	 */
+	public boolean deferIfSslHandshakeNotCompleted(Packet packet) {
+		if (!SslUtils.needSslEncrypt(packet, tioConfig)) {
+			// 已加密的包或非 SSL 连接，不需要暂存
+			return false;
+		}
+		synchronized (sslDeferredLock) {
+			SslHandler sslHandler = channelContext.getSslHandler();
+			if (sslHandler == null || sslHandler.isHandshakeCompleted()) {
+				return false;
+			}
+			getForSendAfterSslHandshakeCompleted(true).add(packet);
+			return true;
+		}
+	}
+
+	/**
+	 * 取走握手完成前暂存的业务包。
+	 * <p>
+	 * 与 {@link #deferIfSslHandshakeNotCompleted(Packet)} 用同一把锁，保证暂存与排空不会交叉。
+	 * </p>
+	 *
+	 * @return 暂存的业务包列表（可能为空）
+	 */
+	public List<Packet> takeDeferredPackets() {
+		synchronized (sslDeferredLock) {
+			List<Packet> packets = new ArrayList<>(2);
+			Queue<Packet> deferred = forSendAfterSslHandshakeCompleted;
+			if (deferred == null) {
+				return packets;
+			}
+			Packet packet;
+			while ((packet = deferred.poll()) != null) {
+				packets.add(packet);
+			}
+			return packets;
+		}
+	}
+
 	@Override
 	public boolean addMsg(Packet packet) {
 		if (this.isCanceled()) {
 			log.info("{}, 任务已经取消，{}添加到发送队列失败", channelContext, packet.logstr());
 			return false;
 		}
-		SslHandler sslHandler = channelContext.getSslHandler();
-		if (sslHandler != null && !sslHandler.isHandshakeCompleted() && SslUtils.needSslEncrypt(packet, tioConfig)) {
-			return this.getForSendAfterSslHandshakeCompleted(true).add(packet);
-		} else {
-			return msgQueue.add(packet);
+		if (deferIfSslHandshakeNotCompleted(packet)) {
+			return true;
 		}
+		return msgQueue.add(packet);
 	}
 
 	@Override
 	public void clearMsgQueue() {
 		Packet p;
+		// 先取走握手完成前暂存的包，再置空，否则暂存的包会被直接丢弃，
+		// 等待该包发送完成的业务方（如 bSend）会一直等到超时
+		List<Packet> deferred = takeDeferredPackets();
 		forSendAfterSslHandshakeCompleted = null;
 		while ((p = msgQueue.poll()) != null) {
 			try {
 				channelContext.processAfterSent(p, false);
+			} catch (Throwable e) {
+				log.error(e.getMessage(), e);
+			}
+		}
+		for (Packet packet : deferred) {
+			try {
+				channelContext.processAfterSent(packet, false);
 			} catch (Throwable e) {
 				log.error(e.getMessage(), e);
 			}

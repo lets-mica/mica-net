@@ -180,16 +180,15 @@ final class SslEngineWorker {
 				fireHandshakeCompleted();
 			}
 		} finally {
-			if (success) {
-				// 明文数据必须在释放 engineLock 之后再交给业务：
-				// decode/handler 里通常伴随同步发送（如 mica-mqtt 处理消息后回复），
-				// 而发送线程加密数据需要同一把引擎锁，锁内回调会形成互相等待。
-				for (ByteBuffer plainData : outcome.plainDataList) {
-					plainDataConsumer.accept(plainData);
-				}
-				if (outcome.sessionClosed) {
-					sessionClosedListener.run();
-				}
+			// 明文数据必须在释放 engineLock 之后再交给业务：
+			// decode/handler 里通常伴随同步发送（如 mica-mqtt 处理消息后回复），
+			// 而发送线程加密数据需要同一把引擎锁，锁内回调会形成互相等待。
+			// 即使后续解密抛出异常，已经解出来的明文也要交付，避免丢数据。
+			for (ByteBuffer plainData : outcome.plainDataList) {
+				plainDataConsumer.accept(plainData);
+			}
+			if (success && outcome.sessionClosed) {
+				sessionClosedListener.run();
 			}
 		}
 	}
@@ -258,6 +257,42 @@ final class SslEngineWorker {
 			engine.closeInbound();
 		} catch (SSLException e) {
 			log.debug("{} 关闭SSL会话时忽略异常", channelContext, e);
+		} finally {
+			engineLock.unlock();
+			fireHandshakeCompleted();
+		}
+	}
+
+	/**
+	 * 关闭 outbound 并产出 close_notify 记录。
+	 * <p>
+	 * 与 {@link #close()} 的区别：这里不把 close_notify 交给发送队列，而是把记录本身返回给调用方，
+	 * 由调用方直接写入 socket。关闭流程里发送任务已被取消、socket 也即将关闭，
+	 * 走发送队列的 close_notify 会被丢弃，发不出去。
+	 * </p>
+	 *
+	 * @return close_notify 记录；引擎已关闭或无数据可发时返回 null
+	 */
+	ByteBuffer closeOutboundAndGetCloseNotify() {
+		closed = true;
+		engineLock.lock();
+		try {
+			engine.closeOutbound();
+			// closeOutbound 之后的第一次 wrap 会产出 close_notify 记录
+			ByteBuffer networkBuffer = buffers.packetBuffer();
+			engine.wrap(EMPTY_BUFFER.duplicate(), networkBuffer);
+			ByteBuffer closeNotify = networkBuffer.hasRemaining() ? SslBuffers.toReadBuffer(networkBuffer) : null;
+			try {
+				// 对端还没回 close_notify 时，JDK 会抛 SSLException，这里忽略：
+				// 本端正是要主动关闭，不关心对端是否回通知
+				engine.closeInbound();
+			} catch (SSLException e) {
+				log.debug("{} 关闭SSL入站时忽略异常", channelContext, e);
+			}
+			return closeNotify;
+		} catch (SSLException e) {
+			log.debug("{} 产出close_notify时忽略异常", channelContext, e);
+			return null;
 		} finally {
 			engineLock.unlock();
 			fireHandshakeCompleted();

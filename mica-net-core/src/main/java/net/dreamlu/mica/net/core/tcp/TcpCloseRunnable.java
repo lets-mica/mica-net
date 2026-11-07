@@ -20,9 +20,7 @@ import net.dreamlu.mica.net.client.ReconnConf;
 import net.dreamlu.mica.net.client.TioClientConfig;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.maintain.MaintainUtils;
-import net.dreamlu.mica.net.core.ssl.SslHandler;
 import net.dreamlu.mica.net.core.task.AbstractCloseRunnable;
-import net.dreamlu.mica.net.core.task.AbstractSendRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,41 +35,9 @@ import java.util.concurrent.Executor;
  */
 public class TcpCloseRunnable extends AbstractCloseRunnable {
 	private static final Logger log = LoggerFactory.getLogger(TcpCloseRunnable.class);
-	/**
-	 * 等待 close_notify 发送完成的最长时间（毫秒）
-	 */
-	private static final long CLOSE_NOTIFY_TIMEOUT = 200L;
 
 	public TcpCloseRunnable(Executor executor) {
 		super(executor);
-	}
-
-	@Override
-	protected void doGracefulShutdown(ChannelContext channelContext) {
-		if (!channelContext.isSsl()) {
-			return;
-		}
-		SslHandler sslHandler = channelContext.getSslHandler();
-		if (sslHandler == null || !sslHandler.isHandshakeCompleted()) {
-			// 握手未完成时对端可能还没有建立会话，发 close_notify 意义不大
-			return;
-		}
-		try {
-			// 发送 TLS close_notify，让对端知道是本端主动断开而不是异常断流
-			sslHandler.close();
-			// 等待发送队列排空，避免 socket 关闭时 close_notify 被丢弃
-			AbstractSendRunnable sendRunnable = channelContext.getSendRunnable();
-			long deadline = System.currentTimeMillis() + CLOSE_NOTIFY_TIMEOUT;
-			while (System.currentTimeMillis() < deadline
-				&& (sendRunnable.isWriting() || !sendRunnable.getMsgQueue().isEmpty())) {
-				Thread.sleep(5L);
-			}
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			log.warn("{}, 等待SSL close_notify发送完成时被中断", channelContext);
-		} catch (Throwable e) {
-			log.warn("{}, 发送SSL close_notify失败:{}", channelContext, e.getMessage());
-		}
 	}
 
 	@Override

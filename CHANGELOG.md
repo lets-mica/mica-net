@@ -19,13 +19,14 @@
 - fix(ssl): 修复 `SslEngineWorker#engineLock` 引入的自死锁，表现为 TLS 客户端「一直连不上」。握手完成回调（`TioListener.onAfterConnected`）此前是在持有 `engineLock` 时触发的，而业务通常在该回调里同步阻塞发送首包（如 mica-mqtt 用 `Tio.bSend` 发 CONNECT）：发送线程需要 `engineLock` 才能加密数据，而 `engineLock` 正被回调线程持有 → 读线程等发送完成、发送线程等锁，互相等待，`bSend` 10s 超时后连接被关闭并触发无限重连。现把握手完成通知、明文数据投递（decode/handler）与 session 关闭回调全部移到释放 `engineLock` 之后执行，锁内不再回调任何业务代码；`beginHandshake` / `close` / `terminate` 也纳入同一把锁，避免 `SSLEngine` 被并发访问。
 - fix(ssl): `SslEngineWorker` 的 `SSLEngine` 增加连接级 `ReentrantLock`，把读线程的 `unwrap` 与写线程的 `wrap` 串行化。`SSLEngine` 非线程安全，并发访问会导致序号/密钥状态错乱，线上表现为 `Tag mismatch!` / `AEADBadTagException`，连接反复重连。
 - fix(ssl): `SslEngineWorker#driveHandshake` 移除 `NOT_HANDSHAKING` 状态下提前 `completeHandshake()` 的误判，握手完成只认 `FINISHED`。此前握手被提前判定完成后，业务包会在握手真正结束前被加密发出，对端收到非法的 TLS 记录，nginx 侧报 `bad record type`、access log 出现 `500 client:0/0 ssl:(NONE)`。同时在解密出应用数据时补一层兜底，避免握手完成信号丢失导致业务包永久滞留在待发送队列。
-- fix(ssl): `SslEngineWorker#encrypt` 在 `wrap` 未推进应用数据时按 `NEED_WRAP` / `NEED_TASK` 推进握手状态机并重试（上限 8 次）；握手未完成时抛出明确的「SSL 握手尚未完成，无法加密业务数据」，替换原先含糊的 `SSLEngine.wrap made no progress`。
+- fix(ssl): `SslEngineWorker#encrypt` 在 `wrap` 未推进应用数据时按 `NEED_WRAP` / `NEED_TASK` 推进握手状态机并重试（上限 8 次），替换原先含糊的 `SSLEngine.wrap made no progress`；引擎层在握手未完成时仍会拒绝加密业务数据（明确的「SSL 握手尚未完成，无法加密业务数据」）。
+- fix(ssl): TLS 握手未完成时发送的业务包不再直接关闭连接，改为暂存起来等握手完成后统一发出，`useQueueSend=false`（不走发送队列）的配置同样生效。暂存与排空在同一把锁内完成，避免业务包在握手完成的瞬间被永久滞留；连接关闭时尚未发出的暂存包也会被释放，不再让 `bSend` 一直等到超时。
 - fix(core): `ReadCompletionHandler` 的读回调附件由裸 `ByteBuffer` 改为携带 socket 的 `ReadAttachment`，回调时校验归属。断线重连后旧 socket 上迟到的 EOF/异常回调不再误关刚重连成功的新连接（线上表现为无故的「对方关闭了连接」）；重连时新建读缓冲区，避免新旧连接共用缓冲区，并关闭旧 socket 释放资源。
-- feat(ssl): 关闭流程新增 `doGracefulShutdown` 钩子，TCP 实现在关闭 socket 前发送 TLS `close_notify` 并等待发送队列排空（最长 200ms），让对端感知到主动断开而非异常断流。
+- fix(ssl): 主动关闭连接时把 TLS `close_notify` 真正发到对端，让对端以「收到对端 close_notify」的方式感知到主动断开，而不是只看到 TCP 断流。close_notify 绕过发送队列直写 socket——关闭流程里发送任务已被取消、socket 也即将关闭，走队列的 close_notify 会被丢弃。同时去掉了原先固定等待发送队列排空（最长 200ms）的阻塞，改为按需等待在途写结束与 close_notify 写出。
 - fix(ssl): 主动关闭方不再回调 `SSL SessionClosed`（此前 `closeInbound` 后 `unwrap` 返回 `CLOSED` 会误报为对端关闭）；`SSL SessionClosed` 备注细分为握手已完成/未完成两种场景，便于定位被掐断的时机。
 - chore(build): 根 pom 显式声明 `maven-surefire-plugin` 3.5.2，父 pom 的 2.12.4 不支持 JUnit 5，导致 `mvn test -Dmaven.test.skip=false` 实际执行 0 个用例。
 - test(ssl): `test.jks` 更换为 JDK 8 兼容的 JKS 格式，解决 JDK 8 下 `Invalid keystore format` 报错导致 SSL 单测无法执行的问题；新增并发加解密压力测试与握手未完成加密的断言。
-- test(ssl): 补齐此前缺失的 SSL 端到端覆盖：新增 `SslHandshakeCallbackSendTest`（握手完成回调内同步发包的死锁回归用例）、`SslClientServerIntegrationTest`（TLS 客户端与服务端双向收发）、`NetE2EReconnectTest`（普通 TCP / TLS 的收发与断线重连）。此前仓库只有 `SSLEngine` 单元测试，缺少端到端用例，导致上述回归得以进入主干。
+- test(ssl): 补齐此前缺失的 SSL 端到端覆盖：新增 `SslHandshakeCallbackSendTest`（握手完成回调内同步发包的死锁回归用例）、`SslClientServerIntegrationTest`（TLS 客户端与服务端双向收发）、`NetE2EReconnectTest`（普通 TCP / TLS 的收发与断线重连）、`SslCloseNotifyTest`（对端必须以 close_notify 感知到主动断开）、`SslSendBeforeHandshakeTest`（握手未完成时发送的业务包仍能送达）。此前仓库只有 `SSLEngine` 单元测试，缺少端到端用例，导致上述回归得以进入主干。
 
 ### v2.0.17 - 2026-11-01
 - fix(cluster): 修复 `ClusterImpl#stop()` 空指针。集群客户端与服务端都是 `start()` 子步骤才创建的，未调用 `start()` 或启动中途失败（如端口被占用）时任一字段为 `null`，原实现无条件解引用抛出 NPE，导致调用方的清理流程被中断、端口与线程无法释放。现改为客户端与服务端各自判空后再停、互不牵连，停完把字段置为 `null`（字段加 `volatile`，保证置空对其它线程可见），使重复 `stop()` 成为真正的 no-op，同时让「集群是否已启动」的状态保持准确；停止时一并清空 `lateJoinMembers`，避免重启后因「已加入」而跳过与该节点的返回连接。

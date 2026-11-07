@@ -199,6 +199,7 @@ import net.dreamlu.mica.net.client.TioClientConfig;
 import net.dreamlu.mica.net.core.ChannelContext.CloseCode;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.core.intf.Packet.Meta;
+import net.dreamlu.mica.net.core.ssl.SslGracefulShutdown;
 import net.dreamlu.mica.net.utils.page.Page;
 import net.dreamlu.mica.net.utils.page.PageUtils;
 import org.slf4j.Logger;
@@ -506,6 +507,11 @@ public class Tio {
 		} else {
 			context.setCloseCode(closeCode);
 		}
+
+		// ★ TLS 优雅关闭：必须在关闭 socket 之前把 close_notify 发出去，
+		//   让对端知道是本端主动断开而不是异常断流。
+		//   发送任务此时已被取消、socket 也即将关闭，close_notify 只能绕过发送队列直写 socket。
+		SslGracefulShutdown.sendCloseNotify(context);
 
 		if (context.asynchronousSocketChannel != null) {
 			try {

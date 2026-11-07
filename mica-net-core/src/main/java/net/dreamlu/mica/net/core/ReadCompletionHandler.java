@@ -229,6 +229,16 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ReadCom
 	 */
 	private volatile ReadAttachment currentAttachment;
 	/**
+	 * 读缓冲区。
+	 * <p>
+	 * 构造时先分配一份，保证 {@link #getReadByteBuffer()} 始终返回非 null；
+	 * 第一次 {@link #registerRead(AsynchronousSocketChannel)} 时直接复用它，
+	 * 换 socket（断线重连）时才新建，避免新旧连接共用缓冲区。
+	 * </p>
+	 */
+	private ByteBuffer readByteBuffer;
+
+	/**
 	 * ProxyProtocol 预解析器（懒加载）。
 	 * <p>
 	 * 非 null 表示正在累积首批数据等待代理头解析完成。
@@ -242,6 +252,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ReadCom
 
 	public ReadCompletionHandler(ChannelContext channelContext) {
 		this.channelContext = channelContext;
+		this.readByteBuffer = allocateBuffer();
 	}
 
 	/**
@@ -262,7 +273,12 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ReadCom
 	 */
 	public void registerRead(AsynchronousSocketChannel socket) {
 		ReadAttachment attachment = currentAttachment;
-		if (attachment == null || attachment.getSocket() != socket) {
+		if (attachment == null) {
+			// 首次注册：复用构造时分配的缓冲区
+			attachment = new ReadAttachment(socket, readByteBuffer);
+			currentAttachment = attachment;
+		} else if (attachment.getSocket() != socket) {
+			// 换 socket（断线重连）：新建缓冲区，保证新旧连接不共用缓冲区
 			attachment = new ReadAttachment(socket, allocateBuffer());
 			currentAttachment = attachment;
 		} else {
@@ -489,11 +505,11 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ReadCom
 	}
 
 	/**
-	 * @return 当前读缓冲区
+	 * @return 当前读缓冲区（首次读注册前返回构造时分配的缓冲区，不会为 null）
 	 */
 	public ByteBuffer getReadByteBuffer() {
 		ReadAttachment attachment = currentAttachment;
-		return attachment == null ? null : attachment.getBuffer();
+		return attachment == null ? readByteBuffer : attachment.getBuffer();
 	}
 
 	/**
