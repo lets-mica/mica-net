@@ -3,6 +3,9 @@
 ## 发行版本
 
 ### v2.0.18 - 2026-11-08
+- fix(websocket): `WsCloseCode.isValid` 与 `WsUtf8Validator.isValidUtf8` 的返回值语义与名称相反（返回的是「是否不合法」），分别改名为 `isInvalid` / `isInvalidUtf8` 并保留原名作为正向委托，调用点统一使用新名，避免误判关闭码与 UTF-8 合法性。
+- test(websocket): 新增可直接 `main` 启动的 `WsExample` 测试服务（默认端口 8182），演示文本/二进制收发、ping/pong、主动推送、关闭握手、子协议协商与握手阶段 token 拦截，方便手工验证协议行为。
+- fix(websocket): 握手响应中的子协议头名由小写 `sec-websocket-protocol` 改为规范的 `Sec-WebSocket-Protocol`，与同一响应里的 `Sec-WebSocket-Accept` 保持一致。
 - feat(websocket): WebSocket 协议层按 RFC 6455 重写。握手阶段校验请求方法、`Upgrade`、`Connection`、`Sec-WebSocket-Version` 与 `Sec-WebSocket-Key`，不通过时返回 405 / 400 / 426（带 `Sec-WebSocket-Version: 13`）并断开连接，不再直接抛异常断链；子协议协商改为按服务端声明的优先级挑选。
 - feat(websocket): 控制帧按 RFC 6455 §5.5 处理。收到 Ping 自动回 Pong（负载原样带回），收到 Close 自动回 Close 且状态码与对端保持一致，关闭帧写出后再关闭 TCP 连接；Close 帧的原因按 UTF-8 校验，状态码按 RFC 校验，非法关闭码按 1002 断开。
 - fix(websocket): TEXT / BINARY 的空消息不再被丢弃，会正常交给业务处理（此前空负载的数据帧直接忽略）。

@@ -228,7 +228,7 @@ public class HeaderName {
 	public static final HeaderName Refresh = HeaderName.from(HttpConst.ResponseHeaderKey.Refresh);
 	public static final HeaderName Sec_WebSocket_Accept = HeaderName.from(HttpConst.ResponseHeaderKey.Sec_WebSocket_Accept);
 	public static final HeaderName Sec_WebSocket_Version = HeaderName.from(HttpConst.ResponseHeaderKey.Sec_WebSocket_Version);
-	public static final HeaderName Sec_Websocket_Protocol = HeaderName.from(HttpConst.RequestHeaderKey.Sec_Websocket_Protocol);
+	public static final HeaderName Sec_Websocket_Protocol = HeaderName.from(HttpConst.ResponseHeaderKey.Sec_WebSocket_Protocol);
 	public static final HeaderName Server = HeaderName.from(HttpConst.ResponseHeaderKey.Server);
 	public static final HeaderName Upgrade = HeaderName.from(HttpConst.ResponseHeaderKey.Upgrade);
 

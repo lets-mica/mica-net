@@ -290,7 +290,7 @@ public class WsResponse extends WsPacket {
 		if (reasonBytes.length > MAX_CLOSE_REASON_LENGTH) {
 			// 原因过长时截断，并回退到合法的 UTF-8 边界，避免截断出半个字符
 			reasonBytes = Arrays.copyOf(reasonBytes, MAX_CLOSE_REASON_LENGTH);
-			while (reasonBytes.length > 0 && WsUtf8Validator.isValidUtf8(reasonBytes)) {
+			while (reasonBytes.length > 0 && WsUtf8Validator.isInvalidUtf8(reasonBytes)) {
 				reasonBytes = Arrays.copyOf(reasonBytes, reasonBytes.length - 1);
 			}
 		}

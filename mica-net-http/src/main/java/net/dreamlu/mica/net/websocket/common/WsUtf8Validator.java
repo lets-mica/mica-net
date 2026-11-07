@@ -37,12 +37,12 @@ public final class WsUtf8Validator {
 	}
 
 	/**
-	 * 判断字节数组是否是合法的 UTF-8 序列
+	 * 判断字节数组是否**不**是合法的 UTF-8 序列
 	 *
 	 * @param bytes 待校验的字节数组
-	 * @return true 表示是合法的 UTF-8
+	 * @return true 表示不是合法的 UTF-8
 	 */
-	public static boolean isValidUtf8(byte[] bytes) {
+	public static boolean isInvalidUtf8(byte[] bytes) {
 		if (bytes == null || bytes.length == 0) {
 			return false;
 		}
@@ -55,5 +55,15 @@ public final class WsUtf8Validator {
 		} catch (CharacterCodingException e) {
 			return true;
 		}
+	}
+
+	/**
+	 * 判断字节数组是否是合法的 UTF-8 序列
+	 *
+	 * @param bytes 待校验的字节数组
+	 * @return true 表示是合法的 UTF-8
+	 */
+	public static boolean isValidUtf8(byte[] bytes) {
+		return !isInvalidUtf8(bytes);
 	}
 }

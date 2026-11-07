@@ -436,7 +436,7 @@ public class WsTioServerHandler implements TioServerHandler {
 			return;
 		}
 		byte[] body = frame.getBody();
-		if (body != null && WsUtf8Validator.isValidUtf8(body)) {
+		if (body != null && WsUtf8Validator.isInvalidUtf8(body)) {
 			throw new WsProtocolException(WsCloseCode.INVALID_PAYLOAD, "text frame payload is not valid UTF-8");
 		}
 	}
@@ -458,14 +458,14 @@ public class WsTioServerHandler implements TioServerHandler {
 			throw new WsProtocolException(WsCloseCode.PROTOCOL_ERROR, "close frame payload must be empty or at least 2 bytes");
 		}
 		int closeCode = ((body[0] & 0xFF) << 8) | (body[1] & 0xFF);
-		if (WsCloseCode.isValid(closeCode)) {
+		if (WsCloseCode.isInvalid(closeCode)) {
 			throw new WsProtocolException(WsCloseCode.PROTOCOL_ERROR, "invalid close code: " + closeCode);
 		}
 		frame.setWsCloseCode(closeCode);
 		// 关闭原因必须是合法的 UTF-8
 		byte[] reason = new byte[body.length - 2];
 		System.arraycopy(body, 2, reason, 0, reason.length);
-		if (WsUtf8Validator.isValidUtf8(reason)) {
+		if (WsUtf8Validator.isInvalidUtf8(reason)) {
 			throw new WsProtocolException(WsCloseCode.INVALID_PAYLOAD, "close reason is not valid UTF-8");
 		}
 		frame.setWsBodyText(new String(reason, StandardCharsets.UTF_8));

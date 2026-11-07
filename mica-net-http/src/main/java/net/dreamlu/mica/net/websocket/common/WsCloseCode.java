@@ -95,14 +95,15 @@ public final class WsCloseCode {
 	}
 
 	/**
-	 * 判断关闭码是否允许出现在 Close 帧中。
+	 * 判断关闭码是否**不**允许出现在 Close 帧中。
 	 *
-	 * <p>允许的范围：1000~1003、1007~1014，以及 3000~4999（库/框架/应用私有区间）。</p>
+	 * <p>不允许的范围：1000 以下的区间、1004 / 1005 / 1006 / 1015 等保留码，
+	 * 以及 1016~2999 的协议保留区间。</p>
 	 *
 	 * @param closeCode 关闭码
-	 * @return true 表示可以作为 Close 帧的状态码
+	 * @return true 表示不能作为 Close 帧的状态码
 	 */
-	public static boolean isValid(int closeCode) {
+	public static boolean isInvalid(int closeCode) {
 		if (closeCode >= 1000 && closeCode <= 1003) {
 			return false;
 		}
@@ -111,5 +112,17 @@ public final class WsCloseCode {
 		}
 		// 3000~3999 供库/框架/应用使用，4000~4999 供私有使用
 		return closeCode < 3000 || closeCode > 4999;
+	}
+
+	/**
+	 * 判断关闭码是否允许出现在 Close 帧中。
+	 *
+	 * <p>允许的范围：1000~1003、1007~1014，以及 3000~4999（库/框架/应用私有区间）。</p>
+	 *
+	 * @param closeCode 关闭码
+	 * @return true 表示可以作为 Close 帧的状态码
+	 */
+	public static boolean isValid(int closeCode) {
+		return !isInvalid(closeCode);
 	}
 }
