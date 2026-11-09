@@ -176,8 +176,10 @@ public class TcpClientTest {
 | 调度任务 | `tioServer.schedule(r, 3000)` | 基于 HashedWheelTimer，无需额外线程 |
 
 > SSL 连接的关闭是**异步**的：`Tio.close` 会先把 TLS `close_notify` 发出去，
-> socket 的真正关闭与关闭回调推迟到该记录写完之后（最长 100ms），
-> 所以 `Tio.close` 返回时连接可能还没完全断开。非 SSL 连接仍是同步关闭。
+> socket 的真正关闭与关闭回调推迟到该记录写完之后，所以 `Tio.close` 返回时连接可能还没完全断开。
+> 若此时连接还有在途写，`close_notify` 会等到那次写结束后补发（最长 50ms）；
+> 在途写迟迟不结束就直接关闭连接，这种情况下对端可能收不到 `close_notify`。
+> 非 SSL 连接仍是同步关闭。
 
 ## 6. 常用配置（TioConfig）
 

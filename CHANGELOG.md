@@ -3,6 +3,12 @@
 ## 发行版本
 
 ### v2.0.18 - 2026-11-08
+- fix(ssl): TLS `close_notify` 抢不到写状态时不再被静默丢弃。`Tio.close` 直写 `close_notify` 前要抢占连接的写状态位，而关闭时发送队列里往往还有在途写，CAS 失败就直接放弃——对端永远收不到 `close_notify`，只能看到 TCP 断流（表现为「对方关闭了连接」而不是「收到对端 close_notify」）。现在改为挂到在途写的完成回调上重试（最多 3 次），并加一道 50ms 的定时兜底：在途写迟迟不结束就直接关闭连接，不再让连接悬着。
+- fix(websocket): 帧解码的「丢弃」分支不再返回 `null`。`WsTioServerHandler#decode` 返回 `null` 时框架会把读指针回退到帧头，刚解析完的帧被还回去、反复解析，还会累加解码失败次数（累加到阈值会被当成慢包攻击粗暴断连），排在它后面的对端 Close 帧也就永远解析不到，关闭握手只能等超时。已发 Close 后丢弃数据帧、以及协议错误后丢弃坏帧，这两个分支现在都返回 `IgnorePacket`（坏帧直接消费掉剩余数据），decode 始终算成功。
+- fix(websocket): 关闭握手中收到 Ping 仍会回 Pong。RFC 6455 §5.5.2 要求「除非已经收到对端的 Close」，本端已发 Close 但尚未收到对端 Close 时收到 Ping，此前被当作数据帧一并丢弃，对端等不到 Pong。
+- fix(websocket): `WsSessionContext#isHandshaked` 改为 `volatile`。握手状态在解码线程置位、在其它线程读取，此前缺了可见性保证。
+- fix(utils): 编译期用的 jackson3 桩（`src/main/java17/tools/jackson/**`）不再残留在运行时 classpath。桩原本在打包阶段才从 `target/classes` 删除，于是 reactor 构建（`mvn test`）时它还在 classpath 上，被 `ClassUtil.isPresent` 误判成「用户装了 jackson3」，`JsonUtil` 选中一个只会返回 null 的空实现——MCP 的 schema 序列化结果为 null，测试在 reactor 下必红而单模块构建全绿。现在改为编译完就删除，让 classpath 与发布产物一致。
+- chore(ci): GitHub Actions 的构建改为真正执行测试（`mvn clean package -P !develop -Dmaven.test.skip=false`）。根 pom 默认 `maven.test.skip=true`，此前的 CI 命令只打包不跑用例，测试形同虚设。
 - fix(core): 所有发起写的地方统一用 CAS 抢占 `writing` 状态位（新增 `AbstractSendRunnable#tryStartWriting` / `finishWriting`）。此前框架自己的 `sendByteBuffer` / `sendByteBuffers` 是「先判断空闲、编码之后再置位」，中间隔着编码与 SSL 加密，关闭流程在这个窗口里抢占成功后框架仍会发起第二次写并撞上 `WritePendingException`，包丢失且异常处理里的 `set(false)` 会把抢占者的状态位误清；直发路径（`useQueueSend=false`、SSL 握手记录）更是完全不检查写状态。现在所有入口都 CAS，抢不到时把包放回队列由在途写的完成回调继续调度（连接正在关闭则丢弃），`isNeededExecute()` 在有写在途时返回 false，避免任务反复重新提交形成的空转。
 - fix(core): 发送链路上被丢弃的包现在都会通知发送方。连接已在关闭中、编码失败、SSL 加密失败、写状态被抢占且连接正在关闭这几个出口此前都是静默丢包，等待发送完成的业务方（如 `Tio.bSend` 的 CountDownLatch）永远等不到，只能空耗满 10s 超时；现在统一按「发送失败」回调一次。
 - fix(core): 时间轮的归属改为「谁创建谁停止」，并区分「用户设置的」与「运行时实际使用的」两个引用。`TioClient#stop` / `TioServer#stop` 此前无条件停止配置里的 `TimerTaskService`，而它可能被多个客户端或业务侧共享，且 `DefaultTimerTaskService#stop()` 不可逆（时间轮线程 shutdown 后无法再 start），停掉一个会让其他使用者的心跳与重连任务全部停摆。现在 `getTaskService()` 只返回用户显式设置的那个（框架自建的不占用它），新增 `TioConfig#getRuntimeTaskService()` 返回运行时实际使用的那个，业务侧（如 websocket 关闭握手超时兜底）改从它取；同一份配置再建一个客户端/服务端时各自自建时间轮，不再互相继承，停掉其中一个不会波及其余。
@@ -15,7 +21,8 @@
 - refactor(core): 删除重构后已无调用方的死代码：`SslHandler#close` / `#terminate`、`SslEngineWorker#close` / `#terminate`、`ReadCompletionHandler#getReadByteBuffer`。`SslEngineWorkerTest` 里两处 `close()` 调用改为走生产路径 `closeOutboundAndGetCloseNotify()` + 手工投递记录，用例改为覆盖真正在跑的 API。
 - fix(ssl): `Tio.close` 对 SSL 连接不再调用 `shutdownInput()`。Windows 下接收队列里还压着 TLS 1.3 握手期补发的 `NewSessionTicket` 时会立即发出 RST，把刚写出的 close_notify 一并丢掉，对端只能看到 `Connection reset`（对端日志表现为「读数据时发生异常: java.io.IOException」）。
 - fix(ssl): 握手前暂存队列的「取包 + 置空」并入同一把锁（`takeDeferredPackets`），消除两步之间新入队的业务包落到再也不会被排空的队列里、等待发送完成的业务方（如 `bSend`）只能等到超时的问题；`getForSendAfterSslHandshakeCompleted` 降为私有方法，避免外部绕开 `sslDeferredLock` 直接操作该队列。
-- test(ssl): `SslCloseNotifyTest` 改为「先完成一次 ping/pong 再关闭」，避开 TLS 1.3 票据滞留接收队列导致的 RST 干扰，避免用例偶发失败拖红 CI；同时允许最多 3 次重试——票据到达与读取的先后仍受调度影响，而真正的回归（不写 close_notify）每次尝试都会失败，不会被重试掩盖。`SslClientServerIntegrationTest` 的固定端口 `18899` 改为动态端口，避免同机并发构建撞端口。
+- test(ssl): `SslCloseNotifyTest` 覆盖「在途写占用写状态时 close_notify 仍要发出」与「在途写永不结束时连接不能悬着」两个场景，用例改为「先完成一次 ping/pong 再关闭」，避开 TLS 1.3 票据滞留接收队列导致的 RST 干扰，避免用例偶发失败拖红 CI；同时允许最多 3 次重试——票据到达与读取的先后仍受调度影响，而真正的回归（不写 close_notify）每次尝试都会失败，不会被重试掩盖。`SslClientServerIntegrationTest` 的固定端口 `18899` 改为动态端口，避免同机并发构建撞端口。
+- test(utils): `JsonAdapterTest` 里 jackson3 的断言改为「真实引入 jackson3 才执行」——原先断言的是编译期桩的空实现行为（序列化返回 null），桩移出运行时 classpath 后这类断言不再成立；另补一条用例，校验按 classpath 探测出来的适配器必须能真正完成序列化。
 - test(websocket): 新增「服务端主动关闭 → 对端回 Close → 连接应立即关闭」端到端用例，以及控制帧负载 125 / 126 字节的边界用例。
 - fix(websocket): `WsCloseCode.isValid` 与 `WsUtf8Validator.isValidUtf8` 的返回值语义与名称相反（返回的是「是否不合法」），分别改名为 `isInvalid` / `isInvalidUtf8` 并保留原名作为正向委托，调用点统一使用新名，避免误判关闭码与 UTF-8 合法性。
 - test(websocket): 新增可直接 `main` 启动的 `WsExample` 测试服务（默认端口 8182），演示文本/二进制收发、ping/pong、主动推送、关闭握手、子协议协商与握手阶段 token 拦截，方便手工验证协议行为。
@@ -29,7 +36,7 @@
 - refactor(websocket): `Opcode.NOT_FIN` 更名为 `Opcode.CONTINUATION`（0x0 的正确语义是续帧，FIN 是独立标志位），**公开枚举常量改名属破坏性变更**，2.0.x 内升级需同步改引用；`Opcode.valueOf(byte)` 遇到协议未定义的操作码返回 null 而不是抛异常；`WsSessionContext` 的 `lastParts` 字段由分片状态机取代。
 - fix(websocket): 编码器按 RFC 6455 §5.2 用最少的字节数编码长度（65535 及以下用 16 位长度），服务端发出的帧不带掩码位；101 协议切换响应不再附带 `Content-Length`。
 - feat(core): 新增 `TioConfig#getRuntimeTaskService()`，返回运行时实际使用的定时任务服务（服务端启动后、客户端构造后才有值）。业务侧可以复用服务端/客户端的时间轮，如 websocket 关闭握手的超时兜底；`getTaskService()` 的语义同步收紧为「用户显式设置的那个」。
-- test(websocket): 新增 45 个用例覆盖帧格式校验（解码器 12）、编码规则（编码器 10）、端到端行为（16）、关闭码（3）与 UTF-8 校验（4），包含握手各分支、ping/pong、关闭握手、分片拼装与协议错误断链。
+- test(websocket): 新增 54 个用例覆盖帧格式校验（解码器 13）、编码规则（编码器 10）、端到端行为（24）、关闭码（3）与 UTF-8 校验（4），包含握手各分支、ping/pong、关闭握手、分片拼装与协议错误断链；新补的场景有 64 位长度真路径（负载 65536 字节）、续帧没有首帧、分片中插入新的数据帧、保留关闭码（1005）、子协议协商与关闭握手中回 Pong。
 - fix(ssl): 修复 `SslEngineWorker#engineLock` 引入的自死锁，表现为 TLS 客户端「一直连不上」。握手完成回调（`TioListener.onAfterConnected`）此前是在持有 `engineLock` 时触发的，而业务通常在该回调里同步阻塞发送首包（如 mica-mqtt 用 `Tio.bSend` 发 CONNECT）：发送线程需要 `engineLock` 才能加密数据，而 `engineLock` 正被回调线程持有 → 读线程等发送完成、发送线程等锁，互相等待，`bSend` 10s 超时后连接被关闭并触发无限重连。现把握手完成通知、明文数据投递（decode/handler）与 session 关闭回调全部移到释放 `engineLock` 之后执行，锁内不再回调任何业务代码；`beginHandshake` 与 close_notify 的产出（`closeOutboundAndGetCloseNotify`）也纳入同一把锁，避免 `SSLEngine` 被并发访问。
 - fix(ssl): `SslEngineWorker` 的 `SSLEngine` 增加连接级 `ReentrantLock`，把读线程的 `unwrap` 与写线程的 `wrap` 串行化。`SSLEngine` 非线程安全，并发访问会导致序号/密钥状态错乱，线上表现为 `Tag mismatch!` / `AEADBadTagException`，连接反复重连。
 - fix(ssl): `SslEngineWorker#driveHandshake` 移除 `NOT_HANDSHAKING` 状态下提前 `completeHandshake()` 的误判，握手完成只认 `FINISHED`。此前握手被提前判定完成后，业务包会在握手真正结束前被加密发出，对端收到非法的 TLS 记录，nginx 侧报 `bad record type`、access log 出现 `500 client:0/0 ssl:(NONE)`。同时在解密出应用数据时补一层兜底，避免握手完成信号丢失导致业务包永久滞留在待发送队列。

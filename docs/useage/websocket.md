@@ -163,7 +163,7 @@ WebSocket 协议细节由框架处理，业务层不需要再关心：
 | 扩展协商 | 不支持任何扩展（如 `permessage-deflate`），响应中不会回写 `Sec-WebSocket-Extensions` |
 | Ping | 收到 Ping **自动回 Pong**，负载原样带回 |
 | Pong | 通过 `IWsMsgHandler#onPong` 回调给业务层 |
-| Close | 收到 Close **自动回 Close**（状态码与对端保持一致），该帧发出后关闭 TCP 连接；本端已发 Close 时只丢弃数据帧，控制帧继续处理，收到对端回的 Close 即断开（`Ws#DEFAULT_CLOSE_TIMEOUT` 超时兜底） |
+| Close | 收到 Close **自动回 Close**（状态码与对端保持一致），该帧发出后关闭 TCP 连接；本端已发 Close 时只丢弃数据帧，控制帧继续处理（Ping 仍会回 Pong），收到对端回的 Close 即断开（`Ws#DEFAULT_CLOSE_TIMEOUT` 超时兜底） |
 | 分片消息 | 自动拼装；分片顺序不合法（续帧没有首帧、分片中途插入新数据帧）按协议错误处理 |
 | 服务端发送 | 服务端发出的帧恒为 `FIN=1`（不分片）且不带掩码位；发送大消息由协议层按 512KB 上限校验，业务无需自行分片 |
 | 文本编码 | TEXT 帧按 RFC 要求强制 UTF-8 校验，非法序列按 1007 关闭 |
