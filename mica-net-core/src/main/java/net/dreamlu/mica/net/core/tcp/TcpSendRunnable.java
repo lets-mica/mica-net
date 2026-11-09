@@ -88,7 +88,9 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 		// SSL 加密（如果需要，会合并为单个 ByteBuffer）
 		ByteBuffer[] finalBuffers = encryptBatchIfNeeded(result.byteBuffers, isSsl, result.needSslEncrypted);
 		if (finalBuffers == null) {
-			return; // 加密失败，已在方法内关闭连接
+			// 加密失败，已在方法内关闭连接；这批包没发出去，通知发送方
+			notifySendFailed(result.packets);
+			return;
 		}
 
 		// 批量发送 ByteBuffer[]
@@ -125,11 +127,17 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 			return true;
 		}
 		ByteBuffer byteBuffer = getByteBuffer(packet);
+		if (byteBuffer == null) {
+			// 编码失败，已在 getByteBuffer 内通知发送方
+			return false;
+		}
 
 		// SSL 加密
 		byteBuffer = encryptIfNeeded(byteBuffer, packet, isSsl);
 		if (byteBuffer == null) {
-			return false; // 加密失败
+			// 加密失败，连接已被关闭，这个包没发出去，通知发送方
+			notifySendFailed(packet);
+			return false;
 		}
 
 		// 发送 ByteBuffer
@@ -141,9 +149,13 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	protected void sendByteBuffer(ByteBuffer byteBuffer, Object packets) {
 		if (byteBuffer == null) {
 			log.error("{}, byteBuffer is null", channelContext);
+			notifySendFailed(packets);
 			return;
 		}
 		if (!TioUtils.checkBeforeIO(channelContext)) {
+			// 连接已在关闭中，这个包发不出去了，通知发送方，
+			// 否则等待发送完成的业务方只能空耗到超时
+			notifySendFailed(packets);
 			return;
 		}
 		// 抢占写状态再发起写：write() 不允许并发，AIO 在已有未完成写时会抛 WritePendingException。
@@ -177,8 +189,10 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	 *   <li>框架自己的另一批写：包放回队列即可，那次写的完成回调会重新调度发送。</li>
 	 * </ul>
 	 * 包只能加到队尾（{@code ConcurrentLinkedQueue} 没有 addFirst），这里不做顺序补偿：
-	 * 走到这条分支说明本端已经有一次直发（{@code useQueueSend=false}）或正在关闭，
-	 * 与队列内的包本来就不是严格 FIFO。
+	 * 走到这条分支说明本端已经有一次写在途——要么是直发路径（{@code useQueueSend=false}
+	 * 或 SSL 握手记录）自己发起的，要么是关闭流程正在直写 close_notify。
+	 * 前者本来就没有 FIFO 保证（多个线程并发直发谁先谁不定），
+	 * 后者连接本来就要关了，顺序无所谓。
 	 * </p>
 	 *
 	 * @param packets 单个 {@link Packet} 或 {@code List<Packet>}
@@ -186,6 +200,8 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	private void requeueOnWriteConflict(Object packets) {
 		if (channelContext.isWaitingClose() || channelContext.isClosed() || channelContext.isRemoved()) {
 			log.debug("{}, 连接正在关闭，丢弃未发出的包: {}", channelContext, packets);
+			// 包发不出去了，通知发送方，否则等待发送完成的业务方只能空耗到超时
+			notifySendFailed(packets);
 			return;
 		}
 		if (packets instanceof Packet) {
@@ -258,10 +274,13 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	protected void sendByteBuffers(ByteBuffer[] byteBuffers, Object packets) {
 		if (byteBuffers == null || byteBuffers.length == 0) {
 			log.error("{}, byteBuffers is null or empty", channelContext);
+			notifySendFailed(packets);
 			return;
 		}
 
 		if (!TioUtils.checkBeforeIO(channelContext)) {
+			// 连接已在关闭中，这批包发不出去了，通知发送方
+			notifySendFailed(packets);
 			return;
 		}
 

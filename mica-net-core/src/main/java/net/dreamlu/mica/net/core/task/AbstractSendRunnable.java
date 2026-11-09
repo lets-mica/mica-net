@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -208,6 +209,9 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 
 	/**
 	 * 编码数据包
+	 *
+	 * @param packet 包
+	 * @return 编码后的缓冲区；编码失败时返回 null（此时已通知发送方）
 	 */
 	protected ByteBuffer getByteBuffer(Packet packet) {
 		try {
@@ -221,7 +225,48 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 			return byteBuffer;
 		} catch (Exception e) {
 			log.error(packet.logstr(), e);
-			throw new RuntimeException(e);
+			// 编码失败：包发不出去，通知发送方，
+			// 否则等待发送完成的业务方（如 bSend 的 CountDownLatch）只能空耗到超时
+			notifySendFailed(packet);
+			return null;
+		}
+	}
+
+	/**
+	 * 通知发送方：这些包没能发出去。
+	 * <p>
+	 * 包在发送链路上任何环节被丢弃时都要调用一次，否则等待发送完成的业务方
+	 * （如 {@code Tio.bSend} 的 CountDownLatch）永远等不到，只能空耗到超时。
+	 * </p>
+	 * <p>
+	 * 只能在包已经从发送队列取出、确定不会再被写出去时调用：
+	 * 重新入队的包不算失败，之后还会被正常发送。
+	 * </p>
+	 *
+	 * @param packets 单个 {@link Packet} 或包列表
+	 */
+	protected void notifySendFailed(Object packets) {
+		if (packets instanceof Packet) {
+			notifySendFailed((Packet) packets);
+		} else if (packets instanceof Collection) {
+			for (Object packet : (Collection<?>) packets) {
+				if (packet instanceof Packet) {
+					notifySendFailed((Packet) packet);
+				}
+			}
+		}
+	}
+
+	/**
+	 * 通知单个包发送失败
+	 *
+	 * @param packet 包
+	 */
+	private void notifySendFailed(Packet packet) {
+		try {
+			channelContext.processAfterSent(packet, false);
+		} catch (Throwable e) {
+			log.error("{}, 通知发送失败时发生异常:{}", channelContext, packet.logstr(), e);
 		}
 	}
 
@@ -277,6 +322,12 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 		while (packet != null) {
 			ByteBuffer byteBuffer = getByteBuffer(packet);
 
+			if (byteBuffer == null) {
+				// 编码失败的包已在 getByteBuffer 内通知发送方，跳过它继续取下一个
+				packet = msgQueue.poll();
+				continue;
+			}
+
 			packets.add(packet);
 			byteBuffers.add(byteBuffer);
 			allBytebufferCapacity += byteBuffer.remaining();
@@ -296,6 +347,8 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 		}
 
 		if (allBytebufferCapacity == 0) {
+			// 这一批没有可发送的内容（都是空包），视为未发出，通知发送方
+			notifySendFailed(packets);
 			return null;
 		}
 

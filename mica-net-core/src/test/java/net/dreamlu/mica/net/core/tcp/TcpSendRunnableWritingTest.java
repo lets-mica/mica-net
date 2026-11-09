@@ -30,13 +30,11 @@ import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.Queue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * TCP 写状态互斥测试。
@@ -99,6 +97,32 @@ class TcpSendRunnableWritingTest {
 				channel.close();
 			}
 		}
+	}
+
+	/**
+	 * 包在发送链路上被丢弃时必须通知发送方。
+	 * <p>
+	 * 丢弃的出口有好几个：连接已在关闭中（{@code checkBeforeIO} 不通过）、
+	 * 编码失败、SSL 加密失败、写状态被抢占且连接正在关闭。
+	 * 任何一个出口漏掉通知，等待发送完成的业务方（如 {@code Tio.bSend} 的 CountDownLatch）
+	 * 都会一直等不到，只能空耗满 10s 超时。
+	 * </p>
+	 */
+	@Test
+	void sendPacket_shouldNotifySenderWhenDropped() throws Exception {
+		ChannelContext context = new ClientChannelContext(newClientConfig());
+		context.setClosed(false);
+		// 模拟连接正在关闭：checkBeforeIO 会拦下这次写
+		context.setWaitingClose(true);
+		TcpSendRunnable sendRunnable = new TcpSendRunnable(context, noopExecutor());
+
+		CountDownLatch sent = new CountDownLatch(1);
+		Packet packet = newPacket();
+		packet.setMeta(new Packet.Meta(sent));
+
+		sendRunnable.sendPacket(packet, false);
+
+		assertTrue(sent.await(1, TimeUnit.SECONDS), "包被丢弃时应通知发送方，等待发送完成的业务方不能空耗到超时");
 	}
 
 	private static Packet newPacket() {
