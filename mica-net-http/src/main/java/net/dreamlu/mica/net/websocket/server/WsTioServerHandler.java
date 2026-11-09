@@ -612,6 +612,8 @@ public class WsTioServerHandler implements TioServerHandler {
 	private void handleClose(WsRequest wsRequest, ChannelContext channelContext) throws Exception {
 		WsSessionContext session = channelContext.get(WsSessionContext.WS_SESSION_CONTEXT_KEY);
 		session.setCloseReceived(true);
+		// 对端已经回了 Close，关闭握手的超时兜底没必要再留着
+		session.cancelCloseTimeout();
 		session.setCloseCode(wsRequest.getWsCloseCode());
 		session.setCloseReason(wsRequest.getWsBodyText());
 

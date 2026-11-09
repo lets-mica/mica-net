@@ -188,8 +188,15 @@ Ws.ping(ctx, "ping".getBytes());
 > `Tio.remove(ctx, "...")` 是直接断 TCP，客户端会看到 1006 异常断开；
 > `Ws.close` 走完整的关闭握手，客户端能拿到正确的关闭码。
 >
-> 控制帧（Ping / Pong / Close）的负载上限是 125 字节（RFC 6455 §5.5），
-> `Ws.ping(ctx, data)` 传超长数据会在编码阶段抛 `IllegalArgumentException`，不会把非法帧发到对端。
+> 控制帧（Ping / Pong / Close）的负载上限是 125 字节（RFC 6455 §5.5）。
+> `Ws.ping(ctx, data)` / `Ws.pong(ctx, data)` 传超长数据时会在前置校验处拒绝并返回 `false`，
+> 同时打一条 warn 日志，不会把非法帧发到对端。编码器 `WsServerEncoder` 里还有一道同样的兜底校验，
+> 但那个 `IllegalArgumentException` 会被发送链路的 `catch (Throwable)` 吞掉，
+> 调用方只能看到 `Tio.send` 返回 `false` + 一条 error 日志，所以不要在业务侧依赖它。
+>
+> `Ws.close` 的等待对端回应依赖定时任务：服务端用 `TioServerConfig#getTaskService()`，
+> 客户端用 `TioClientConfig#getTaskService()`（`TioClient` 构造时会把实际使用的定时器回写进配置）。
+> 两者都拿不到时退化为「立即断开 TCP」，客户端将看到 1006。
 
 ## 8. WsServerStarter 构造选项
 

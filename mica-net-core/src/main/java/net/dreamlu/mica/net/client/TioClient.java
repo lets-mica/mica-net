@@ -229,6 +229,9 @@ public class TioClient {
 	public TioClient(final TioClientConfig tioClientConfig) throws IOException {
 		this.clientConfig = tioClientConfig;
 		this.taskService = getTimerTaskService(tioClientConfig.getTaskService());
+		// 回写配置：客户端侧的组件（如 websocket 关闭握手超时兜底）只能通过 TioConfig 拿到定时任务服务，
+		// 不回写的话它们会以为客户端没有定时器，直接走「立即断开」的降级路径
+		tioClientConfig.setTaskService(this.taskService);
 		this.channelGroup = AsynchronousChannelGroup.withThreadPool(tioClientConfig.groupExecutor);
 		startHeartbeatTask();
 		configReConnTask();

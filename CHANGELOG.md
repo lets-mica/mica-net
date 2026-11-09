@@ -4,9 +4,11 @@
 
 ### v2.0.18 - 2026-11-08
 - fix(websocket): 服务端主动关闭（`Ws.close`）后不再吞掉对端回的 Close 帧。`WsTioServerHandler#decodeFrame` 原先在「已发 Close」状态下直接丢弃所有帧，对端回的 Close 也被吞掉，`closeReceived` 永远为 false，关闭握手只能等 `Ws#DEFAULT_CLOSE_TIMEOUT`（5s）超时后强制断开，关闭原因也被这次强制 `remove` 覆盖成误导性的「关闭握手超时」。现改为只丢弃数据帧、控制帧继续处理（Close 照常解析），收到对端 Close 即走完成分支立即断开 TCP。
-- fix(websocket): `WsServerEncoder` 拒绝负载超过 125 字节的控制帧（RFC 6455 §5.5），`Ws.ping` 传入超长数据时不再把非法帧发给对端，改为在编码阶段抛 `IllegalArgumentException`。
+- fix(websocket): 控制帧负载上限（125 字节，RFC 6455 §5.5）改在前置校验处拦截：`Ws.ping` / `Ws.pong` 传入超长数据时直接返回 `false` 并打 warn 日志，不再依赖编码阶段抛异常。`WsServerEncoder` 里仍保留同样的兜底校验，但那个 `IllegalArgumentException` 会被发送链路的 `catch (Throwable)` 吞掉，调用方只能看到 `Tio.send` 返回 `false` 和一条 error 日志，拿不到原因。超长常量统一为 `WsPacket#MAX_CONTROL_FRAME_BODY_LENGTH`。
 - fix(core): TLS close_notify 的写出改为异步，`Tio.close` 不再阻塞调用方线程。此前直写 socket 后要等写完成（最多 20ms 抢写 + 100ms 等写），而 `Tio.close` 的调用方基本是 IO 线程或 handler 线程，关闭动作等于让它们同步等内核。现在只发起写，socket 的关闭与关闭任务的投递（原 `Tio.close` 后半段，抽出为 `Tio#completeClose`）推迟到写完成 / 超时 / 失败的回调里执行，顺序仍是「close_notify → shutdownOutput → close」。
 - fix(core): 直写的 close_notify 补上发送统计。这条记录绕过了 `WriteCompletionHandler`，此前 `sentBytes` / `groupStat.sentBytes` 会漏算这段；现在在写完成回调里按同样的口径补记（`PacketListener` 不适用，close_notify 是 TLS 协议记录而不是业务包）。
+- fix(websocket): 关闭握手的超时任务在收到对端 Close 后立即取消。此前任务要白活满 `Ws#DEFAULT_CLOSE_TIMEOUT`（5s）才在 `run()` 里发现连接已关闭，服务端踢人频繁时时间轮上会堆一批无效任务；任务登记与收到 Close 之间存在竞争，登记后会补一次取消。
+- fix(websocket): `Ws.close` 的等待对端回应在客户端侧也能生效。`Ws#getTaskService` 原来只认 `TioServerConfig`，客户端一律退化成「立即 `Tio.remove`」，对端回的 Close 根本来不及处理；现在同时支持 `TioClientConfig`，且 `TioClient` 构造时会把实际使用的 `TimerTaskService` 回写进配置（否则配置里永远是 null）。另外 `Ws.close` 的 Close 帧没能进发送队列时直接 `Tio.remove`，不再让连接挂在「已发 Close 但没人等」的状态上。
 - fix(ssl): `SslGracefulShutdown` 直写 close_notify 前改为 CAS 抢占写状态（新增 `AbstractSendRunnable#tryStartWriting` / `finishWriting`）。原先轮询 `isWriting()` 之后再写，检查与写之间有窗口：写线程恰在此刻抢到 `writing` 位就会撞 `WritePendingException`，异常被吞后 close_notify 静默丢失；抢占成功则框架写路径会因 `writing == true` 主动让路。
 - fix(ssl): `Tio.close` 对 SSL 连接不再调用 `shutdownInput()`。Windows 下接收队列里还压着 TLS 1.3 握手期补发的 `NewSessionTicket` 时会立即发出 RST，把刚写出的 close_notify 一并丢掉，对端只能看到 `Connection reset`（对端日志表现为「读数据时发生异常: java.io.IOException」）。
 - fix(ssl): 握手前暂存队列的「取包 + 置空」并入同一把锁（`takeDeferredPackets`），消除两步之间新入队的业务包落到再也不会被排空的队列里、等待发送完成的业务方（如 `bSend`）只能等到超时的问题；`getForSendAfterSslHandshakeCompleted` 降为私有方法，避免外部绕开 `sslDeferredLock` 直接操作该队列。

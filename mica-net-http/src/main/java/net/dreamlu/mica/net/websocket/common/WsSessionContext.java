@@ -195,6 +195,7 @@ package net.dreamlu.mica.net.websocket.common;
 
 import net.dreamlu.mica.net.http.common.HttpRequest;
 import net.dreamlu.mica.net.http.common.HttpResponse;
+import net.dreamlu.mica.net.utils.timer.TimerTask;
 
 /**
  * WebSocket 会话上下文，保存握手信息、分片消息状态与关闭握手状态
@@ -254,6 +255,14 @@ public class WsSessionContext {
 	 * 对端发来的关闭原因
 	 */
 	private volatile String closeReason = null;
+	/**
+	 * 关闭握手超时任务。
+	 * <p>
+	 * 握手在超时前完成（收到对端回的 Close）就取消它，否则任务会白活满
+	 * {@link Ws#DEFAULT_CLOSE_TIMEOUT} 毫秒才在 {@code run()} 里发现连接已关闭。
+	 * </p>
+	 */
+	private volatile TimerTask closeTimeoutTask = null;
 
 	public WsSessionContext() {
 
@@ -444,5 +453,25 @@ public class WsSessionContext {
 	 */
 	public void setCloseReason(String closeReason) {
 		this.closeReason = closeReason;
+	}
+
+	/**
+	 * 登记关闭握手超时任务
+	 *
+	 * @param closeTimeoutTask 超时任务
+	 */
+	public void setCloseTimeoutTask(TimerTask closeTimeoutTask) {
+		this.closeTimeoutTask = closeTimeoutTask;
+	}
+
+	/**
+	 * 取消关闭握手超时任务（握手已完成，不需要再等超时兜底）
+	 */
+	public void cancelCloseTimeout() {
+		TimerTask task = closeTimeoutTask;
+		closeTimeoutTask = null;
+		if (task != null) {
+			task.cancel();
+		}
 	}
 }

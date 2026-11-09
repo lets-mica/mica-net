@@ -205,6 +205,10 @@ public class WsPacket extends Packet {
 	 * 最多接受的1024 * 512(半M)数据
 	 */
 	public static final int MAX_BODY_LENGTH = 1024 * 512;
+	/**
+	 * 控制帧（Ping / Pong / Close）的负载上限，参考 RFC 6455 §5.5
+	 */
+	public static final int MAX_CONTROL_FRAME_BODY_LENGTH = 125;
 	private static final long serialVersionUID = 4506947563506841436L;
 	/**
 	 * 是否是握手包

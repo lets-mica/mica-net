@@ -16,6 +16,7 @@
 
 package net.dreamlu.mica.net.websocket.common;
 
+import net.dreamlu.mica.net.client.TioClientConfig;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.Tio;
 import net.dreamlu.mica.net.core.TioConfig;
@@ -28,11 +29,13 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 
 /**
- * WebSocket 操作门面：提供服务端主动发送控制帧、优雅关闭连接的快捷方法。
+ * WebSocket 操作门面：提供主动发送控制帧、优雅关闭连接的快捷方法。
  *
  * <p>RFC 6455 §5.5.1 规定：端点收到 Close 帧后必须回一个 Close 帧，
  * 并且在双方都完成关闭握手后关闭 TCP 连接。本类提供的 {@link #close} 即为
- * 服务端主动发起关闭握手（先发 Close 帧，再等待对端回应 Close 帧）。</p>
+ * 主动发起关闭握手（先发 Close 帧，再等待对端回应 Close 帧）。等待对端回应依赖定时任务，
+ * 服务端取 {@code TioServerConfig#getTaskService()}、客户端取 {@code TioClientConfig#getTaskService()}；
+ * 都拿不到时退化为立即断开 TCP。</p>
  *
  * @author L.cm
  */
@@ -82,7 +85,12 @@ public final class Ws {
 		session.setCloseSent(true);
 		// Close 帧写出去之后开始计时，对端迟迟不应答则强制断开，避免连接泄漏
 		close.setPacketListener((ctx, packet, isSentSuccess) -> scheduleCloseTimeout(ctx, session));
-		return Tio.send(context, close);
+		boolean sent = Tio.send(context, close);
+		if (!sent) {
+			// Close 帧没能进发送队列，关闭握手无从谈起，直接断开，避免连接一直挂着
+			Tio.remove(context, "websocket 关闭帧发送失败");
+		}
+		return sent;
 	}
 
 	/**
@@ -93,10 +101,7 @@ public final class Ws {
 	 * @return true 表示发送成功
 	 */
 	public static boolean ping(ChannelContext context, byte[] applicationData) {
-		if (context == null) {
-			return false;
-		}
-		return Tio.send(context, WsResponse.fromPing(applicationData));
+		return sendControlFrame(context, Opcode.PING, applicationData);
 	}
 
 	/**
@@ -107,10 +112,36 @@ public final class Ws {
 	 * @return true 表示发送成功
 	 */
 	public static boolean pong(ChannelContext context, byte[] applicationData) {
+		return sendControlFrame(context, Opcode.PONG, applicationData);
+	}
+
+	/**
+	 * 发送控制帧（Ping / Pong）。
+	 * <p>
+	 * 负载长度在这里就校验：编码阶段虽然也会拒绝超长控制帧，但那个异常会被发送链路的
+	 * {@code catch (Throwable)} 吞掉，调用方只能看到 {@code Tio.send} 返回 false 和一条 error 日志，
+	 * 拿不到明确原因。前置校验让调用方直接拿到 false + warn 日志。
+	 * </p>
+	 *
+	 * @param context         连接上下文
+	 * @param opcode          控制帧操作码
+	 * @param applicationData 附加数据，可为 null
+	 * @return true 表示发送成功
+	 */
+	private static boolean sendControlFrame(ChannelContext context, Opcode opcode, byte[] applicationData) {
 		if (context == null) {
 			return false;
 		}
-		return Tio.send(context, WsResponse.fromPong(applicationData));
+		int length = applicationData == null ? 0 : applicationData.length;
+		if (length > WsPacket.MAX_CONTROL_FRAME_BODY_LENGTH) {
+			log.warn("{} websocket 控制帧负载不能超过 {} 字节，实际：{}，已丢弃该 {} 帧",
+				context, WsPacket.MAX_CONTROL_FRAME_BODY_LENGTH, length, opcode);
+			return false;
+		}
+		WsResponse response = opcode == Opcode.PING
+			? WsResponse.fromPing(applicationData)
+			: WsResponse.fromPong(applicationData);
+		return Tio.send(context, response);
 	}
 
 	/**
@@ -123,10 +154,10 @@ public final class Ws {
 		TimerTaskService taskService = getTaskService(context);
 		if (taskService == null) {
 			// 没有可用的定时器，直接断开，保证连接不会一直挂着
-			Tio.remove(context, "websocket 关闭握手完成");
+			Tio.remove(context, "websocket 关闭握手完成（无可用定时器）");
 			return;
 		}
-		taskService.addTask(systemTimer -> new TimerTask(DEFAULT_CLOSE_TIMEOUT) {
+		TimerTask task = taskService.addTask(systemTimer -> new TimerTask(DEFAULT_CLOSE_TIMEOUT) {
 			@Override
 			public void run() {
 				if (!session.isCloseReceived() && !context.isClosed()) {
@@ -134,10 +165,15 @@ public final class Ws {
 				}
 			}
 		});
+		session.setCloseTimeoutTask(task);
+		if (session.isCloseReceived()) {
+			// 登记超时任务之前对端就可能已经回了 Close，补一次取消，别让任务白活 5 秒
+			session.cancelCloseTimeout();
+		}
 	}
 
 	/**
-	 * 获取服务端定时任务服务
+	 * 获取定时任务服务（服务端、客户端配置都支持）
 	 *
 	 * @param context 连接上下文
 	 * @return 定时任务服务，可能为 null
@@ -146,6 +182,9 @@ public final class Ws {
 		TioConfig tioConfig = context.tioConfig;
 		if (tioConfig instanceof TioServerConfig) {
 			return ((TioServerConfig) tioConfig).getTaskService();
+		}
+		if (tioConfig instanceof TioClientConfig) {
+			return ((TioClientConfig) tioConfig).getTaskService();
 		}
 		return null;
 	}
