@@ -220,6 +220,15 @@ public class TioClient {
 	private static final Logger log = LoggerFactory.getLogger(TioClient.class);
 	private final TioClientConfig clientConfig;
 	private final TimerTaskService taskService;
+	/**
+	 * 时间轮是否由本客户端创建。
+	 * <p>
+	 * 用户显式传入的 {@link TimerTaskService} 可能被多个客户端、甚至业务侧共享，
+	 * 而 {@code DefaultTimerTaskService#stop()} 不可逆（时间轮线程 shutdown 后无法再 start），
+	 * 误停会让别人的心跳与重连任务全部停摆。只有自己创建的才由 {@link #stop()} 负责停止。
+	 * </p>
+	 */
+	private final boolean taskServiceOwner;
 	private final AsynchronousChannelGroup channelGroup;
 
 	/**
@@ -228,10 +237,13 @@ public class TioClient {
 	 */
 	public TioClient(final TioClientConfig tioClientConfig) throws IOException {
 		this.clientConfig = tioClientConfig;
+		this.taskServiceOwner = tioClientConfig.getTaskService() == null;
 		this.taskService = getTimerTaskService(tioClientConfig.getTaskService());
-		// 回写配置：客户端侧的组件（如 websocket 关闭握手超时兜底）只能通过 TioConfig 拿到定时任务服务，
-		// 不回写的话它们会以为客户端没有定时器，直接走「立即断开」的降级路径
-		tioClientConfig.setTaskService(this.taskService);
+		if (this.taskServiceOwner) {
+			// 回写配置：客户端侧的组件（如 websocket 关闭握手超时兜底）只能通过 TioConfig 拿到定时任务服务，
+			// 不回写的话它们会以为客户端没有定时器，直接走「立即断开」的降级路径
+			tioClientConfig.setTaskService(this.taskService);
+		}
 		this.channelGroup = AsynchronousChannelGroup.withThreadPool(tioClientConfig.groupExecutor);
 		startHeartbeatTask();
 		configReConnTask();
@@ -549,8 +561,8 @@ public class TioClient {
 	 * @return boolean
 	 */
 	public boolean stop() {
-		// 停止 taskService
-		if (this.taskService != null) {
+		// 只停自己创建的时间轮：外部传入的实例可能被共享，停掉会误伤其他客户端
+		if (this.taskService != null && this.taskServiceOwner) {
 			this.taskService.stop();
 		}
 		// 删除实例

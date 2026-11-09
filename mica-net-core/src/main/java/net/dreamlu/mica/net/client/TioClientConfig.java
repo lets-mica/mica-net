@@ -215,6 +215,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 /**
+ * 客户端配置。
+ * <p>
+ * 一个配置对应一个 {@link TioClient}：{@code TioClient#stop()} 会关闭配置里的
+ * executor 并把配置标记为已停止，共用同一份配置的第二个客户端在第一个停止后就无法工作。
+ * </p>
+ *
  * @author tanyaowu
  * 2017年4月1日 上午9:31:31
  */

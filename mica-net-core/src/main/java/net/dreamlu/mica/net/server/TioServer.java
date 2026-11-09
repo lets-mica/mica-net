@@ -229,6 +229,15 @@ public class TioServer {
 	private AsynchronousServerSocketChannel serverSocketChannel;
 	private AsynchronousChannelGroup channelGroup = null;
 	private TimerTaskService taskService;
+	/**
+	 * 时间轮是否由本服务创建。
+	 * <p>
+	 * 用户显式传入的 {@link TimerTaskService} 可能被其他地方共享，而
+	 * {@code DefaultTimerTaskService#stop()} 不可逆，误停会波及其他使用者。
+	 * 只有自己创建的才由 {@link #stop()} 负责停止。
+	 * </p>
+	 */
+	private boolean taskServiceOwner;
 	private boolean isWaitingStop = false;
 
 	public TioServer(int port, TioServerConfig serverConfig) {
@@ -400,7 +409,8 @@ public class TioServer {
 
 	public void start() throws IOException {
 		long start = System.currentTimeMillis();
-		// 配置 time task
+		// 配置 time task，用户显式传入的时间轮不归服务端停止
+		this.taskServiceOwner = this.serverConfig.getTaskService() == null;
 		this.taskService = getTimerTaskService(this.serverConfig);
 		// 启动任务服务
 		this.taskService.start();
@@ -467,8 +477,8 @@ public class TioServer {
 		isWaitingStop = true;
 		// 删除实例
 		serverConfig.remove();
-		// 停止 taskService
-		if (this.taskService != null) {
+		// 只停自己创建的时间轮：外部传入的实例可能被共享，停掉会误伤其他使用者
+		if (this.taskService != null && this.taskServiceOwner) {
 			this.taskService.stop();
 		}
 		try {

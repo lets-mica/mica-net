@@ -20,13 +20,18 @@ import net.dreamlu.mica.net.client.intf.TioClientHandler;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.TioConfig;
 import net.dreamlu.mica.net.core.intf.Packet;
+import net.dreamlu.mica.net.utils.timer.DefaultTimerTaskService;
+import net.dreamlu.mica.net.utils.timer.TimerTask;
 import net.dreamlu.mica.net.utils.timer.TimerTaskService;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * 客户端定时任务服务的可见性测试。
@@ -53,6 +58,36 @@ class TioClientTaskServiceTest {
 		} finally {
 			client.stop();
 		}
+	}
+
+	/**
+	 * 用户显式传入的时间轮可能被多个客户端共享，停掉一个客户端不能把它关掉。
+	 * <p>
+	 * {@code DefaultTimerTaskService#stop()} 不可逆（时间轮线程 shutdown 后无法再 start），
+	 * 误停会让其他客户端的心跳与重连任务全部停摆。
+	 * </p>
+	 */
+	@Test
+	void stopShouldNotStopExternalTaskService() throws Exception {
+		TioClientConfig config = new TioClientConfig(new NoopHandler(), new DefaultTioClientListener());
+		config.setHeartbeatTimeout(0);
+		TimerTaskService external = new DefaultTimerTaskService();
+		config.setTaskService(external);
+		TioClient client = new TioClient(config);
+		assertSame(external, client.getTaskService(), "客户端应直接使用外部传入的定时器");
+		client.stop();
+
+		// 外部定时器必须仍然可用：还能继续注册并执行任务
+		CountDownLatch ran = new CountDownLatch(1);
+		external.addTask(systemTimer -> new TimerTask(10) {
+			@Override
+			public void run() {
+				ran.countDown();
+			}
+		});
+		external.start();
+		assertTrue(ran.await(5, TimeUnit.SECONDS), "客户端 stop 之后外部定时器仍应能执行任务");
+		external.stop();
 	}
 
 	/**
