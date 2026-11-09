@@ -20,6 +20,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.TioConfig;
 import net.dreamlu.mica.net.core.task.AbstractSendRunnable;
+import net.dreamlu.mica.net.utils.timer.TimerTask;
+import net.dreamlu.mica.net.utils.timer.TimerTaskService;
 
 /**
  * TLS 优雅关闭：在关闭 socket 之前把 TLS close_notify 记录发出去，让对端感知到是本端主动断开。
@@ -42,6 +46,13 @@ import net.dreamlu.mica.net.core.task.AbstractSendRunnable;
  * 因此这里只负责<b>发起</b>写，写完成（或超时、失败）后由回调执行后续关闭动作
  * {@code afterClose}——socket 的关闭被推迟到 close_notify 之后，顺序不变但调用方不再阻塞。
  * </p>
+ * <p>
+ * 抢不到写状态时怎么办：连接关闭时往往还有框架的在途写（业务高峰期常态）。
+ * 此前这里是「抢不到就直接放弃 close_notify」，等于把「close_notify 发不出去」这个
+ * 老问题又带了回来。现在改成挂一个「在途写结束后重试」的钩子：在途写一结束就自动补发，
+ * 既不阻塞调用方线程，也不轻易放弃。兜底用定时器：在途写迟迟不结束时放弃 close_notify
+ * 并关闭连接，避免连接因为等待一个永不结束的写而悬着。
+ * </p>
  *
  * @author L.cm
  */
@@ -55,6 +66,27 @@ public final class SslGracefulShutdown {
 	 * </p>
 	 */
 	private static final long CLOSE_NOTIFY_WRITE_TIMEOUT = 100L;
+	/**
+	 * 等待在途写结束的最长时间（毫秒），超过就放弃 close_notify 并关闭连接。
+	 */
+	private static final long WAIT_IN_FLIGHT_WRITE_TIMEOUT = 50L;
+	/**
+	 * 等待在途写结束时的最大重试次数。
+	 */
+	private static final int MAX_RETRY = 3;
+
+	/**
+	 * 关闭流程状态：还没把 close_notify 发出去
+	 */
+	private static final int STATE_INIT = 0;
+	/**
+	 * 关闭流程状态：close_notify 已经发起写
+	 */
+	private static final int STATE_SENT = 1;
+	/**
+	 * 关闭流程状态：已经收尾（afterClose 已执行或已放弃 close_notify）
+	 */
+	private static final int STATE_DONE = 2;
 
 	private SslGracefulShutdown() {
 	}
@@ -64,7 +96,7 @@ public final class SslGracefulShutdown {
 	 * <p>
 	 * 以下情况会直接执行 {@code afterClose}，不再尝试发送 close_notify：
 	 * 非 SSL 连接、握手未完成（对端还没建立会话，发通知意义不大）、通道已关闭、
-	 * 抢占不到写状态（有在途写，直写会撞 {@code WritePendingException}）、产出记录失败。
+	 * 产出记录失败。
 	 * </p>
 	 *
 	 * @param channelContext 连接上下文
@@ -72,18 +104,41 @@ public final class SslGracefulShutdown {
 	 *                       可能在当前线程同步执行，也可能在写完成回调里执行，实现需幂等
 	 */
 	public static void closeGracefully(ChannelContext channelContext, Runnable afterClose) {
+		// afterClose 只允许执行一次：重试、兜底、写完成回调都可能走到收尾
+		AtomicBoolean once = new AtomicBoolean(false);
+		closeGracefully(channelContext, afterClose, once, new AtomicInteger(0), new AtomicInteger(STATE_INIT));
+	}
+
+	/**
+	 * 优雅关闭（内部实现，支持重试）
+	 *
+	 * @param channelContext 连接上下文
+	 * @param afterClose     后续关闭动作
+	 * @param once           保证 afterClose 只执行一次
+	 * @param attempts       已重试次数
+	 * @param state          关闭流程状态
+	 */
+	private static void closeGracefully(ChannelContext channelContext, Runnable afterClose,
+										AtomicBoolean once, AtomicInteger attempts, AtomicInteger state) {
 		SslHandler sslHandler = channelContext.getSslHandler();
 		AsynchronousSocketChannel socket = channelContext.asynchronousSocketChannel;
 		if (sslHandler == null || !sslHandler.isHandshakeCompleted() || socket == null || !socket.isOpen()) {
-			runAfterClose(channelContext, afterClose);
+			finish(channelContext, once, afterClose);
 			return;
 		}
-		// 抢占写状态：单纯「先查 isWriting 再 write」中间有窗口，框架写线程可能恰好在此刻发起写，
-		// 两边都调 write 就会撞 WritePendingException。抢占成功后框架的写任务会因 writing == true 让路。
+		// 抢占写状态：单纯「先查 isWriting 再 write」中间有窗口，
+		// 框架写线程可能恰好在此刻发起写，两边都调 write 就会撞 WritePendingException。
 		AbstractSendRunnable sendRunnable = channelContext.getSendRunnable();
 		if (sendRunnable != null && !sendRunnable.tryStartWriting()) {
-			log.debug("{}, 有在途写操作，跳过 TLS close_notify", channelContext);
-			runAfterClose(channelContext, afterClose);
+			// 有在途写：挂一个「在途写结束后重试」的钩子，不阻塞调用方线程
+			if (attempts.get() < MAX_RETRY && sendRunnable.registerAfterWrite(
+					() -> closeGracefully(channelContext, afterClose, once, attempts, state))) {
+				// 兜底：在途写迟迟不结束时放弃 close_notify 并关闭连接，避免连接悬着
+				scheduleFallback(channelContext, afterClose, once, state);
+				return;
+			}
+			log.debug("{}, 有在途写操作，放弃发送 TLS close_notify", channelContext);
+			finish(channelContext, once, afterClose);
 			return;
 		}
 		ByteBuffer closeNotify;
@@ -92,23 +147,61 @@ public final class SslGracefulShutdown {
 			closeNotify = sslHandler.closeGracefully();
 		} catch (Throwable e) {
 			log.warn("{}, 产出 TLS close_notify 失败:{}", channelContext, e.getMessage());
-			finishWriting(sendRunnable);
-			runAfterClose(channelContext, afterClose);
+			releaseWriting(sendRunnable);
+			finish(channelContext, once, afterClose);
 			return;
 		}
 		if (closeNotify == null) {
-			finishWriting(sendRunnable);
-			runAfterClose(channelContext, afterClose);
+			releaseWriting(sendRunnable);
+			finish(channelContext, once, afterClose);
 			return;
 		}
+		state.set(STATE_SENT);
 		try {
 			socket.write(new ByteBuffer[]{closeNotify}, 0, 1, CLOSE_NOTIFY_WRITE_TIMEOUT, TimeUnit.MILLISECONDS, null,
-				new CloseNotifyHandler(channelContext, sendRunnable, closeNotify, afterClose));
+				new CloseNotifyHandler(channelContext, sendRunnable, closeNotify, once, afterClose, state));
 		} catch (Throwable e) {
 			log.warn("{}, 写入 TLS close_notify 失败:{}", channelContext, e.getMessage());
-			finishWriting(sendRunnable);
-			runAfterClose(channelContext, afterClose);
+			releaseWriting(sendRunnable);
+			finish(channelContext, once, afterClose);
 		}
+	}
+
+	/**
+	 * 兜底：等待在途写结束超过预算就放弃 close_notify 并关闭连接。
+	 * <p>
+	 * 在途写理论上可能一直不结束（写没有超时），那时若还傻等，连接就会一直悬在
+	 * 「已请求关闭但 socket 没关」的状态。有了这个兜底，最多延迟
+	 * {@link #WAIT_IN_FLIGHT_WRITE_TIMEOUT} 就会收尾。
+	 * </p>
+	 *
+	 * @param channelContext 连接上下文
+	 * @param afterClose     后续关闭动作
+	 * @param once           保证 afterClose 只执行一次
+	 * @param state          关闭流程状态
+	 */
+	private static void scheduleFallback(ChannelContext channelContext, Runnable afterClose,
+										 AtomicBoolean once, AtomicInteger state) {
+		TimerTaskService taskService = channelContext.tioConfig.getRuntimeTaskService();
+		if (taskService == null) {
+			// 没有定时器就没法兜底：直接放弃 close_notify 并关闭连接，
+			// 不能为了 close_notify 让连接一直悬着
+			log.debug("{}, 没有可用的定时任务服务，放弃发送 TLS close_notify", channelContext);
+			if (state.compareAndSet(STATE_INIT, STATE_DONE)) {
+				finish(channelContext, once, afterClose);
+			}
+			return;
+		}
+		taskService.addTask(systemTimer -> new TimerTask(WAIT_IN_FLIGHT_WRITE_TIMEOUT) {
+			@Override
+			public void run() {
+				// 状态仍是 INIT 说明 close_notify 还没发出去（重试也没成功），此时收尾
+				if (state.compareAndSet(STATE_INIT, STATE_DONE)) {
+					log.debug("{}, 等待在途写结束超时，放弃发送 TLS close_notify", channelContext);
+					finish(channelContext, once, afterClose);
+				}
+			}
+		});
 	}
 
 	/**
@@ -116,19 +209,24 @@ public final class SslGracefulShutdown {
 	 *
 	 * @param sendRunnable 发送任务，可为 null
 	 */
-	private static void finishWriting(AbstractSendRunnable sendRunnable) {
+	private static void releaseWriting(AbstractSendRunnable sendRunnable) {
 		if (sendRunnable != null) {
 			sendRunnable.finishWriting();
 		}
 	}
 
 	/**
-	 * 执行后续关闭动作，异常不外抛：关闭流程已经走到这一步，不能因为回调异常让连接卡在 waitingClose 状态
+	 * 执行后续关闭动作，只执行一次，异常不外抛：关闭流程已经走到这一步，
+	 * 不能因为回调异常让连接卡在 waitingClose 状态
 	 *
 	 * @param channelContext 连接上下文
+	 * @param once           保证只执行一次
 	 * @param afterClose     后续关闭动作
 	 */
-	private static void runAfterClose(ChannelContext channelContext, Runnable afterClose) {
+	private static void finish(ChannelContext channelContext, AtomicBoolean once, Runnable afterClose) {
+		if (!once.compareAndSet(false, true)) {
+			return;
+		}
 		try {
 			afterClose.run();
 		} catch (Throwable e) {
@@ -164,16 +262,26 @@ public final class SslGracefulShutdown {
 		private final AbstractSendRunnable sendRunnable;
 		private final Runnable afterClose;
 		/**
+		 * 保证 afterClose 只执行一次
+		 */
+		private final AtomicBoolean once;
+		/**
+		 * 关闭流程状态
+		 */
+		private final AtomicInteger state;
+		/**
 		 * 待写出的 close_notify 记录，写完成后缓冲区 position 会前移，用于判断是否还有剩余
 		 */
 		private final ByteBuffer closeNotify;
 
 		private CloseNotifyHandler(ChannelContext channelContext, AbstractSendRunnable sendRunnable,
-								   ByteBuffer closeNotify, Runnable afterClose) {
+								   ByteBuffer closeNotify, AtomicBoolean once, Runnable afterClose, AtomicInteger state) {
 			this.channelContext = channelContext;
 			this.sendRunnable = sendRunnable;
 			this.closeNotify = closeNotify;
+			this.once = once;
 			this.afterClose = afterClose;
+			this.state = state;
 		}
 
 		@Override
@@ -224,9 +332,15 @@ public final class SslGracefulShutdown {
 
 		private void done() {
 			try {
-				finishWriting(sendRunnable);
+				releaseWriting(sendRunnable);
+				// 写状态释放后，队列里可能还堆着包，继续调度一次
+				if (sendRunnable != null) {
+					sendRunnable.resumeSend();
+				}
 			} finally {
-				runAfterClose(channelContext, afterClose);
+				if (state.compareAndSet(STATE_SENT, STATE_DONE)) {
+					finish(channelContext, once, afterClose);
+				}
 			}
 		}
 	}

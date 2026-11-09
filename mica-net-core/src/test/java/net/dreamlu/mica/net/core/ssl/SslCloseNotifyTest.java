@@ -96,6 +96,38 @@ class SslCloseNotifyTest {
 	 * @return 服务端记录到的关闭原因，未感知到关闭时返回 null
 	 */
 	private String runOnce() throws Exception {
+		return runScenario(false, true, null);
+	}
+
+	/**
+	 * 跑一轮完整场景
+	 *
+	 * @param holdWrite 是否占用写状态模拟在途写
+	 * @return 服务端记录到的关闭原因，未感知到关闭时返回 null
+	 */
+	private String runOnce(boolean holdWrite) throws Exception {
+		return runScenario(holdWrite, true, null);
+	}
+
+	/**
+	 * 跑一轮「在途写永不结束」的场景
+	 *
+	 * @param clientClosed 客户端关闭回调的信号
+	 * @return 服务端记录到的关闭原因，未感知到关闭时返回 null
+	 */
+	private String runOnceWithNeverEndingWrite(CountDownLatch clientClosed) throws Exception {
+		return runScenario(true, false, clientClosed);
+	}
+
+	/**
+	 * 跑一轮完整场景
+	 *
+	 * @param holdWrite    是否占用写状态模拟在途写
+	 * @param releaseWrite 在途写是否会在关闭后很快结束
+	 * @param clientClosed 客户端关闭回调的信号，可为 null
+	 * @return 服务端记录到的关闭原因，未感知到关闭时返回 null
+	 */
+	private String runScenario(boolean holdWrite, boolean releaseWrite, CountDownLatch clientClosed) throws Exception {
 		int port;
 		try (ServerSocket socket = new ServerSocket(0)) {
 			port = socket.getLocalPort();
@@ -157,6 +189,13 @@ class SslCloseNotifyTest {
 				// SSL 连接建立时回调，说明握手已完成
 				clientHandshakeDone.countDown();
 			}
+
+			@Override
+			public void onBeforeClose(ChannelContext context, Throwable throwable, String remark, boolean isRemove) {
+				if (clientClosed != null) {
+					clientClosed.countDown();
+				}
+			}
 		});
 		clientConfig.setSslConfig(SslConfig.forClient(KEY_STORE, KEY_STORE_PWD));
 		TioClient client = new TioClient(clientConfig);
@@ -172,7 +211,16 @@ class SslCloseNotifyTest {
 			assertTrue(clientGotPong.await(TIMEOUT_MS, TimeUnit.MILLISECONDS), "客户端未收到服务端响应");
 
 			// 主动关闭
+			if (holdWrite) {
+				// 模拟还有一批数据在写：占住写状态，此时 close_notify 抢不到
+				assertTrue(ctx.getSendRunnable().tryStartWriting(), "应能占用写状态");
+			}
 			Tio.close(ctx, null, "测试主动关闭");
+			if (holdWrite && releaseWrite) {
+				// 在途写很快结束：释放写状态并触发完成回调，close_notify 应自动补发
+				ctx.getSendRunnable().finishWriting();
+				ctx.getSendRunnable().onWriteCompleted();
+			}
 
 			if (!serverClosed.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
 				return null;
@@ -185,6 +233,42 @@ class SslCloseNotifyTest {
 	}
 
 	/**
+	 * 关闭时还有在途写，close_notify 仍要送达对端。
+	 * <p>
+	 * 业务高峰期关闭连接时，框架往往还有一批数据在写。此时 close_notify 抢不到写状态，
+	 * 不能就此放弃——那正是「对端只看到 TCP 断流」的老问题。
+	 * 正确行为是等在途写结束后自动补发。
+	 * </p>
+	 */
+	@Test
+	void closeNotifyShouldBeSentEvenWhenWriteInFlight() throws Exception {
+		String remark = null;
+		for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+			remark = runOnce(true);
+			if (remark != null && remark.contains("SSL SessionClosed")) {
+				return;
+			}
+		}
+		fail("有在途写时，服务端仍应通过 TLS close_notify 感知到主动断开，实际关闭原因: " + remark);
+	}
+
+	/**
+	 * 在途写永远不结束时，连接也必须被关闭，不能一直悬着。
+	 * <p>
+	 * close_notify 等在途写是有代价的：在途写可能一直不结束（写没有超时），
+	 * 那时若傻等，连接就会停在「已请求关闭但 socket 没关」的状态。
+	 * 这里要求有兜底：超时后放弃 close_notify 并关闭连接。
+	 * </p>
+	 */
+	@Test
+	void connectionShouldNotHangWhenWriteNeverFinishes() throws Exception {
+		CountDownLatch clientClosed = new CountDownLatch(1);
+		String remark = runOnceWithNeverEndingWrite(clientClosed);
+		assertTrue(clientClosed.await(TIMEOUT_MS, TimeUnit.MILLISECONDS),
+			"在途写永不结束时连接也必须被关闭，实际关闭原因: " + remark);
+	}
+
+	/**
 	 * 以 \n 结尾的一行为一个完整包
 	 *
 	 * @param buffer   buffer
@@ -192,8 +276,7 @@ class SslCloseNotifyTest {
 	 * @param position position
 	 * @return 包，数据不完整时返回 null
 	 */
-	private static Packet decodeLine(ByteBuffer buffer, int limit, int position) {
-		int start = position;
+	private static Packet decodeLine(ByteBuffer buffer, int limit, int position) {		int start = position;
 		for (int i = position; i < limit; i++) {
 			if (buffer.get(i) == '\n') {
 				byte[] body = new byte[i - start];

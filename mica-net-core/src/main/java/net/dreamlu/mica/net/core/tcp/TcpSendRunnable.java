@@ -220,13 +220,21 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	 * 写操作完成回调（由 WriteCompletionHandler 调用）
 	 * 清除写入标记并触发下一批消息发送
 	 */
+	@Override
 	public void onWriteCompleted() {
 		writing.set(false);
+		// 在途写结束后执行挂起的回调（如 TLS close_notify 抢不到写状态时挂的重试）
+		Runnable callback = afterWriteCallback.getAndSet(null);
+		if (callback != null) {
+			try {
+				callback.run();
+			} catch (Throwable e) {
+				log.error("{}, 在途写结束后的回调执行失败", channelContext, e);
+			}
+		}
 		// 只在未提交状态且有消息时才触发，避免无效的 execute 调用和锁竞争
 		// executed 为 true 表示任务已在线程池队列中，无需重复提交
-		if (!msgQueue.isEmpty() && !this.executed) {
-			this.execute();
-		}
+		resumeSend();
 	}
 
 	/**

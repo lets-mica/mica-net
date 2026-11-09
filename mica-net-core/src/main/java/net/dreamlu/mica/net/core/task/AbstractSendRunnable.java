@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 发送任务抽象基类 - 提取 TCP/UDP 共享逻辑
@@ -68,6 +69,10 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	 * </p>
 	 */
 	private final Object sslDeferredLock = new Object();
+	/**
+	 * 在途写结束后要执行的回调（{@link #registerAfterWrite(Runnable)} 注册）。
+	 */
+	protected final AtomicReference<Runnable> afterWriteCallback = new AtomicReference<>();
 
 	public AbstractSendRunnable(ChannelContext channelContext, Executor executor) {
 		this(channelContext, executor, new ConcurrentLinkedQueue<>());
@@ -373,6 +378,43 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	 */
 	protected boolean isWriting() {
 		return false;
+	}
+
+	/**
+	 * 注册「在途写结束后执行」的回调。
+	 * <p>
+	 * 用于关闭流程：TLS close_notify 要直写 socket，但此刻可能还有框架的在途写，
+	 * 抢不到写状态时把「稍后重试」挂在这里，等在途写结束（{@code onWriteCompleted}）后自动执行。
+	 * 这样既不阻塞调用方线程，也不用直接放弃 close_notify。
+	 * </p>
+	 *
+	 * @param callback 回调
+	 * @return true 表示注册成功；false 表示已有回调注册（本次不生效）
+	 */
+	public boolean registerAfterWrite(Runnable callback) {
+		return afterWriteCallback.compareAndSet(null, callback);
+	}
+
+	/**
+	 * 释放写状态后继续调度发送队列。
+	 * <p>
+	 * 写状态释放时队列里可能还堆着包（如直写 TLS close_notify 期间），需要重新调度一次，
+	 * 否则这些包要等到下一次 {@code Tio.send} 才会被带出去。
+	 * </p>
+	 */
+	public void resumeSend() {
+		if (!msgQueue.isEmpty() && !this.executed) {
+			this.execute();
+		}
+	}
+
+	/**
+	 * 写操作结束回调。
+	 * <p>
+	 * 默认空实现：只有带写状态机的实现（TCP）才有「在途写」的概念。
+	 * </p>
+	 */
+	public void onWriteCompleted() {
 	}
 
 	/**
