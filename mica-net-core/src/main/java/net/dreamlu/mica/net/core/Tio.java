@@ -514,10 +514,15 @@ public class Tio {
 		SslGracefulShutdown.sendCloseNotify(context);
 
 		if (context.asynchronousSocketChannel != null) {
-			try {
-				context.asynchronousSocketChannel.shutdownInput();
-			} catch (Throwable e) {
-				//log.error(e.toString(), e);
+			// SSL 连接不做 shutdownInput：shutdownInput 会丢弃接收队列里尚未读取的 TLS 记录
+			//（如 TLS 1.3 的 NewSessionTicket），Windows 下还会因此立即发出 RST，
+			// 把刚写出的 close_notify 一并丢掉，对端只能看到 Connection reset。
+			if (!context.isSsl()) {
+				try {
+					context.asynchronousSocketChannel.shutdownInput();
+				} catch (Throwable e) {
+					//log.error(e.toString(), e);
+				}
 			}
 			try {
 				context.asynchronousSocketChannel.shutdownOutput();

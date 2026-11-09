@@ -45,11 +45,15 @@ public final class SslGracefulShutdown {
 	/**
 	 * 等待在途写操作结束的最长时间（毫秒）
 	 */
-	private static final long WAIT_WRITING_TIMEOUT = 50L;
+	private static final long WAIT_WRITING_TIMEOUT = 20L;
 	/**
 	 * 等待 close_notify 写完成的最长时间（毫秒）
 	 */
 	private static final long WAIT_WRITE_TIMEOUT = 100L;
+	/**
+	 * 轮询在途写状态的间隔（毫秒）
+	 */
+	private static final long WRITING_POLL_INTERVAL = 1L;
 
 	private SslGracefulShutdown() {
 	}
@@ -66,45 +70,71 @@ public final class SslGracefulShutdown {
 			// 握手未完成：对端可能还没建立会话，发 close_notify 意义不大
 			return false;
 		}
-		// 1. 等在途写结束，避免与框架的写操作并发触发 WritePendingException
-		if (!awaitNoWriting(channelContext, WAIT_WRITING_TIMEOUT)) {
-			log.warn("{}, 仍有写操作在进行，跳过 TLS close_notify", channelContext);
+		// 1. 抢占写状态：单纯「先查 isWriting 再 write」中间有窗口，
+		//    框架写线程可能恰好在此刻发起写，两边都调 write 就会撞 WritePendingException。
+		//    抢占成功后框架的写任务会因 writing == true 主动让路。
+		if (!acquireWriting(channelContext, WAIT_WRITING_TIMEOUT)) {
+			log.warn("{}, 写操作未结束，跳过 TLS close_notify", channelContext);
 			return false;
 		}
-		// 2. 让引擎产出 close_notify 记录
-		ByteBuffer closeNotify = sslHandler.closeGracefully();
-		if (closeNotify == null) {
-			return false;
+		try {
+			// 2. 让引擎产出 close_notify 记录
+			ByteBuffer closeNotify = sslHandler.closeGracefully();
+			if (closeNotify == null) {
+				return false;
+			}
+			// 3. 直接写 socket 并等待写完成，确保 socket 关闭前数据已经交给内核
+			return writeAndWait(channelContext, closeNotify, WAIT_WRITE_TIMEOUT);
+		} finally {
+			releaseWriting(channelContext);
 		}
-		// 3. 直接写 socket 并等待写完成，确保 socket 关闭前数据已经交给内核
-		return writeAndWait(channelContext, closeNotify, WAIT_WRITE_TIMEOUT);
 	}
 
 	/**
-	 * 等待当前没有在途写操作。
+	 * 抢占写状态。
+	 * <p>
+	 * 已有在途写时短暂重试：关闭流程里在途写通常很快结束（回调失败或完成），
+	 * 抢占成功才能保证「本次写」与框架写路径互斥。
+	 * </p>
 	 *
 	 * @param channelContext 连接上下文
 	 * @param timeout        最长等待时间（毫秒）
-	 * @return true 表示已经没有在途写
+	 * @return true 表示抢占成功
 	 */
-	private static boolean awaitNoWriting(ChannelContext channelContext, long timeout) {
+	private static boolean acquireWriting(ChannelContext channelContext, long timeout) {
 		AbstractSendRunnable sendRunnable = channelContext.getSendRunnable();
 		if (sendRunnable == null) {
 			return true;
 		}
 		long deadline = System.currentTimeMillis() + timeout;
-		while (sendRunnable.isWriting()) {
+		while (!sendRunnable.tryStartWriting()) {
+			if (!sendRunnable.isWriting()) {
+				// CAS 失败且当前没有写操作在进行：说明写状态由不支持抢占的实现持有，按「无在途写」处理
+				return true;
+			}
 			if (System.currentTimeMillis() >= deadline) {
 				return false;
 			}
 			try {
-				Thread.sleep(2L);
+				Thread.sleep(WRITING_POLL_INTERVAL);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				return false;
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * 释放写状态
+	 *
+	 * @param channelContext 连接上下文
+	 */
+	private static void releaseWriting(ChannelContext channelContext) {
+		AbstractSendRunnable sendRunnable = channelContext.getSendRunnable();
+		if (sendRunnable != null) {
+			sendRunnable.finishWriting();
+		}
 	}
 
 	/**

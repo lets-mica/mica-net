@@ -25,6 +25,7 @@ import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.Node;
 import net.dreamlu.mica.net.core.Tio;
 import net.dreamlu.mica.net.core.TioConfig;
+import net.dreamlu.mica.net.core.intf.EncodedPacket;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.server.TioServer;
 import net.dreamlu.mica.net.server.TioServerConfig;
@@ -32,7 +33,10 @@ import net.dreamlu.mica.net.server.intf.TioServerHandler;
 import net.dreamlu.mica.net.server.intf.TioServerListener;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,6 +52,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * 结果对端只看到 TCP 断流，收不到 TLS 层的关闭通知。
  * 本用例要求：本地主动关闭后，对端必须以「收到对端 close_notify」的方式感知到断开。
  * </p>
+ * <p>
+ * 注意关闭时机：必须等一次完整业务往来结束后再关闭。
+ * TLS 1.3 服务端在握手后还会补发 NewSessionTicket，若在握手刚完成、票据尚在客户端接收队列里时就关闭 socket，
+ * 操作系统会因「接收队列有未读数据」发出 RST，把 close_notify 一并丢掉（对端只能看到 Connection reset），
+ * 这属于 TCP 层的固有行为，与 close_notify 是否发出无关，因此用例先做完一次 ping/pong 再关闭。
+ * </p>
  *
  * @author L.cm
  */
@@ -59,26 +69,28 @@ class SslCloseNotifyTest {
 	@Test
 	void peerShouldReceiveCloseNotifyWhenLocalCloses() throws Exception {
 		int port;
-		try (java.net.ServerSocket socket = new java.net.ServerSocket(0)) {
+		try (ServerSocket socket = new ServerSocket(0)) {
 			port = socket.getLocalPort();
 		}
 		CountDownLatch serverClosed = new CountDownLatch(1);
 		AtomicReference<String> serverRemark = new AtomicReference<>();
 		CountDownLatch clientHandshakeDone = new CountDownLatch(1);
+		CountDownLatch clientGotPong = new CountDownLatch(1);
 
 		TioServerConfig serverConfig = new TioServerConfig("close-notify-server", new TioServerHandler() {
 			@Override
 			public Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext ctx) {
-				return null;
+				return decodeLine(buffer, limit, position);
 			}
 
 			@Override
 			public ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext ctx) {
-				return null;
+				return packet.getPreEncodedByteBuffer();
 			}
 
 			@Override
 			public void handler(Packet packet, ChannelContext ctx) {
+				Tio.send(ctx, new EncodedPacket("pong\n".getBytes(StandardCharsets.UTF_8)));
 			}
 		}, new TioServerListener() {
 			@Override
@@ -94,16 +106,17 @@ class SslCloseNotifyTest {
 		TioClientConfig clientConfig = new TioClientConfig(new TioClientHandler() {
 			@Override
 			public Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext ctx) {
-				return null;
+				return decodeLine(buffer, limit, position);
 			}
 
 			@Override
 			public ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext ctx) {
-				return null;
+				return packet.getPreEncodedByteBuffer();
 			}
 
 			@Override
 			public void handler(Packet packet, ChannelContext ctx) {
+				clientGotPong.countDown();
 			}
 
 			@Override
@@ -125,6 +138,11 @@ class SslCloseNotifyTest {
 			assertNotNull(ctx, "客户端应连接成功");
 			assertTrue(clientHandshakeDone.await(TIMEOUT_MS, TimeUnit.MILLISECONDS), "客户端应完成 TLS 握手");
 
+			// 先完成一次业务往来：回包到达客户端时，接收队列里握手期补发的 TLS 票据必然已被读走，
+			// 剩下的关闭动作就不会再触发 RST，close_notify 才能确定性送达
+			Tio.send(ctx, new EncodedPacket("ping\n".getBytes(StandardCharsets.UTF_8)));
+			assertTrue(clientGotPong.await(TIMEOUT_MS, TimeUnit.MILLISECONDS), "客户端未收到服务端响应");
+
 			// 主动关闭
 			Tio.close(ctx, null, "测试主动关闭");
 
@@ -137,5 +155,29 @@ class SslCloseNotifyTest {
 			client.stop();
 			server.stop();
 		}
+	}
+
+	/**
+	 * 以 \n 结尾的一行为一个完整包
+	 *
+	 * @param buffer   buffer
+	 * @param limit    limit
+	 * @param position position
+	 * @return 包，数据不完整时返回 null
+	 */
+	private static Packet decodeLine(ByteBuffer buffer, int limit, int position) {
+		int start = position;
+		for (int i = position; i < limit; i++) {
+			if (buffer.get(i) == '\n') {
+				byte[] body = new byte[i - start];
+				for (int j = 0; j < body.length; j++) {
+					body[j] = buffer.get(start + j);
+				}
+				buffer.position(i + 1);
+				return new EncodedPacket(body);
+			}
+		}
+		// 半包，不消费缓冲区
+		return null;
 	}
 }

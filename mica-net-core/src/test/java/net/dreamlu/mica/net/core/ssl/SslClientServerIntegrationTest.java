@@ -52,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author L.cm
  */
 class SslClientServerIntegrationTest {
-	private static final int PORT = 18899;
+	private int port;
 	private static final String KEY_STORE = "classpath:test.jks";
 	private static final String KEY_STORE_PWD = "501937";
 	private static final long TIMEOUT_MS = 10_000L;
@@ -111,7 +111,8 @@ class SslClientServerIntegrationTest {
 
 		TioServerConfig serverConfig = new TioServerConfig("ssl-test-server", serverHandler, null);
 		serverConfig.setSslConfig(SslConfig.forServer(KEY_STORE, KEY_STORE_PWD));
-		server = new TioServer(PORT, serverConfig);
+		port = findFreePort();
+		server = new TioServer(port, serverConfig);
 		server.start();
 
 		TioClientConfig clientConfig = new TioClientConfig(clientHandler, null);
@@ -131,7 +132,7 @@ class SslClientServerIntegrationTest {
 
 	@Test
 	void clientShouldExchangeDataOverSsl() throws Exception {
-		ClientChannelContext context = client.connect(new Node("127.0.0.1", PORT), 5000);
+		ClientChannelContext context = client.connect(new Node("127.0.0.1", port), 5000);
 		assertNotNull(context, "客户端应连接成功");
 
 		Tio.send(context, new EncodedPacket("ping\n".getBytes(StandardCharsets.UTF_8)));
@@ -141,6 +142,17 @@ class SslClientServerIntegrationTest {
 
 		assertTrue(clientReceived.await(TIMEOUT_MS, TimeUnit.MILLISECONDS), "客户端未收到服务端响应");
 		assertEquals("pong", clientPayload.get());
+	}
+
+	/**
+	 * 取一个空闲端口：写死端口在同机并发构建时会撞车
+	 *
+	 * @return 空闲端口
+	 */
+	private static int findFreePort() throws java.io.IOException {
+		try (java.net.ServerSocket socket = new java.net.ServerSocket(0)) {
+			return socket.getLocalPort();
+		}
 	}
 
 	/**

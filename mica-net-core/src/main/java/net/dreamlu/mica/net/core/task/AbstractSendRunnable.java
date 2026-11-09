@@ -80,13 +80,19 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 		this.msgQueue = msgQueue;
 	}
 
-	public Queue<Packet> getForSendAfterSslHandshakeCompleted(boolean forceCreate) {
+	/**
+	 * 获取（必要时创建）握手完成前的暂存队列。
+	 * <p>
+	 * 只允许在持有 {@link #sslDeferredLock} 时调用：该队列的暂存与排空都靠这把锁保证原子，
+	 * 对外暴露会导致「先判断握手状态、再入队」被拆开，业务包可能被永久滞留。
+	 * </p>
+	 *
+	 * @param forceCreate 队列不存在时是否创建
+	 * @return 暂存队列，可能为 null
+	 */
+	private Queue<Packet> deferredQueue(boolean forceCreate) {
 		if (forSendAfterSslHandshakeCompleted == null && forceCreate) {
-			synchronized (this) {
-				if (forSendAfterSslHandshakeCompleted == null) {
-					forSendAfterSslHandshakeCompleted = new ConcurrentLinkedQueue<>();
-				}
-			}
+			forSendAfterSslHandshakeCompleted = new ConcurrentLinkedQueue<>();
 		}
 		return forSendAfterSslHandshakeCompleted;
 	}
@@ -111,15 +117,17 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 			if (sslHandler == null || sslHandler.isHandshakeCompleted()) {
 				return false;
 			}
-			getForSendAfterSslHandshakeCompleted(true).add(packet);
+			deferredQueue(true).add(packet);
 			return true;
 		}
 	}
 
 	/**
-	 * 取走握手完成前暂存的业务包。
+	 * 取走并清空握手完成前暂存的业务包。
 	 * <p>
 	 * 与 {@link #deferIfSslHandshakeNotCompleted(Packet)} 用同一把锁，保证暂存与排空不会交叉。
+	 * 取包与置空也必须在这把锁内一次完成：若分两步（先取包、再置空），中间入队的包会落在一个
+	 * 再也不会被排空的队列里，等待发送完成的业务方（如 bSend）只能等到超时。
 	 * </p>
 	 *
 	 * @return 暂存的业务包列表（可能为空）
@@ -131,6 +139,7 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 			if (deferred == null) {
 				return packets;
 			}
+			forSendAfterSslHandshakeCompleted = null;
 			Packet packet;
 			while ((packet = deferred.poll()) != null) {
 				packets.add(packet);
@@ -154,10 +163,9 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	@Override
 	public void clearMsgQueue() {
 		Packet p;
-		// 先取走握手完成前暂存的包，再置空，否则暂存的包会被直接丢弃，
+		// 取走握手完成前暂存的包，否则暂存的包会被直接丢弃，
 		// 等待该包发送完成的业务方（如 bSend）会一直等到超时
 		List<Packet> deferred = takeDeferredPackets();
-		forSendAfterSslHandshakeCompleted = null;
 		while ((p = msgQueue.poll()) != null) {
 			try {
 				channelContext.processAfterSent(p, false);
@@ -172,6 +180,26 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 				log.error(e.getMessage(), e);
 			}
 		}
+	}
+
+	/**
+	 * 尝试抢占「正在写」状态。
+	 * <p>
+	 * 供关闭流程（如直写 TLS close_notify）使用：{@link #isWriting()} 的「先查后写」之间
+	 * 有窗口，写线程可能恰好在此刻发起写，导致两者都调 {@code write()} 并撞上
+	 * {@code WritePendingException}。用 CAS 抢占后，框架的写任务会因 {@code writing == true} 主动让路。
+	 * </p>
+	 *
+	 * @return true 表示抢占成功，调用方必须在写结束后调用 {@link #finishWriting()}
+	 */
+	public boolean tryStartWriting() {
+		return false;
+	}
+
+	/**
+	 * 释放 {@link #tryStartWriting()} 抢占的写状态
+	 */
+	public void finishWriting() {
 	}
 
 	/**

@@ -184,6 +184,24 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	}
 
 	/**
+	 * 抢占写状态（CAS），关闭流程直写 socket 时用，避免与框架写路径撞 {@code WritePendingException}
+	 *
+	 * @return true 表示抢占成功
+	 */
+	@Override
+	public boolean tryStartWriting() {
+		return writing.compareAndSet(false, true);
+	}
+
+	/**
+	 * 释放 {@link #tryStartWriting()} 抢占的写状态
+	 */
+	@Override
+	public void finishWriting() {
+		writing.set(false);
+	}
+
+	/**
 	 * 重置 writing 状态，用于重连场景。
 	 * <p>
 	 * 当 write 操作挂起（网络中断/超时）导致连接被关闭时，
