@@ -220,7 +220,7 @@ public class WsSessionContext {
 	/**
 	 * 是否已经握过手
 	 */
-	private boolean isHandshaked = false;
+	private volatile boolean isHandshaked = false;
 
 	/**
 	 * 分片消息已接收的内容

@@ -110,17 +110,39 @@ class WsServerDecoderTest {
 	}
 
 	@Test
-	void decode_64BitLengthPayload_returnsPayload() throws Exception {
+	void decode_16BitLengthPayload_returnsPayload() throws Exception {
 		byte[] payload = new byte[300];
 		for (int i = 0; i < payload.length; i++) {
 			payload[i] = (byte) i;
 		}
-		ByteBuffer buffer = ByteBuffer.wrap(WsTestClient.buildFrame(0x2, payload, true, true));
+		byte[] frame = WsTestClient.buildFrame(0x2, payload, true, true);
+		// 126 分支：2 字节扩展长度
+		assertEquals(126, frame[1] & 0x7F);
+		ByteBuffer buffer = ByteBuffer.wrap(frame);
 
 		WsRequest request = WsServerDecoder.decode(buffer, null);
 
 		assertNotNull(request);
 		assertEquals(Opcode.BINARY, request.getWsOpcode());
+		assertArrayEquals(payload, request.getBody());
+	}
+
+	@Test
+	void decode_true64BitLengthPayload_returnsPayload() throws Exception {
+		// 65536 字节刚好越过 16 位长度上限，必须走 127 分支（8 字节扩展长度）
+		byte[] payload = new byte[65536];
+		for (int i = 0; i < payload.length; i++) {
+			payload[i] = (byte) i;
+		}
+		byte[] frame = WsTestClient.buildFrame(0x2, payload, true, true);
+		assertEquals(127, frame[1] & 0x7F);
+		ByteBuffer buffer = ByteBuffer.wrap(frame);
+
+		WsRequest request = WsServerDecoder.decode(buffer, null);
+
+		assertNotNull(request);
+		assertEquals(Opcode.BINARY, request.getWsOpcode());
+		assertEquals(payload.length, request.getWsBodyLength());
 		assertArrayEquals(payload, request.getBody());
 	}
 

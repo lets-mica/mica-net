@@ -197,6 +197,7 @@ import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.Tio;
 import net.dreamlu.mica.net.core.TioConfig;
 import net.dreamlu.mica.net.core.exception.TioDecodeException;
+import net.dreamlu.mica.net.core.intf.IgnorePacket;
 import net.dreamlu.mica.net.core.intf.Packet;
 import net.dreamlu.mica.net.http.common.*;
 import net.dreamlu.mica.net.server.intf.TioServerHandler;
@@ -299,7 +300,7 @@ public class WsTioServerHandler implements TioServerHandler {
 	}
 
 	@Override
-	public WsRequest decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException {
+	public Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException {
 		WsSessionContext wsSessionContext = channelContext.get(WsSessionContext.WS_SESSION_CONTEXT_KEY);
 		// 尚未握手
 		if (!wsSessionContext.isHandshaked()) {
@@ -310,7 +311,11 @@ public class WsTioServerHandler implements TioServerHandler {
 		} catch (WsProtocolException e) {
 			// RFC 6455 §7.1.7：先发 Close 帧，再关闭 TCP 连接
 			failConnection(channelContext, e.getCloseCode(), e.getMessage());
-			return null;
+			// 坏帧必须被消费掉：decode 返回 null 时框架会把读指针回退到帧头，
+			// 这个坏帧会被反复解析、反复抛异常。这里直接丢弃剩余数据——
+			// 连接马上就要断，坏帧之后的数据同样不可信。
+			buffer.position(limit);
+			return IgnorePacket.INSTANCE;
 		}
 	}
 
@@ -372,7 +377,7 @@ public class WsTioServerHandler implements TioServerHandler {
 	 * @return 帧
 	 * @throws WsProtocolException 帧不符合 RFC 6455 规范
 	 */
-	private WsRequest decodeFrame(ByteBuffer buffer, ChannelContext channelContext) throws WsProtocolException {
+	private Packet decodeFrame(ByteBuffer buffer, ChannelContext channelContext) throws WsProtocolException {
 		WsSessionContext session = channelContext.get(WsSessionContext.WS_SESSION_CONTEXT_KEY);
 		WsRequest frame = WsServerDecoder.decode(buffer, channelContext);
 		if (frame == null) {
@@ -380,15 +385,23 @@ public class WsTioServerHandler implements TioServerHandler {
 		}
 
 		Opcode opcode = frame.getWsOpcode();
-		// 关闭握手中：数据帧直接丢弃（帧已从缓冲区消费掉，不会再堆积），
-		// 但控制帧必须继续处理——尤其对端回的 Close 帧，否则关闭握手永远等不到回应，
-		// 只能等 Ws#DEFAULT_CLOSE_TIMEOUT 超时后强制断开。
+		// 关闭握手中：数据帧直接丢弃，但控制帧必须继续处理——尤其对端回的 Close 帧，
+		// 否则关闭握手永远等不到回应，只能等 Ws#DEFAULT_CLOSE_TIMEOUT 超时后强制断开。
+		//
+		// 这里必须返回 IgnorePacket 而不是 null：decode 返回 null 时框架会把读指针回退到帧头，
+		// 刚解析完的帧会被还回去、反复解析（并累加 decodeFailCount，可能被当成慢包攻击断连），
+		// 排在它后面的对端 Close 帧也就永远解析不到。
 		if (session.isCloseSent()) {
 			if (opcode == Opcode.CLOSE) {
 				parseClosePayload(frame);
 				return frame;
 			}
-			return null;
+			// RFC 6455 §5.5.2：收到 Ping 必须回 Pong（除非已经收到对端的 Close）。
+			// 控制帧不影响关闭握手，这里继续交给业务处理。
+			if (opcode == Opcode.PING) {
+				return frame;
+			}
+			return IgnorePacket.INSTANCE;
 		}
 
 		// 控制帧可以插入分片消息中间，不参与分片拼装
