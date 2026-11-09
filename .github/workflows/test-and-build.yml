@@ -19,4 +19,5 @@ jobs:
           cache: 'maven'
           cache-dependency-path: 'pom.xml'
       - name: Build with Maven
-        run: mvn clean package -P !develop
+        # 根 pom 默认 maven.test.skip=true，必须显式覆盖，否则测试会被静默跳过
+        run: mvn clean package -P !develop -Dmaven.test.skip=false
