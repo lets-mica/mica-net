@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -145,8 +146,13 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 		if (!TioUtils.checkBeforeIO(channelContext)) {
 			return;
 		}
-		// 标记写入状态
-		writing.set(true);
+		// 抢占写状态再发起写：write() 不允许并发，AIO 在已有未完成写时会抛 WritePendingException。
+		// 抢不到说明有写在途（框架的上一批，或关闭流程正在直写 close_notify），此时不能写，
+		// 把包放回队列，由在途写的完成回调（onWriteCompleted）继续调度。
+		if (!writing.compareAndSet(false, true)) {
+			requeueOnWriteConflict(packets);
+			return;
+		}
 		try {
 			// 统一包装为 ByteBuffer[]{byteBuffer}，走 scatter-write 路径
 			ByteBuffer[] buffers = new ByteBuffer[]{byteBuffer};
@@ -163,6 +169,38 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	}
 
 	/**
+	 * 有写在途时把没发出去的包放回队列。
+	 * <p>
+	 * 两种在途写要区分处理：
+	 * <ul>
+	 *   <li>连接正在关闭（关闭流程直写 close_notify）：包已经没机会发出去了，直接丢弃；</li>
+	 *   <li>框架自己的另一批写：包放回队列即可，那次写的完成回调会重新调度发送。</li>
+	 * </ul>
+	 * 包只能加到队尾（{@code ConcurrentLinkedQueue} 没有 addFirst），这里不做顺序补偿：
+	 * 走到这条分支说明本端已经有一次直发（{@code useQueueSend=false}）或正在关闭，
+	 * 与队列内的包本来就不是严格 FIFO。
+	 * </p>
+	 *
+	 * @param packets 单个 {@link Packet} 或 {@code List<Packet>}
+	 */
+	private void requeueOnWriteConflict(Object packets) {
+		if (channelContext.isWaitingClose() || channelContext.isClosed() || channelContext.isRemoved()) {
+			log.debug("{}, 连接正在关闭，丢弃未发出的包: {}", channelContext, packets);
+			return;
+		}
+		if (packets instanceof Packet) {
+			msgQueue.add((Packet) packets);
+		} else if (packets instanceof Collection) {
+			for (Object packet : (Collection<?>) packets) {
+				if (packet instanceof Packet) {
+					msgQueue.add((Packet) packet);
+				}
+			}
+		}
+		log.debug("{}, 有写在途，未发出的包已重新入队: {}", channelContext, packets);
+	}
+
+	/**
 	 * 写操作完成回调（由 WriteCompletionHandler 调用）
 	 * 清除写入标记并触发下一批消息发送
 	 */
@@ -176,7 +214,7 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	}
 
 	/**
-	 * 抢占写状态（CAS），关闭流程直写 socket 时用，避免与框架写路径撞 {@code WritePendingException}
+	 * 抢占写状态（CAS），所有发起写的地方都用它，避免与框架写路径撞 {@code WritePendingException}
 	 *
 	 * @return true 表示抢占成功
 	 */
@@ -191,6 +229,11 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	@Override
 	public void finishWriting() {
 		writing.set(false);
+	}
+
+	@Override
+	protected boolean isWriting() {
+		return writing.get();
 	}
 
 	/**
@@ -222,7 +265,11 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 			return;
 		}
 
-		writing.set(true);
+		// 同 sendByteBuffer：先 CAS 抢占写状态，抢不到就把整批包放回队列
+		if (!writing.compareAndSet(false, true)) {
+			requeueOnWriteConflict(packets);
+			return;
+		}
 		try {
 			// 统一走 scatter-write 路径，单个 buffer 也包装为数组
 			WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffers, packets);

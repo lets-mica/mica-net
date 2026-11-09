@@ -309,6 +309,33 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 		return msgQueue;
 	}
 
+	/**
+	 * 是否有写在途。
+	 * <p>
+	 * 默认没有：只有带写状态机的实现（TCP）会返回真实值。UDP 每次发送都是独立的
+	 * {@code send()}，不存在「写挂起」的概念。
+	 * </p>
+	 *
+	 * @return true 表示有写在途
+	 */
+	protected boolean isWriting() {
+		return false;
+	}
+
+	/**
+	 * 是否还需要继续调度发送。
+	 * <p>
+	 * 有写在途时返回 false：此时包留在队列里是正常状态，写完成回调
+	 * （{@code onWriteCompleted}）会负责下一次调度。若这里仍返回 true，
+	 * {@code AbstractSynRunnable#run()} 末尾会立刻重新提交任务，而任务又会因为抢不到写状态
+	 * 直接返回，形成空转。
+	 * </p>
+	 */
+	@Override
+	public boolean isNeededExecute() {
+		return !isWriting() && super.isNeededExecute();
+	}
+
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + ':' + channelContext.toString();
