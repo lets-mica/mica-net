@@ -208,6 +208,10 @@ import java.nio.ByteBuffer;
  * com.generallycloud.nio.codec.http11.WebSocketProtocolEncoder
  */
 public class WsServerEncoder {
+	/**
+	 * 控制帧负载上限，参考 RFC 6455 §5.5
+	 */
+	private static final int MAX_CONTROL_FRAME_BODY_LENGTH = 125;
 
 	private WsServerEncoder() {
 
@@ -232,8 +236,16 @@ public class WsServerEncoder {
 			}
 		}
 
+		Opcode opcode = wsResponse.getWsOpcode();
+		// RFC 6455 §5.5：控制帧的负载不能超过 125 字节，超了就是非法帧，
+		// 与其发出去让对端按协议错误断开，不如在编码前就拒绝（如 Ws.ping 传了超长数据）
+		if (opcode.isControlFrame() && wsBodyLength > MAX_CONTROL_FRAME_BODY_LENGTH) {
+			throw new IllegalArgumentException("websocket 控制帧负载不能超过 "
+				+ MAX_CONTROL_FRAME_BODY_LENGTH + " 字节，实际：" + wsBodyLength);
+		}
+
 		// FIN 位置 1，RSV1/2/3 位置 0，MASK 位置 0（服务端发出的帧不得掩码）
-		byte header0 = (byte) (0x80 | wsResponse.getWsOpcode().getCode());
+		byte header0 = (byte) (0x80 | opcode.getCode());
 		ByteBuffer buf;
 		if (wsBodyLength < 126) {
 			buf = ByteBuffer.allocate(2 + wsBodyLength);

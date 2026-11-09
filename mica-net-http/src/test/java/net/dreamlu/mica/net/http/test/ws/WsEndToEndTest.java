@@ -19,6 +19,7 @@ package net.dreamlu.mica.net.http.test.ws;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.websocket.common.Ws;
 import net.dreamlu.mica.net.websocket.common.WsRequest;
+import net.dreamlu.mica.net.websocket.common.WsSessionContext;
 import net.dreamlu.mica.net.websocket.server.WsServerStarter;
 import net.dreamlu.mica.net.websocket.server.handler.IWsMsgHandler;
 import org.junit.jupiter.api.AfterEach;
@@ -241,6 +242,42 @@ class WsEndToEndTest {
 			assertEquals(0x8, frame.opcode);
 			assertEquals(0x03, frame.payload[0] & 0xFF);
 			assertEquals(0xE8, frame.payload[1] & 0xFF);
+		}
+	}
+
+	/**
+	 * RFC 6455 §5.5.1：本端发出 Close 后，对端回的 Close 必须被处理，关闭握手才算完成。
+	 * <p>
+	 * 回归点：此前「已发 Close」状态下 decodeFrame 直接丢弃所有帧，对端回的 Close 也被吞掉，
+	 * 关闭握手永远走不到完成分支，只能等 {@code Ws#DEFAULT_CLOSE_TIMEOUT}（5s）超时强制断开。
+	 * </p>
+	 */
+	@Test
+	void serverInitiatedClose_completesHandshakeWhenPeerReplies() throws Exception {
+		try (WsTestClient client = new WsTestClient(port)) {
+			client.handshake();
+			client.sendText("hello");
+			assertNotNull(client.readFrame());
+
+			ChannelContext context = contextRef.get();
+			assertNotNull(context);
+			assertTrue(Ws.close(context, 1000, "bye"));
+			WsTestClient.Frame closeFrame = client.readFrame();
+			assertNotNull(closeFrame);
+			assertEquals(0x8, closeFrame.opcode);
+
+			// 对端回一个 Close，关闭握手应当在毫秒级完成，而不是等 5s 超时
+			client.sendClose(1000, "bye");
+			client.setReadTimeout(2500);
+			long start = System.currentTimeMillis();
+			boolean closed = client.isClosedByServer();
+			long elapsed = System.currentTimeMillis() - start;
+
+			assertTrue(closed, "对端回 Close 后服务端应关闭 TCP 连接");
+			assertTrue(elapsed < 2500, "关闭握手应在超时前完成，实际耗时：" + elapsed + "ms");
+			WsSessionContext session = context.get(WsSessionContext.WS_SESSION_CONTEXT_KEY);
+			assertNotNull(session);
+			assertTrue(session.isCloseReceived(), "服务端应记录到对端的 Close");
 		}
 	}
 

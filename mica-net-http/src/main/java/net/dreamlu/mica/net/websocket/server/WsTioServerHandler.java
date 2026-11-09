@@ -374,17 +374,23 @@ public class WsTioServerHandler implements TioServerHandler {
 	 */
 	private WsRequest decodeFrame(ByteBuffer buffer, ChannelContext channelContext) throws WsProtocolException {
 		WsSessionContext session = channelContext.get(WsSessionContext.WS_SESSION_CONTEXT_KEY);
-		// 关闭握手中，不再处理后续数据
-		if (session.isCloseSent()) {
-			return null;
-		}
-
 		WsRequest frame = WsServerDecoder.decode(buffer, channelContext);
 		if (frame == null) {
 			return null;
 		}
 
 		Opcode opcode = frame.getWsOpcode();
+		// 关闭握手中：数据帧直接丢弃（帧已从缓冲区消费掉，不会再堆积），
+		// 但控制帧必须继续处理——尤其对端回的 Close 帧，否则关闭握手永远等不到回应，
+		// 只能等 Ws#DEFAULT_CLOSE_TIMEOUT 超时后强制断开。
+		if (session.isCloseSent()) {
+			if (opcode == Opcode.CLOSE) {
+				parseClosePayload(frame);
+				return frame;
+			}
+			return null;
+		}
+
 		// 控制帧可以插入分片消息中间，不参与分片拼装
 		if (opcode.isControlFrame()) {
 			if (opcode == Opcode.CLOSE) {

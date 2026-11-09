@@ -3,6 +3,9 @@
 ## 发行版本
 
 ### v2.0.18 - 2026-11-08
+- fix(websocket): 服务端主动关闭（`Ws.close`）后不再吞掉对端回的 Close 帧。`WsTioServerHandler#decodeFrame` 原先在「已发 Close」状态下直接丢弃所有帧，对端回的 Close 也被吞掉，`closeReceived` 永远为 false，关闭握手只能等 `Ws#DEFAULT_CLOSE_TIMEOUT`（5s）超时后强制断开，关闭原因也被这次强制 `remove` 覆盖成误导性的「关闭握手超时」。现改为只丢弃数据帧、控制帧继续处理（Close 照常解析），收到对端 Close 即走完成分支立即断开 TCP。
+- fix(websocket): `WsServerEncoder` 拒绝负载超过 125 字节的控制帧（RFC 6455 §5.5），`Ws.ping` 传入超长数据时不再把非法帧发给对端，改为在编码阶段抛 `IllegalArgumentException`。
+- test(websocket): 新增「服务端主动关闭 → 对端回 Close → 连接应立即关闭」端到端用例，以及控制帧负载 125 / 126 字节的边界用例。
 - fix(websocket): `WsCloseCode.isValid` 与 `WsUtf8Validator.isValidUtf8` 的返回值语义与名称相反（返回的是「是否不合法」），分别改名为 `isInvalid` / `isInvalidUtf8` 并保留原名作为正向委托，调用点统一使用新名，避免误判关闭码与 UTF-8 合法性。
 - test(websocket): 新增可直接 `main` 启动的 `WsExample` 测试服务（默认端口 8182），演示文本/二进制收发、ping/pong、主动推送、关闭握手、子协议协商与握手阶段 token 拦截，方便手工验证协议行为。
 - fix(websocket): 握手响应中的子协议头名由小写 `sec-websocket-protocol` 改为规范的 `Sec-WebSocket-Protocol`，与同一响应里的 `Sec-WebSocket-Accept` 保持一致。
@@ -12,10 +15,10 @@
 - feat(websocket): 帧解析补齐 RFC 校验。RSV 位必须为 0、控制帧不可分片且负载不超过 125 字节、64 位长度最高位必须为 0、客户端发往服务端的帧必须带掩码；违反协议时先回对应状态码的 Close 帧（1002 / 1007 / 1009）再断开连接。
 - feat(websocket): 分片消息按 RFC 6455 §5.4 拼装。续帧必须跟随首帧、分片途中插入新的数据帧按协议错误处理，顺序非法时回 1002；TEXT 帧在全部分片拼装完成后才做 UTF-8 校验，非法序列回 1007。
 - feat(websocket): 新增 `Ws` 门面（`close` / `ping` / `pong`）与 `WsCloseCode` 关闭码常量，服务端可发起完整关闭握手（`Tio.remove` 仍是直接断 TCP，客户端会看到 1006 异常断开）；`IWsMsgHandler` 新增 `onPong` 回调；`WsResponse` 新增 `fromPing` / `fromPong` / `fromClose` 工厂方法。
-- refactor(websocket): `Opcode.NOT_FIN` 更名为 `Opcode.CONTINUATION`（0x0 的正确语义是续帧，FIN 是独立标志位）；`Opcode.valueOf(byte)` 遇到协议未定义的操作码返回 null 而不是抛异常；`WsSessionContext` 的 `lastParts` 字段由分片状态机取代。
+- refactor(websocket): `Opcode.NOT_FIN` 更名为 `Opcode.CONTINUATION`（0x0 的正确语义是续帧，FIN 是独立标志位），**公开枚举常量改名属破坏性变更**，2.0.x 内升级需同步改引用；`Opcode.valueOf(byte)` 遇到协议未定义的操作码返回 null 而不是抛异常；`WsSessionContext` 的 `lastParts` 字段由分片状态机取代。
 - fix(websocket): 编码器按 RFC 6455 §5.2 用最少的字节数编码长度（65535 及以下用 16 位长度），服务端发出的帧不带掩码位；101 协议切换响应不再附带 `Content-Length`。
 - feat(core): `TioServerConfig#getTaskService()` 在服务端启动后返回实际使用的定时任务服务（此前仅在用户显式设置时才有值），业务侧可以复用服务端的时间轮。
-- test(websocket): 新增 34 个用例覆盖帧格式校验（解码器 12）、编码规则（编码器 8）与端到端行为（14），包含握手各分支、ping/pong、关闭握手、分片拼装与协议错误断链。
+- test(websocket): 新增 45 个用例覆盖帧格式校验（解码器 12）、编码规则（编码器 10）、端到端行为（16）、关闭码（3）与 UTF-8 校验（4），包含握手各分支、ping/pong、关闭握手、分片拼装与协议错误断链。
 - fix(ssl): 修复 `SslEngineWorker#engineLock` 引入的自死锁，表现为 TLS 客户端「一直连不上」。握手完成回调（`TioListener.onAfterConnected`）此前是在持有 `engineLock` 时触发的，而业务通常在该回调里同步阻塞发送首包（如 mica-mqtt 用 `Tio.bSend` 发 CONNECT）：发送线程需要 `engineLock` 才能加密数据，而 `engineLock` 正被回调线程持有 → 读线程等发送完成、发送线程等锁，互相等待，`bSend` 10s 超时后连接被关闭并触发无限重连。现把握手完成通知、明文数据投递（decode/handler）与 session 关闭回调全部移到释放 `engineLock` 之后执行，锁内不再回调任何业务代码；`beginHandshake` / `close` / `terminate` 也纳入同一把锁，避免 `SSLEngine` 被并发访问。
 - fix(ssl): `SslEngineWorker` 的 `SSLEngine` 增加连接级 `ReentrantLock`，把读线程的 `unwrap` 与写线程的 `wrap` 串行化。`SSLEngine` 非线程安全，并发访问会导致序号/密钥状态错乱，线上表现为 `Tag mismatch!` / `AEADBadTagException`，连接反复重连。
 - fix(ssl): `SslEngineWorker#driveHandshake` 移除 `NOT_HANDSHAKING` 状态下提前 `completeHandshake()` 的误判，握手完成只认 `FINISHED`。此前握手被提前判定完成后，业务包会在握手真正结束前被加密发出，对端收到非法的 TLS 记录，nginx 侧报 `bad record type`、access log 出现 `500 client:0/0 ssl:(NONE)`。同时在解密出应用数据时补一层兜底，避免握手完成信号丢失导致业务包永久滞留在待发送队列。

@@ -154,6 +154,16 @@ public class WsTestClient implements AutoCloseable {
 	}
 
 	/**
+	 * 设置读超时
+	 *
+	 * @param timeoutMillis 超时时间（毫秒）
+	 * @throws IOException IOException
+	 */
+	public void setReadTimeout(int timeoutMillis) throws IOException {
+		this.socket.setSoTimeout(timeoutMillis);
+	}
+
+	/**
 	 * 发送一个帧
 	 *
 	 * @param opcode 操作码

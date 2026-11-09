@@ -163,8 +163,9 @@ WebSocket 协议细节由框架处理，业务层不需要再关心：
 | 扩展协商 | 不支持任何扩展（如 `permessage-deflate`），响应中不会回写 `Sec-WebSocket-Extensions` |
 | Ping | 收到 Ping **自动回 Pong**，负载原样带回 |
 | Pong | 通过 `IWsMsgHandler#onPong` 回调给业务层 |
-| Close | 收到 Close **自动回 Close**（状态码与对端保持一致），该帧发出后关闭 TCP 连接 |
+| Close | 收到 Close **自动回 Close**（状态码与对端保持一致），该帧发出后关闭 TCP 连接；本端已发 Close 时只丢弃数据帧，控制帧继续处理，收到对端回的 Close 即断开（`Ws#DEFAULT_CLOSE_TIMEOUT` 超时兜底） |
 | 分片消息 | 自动拼装；分片顺序不合法（续帧没有首帧、分片中途插入新数据帧）按协议错误处理 |
+| 服务端发送 | 服务端发出的帧恒为 `FIN=1`（不分片）且不带掩码位；发送大消息由协议层按 512KB 上限校验，业务无需自行分片 |
 | 文本编码 | TEXT 帧按 RFC 要求强制 UTF-8 校验，非法序列按 1007 关闭 |
 | 协议错误 | 非法 opcode、RSV 位未置零、控制帧超长或被分片、客户端帧未掩码等，按 RFC 对应的状态码（1002 / 1007 / 1009）回 Close 帧后断开 |
 
@@ -186,6 +187,9 @@ Ws.ping(ctx, "ping".getBytes());
 
 > `Tio.remove(ctx, "...")` 是直接断 TCP，客户端会看到 1006 异常断开；
 > `Ws.close` 走完整的关闭握手，客户端能拿到正确的关闭码。
+>
+> 控制帧（Ping / Pong / Close）的负载上限是 125 字节（RFC 6455 §5.5），
+> `Ws.ping(ctx, data)` 传超长数据会在编码阶段抛 `IllegalArgumentException`，不会把非法帧发到对端。
 
 ## 8. WsServerStarter 构造选项
 

@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -133,5 +134,27 @@ class WsServerEncoderTest {
 		assertEquals(Opcode.CLOSE.getCode(), buffer.get(0) & 0x0F);
 		assertEquals(0, buffer.get(1) & 0xFF);
 		assertEquals(2, buffer.remaining());
+	}
+
+	@Test
+	void encode_pingPayloadOver125Bytes_isRejected() {
+		// RFC 6455 §5.5：控制帧负载不能超过 125 字节，超了就是非法帧
+		WsResponse response = WsResponse.fromPing(new byte[126]);
+
+		IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+			() -> WsServerEncoder.encode(response));
+		assertTrue(e.getMessage().contains("125"));
+	}
+
+	@Test
+	void encode_pingPayload125Bytes_isAllowed() {
+		WsResponse response = WsResponse.fromPing(new byte[125]);
+
+		ByteBuffer buffer = WsServerEncoder.encode(response);
+		buffer.flip();
+
+		assertEquals(Opcode.PING.getCode(), buffer.get(0) & 0x0F);
+		assertEquals(125, buffer.get(1) & 0xFF);
+		assertEquals(127, buffer.remaining());
 	}
 }
