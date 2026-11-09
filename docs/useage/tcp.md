@@ -175,6 +175,10 @@ public class TcpClientTest {
 | 服务端断开 | `Tio.remove(ctx, remark)` | 服务端踢人 |
 | 调度任务 | `tioServer.schedule(r, 3000)` | 基于 HashedWheelTimer，无需额外线程 |
 
+> SSL 连接的关闭是**异步**的：`Tio.close` 会先把 TLS `close_notify` 发出去，
+> socket 的真正关闭与关闭回调推迟到该记录写完之后（最长 100ms），
+> 所以 `Tio.close` 返回时连接可能还没完全断开。非 SSL 连接仍是同步关闭。
+
 ## 6. 常用配置（TioConfig）
 
 | 字段 | 默认值 | 含义 |

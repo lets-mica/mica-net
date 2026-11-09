@@ -194,9 +194,9 @@ Ws.ping(ctx, "ping".getBytes());
 > 但那个 `IllegalArgumentException` 会被发送链路的 `catch (Throwable)` 吞掉，
 > 调用方只能看到 `Tio.send` 返回 `false` + 一条 error 日志，所以不要在业务侧依赖它。
 >
-> `Ws.close` 的等待对端回应依赖定时任务：服务端用 `TioServerConfig#getTaskService()`，
-> 客户端用 `TioClientConfig#getTaskService()`（`TioClient` 构造时会把实际使用的定时器回写进配置）。
-> 两者都拿不到时退化为「立即断开 TCP」，客户端将看到 1006。
+> `Ws.close` 的等待对端回应依赖定时任务，取的是运行时实际使用的那一个
+> （`TioConfig#getRuntimeTaskService()`）：服务端启动后、客户端构造后才有值，
+> 用户显式设置的定时器优先，否则是框架自建的。拿不到时退化为「立即断开 TCP」，客户端将看到 1006。
 
 ## 8. WsServerStarter 构造选项
 
