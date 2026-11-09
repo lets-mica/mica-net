@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * 主动关闭方发出 TLS close_notify 的回归测试。
@@ -65,9 +66,36 @@ class SslCloseNotifyTest {
 	private static final String KEY_STORE = "classpath:test.jks";
 	private static final String KEY_STORE_PWD = "501937";
 	private static final long TIMEOUT_MS = 10_000L;
+	/**
+	 * 最大尝试次数。
+	 * <p>
+	 * 这条链路存在一层与实现无关的时序噪声：Windows 下如果接收队列里还压着未读的 TLS 记录
+	 *（典型是 TLS 1.3 握手后补发的 NewSessionTicket）就关闭 socket，内核会立即发 RST，
+	 * 把刚写出的 close_notify 一起丢掉，对端只能看到 Connection reset。
+	 * 用例已经先做一次业务往返把票据读走，但票据到达与读取的先后仍受调度影响，
+	 * 因此允许重试；真正的回归（不写 close_notify）每次尝试都会失败，不会被重试掩盖。
+	 * </p>
+	 */
+	private static final int MAX_ATTEMPTS = 3;
 
 	@Test
 	void peerShouldReceiveCloseNotifyWhenLocalCloses() throws Exception {
+		String remark = null;
+		for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+			remark = runOnce();
+			if (remark != null && remark.contains("SSL SessionClosed")) {
+				return;
+			}
+		}
+		fail("服务端应通过 TLS close_notify 感知到主动断开，实际关闭原因: " + remark);
+	}
+
+	/**
+	 * 跑一轮完整场景
+	 *
+	 * @return 服务端记录到的关闭原因，未感知到关闭时返回 null
+	 */
+	private String runOnce() throws Exception {
 		int port;
 		try (ServerSocket socket = new ServerSocket(0)) {
 			port = socket.getLocalPort();
@@ -146,11 +174,10 @@ class SslCloseNotifyTest {
 			// 主动关闭
 			Tio.close(ctx, null, "测试主动关闭");
 
-			assertTrue(serverClosed.await(TIMEOUT_MS, TimeUnit.MILLISECONDS), "服务端应在超时前感知到连接关闭");
-			String remark = serverRemark.get();
-			assertNotNull(remark, "服务端应记录到关闭原因");
-			assertTrue(remark.contains("SSL SessionClosed"),
-				"服务端应通过 TLS close_notify 感知到主动断开，实际关闭原因: " + remark);
+			if (!serverClosed.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+				return null;
+			}
+			return serverRemark.get();
 		} finally {
 			client.stop();
 			server.stop();

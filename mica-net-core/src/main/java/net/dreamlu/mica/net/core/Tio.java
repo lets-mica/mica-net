@@ -511,8 +511,24 @@ public class Tio {
 		// ★ TLS 优雅关闭：必须在关闭 socket 之前把 close_notify 发出去，
 		//   让对端知道是本端主动断开而不是异常断流。
 		//   发送任务此时已被取消、socket 也即将关闭，close_notify 只能绕过发送队列直写 socket。
-		SslGracefulShutdown.sendCloseNotify(context);
+		//   写是异步发起的：调用方（多为 IO/handler 线程）不再阻塞等 socket 写完成，
+		//   socket 的关闭与关闭任务的投递被推迟到写完成（或超时、失败）之后执行。
+		SslGracefulShutdown.closeGracefully(context, () -> completeClose(context, throwable, remark, isNeedRemove));
+	}
 
+	/**
+	 * 完成关闭：关闭 socket、记录关闭原因、投递关闭任务。
+	 * <p>
+	 * 独立成方法是为了让 TLS 优雅关闭能把这段推迟到 close_notify 写完之后执行：
+	 * 先关 socket 再写 close_notify，记录必然丢失。
+	 * </p>
+	 *
+	 * @param context      ChannelContext
+	 * @param throwable    Throwable
+	 * @param remark       remark
+	 * @param isNeedRemove 是否需要移除
+	 */
+	private static void completeClose(ChannelContext context, Throwable throwable, String remark, boolean isNeedRemove) {
 		if (context.asynchronousSocketChannel != null) {
 			// SSL 连接不做 shutdownInput：shutdownInput 会丢弃接收队列里尚未读取的 TLS 记录
 			//（如 TLS 1.3 的 NewSessionTicket），Windows 下还会因此立即发出 RST，

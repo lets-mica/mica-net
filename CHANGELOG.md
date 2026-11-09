@@ -5,10 +5,12 @@
 ### v2.0.18 - 2026-11-08
 - fix(websocket): 服务端主动关闭（`Ws.close`）后不再吞掉对端回的 Close 帧。`WsTioServerHandler#decodeFrame` 原先在「已发 Close」状态下直接丢弃所有帧，对端回的 Close 也被吞掉，`closeReceived` 永远为 false，关闭握手只能等 `Ws#DEFAULT_CLOSE_TIMEOUT`（5s）超时后强制断开，关闭原因也被这次强制 `remove` 覆盖成误导性的「关闭握手超时」。现改为只丢弃数据帧、控制帧继续处理（Close 照常解析），收到对端 Close 即走完成分支立即断开 TCP。
 - fix(websocket): `WsServerEncoder` 拒绝负载超过 125 字节的控制帧（RFC 6455 §5.5），`Ws.ping` 传入超长数据时不再把非法帧发给对端，改为在编码阶段抛 `IllegalArgumentException`。
+- fix(core): TLS close_notify 的写出改为异步，`Tio.close` 不再阻塞调用方线程。此前直写 socket 后要等写完成（最多 20ms 抢写 + 100ms 等写），而 `Tio.close` 的调用方基本是 IO 线程或 handler 线程，关闭动作等于让它们同步等内核。现在只发起写，socket 的关闭与关闭任务的投递（原 `Tio.close` 后半段，抽出为 `Tio#completeClose`）推迟到写完成 / 超时 / 失败的回调里执行，顺序仍是「close_notify → shutdownOutput → close」。
+- fix(core): 直写的 close_notify 补上发送统计。这条记录绕过了 `WriteCompletionHandler`，此前 `sentBytes` / `groupStat.sentBytes` 会漏算这段；现在在写完成回调里按同样的口径补记（`PacketListener` 不适用，close_notify 是 TLS 协议记录而不是业务包）。
 - fix(ssl): `SslGracefulShutdown` 直写 close_notify 前改为 CAS 抢占写状态（新增 `AbstractSendRunnable#tryStartWriting` / `finishWriting`）。原先轮询 `isWriting()` 之后再写，检查与写之间有窗口：写线程恰在此刻抢到 `writing` 位就会撞 `WritePendingException`，异常被吞后 close_notify 静默丢失；抢占成功则框架写路径会因 `writing == true` 主动让路。
 - fix(ssl): `Tio.close` 对 SSL 连接不再调用 `shutdownInput()`。Windows 下接收队列里还压着 TLS 1.3 握手期补发的 `NewSessionTicket` 时会立即发出 RST，把刚写出的 close_notify 一并丢掉，对端只能看到 `Connection reset`（对端日志表现为「读数据时发生异常: java.io.IOException」）。
 - fix(ssl): 握手前暂存队列的「取包 + 置空」并入同一把锁（`takeDeferredPackets`），消除两步之间新入队的业务包落到再也不会被排空的队列里、等待发送完成的业务方（如 `bSend`）只能等到超时的问题；`getForSendAfterSslHandshakeCompleted` 降为私有方法，避免外部绕开 `sslDeferredLock` 直接操作该队列。
-- test(ssl): `SslCloseNotifyTest` 改为「先完成一次 ping/pong 再关闭」，避开 TLS 1.3 票据滞留接收队列导致的 RST 干扰，避免用例偶发失败拖红 CI；`SslClientServerIntegrationTest` 的固定端口 `18899` 改为动态端口，避免同机并发构建撞端口。
+- test(ssl): `SslCloseNotifyTest` 改为「先完成一次 ping/pong 再关闭」，避开 TLS 1.3 票据滞留接收队列导致的 RST 干扰，避免用例偶发失败拖红 CI；同时允许最多 3 次重试——票据到达与读取的先后仍受调度影响，而真正的回归（不写 close_notify）每次尝试都会失败，不会被重试掩盖。`SslClientServerIntegrationTest` 的固定端口 `18899` 改为动态端口，避免同机并发构建撞端口。
 - test(websocket): 新增「服务端主动关闭 → 对端回 Close → 连接应立即关闭」端到端用例，以及控制帧负载 125 / 126 字节的边界用例。
 - fix(websocket): `WsCloseCode.isValid` 与 `WsUtf8Validator.isValidUtf8` 的返回值语义与名称相反（返回的是「是否不合法」），分别改名为 `isInvalid` / `isInvalidUtf8` 并保留原名作为正向委托，调用点统一使用新名，避免误判关闭码与 UTF-8 合法性。
 - test(websocket): 新增可直接 `main` 启动的 `WsExample` 测试服务（默认端口 8182），演示文本/二进制收发、ping/pong、主动推送、关闭握手、子协议协商与握手阶段 token 拦截，方便手工验证协议行为。
