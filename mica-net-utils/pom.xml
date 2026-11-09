@@ -85,14 +85,24 @@
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
-                        <!-- 在打包前执行 -->
-                        <phase>prepare-package</phase>
+                        <!--
+                            在 process-classes 阶段执行（而不是 prepare-package）：
+                            src/main/java17 下的 tools 包只是 jackson3 适配的编译期桩，
+                            运行期探测靠 ClassUtil.isPresent("tools.jackson.databind.json.JsonMapper")，
+                            桩在 classpath 上就会被误判成「用户装了 jackson3」，
+                            选中一个空实现，导致 JSON 序列化返回 null。
+
+                            桩必须在测试之前就删掉：否则 reactor 构建（mvn test）时
+                            target/classes/tools 还在 classpath 上，而打包后的 jar 里没有，
+                            两种构建方式的行为不一致，测试结果也不同。
+                        -->
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
                         <configuration>
                             <target>
-                                <!-- 打包前删除 jackson3 适配的 tools 包 -->
+                                <!-- 删除 jackson3 适配的 tools 包，保证 classpath 与发布物一致 -->
                                 <delete dir="${project.build.directory}/classes/tools" />
                             </target>
                         </configuration>

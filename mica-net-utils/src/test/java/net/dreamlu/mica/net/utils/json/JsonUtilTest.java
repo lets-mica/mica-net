@@ -25,4 +25,19 @@ class JsonUtilTest {
 		Assertions.assertEquals(name, user.getName());
 	}
 
+	/**
+	 * 按 classpath 探测出来的适配器必须能真正完成序列化。
+	 *
+	 * <p>回归点：编译期用的 jackson3 桩若残留在运行时 classpath 上，
+	 * 会被误判为「用户已安装 jackson3」，进而选中一个只会返回 null 的空实现。
+	 */
+	@Test
+	void testDetectedAdapter_shouldBeUsable() {
+		JsonAdapter jsonAdapter = JsonUtil.getJsonAdapter(null);
+		Map<String, Object> map = new HashMap<>();
+		map.put("name", "张三");
+		map.put("age", 18);
+		Assertions.assertNotNull(jsonAdapter.toJsonString(map));
+	}
+
 }
