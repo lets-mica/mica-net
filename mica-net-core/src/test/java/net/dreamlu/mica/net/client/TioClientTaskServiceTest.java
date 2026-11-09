@@ -30,33 +30,72 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * 客户端定时任务服务的可见性测试。
+ * 客户端定时任务服务的归属测试。
  * <p>
- * 背景：{@link TioClient} 构造时会自己兜底创建一个 {@link TimerTaskService}，但不回写配置，
- * 于是只能通过 {@link TioConfig} 拿定时器的组件（如 websocket 关闭握手超时兜底）在客户端侧
- * 永远拿到 null，退化成「立即断开 TCP」，对端回应的 Close 帧根本来不及处理。
+ * 背景：{@link TioClient} 构造时会自己兜底创建一个 {@link TimerTaskService}，业务侧只能通过
+ * {@link TioConfig} 拿定时器的组件（如 websocket 关闭握手超时兜底）在客户端侧永远拿到 null，
+ * 退化成「立即断开 TCP」，对端回应的 Close 帧根本来不及处理。
+ * </p>
+ * <p>
+ * 这里同时锁住两条归属规则：
+ * ① 框架自建的时间轮登记在 {@code getRuntimeTaskService()}，不占用「用户设置的」那个字段；
+ * ② 用户显式传入的时间轮与框架自建的时间轮，客户端都不负责停。
  * </p>
  *
  * @author L.cm
  */
 class TioClientTaskServiceTest {
 
+	/**
+	 * 框架自建的时间轮要能被业务侧取到（websocket 关闭握手超时兜底靠它），
+	 * 但不能写进「用户设置的」那个字段，否则同一份配置再建一个客户端时
+	 * 会把这份实例当成用户提供的直接复用。
+	 */
 	@Test
-	void clientConfigShouldExposeTaskService() throws Exception {
+	void clientConfigShouldExposeRuntimeTaskService() throws Exception {
 		TioClientConfig config = new TioClientConfig(new NoopHandler(), new DefaultTioClientListener());
 		// 关掉默认心跳，避免定时任务干扰
 		config.setHeartbeatTimeout(0);
 		TioClient client = new TioClient(config);
 		try {
-			TimerTaskService fromConfig = config.getTaskService();
-			assertNotNull(fromConfig, "TioClient 应把实际使用的定时任务服务回写进配置");
-			assertSame(client.getTaskService(), fromConfig, "配置里的定时器应与客户端实际使用的一致");
+			TimerTaskService runtime = config.getRuntimeTaskService();
+			assertNotNull(runtime, "TioClient 应把实际使用的定时任务服务登记到运行时的引用上");
+			assertSame(client.getTaskService(), runtime, "运行时的定时器应与客户端实际使用的一致");
+			assertNull(config.getTaskService(), "框架自建的时间轮不应占用「用户设置的」字段");
 		} finally {
 			client.stop();
+		}
+	}
+
+	/**
+	 * 同一份配置建两个客户端时，两个客户端必须各自拥有时间轮。
+	 * <p>
+	 * 否则停掉其中一个会把另一个的心跳与重连任务一起停掉——共享时间轮的那份实例
+	 * 是第一个客户端自建的，第二个客户端只是被动继承。
+	 * </p>
+	 */
+	@Test
+	void twoClientsWithSameConfigShouldOwnSeparateTaskService() throws Exception {
+		TioClientConfig config = new TioClientConfig(new NoopHandler(), new DefaultTioClientListener());
+		config.setHeartbeatTimeout(0);
+
+		TioClient client1 = new TioClient(config);
+		TioClient client2 = new TioClient(config);
+		try {
+			assertNotSame(client1.getTaskService(), client2.getTaskService(),
+				"同一份配置下的两个客户端应各自拥有时间轮，不能共享");
+
+			// 停掉 client1，client2 的定时器必须仍然可用
+			client1.stop();
+			assertTrue(runTaskAndWait(client2.getTaskService()), "client1 stop 之后 client2 的定时器仍应能执行任务");
+		} finally {
+			client2.stop();
 		}
 	}
 
@@ -78,16 +117,26 @@ class TioClientTaskServiceTest {
 		client.stop();
 
 		// 外部定时器必须仍然可用：还能继续注册并执行任务
+		assertTrue(runTaskAndWait(external), "客户端 stop 之后外部定时器仍应能执行任务");
+		external.stop();
+	}
+
+	/**
+	 * 在指定定时器上注册一个延时任务并等待它执行
+	 *
+	 * @param taskService 定时任务服务
+	 * @return true 表示任务在等待期内执行了
+	 */
+	private static boolean runTaskAndWait(TimerTaskService taskService) throws InterruptedException {
 		CountDownLatch ran = new CountDownLatch(1);
-		external.addTask(systemTimer -> new TimerTask(10) {
+		taskService.addTask(systemTimer -> new TimerTask(10) {
 			@Override
 			public void run() {
 				ran.countDown();
 			}
 		});
-		external.start();
-		assertTrue(ran.await(5, TimeUnit.SECONDS), "客户端 stop 之后外部定时器仍应能执行任务");
-		external.stop();
+		taskService.start();
+		return ran.await(5, TimeUnit.SECONDS);
 	}
 
 	/**

@@ -219,6 +219,13 @@ import java.util.concurrent.TimeUnit;
 public class TioClient {
 	private static final Logger log = LoggerFactory.getLogger(TioClient.class);
 	private final TioClientConfig clientConfig;
+	/**
+	 * 本客户端实际使用的定时任务服务。
+	 * <p>
+	 * 时间轮粒度见 {@link DefaultTimerTaskService#DEFAULT_TICK_MS}，
+	 * 不要在业务层另起一套，避免多处硬编码不一致。
+	 * </p>
+	 */
 	private final TimerTaskService taskService;
 	/**
 	 * 时间轮是否由本客户端创建。
@@ -237,24 +244,19 @@ public class TioClient {
 	 */
 	public TioClient(final TioClientConfig tioClientConfig) throws IOException {
 		this.clientConfig = tioClientConfig;
-		this.taskServiceOwner = tioClientConfig.getTaskService() == null;
-		this.taskService = getTimerTaskService(tioClientConfig.getTaskService());
-		if (this.taskServiceOwner) {
-			// 回写配置：客户端侧的组件（如 websocket 关闭握手超时兜底）只能通过 TioConfig 拿到定时任务服务，
-			// 不回写的话它们会以为客户端没有定时器，直接走「立即断开」的降级路径
-			tioClientConfig.setTaskService(this.taskService);
-		}
+		// 用户显式设置的时间轮优先；没设置就自建一份。
+		// 自建的不写回 config.getTaskService()（那是「用户提供的」语义），
+		// 只写 runtimeTaskService：否则同一份配置再建一个客户端时，
+		// 会把这份实例当成用户提供的直接复用，停掉一个就把另一个的心跳与重连一起停掉。
+		TimerTaskService userTaskService = tioClientConfig.getTaskService();
+		this.taskServiceOwner = userTaskService == null;
+		this.taskService = userTaskService != null ? userTaskService : new DefaultTimerTaskService();
+		// 客户端侧的组件（如 websocket 关闭握手超时兜底）只能通过 TioConfig 拿到定时任务服务，
+		// 不登记的话它们会以为客户端没有定时器，直接走「立即断开」的降级路径
+		tioClientConfig.setRuntimeTaskService(this.taskService);
 		this.channelGroup = AsynchronousChannelGroup.withThreadPool(tioClientConfig.groupExecutor);
 		startHeartbeatTask();
 		configReConnTask();
-	}
-
-	/**
-	 * 时间轮粒度见 {@link DefaultTimerTaskService#DEFAULT_TICK_MS}，
-	 * 不要在业务层另起一套，避免多处硬编码不一致。
-	 */
-	private static TimerTaskService getTimerTaskService(TimerTaskService taskService) {
-		return taskService == null ? new DefaultTimerTaskService() : taskService;
 	}
 
 	/**
@@ -564,6 +566,9 @@ public class TioClient {
 		// 只停自己创建的时间轮：外部传入的实例可能被共享，停掉会误伤其他客户端
 		if (this.taskService != null && this.taskServiceOwner) {
 			this.taskService.stop();
+			// 自建的时间轮停掉后不可逆（时间轮线程 shutdown 后无法再 start），
+			// 配置里不能留下这个死引用，否则后续误取会以为定时器还在
+			clientConfig.setRuntimeTaskService(null);
 		}
 		// 删除实例
 		clientConfig.remove();

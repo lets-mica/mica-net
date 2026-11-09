@@ -16,11 +16,8 @@
 
 package net.dreamlu.mica.net.websocket.common;
 
-import net.dreamlu.mica.net.client.TioClientConfig;
 import net.dreamlu.mica.net.core.ChannelContext;
 import net.dreamlu.mica.net.core.Tio;
-import net.dreamlu.mica.net.core.TioConfig;
-import net.dreamlu.mica.net.server.TioServerConfig;
 import net.dreamlu.mica.net.utils.timer.TimerTask;
 import net.dreamlu.mica.net.utils.timer.TimerTaskService;
 import org.slf4j.Logger;
@@ -34,8 +31,8 @@ import java.nio.charset.StandardCharsets;
  * <p>RFC 6455 §5.5.1 规定：端点收到 Close 帧后必须回一个 Close 帧，
  * 并且在双方都完成关闭握手后关闭 TCP 连接。本类提供的 {@link #close} 即为
  * 主动发起关闭握手（先发 Close 帧，再等待对端回应 Close 帧）。等待对端回应依赖定时任务，
- * 服务端取 {@code TioServerConfig#getTaskService()}、客户端取 {@code TioClientConfig#getTaskService()}；
- * 都拿不到时退化为立即断开 TCP。</p>
+ * 取的是运行时实际使用的定时器（{@code TioConfig#getRuntimeTaskService()}），
+ * 拿不到时退化为立即断开 TCP。</p>
  *
  * @author L.cm
  */
@@ -173,19 +170,17 @@ public final class Ws {
 	}
 
 	/**
-	 * 获取定时任务服务（服务端、客户端配置都支持）
+	 * 获取定时任务服务。
+	 * <p>
+	 * 取的是运行时实际使用的那一个（{@code TioConfig#getRuntimeTaskService()}）：
+	 * 服务端启动后、客户端构造后才有值，用户显式设置的定时器优先，
+	 * 否则是框架自建的。拿不到时退化为「立即断开 TCP」。
+	 * </p>
 	 *
 	 * @param context 连接上下文
 	 * @return 定时任务服务，可能为 null
 	 */
 	private static TimerTaskService getTaskService(ChannelContext context) {
-		TioConfig tioConfig = context.tioConfig;
-		if (tioConfig instanceof TioServerConfig) {
-			return ((TioServerConfig) tioConfig).getTaskService();
-		}
-		if (tioConfig instanceof TioClientConfig) {
-			return ((TioClientConfig) tioConfig).getTaskService();
-		}
-		return null;
+		return context.tioConfig.getRuntimeTaskService();
 	}
 }

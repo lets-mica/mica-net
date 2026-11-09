@@ -206,6 +206,7 @@ import net.dreamlu.mica.net.core.uuid.DefaultTioUuid;
 import net.dreamlu.mica.net.server.TioServerConfig;
 import net.dreamlu.mica.net.utils.thread.ThreadUtils;
 import net.dreamlu.mica.net.utils.thread.pool.SynThreadPoolExecutor;
+import net.dreamlu.mica.net.utils.timer.TimerTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -273,6 +274,23 @@ public abstract class TioConfig {
 	public SslConfig sslConfig = null;
 	public GroupStat groupStat = null;
 	public PacketConverter packetConverter = null;
+	/**
+	 * 用户显式设置的定时任务服务。
+	 * <p>
+	 * 只有用户自己 {@code setTaskService(...)} 放进来才算数；框架自建的时间轮不会写这个字段，
+	 * 而是写到 {@link #runtimeTaskService}。
+	 * </p>
+	 */
+	private TimerTaskService taskService;
+	/**
+	 * 运行时实际使用的定时任务服务。
+	 * <p>
+	 * 与 {@link #taskService} 分开是为了区分「用户提供的」和「框架自建的」：
+	 * 如果框架自建的实例也写进 {@code taskService}，下一份配置复用同一个客户端/服务端配置时，
+	 * 会把上一个实例当成用户提供的直接复用，停掉一个就把另一个的心跳与重连任务一起停掉。
+	 * </p>
+	 */
+	private volatile TimerTaskService runtimeTaskService;
 	public boolean useQueueSend = true;
 	public boolean useQueueDecode = false;
 	public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD;    //.queue;
@@ -500,6 +518,50 @@ public abstract class TioConfig {
 	 */
 	public void setUseQueueSend(boolean useQueueSend) {
 		this.useQueueSend = useQueueSend;
+	}
+
+	/**
+	 * 获取用户显式设置的定时任务服务
+	 *
+	 * @return 用户设置的定时任务服务，未设置时为 null
+	 */
+	public TimerTaskService getTaskService() {
+		return taskService;
+	}
+
+	/**
+	 * 设置定时任务服务。
+	 * <p>
+	 * 放这里的是「用户提供的」实例，框架不会在 {@code stop()} 时停掉它——
+	 * 它可能被多个客户端/服务端共享，由使用者自己决定何时停止。
+	 * </p>
+	 *
+	 * @param taskService 定时任务服务
+	 */
+	public void setTaskService(TimerTaskService taskService) {
+		this.taskService = taskService;
+	}
+
+	/**
+	 * 获取运行时实际使用的定时任务服务。
+	 * <p>
+	 * 服务端启动、客户端构造之后才有值：用户显式设置的优先，否则是框架自建的。
+	 * 业务侧要用时间轮（如 websocket 关闭握手超时兜底）就取这个。
+	 * </p>
+	 *
+	 * @return 运行时实际使用的定时任务服务，未启动时为 null
+	 */
+	public TimerTaskService getRuntimeTaskService() {
+		return runtimeTaskService;
+	}
+
+	/**
+	 * 设置运行时实际使用的定时任务服务（框架内部使用）
+	 *
+	 * @param runtimeTaskService 运行时实际使用的定时任务服务
+	 */
+	public void setRuntimeTaskService(TimerTaskService runtimeTaskService) {
+		this.runtimeTaskService = runtimeTaskService;
 	}
 
 	/**

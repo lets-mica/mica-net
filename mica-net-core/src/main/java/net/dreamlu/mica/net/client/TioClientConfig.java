@@ -208,7 +208,6 @@ import net.dreamlu.mica.net.core.stat.vo.NodeStatVo;
 import net.dreamlu.mica.net.core.stat.vo.StatVo;
 import net.dreamlu.mica.net.utils.thread.ThreadUtils;
 import net.dreamlu.mica.net.utils.thread.pool.SynThreadPoolExecutor;
-import net.dreamlu.mica.net.utils.timer.TimerTaskService;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -217,8 +216,9 @@ import java.util.concurrent.ExecutorService;
 /**
  * 客户端配置。
  * <p>
- * 一个配置对应一个 {@link TioClient}：{@code TioClient#stop()} 会关闭配置里的
- * executor 并把配置标记为已停止，共用同一份配置的第二个客户端在第一个停止后就无法工作。
+ * 同一个配置实例可以创建多个 {@link TioClient}，它们各自拥有独立的时间轮，互不影响；
+ * 但配置与客户端的生命周期是绑定的：{@code TioClient#stop()} 会关闭配置里的 executor
+ * 并把配置标记为已停止，之后这份配置不能再用来创建客户端（executor 已被置空）。
  * </p>
  *
  * @author tanyaowu
@@ -234,10 +234,6 @@ public class TioClientConfig extends TioConfig {
 	protected ReconnConf reconnConf;
 	private TioClientHandler tioClientHandler = null;
 	private TioClientListener tioClientListener = null;
-	/**
-	 * taskService
-	 */
-	private TimerTaskService taskService;
 	/**
 	 * 心跳超时策略
 	 */
@@ -355,14 +351,6 @@ public class TioClientConfig extends TioConfig {
 	 */
 	public void setReconnConf(ReconnConf reconnConf) {
 		this.reconnConf = reconnConf;
-	}
-
-	public TimerTaskService getTaskService() {
-		return taskService;
-	}
-
-	public void setTaskService(TimerTaskService taskService) {
-		this.taskService = taskService;
 	}
 
 	public HeartbeatTimeoutStrategy getHeartbeatTimeoutStrategy() {

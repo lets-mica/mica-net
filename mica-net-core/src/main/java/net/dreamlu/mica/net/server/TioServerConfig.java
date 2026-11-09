@@ -206,13 +206,19 @@ import net.dreamlu.mica.net.server.intf.TioServerHandler;
 import net.dreamlu.mica.net.server.intf.TioServerListener;
 import net.dreamlu.mica.net.utils.hutool.StrUtil;
 import net.dreamlu.mica.net.utils.thread.pool.SynThreadPoolExecutor;
-import net.dreamlu.mica.net.utils.timer.TimerTaskService;
 
 import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
+ * 服务端配置。
+ * <p>
+ * 同一个配置实例可以创建多个 {@link TioServer}，它们各自拥有独立的时间轮，互不影响；
+ * 但配置与服务端的生命周期是绑定的：{@code TioServer#stop()} 会关闭配置里的 executor
+ * 并把配置标记为已停止，之后这份配置不能再用来创建服务端（executor 已被置空）。
+ * </p>
+ *
  * @author tanyaowu
  * 2016年10月10日 下午5:51:56
  */
@@ -242,10 +248,6 @@ public class TioServerConfig extends TioConfig {
 	 * 开启代理协议支持
 	 */
 	private boolean proxyProtocolOn = false;
-	/**
-	 * taskService
-	 */
-	private TimerTaskService taskService;
 
 	/**
 	 * @param tioServerHandler  TioServerHandler
@@ -380,14 +382,6 @@ public class TioServerConfig extends TioConfig {
 
 	public void enableProxyProtocol(boolean enable) {
 		this.proxyProtocolOn = enable;
-	}
-
-	public TimerTaskService getTaskService() {
-		return taskService;
-	}
-
-	public void setTaskService(TimerTaskService taskService) {
-		this.taskService = taskService;
 	}
 
 	@Override

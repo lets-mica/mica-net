@@ -261,8 +261,11 @@ public class TioServer {
 	 */
 	private static TimerTaskService getTimerTaskService(TioServerConfig serverConfig) {
 		TimerTaskService taskService = Optional.ofNullable(serverConfig.getTaskService()).orElseGet(DefaultTimerTaskService::new);
-		// 回填到配置中，业务侧（如 websocket 关闭握手超时）可以复用同一个定时任务服务
-		serverConfig.setTaskService(taskService);
+		// 登记到运行时的引用上，业务侧（如 websocket 关闭握手超时）可以复用同一个定时任务服务。
+		// 注意不写 serverConfig.getTaskService()：那是「用户提供的」语义，
+		// 写成它会让下一份配置复用同一个服务端配置时把这份实例当成用户提供的直接复用，
+		// 停掉一个就把另一个的心跳任务一起停掉。
+		serverConfig.setRuntimeTaskService(taskService);
 		return taskService;
 	}
 
@@ -480,6 +483,9 @@ public class TioServer {
 		// 只停自己创建的时间轮：外部传入的实例可能被共享，停掉会误伤其他使用者
 		if (this.taskService != null && this.taskServiceOwner) {
 			this.taskService.stop();
+			// 自建的时间轮停掉后不可逆（时间轮线程 shutdown 后无法再 start），
+			// 配置里不能留下这个死引用，否则后续误取会以为定时器还在
+			this.serverConfig.setRuntimeTaskService(null);
 		}
 		try {
 			channelGroup.shutdownNow();
