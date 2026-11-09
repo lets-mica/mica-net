@@ -107,7 +107,9 @@ class SslEngineWorkerTest {
 		responseBuffer.get(actualResponse);
 		Assertions.assertArrayEquals(response, actualResponse);
 
-		server.close();
+		ByteBuffer closeNotify = server.closeOutboundAndGetCloseNotify();
+		Assertions.assertNotNull(closeNotify, "握手完成后关闭应产出 close_notify 记录");
+		serverToClient.add(closeNotify);
 		pump(client, server, clientToServer, serverToClient);
 		Assertions.assertTrue(clientSessionClosed.get());
 	}
@@ -263,11 +265,12 @@ class SslEngineWorkerTest {
 		server.beginHandshake();
 		client.beginHandshake();
 		pump(client, server, clientToServer, serverToClient);
-		if (closeServer) {
-			server.close();
-		} else {
-			client.close();
-		}
+		ByteBuffer closeNotify = closeServer
+			? server.closeOutboundAndGetCloseNotify()
+			: client.closeOutboundAndGetCloseNotify();
+		Assertions.assertNotNull(closeNotify, "握手完成后关闭应产出 close_notify 记录");
+		// close_notify 由调用方直接投递（生产路径是直写 socket），这里放进对应方向的队列再 pump
+		(closeServer ? serverToClient : clientToServer).add(closeNotify);
 		pump(client, server, clientToServer, serverToClient);
 
 		Assertions.assertEquals(closeServer, clientClosed.get());

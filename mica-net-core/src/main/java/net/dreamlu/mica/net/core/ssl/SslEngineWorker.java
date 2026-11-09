@@ -246,29 +246,11 @@ final class SslEngineWorker {
 		}
 	}
 
-	void close() {
-		// 标记为本端主动关闭，之后引擎自身触发的 CLOSED 不再回调 session closed
-		closed = true;
-		engineLock.lock();
-		try {
-			engine.closeOutbound();
-			// 驱动一次 wrap，把 close_notify 记录发出去，让对端知道是主动断开而不是异常断流
-			driveHandshake();
-			engine.closeInbound();
-		} catch (SSLException e) {
-			log.debug("{} 关闭SSL会话时忽略异常", channelContext, e);
-		} finally {
-			engineLock.unlock();
-			fireHandshakeCompleted();
-		}
-	}
-
 	/**
 	 * 关闭 outbound 并产出 close_notify 记录。
 	 * <p>
-	 * 与 {@link #close()} 的区别：这里不把 close_notify 交给发送队列，而是把记录本身返回给调用方，
-	 * 由调用方直接写入 socket。关闭流程里发送任务已被取消、socket 也即将关闭，
-	 * 走发送队列的 close_notify 会被丢弃，发不出去。
+	 * 关闭流程里发送任务已被取消、socket 也即将关闭，走发送队列的 close_notify 会被丢弃，
+	 * 所以这里不把记录交给发送队列，而是返回给调用方，由调用方直接写入 socket。
 	 * </p>
 	 *
 	 * @return close_notify 记录；引擎已关闭或无数据可发时返回 null
@@ -293,20 +275,6 @@ final class SslEngineWorker {
 		} catch (SSLException e) {
 			log.debug("{} 产出close_notify时忽略异常", channelContext, e);
 			return null;
-		} finally {
-			engineLock.unlock();
-			fireHandshakeCompleted();
-		}
-	}
-
-	void terminate() {
-		closed = true;
-		engineLock.lock();
-		try {
-			engine.closeOutbound();
-			engine.closeInbound();
-		} catch (SSLException e) {
-			log.debug("{} 终止SSL会话时忽略异常", channelContext, e);
 		} finally {
 			engineLock.unlock();
 			fireHandshakeCompleted();

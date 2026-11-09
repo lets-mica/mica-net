@@ -72,10 +72,6 @@ public final class SslHandler {
 		engineWorker.decrypt(encryptedData);
 	}
 
-	public void close() {
-		engineWorker.close();
-	}
-
 	/**
 	 * 优雅关闭：产出 close_notify 记录并关闭引擎。
 	 * <p>
@@ -87,10 +83,6 @@ public final class SslHandler {
 	 */
 	public ByteBuffer closeGracefully() {
 		return engineWorker.closeOutboundAndGetCloseNotify();
-	}
-
-	public void terminate() {
-		engineWorker.terminate();
 	}
 
 	private void sendEncryptedData(ByteBuffer encryptedData) {

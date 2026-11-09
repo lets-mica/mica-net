@@ -176,14 +176,6 @@ public class TcpSendRunnable extends AbstractSendRunnable {
 	}
 
 	/**
-	 * 检查是否有写操作正在进行
-	 */
-	@Override
-	public boolean isWriting() {
-		return writing.get();
-	}
-
-	/**
 	 * 抢占写状态（CAS），关闭流程直写 socket 时用，避免与框架写路径撞 {@code WritePendingException}
 	 *
 	 * @return true 表示抢占成功

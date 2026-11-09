@@ -231,8 +231,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ReadCom
 	/**
 	 * 读缓冲区。
 	 * <p>
-	 * 构造时先分配一份，保证 {@link #getReadByteBuffer()} 始终返回非 null；
-	 * 第一次 {@link #registerRead(AsynchronousSocketChannel)} 时直接复用它，
+	 * 构造时先分配一份，第一次 {@link #registerRead(AsynchronousSocketChannel)} 时直接复用它，
 	 * 换 socket（断线重连）时才新建，避免新旧连接共用缓冲区。
 	 * </p>
 	 */
@@ -502,14 +501,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ReadCom
 			return;
 		}
 		Tio.close(channelContext, exc, "读数据时发生异常: " + exc.getClass().getName(), CloseCode.READ_ERROR);
-	}
-
-	/**
-	 * @return 当前读缓冲区（首次读注册前返回构造时分配的缓冲区，不会为 null）
-	 */
-	public ByteBuffer getReadByteBuffer() {
-		ReadAttachment attachment = currentAttachment;
-		return attachment == null ? readByteBuffer : attachment.getBuffer();
 	}
 
 	/**

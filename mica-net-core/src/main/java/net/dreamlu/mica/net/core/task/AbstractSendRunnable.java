@@ -185,9 +185,13 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	/**
 	 * 尝试抢占「正在写」状态。
 	 * <p>
-	 * 供关闭流程（如直写 TLS close_notify）使用：{@link #isWriting()} 的「先查后写」之间
-	 * 有窗口，写线程可能恰好在此刻发起写，导致两者都调 {@code write()} 并撞上
-	 * {@code WritePendingException}。用 CAS 抢占后，框架的写任务会因 {@code writing == true} 主动让路。
+	 * 供关闭流程（如直写 TLS close_notify）使用：先查写状态、再发起写的两段式判断中间有窗口，
+	 * 写线程可能恰好在此刻发起写，导致两者都调 {@code write()} 并撞上
+	 * {@code WritePendingException}。用 CAS 抢占后，框架的写任务会因写状态被占用而主动让路。
+	 * </p>
+	 * <p>
+	 * 默认返回 false：没有写状态机的实现（如 UDP）不支持直写，关闭流程据此跳过 close_notify，
+	 * 而不是盲目抢占后与框架的写路径并发。
 	 * </p>
 	 *
 	 * @return true 表示抢占成功，调用方必须在写结束后调用 {@link #finishWriting()}
@@ -303,18 +307,6 @@ public abstract class AbstractSendRunnable extends AbstractQueueRunnable<Packet>
 	@Override
 	public Queue<Packet> getMsgQueue() {
 		return msgQueue;
-	}
-
-	/**
-	 * 是否有写操作正在进行。
-	 * <p>
-	 * 默认没有进行中的写操作，TCP 实现会返回真实的写状态。
-	 * </p>
-	 *
-	 * @return true 表示正在写
-	 */
-	public boolean isWriting() {
-		return false;
 	}
 
 	@Override
